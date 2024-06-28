@@ -21,6 +21,7 @@ import TitleDetailScreen from './pages/TitleDetail';
 import DebugScreen from './pages/Debug';
 import GameMapScreen from './pages/GameMap';
 import GamepadDebugScreen from './pages/GamepadDebug';
+import AboutScreen from './pages/About';
 
 // Change theme: https://akveo.github.io/react-native-ui-kitten/docs/guides/branding#primary-color
 import {default as theme} from '../theme.json';
@@ -108,6 +109,7 @@ function App() {
                   options={{headerShown: false}}
                 />
                 <RootStack.Screen name="Debug" component={DebugScreen} />
+                <RootStack.Screen name="About" component={AboutScreen} />
                 <RootStack.Screen name="GameMap" component={GameMapScreen} />
                 <RootStack.Screen
                   name="GamepadDebug"

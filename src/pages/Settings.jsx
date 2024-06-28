@@ -340,6 +340,11 @@ function SettingsScreen({navigation}) {
           }}
         />
         <SettingItem
+          title={'About'}
+          description={'About XStreaming.'}
+          onPress={() => navigation.navigate('About')}
+        />
+        <SettingItem
           title={'DEBUG'}
           description={'Enter debug.'}
           onPress={() => handleItemPress('debug')}
