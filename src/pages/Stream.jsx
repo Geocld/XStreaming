@@ -152,19 +152,22 @@ function StreamScreen({navigation, route}) {
           );
         })
         .catch(e => {
-          const msg = '[StartSession] Fail:' + e;
-          Alert.alert(t('Warning'), msg, [
-            {
-              text: t('Confirm'),
-              style: 'default',
-              onPress: () => {
-                if (isExiting) {
-                  return;
-                }
-                navigation.pop();
+          if (e !== '') {
+            const msg = '[StartSession] Fail:' + e;
+            Alert.alert(t('Warning'), msg, [
+              {
+                text: t('Confirm'),
+                style: 'default',
+                onPress: () => {
+                  if (isExiting) {
+                    return;
+                  }
+                  // navigation.pop();
+                  navigation.navigate('Home');
+                },
               },
-            },
-          ]);
+            ]);
+          }
         });
     }
     if (type === 'xcloudOfferReady') {

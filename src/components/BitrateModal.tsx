@@ -30,8 +30,8 @@ const BitrateModal: React.FC<Props> = ({
 }) => {
   const {t} = useTranslation();
   const [value, setValue] = React.useState(currentValue ?? 10);
-  const [mode, setMode] = React.useState('auto');
-  const [idx, setIdx] = React.useState(0);
+  const [mode, setMode] = React.useState(currentMode ?? 'auto');
+  const [idx, setIdx] = React.useState(currentMode === 'auto' ? 0 : 1);
 
   const handleClose = () => {
     onClose();
@@ -50,12 +50,6 @@ const BitrateModal: React.FC<Props> = ({
     setIdx(i);
     setMode(data[i].value);
   };
-
-  data.forEach((d, i) => {
-    if (d.value === currentMode) {
-      setIdx(i);
-    }
-  });
 
   return (
     <Modal

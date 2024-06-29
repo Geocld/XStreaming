@@ -218,6 +218,8 @@ function SettingsScreen({navigation}) {
         <BitrateModal
           show={showBitrateModal}
           isCloud={currentModal === 'xcloud_bitrate'}
+          currentMode={currentModal === 'xcloud_bitrate' ? settings.xcloud_bitrate_mode : settings.xhome_bitrate_mode}
+          currentValue = {currentModal === 'xcloud_bitrate' ? settings.xcloud_bitrate : settings.xhome_bitrate}
           onConfirm={handleChangeBitrate}
           onClose={() => setShowBitrateModal(false)}
         />

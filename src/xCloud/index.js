@@ -157,7 +157,8 @@ export default class XcloudApi {
             case 'Provisioning':
               if (this.isStoped) {
                 // Canceled
-                reject('Streaming canceled');
+                // reject('Streaming canceled');
+                reject('')
               } else {
                 setTimeout(() => {
                   // Continue
