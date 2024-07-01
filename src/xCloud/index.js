@@ -302,6 +302,80 @@ export default class XcloudApi {
     });
   }
 
+  checkIceResponse() {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + this.gsToken,
+          },
+        })
+        .then(iceResponse => {
+          const iceResult = iceResponse.data;
+          log.info('[checkIceResponse] res:', iceResult);
+
+          if (iceResult === '') {
+            setTimeout(() => {
+              // Continue check
+              this.checkIceResponse()
+                .then(state => {
+                  resolve(state);
+                })
+                .catch(error => {
+                  reject(error);
+                });
+            }, 1000);
+          } else {
+            const exchangeIce = JSON.parse(iceResult.exchangeResponse);
+            const computedCandidates = [];
+
+            // Find Teredo Address and extract remote ip
+            for (const candidate in exchangeIce) {
+              const candidateAddress =
+                exchangeIce[candidate].candidate.split(' ');
+              if (
+                candidateAddress.length > 4 &&
+                candidateAddress[4].substr(0, 4) === '2001'
+              ) {
+                const address = new Address6(candidateAddress[4]);
+                const teredo = address.inspectTeredo();
+
+                computedCandidates.push({
+                  candidate:
+                    'a=candidate:10 1 UDP 1 ' +
+                    teredo.client4 +
+                    ' 9002 typ host ',
+                  messageType: 'iceCandidate',
+                  sdpMLineIndex: '0',
+                  sdpMid: '0',
+                });
+                computedCandidates.push({
+                  candidate:
+                    'a=candidate:11 1 UDP 1 ' +
+                    teredo.client4 +
+                    ' ' +
+                    teredo.udpPort +
+                    ' typ host ',
+                  messageType: 'iceCandidate',
+                  sdpMLineIndex: '0',
+                  sdpMid: '0',
+                });
+              }
+
+              computedCandidates.push(exchangeIce[candidate]);
+            }
+
+            resolve(computedCandidates);
+          }
+        })
+        .catch(e => {
+          log.info('[checkIceResponse] error:', e);
+          reject(e);
+        });
+    });
+  }
+
   sendICECandidates(iceCandidates) {
     log.info(
       '[sendICECandidates] iceCandidates:',
@@ -325,63 +399,9 @@ export default class XcloudApi {
         )
         .then(() => {
           // Check ICE result
-          axios
-            .get(
-              `${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`,
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: 'Bearer ' + this.gsToken,
-                },
-              },
-            )
-            .then(iceResponse => {
-              log.info(
-                '[sendICECandidates] iceResponse:',
-                JSON.stringify(iceResponse.data),
-              );
-
-              const iceResult = iceResponse.data;
-              const exchangeIce = JSON.parse(iceResult.exchangeResponse);
-              const computedCandidates = [];
-
-              // Find Teredo Address and extract remote ip
-              for (const candidate in exchangeIce) {
-                const candidateAddress =
-                  exchangeIce[candidate].candidate.split(' ');
-                if (
-                  candidateAddress.length > 4 &&
-                  candidateAddress[4].substr(0, 4) === '2001'
-                ) {
-                  const address = new Address6(candidateAddress[4]);
-                  const teredo = address.inspectTeredo();
-
-                  computedCandidates.push({
-                    candidate:
-                      'a=candidate:10 1 UDP 1 ' +
-                      teredo.client4 +
-                      ' 9002 typ host ',
-                    messageType: 'iceCandidate',
-                    sdpMLineIndex: '0',
-                    sdpMid: '0',
-                  });
-                  computedCandidates.push({
-                    candidate:
-                      'a=candidate:11 1 UDP 1 ' +
-                      teredo.client4 +
-                      ' ' +
-                      teredo.udpPort +
-                      ' typ host ',
-                    messageType: 'iceCandidate',
-                    sdpMLineIndex: '0',
-                    sdpMid: '0',
-                  });
-                }
-
-                computedCandidates.push(exchangeIce[candidate]);
-              }
-
-              resolve(computedCandidates);
+          this.checkIceResponse()
+            .then(candidates => {
+              resolve(candidates);
             })
             .catch(error => {
               reject(error);
