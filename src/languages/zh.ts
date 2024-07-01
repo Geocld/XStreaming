@@ -14,6 +14,8 @@ export default {
       '登录已失效或未登录，请重新登录',
     'Loading...': '加载中...',
     'Start stream': '开始串流',
+    'Local connect': '本地连接',
+    'Remote connect': '远程连接',
     NoXGP:
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
     'Recent Games': '最近游玩',

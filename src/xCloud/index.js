@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {getSettings} from '../store/settingStore';
 import {debugFactory} from '../utils/debug';
+import {Address6} from 'ip-address';
 
 const log = debugFactory('xCloud/index.js');
 
@@ -158,7 +159,7 @@ export default class XcloudApi {
               if (this.isStoped) {
                 // Canceled
                 // reject('Streaming canceled');
-                reject('')
+                reject('');
               } else {
                 setTimeout(() => {
                   // Continue
@@ -302,18 +303,21 @@ export default class XcloudApi {
   }
 
   sendICECandidates(iceCandidates) {
-    log.info('[sendICECandidates] iceCandidates:', iceCandidates);
+    log.info(
+      '[sendICECandidates] iceCandidates:',
+      JSON.stringify(iceCandidates),
+    );
     return new Promise((resolve, reject) => {
-      const body = JSON.stringify({
-        iceCandidates,
-      });
+      const postData = {
+        messageType: 'iceCandidate',
+        candidate: iceCandidates,
+      };
       axios
         .post(
           `${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`,
-          body,
+          JSON.stringify(postData),
           {
             headers: {
-              Accept: 'application/json',
               'Content-Type': 'application/json',
               Authorization: 'Bearer ' + this.gsToken,
             },
@@ -332,9 +336,52 @@ export default class XcloudApi {
               },
             )
             .then(iceResponse => {
-              log.info('[sendICECandidates] iceResponse:', iceResponse.data);
+              log.info(
+                '[sendICECandidates] iceResponse:',
+                JSON.stringify(iceResponse.data),
+              );
 
-              resolve(iceResponse.data);
+              const iceResult = iceResponse.data;
+              const exchangeIce = JSON.parse(iceResult.exchangeResponse);
+              const computedCandidates = [];
+
+              // Find Teredo Address and extract remote ip
+              for (const candidate in exchangeIce) {
+                const candidateAddress =
+                  exchangeIce[candidate].candidate.split(' ');
+                if (
+                  candidateAddress.length > 4 &&
+                  candidateAddress[4].substr(0, 4) === '2001'
+                ) {
+                  const address = new Address6(candidateAddress[4]);
+                  const teredo = address.inspectTeredo();
+
+                  computedCandidates.push({
+                    candidate:
+                      'a=candidate:10 1 UDP 1 ' +
+                      teredo.client4 +
+                      ' 9002 typ host ',
+                    messageType: 'iceCandidate',
+                    sdpMLineIndex: '0',
+                    sdpMid: '0',
+                  });
+                  computedCandidates.push({
+                    candidate:
+                      'a=candidate:11 1 UDP 1 ' +
+                      teredo.client4 +
+                      ' ' +
+                      teredo.udpPort +
+                      ' typ host ',
+                    messageType: 'iceCandidate',
+                    sdpMLineIndex: '0',
+                    sdpMid: '0',
+                  });
+                }
+
+                computedCandidates.push(exchangeIce[candidate]);
+              }
+
+              resolve(computedCandidates);
             })
             .catch(error => {
               reject(error);

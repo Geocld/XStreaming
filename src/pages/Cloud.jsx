@@ -38,6 +38,7 @@ function CloudScreen({navigation}) {
   const [newTitles, setNewTitles] = React.useState([]);
   const [titlesMap, setTitlesMap] = React.useState({});
   const [RecentTitles, setRecentNewTitles] = React.useState([]);
+  const flatListRef = React.useRef(null);
 
   React.useEffect(() => {
     if (!streamingTokens.xCloudToken) {
@@ -105,13 +106,23 @@ function CloudScreen({navigation}) {
   };
 
   const handleSelectCategories = indexPath => {
+    setLoading(true);
     setSelectedIndex(indexPath);
     setSelectedText(selectLists[indexPath.row]);
     setCurrentPage(1);
+    scrollToTop();
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
 
   const handleChangePage = page => {
     setCurrentPage(page);
+    scrollToTop();
+  };
+
+  const scrollToTop = () => {
+    flatListRef.current?.scrollToOffset({animated: true, offset: 0});
   };
 
   let currentTitles = [];
@@ -168,6 +179,7 @@ function CloudScreen({navigation}) {
             {showTitles.length > 0 && (
               <>
                 <FlatList
+                  ref={flatListRef}
                   data={showTitles}
                   numColumns={2}
                   contentContainerStyle={styles.listContainer}
@@ -182,7 +194,7 @@ function CloudScreen({navigation}) {
                     );
                   }}
                 />
-                {currentTitles.length > 20 && (
+                {!loading && currentTitles.length > 20 && (
                   <Pagination
                     totalItems={currentTitles.length}
                     pageSize={20}

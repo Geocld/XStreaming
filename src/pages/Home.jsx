@@ -8,7 +8,7 @@ import {
   RefreshControl,
   NativeModules,
 } from 'react-native';
-import {Text, Icon, Divider, Button} from '@ui-kitten/components';
+import {Text, Icon, Divider, Button, Card, Modal} from '@ui-kitten/components';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import ConsoleItem from '../components/ConsoleItem';
@@ -22,6 +22,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
+import LinkModeModal from '../components/LinkModeModal';
 
 const log = debugFactory('HomeScreen');
 
@@ -34,6 +35,8 @@ function HomeScreen({navigation, route}) {
   const [profile, setProfile] = React.useState(null);
   const [consoles, setConsoles] = React.useState([]);
   const [settings, setSettings] = React.useState({});
+  const [consoleId, setConsoleId] = React.useState('');
+  const [showLinkMode, setShowLinkMode] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
   const _authentication = React.useRef(authentication);
@@ -102,7 +105,7 @@ function HomeScreen({navigation, route}) {
       const _settings = getSettings();
       log.info('LocalSettings:', _settings);
 
-      // 从登录页返回
+      // Return from Login screen
       if (route.params?.xalUrl) {
         if (!_isLogined.current) {
           log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
@@ -186,6 +189,12 @@ function HomeScreen({navigation, route}) {
           textStyle={styles.spinnerTextStyle}
         />
 
+        <LinkModeModal
+          show={showLinkMode}
+          onConfirm={handleStartStream}
+          onClose={() => setShowLinkMode(false)}
+        />
+
         {profile && <Profile profile={profile} />}
 
         {consoles.length > 0 ? (
@@ -200,7 +209,9 @@ function HomeScreen({navigation, route}) {
                   <ConsoleItem
                     consoleItem={console}
                     key={console.id}
-                    onPress={() => handleStartStream(console.id)}
+                    onPress={() => {
+                      handleStartStream(console.id);
+                    }}
                   />
                 );
               })}

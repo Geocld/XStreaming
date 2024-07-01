@@ -14,6 +14,8 @@ export default {
       'Login has expired or not logged in, please log in again',
     'Loading...': 'Loading...',
     'Start stream': 'Start stream',
+    'Local connect': 'Local connect',
+    'Remote connect': 'Remote connect',
     NoXGP:
       'You have not activated XGPU or do not have XGPU permission in your region. Please check your account permissions or change the region in settings and try again.',
     'Recent Games': 'Recent Games',

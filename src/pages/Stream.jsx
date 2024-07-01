@@ -206,24 +206,19 @@ function StreamScreen({navigation, route}) {
       // SendICE
       streamApi
         .sendICECandidates(message)
-        .then(iceResponse => {
-          // TODO: iceResponse.exchangeResponse is undefined, stream will fail
-          // log.info('iceResponse.exchangeResponse:', iceResponse.exchangeResponse);
-          if (iceResponse.exchangeResponse) {
-            const iceDetails = JSON.parse(iceResponse.exchangeResponse);
-            log.info('Client - ICE Candidates:', iceDetails);
+        .then(candidates => {
+          log.info('Client - ICE Candidates:', JSON.stringify(candidates));
 
-            const postData = {
-              type: 'stream',
-              message: {
-                single: 'sendIceEnd',
-                data: iceDetails,
-              },
-            };
-            webviewRef.current.injectJavaScript(
-              generateOnMessageFunction(postData),
-            );
-          }
+          const postData = {
+            type: 'stream',
+            message: {
+              single: 'sendIceEnd',
+              data: candidates,
+            },
+          };
+          webviewRef.current.injectJavaScript(
+            generateOnMessageFunction(postData),
+          );
         })
         .catch(e => {
           Alert.alert(t('Warning'), '[sendICECandidates] fail:' + e, [
