@@ -13,6 +13,7 @@ import DeadZoneModal from '../components/DeadZoneModal';
 import RegionModal from '../components/RegionModal';
 import GameLangModal from '../components/GameLangModal';
 import CodecModal from '../components/CodecModal';
+import SingnalModal from '../components/SingnalModal';
 import {useSelector} from 'react-redux';
 import RNRestart from 'react-native-restart';
 import CookieManager from '@react-native-cookies/cookies';
@@ -37,6 +38,7 @@ function SettingsScreen({navigation}) {
   const [showDeadZoneModal, setShowDeadZoneModal] = React.useState(false);
   const [showRegionModal, setShowRegionModal] = React.useState(false);
   const [showGameLangModal, setShowGameLangModal] = React.useState(false);
+  const [showSignalingModal, setShowSignalingModal] = React.useState(false);
   const [settings, setSettings] = React.useState({});
   const [currentModal, setCurrentModal] = React.useState('');
 
@@ -79,6 +81,9 @@ function SettingsScreen({navigation}) {
     }
     if (id === 'game_lang') {
       setShowGameLangModal(true);
+    }
+    if (id === 'signaling') {
+      setShowSignalingModal(true);
     }
     if (id === 'debug') {
       navigation.navigate('Debug');
@@ -218,8 +223,16 @@ function SettingsScreen({navigation}) {
         <BitrateModal
           show={showBitrateModal}
           isCloud={currentModal === 'xcloud_bitrate'}
-          currentMode={currentModal === 'xcloud_bitrate' ? settings.xcloud_bitrate_mode : settings.xhome_bitrate_mode}
-          currentValue = {currentModal === 'xcloud_bitrate' ? settings.xcloud_bitrate : settings.xhome_bitrate}
+          currentMode={
+            currentModal === 'xcloud_bitrate'
+              ? settings.xcloud_bitrate_mode
+              : settings.xhome_bitrate_mode
+          }
+          currentValue={
+            currentModal === 'xcloud_bitrate'
+              ? settings.xcloud_bitrate
+              : settings.xhome_bitrate
+          }
           onConfirm={handleChangeBitrate}
           onClose={() => setShowBitrateModal(false)}
         />
@@ -260,6 +273,12 @@ function SettingsScreen({navigation}) {
         current={settings.force_region_ip}
         onSelect={handleChangeRegion}
         onClose={() => setShowRegionModal(false)}
+      />
+
+      <SingnalModal
+        show={showSignalingModal}
+        onSelect={() => setShowSignalingModal(false)}
+        onClose={() => setShowSignalingModal(false)}
       />
 
       <GameLangModal
@@ -328,6 +347,13 @@ function SettingsScreen({navigation}) {
             'Changing the region allows you to use XGPU services without a proxy',
           )}
           onPress={() => handleItemPress('region')}
+        />
+        <SettingItem
+          title={t('Signal server')}
+          description={t(
+            'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option',
+          )}
+          onPress={() => handleItemPress('signaling')}
         />
         <SettingItem
           title={t('Preferred language of game')}

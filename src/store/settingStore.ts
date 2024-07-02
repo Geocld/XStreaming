@@ -1,4 +1,3 @@
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import {storage} from './mmkv';
 import {debugFactory} from '../utils/debug';
 const log = debugFactory('settingStore');

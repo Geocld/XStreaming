@@ -123,7 +123,7 @@ function StreamScreen({navigation, route}) {
         FullScreenManager.immersiveModeOff();
         // navigation.pop();
         navigation.navigate('Home');
-      }, 2000);
+      }, 500);
     });
   };
 
