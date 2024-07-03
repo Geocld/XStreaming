@@ -46,6 +46,8 @@ export default {
     'Set region': '地区设置',
     'Changing the region allows you to use XGPU services without a proxy':
       '修改地区可以免代理使用XGPU服务',
+    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option': '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项',
+    'Prioritize using IPv6 connection': '优先使用Ipv6连接',
     'Preferred language of game': '游戏偏好语言',
     'Set language of cloud game': '设置云游戏语言',
     'Key mapping': '按键映射',
@@ -58,6 +60,8 @@ export default {
     bitrate: '码率',
     On: '开',
     Off: '关',
+    Enable: '开',
+    Disable: '关',
     Current: '当前值',
     NoData: '这里空空如也~',
     Gamerscore: '分数',

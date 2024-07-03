@@ -119,7 +119,10 @@ export default class XcloudApi {
                     },
                   )
                   .then(result => {
-                    log.info('[startSession] /configuration res:', result.data);
+                    log.info(
+                      '[startSession] /configuration res:',
+                      JSON.stringify(result.data),
+                    );
                     resolve(result.data);
                   });
               })
@@ -366,7 +369,58 @@ export default class XcloudApi {
               computedCandidates.push(exchangeIce[candidate]);
             }
 
-            resolve(computedCandidates);
+            const pattern = new RegExp(
+              /a=candidate:(?<foundation>\d+) (?<component>\d+) UDP (?<priority>\d+) (?<ip>[^\s]+) (?<port>\d+) (?<the_rest>.*)/,
+            );
+
+            const lst = [];
+            for (let item of computedCandidates) {
+              if (item.candidate === 'a=end-of-candidates') {
+                continue;
+              }
+
+              const groups = pattern.exec(item.candidate).groups;
+              lst.push(groups);
+            }
+
+            // PerferIPV6
+            const _settings = getSettings();
+            if (_settings.ipv6) {
+              lst.sort((a, b) => {
+                const firstIp = a.ip;
+                const secondIp = b.ip;
+  
+                return !firstIp.includes(':') && secondIp.includes(':') ? 1 : -1;
+              });
+            }
+
+            const newCandidates = [];
+            let foundation = 1;
+
+            const newCandidate = candidate => {
+              return {
+                candidate: candidate,
+                messageType: 'iceCandidate',
+                sdpMLineIndex: '0',
+                sdpMid: '0',
+              };
+            };
+
+            lst.forEach(item => {
+              item.foundation = foundation;
+              item.priority = foundation === 1 ? 2130706431 : 1;
+
+              newCandidates.push(
+                newCandidate(
+                  `a=candidate:${item.foundation} 1 UDP ${item.priority} ${item.ip} ${item.port} ${item.the_rest}`,
+                ),
+              );
+              ++foundation;
+            });
+
+            newCandidates.push(newCandidate('a=end-of-candidates'));
+
+            resolve(newCandidates);
           }
         })
         .catch(e => {
@@ -471,7 +525,7 @@ export default class XcloudApi {
           },
         })
         .then(res => {
-          log.info('Stream stop:', res.data);
+          log.info('Stream stop:', res);
           resolve(res.data);
         })
         .catch(e => {

@@ -17,7 +17,7 @@ type Props = {
   onClose: () => void;
 };
 
-const VibrationModal: React.FC<Props> = ({
+const Ipv6Modal: React.FC<Props> = ({
   show,
   current,
   onSelect,
@@ -50,7 +50,7 @@ const VibrationModal: React.FC<Props> = ({
       onBackdropPress={() => handleClose()}>
       <Card disabled={true} style={styles.card}>
         <Text category="h6" style={styles.title}>
-          {t('Vibration')}
+          {t('Ipv6')}
         </Text>
         <Divider />
         <View style={styles.content}>
@@ -82,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VibrationModal;
+export default Ipv6Modal;

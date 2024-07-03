@@ -12,6 +12,7 @@ import VibrationModeModal from '../components/VibrationModeModal';
 import DeadZoneModal from '../components/DeadZoneModal';
 import RegionModal from '../components/RegionModal';
 import GameLangModal from '../components/GameLangModal';
+import Ipv6Modal from '../components/Ipv6Modal';
 import CodecModal from '../components/CodecModal';
 import SingnalModal from '../components/SingnalModal';
 import {useSelector} from 'react-redux';
@@ -39,6 +40,7 @@ function SettingsScreen({navigation}) {
   const [showRegionModal, setShowRegionModal] = React.useState(false);
   const [showGameLangModal, setShowGameLangModal] = React.useState(false);
   const [showSignalingModal, setShowSignalingModal] = React.useState(false);
+  const [showIpv6Modal, setShowIpv6Modal] = React.useState(false);
   const [settings, setSettings] = React.useState({});
   const [currentModal, setCurrentModal] = React.useState('');
 
@@ -82,7 +84,13 @@ function SettingsScreen({navigation}) {
     if (id === 'game_lang') {
       setShowGameLangModal(true);
     }
-    if (id === 'signaling') {
+    if (id === 'ipv6') {
+      setShowIpv6Modal(true);
+    }
+    if (id === 'signaling_home') {
+      setShowSignalingModal(true);
+    }
+    if (id === 'signaling_cloud') {
       setShowSignalingModal(true);
     }
     if (id === 'debug') {
@@ -164,6 +172,14 @@ function SettingsScreen({navigation}) {
     setSettings(settings);
     saveSettings(settings);
     setShowVibrationModeModal(false);
+  };
+
+  // Set Ipv6
+  const handleSetIpv6 = value => {
+    settings.ipv6 = value;
+    setSettings(settings);
+    saveSettings(settings);
+    setShowIpv6Modal(false);
   };
 
   // Set dead zone
@@ -252,6 +268,13 @@ function SettingsScreen({navigation}) {
         onClose={() => setShowVibrationModal(false)}
       />
 
+      <Ipv6Modal
+        show={showIpv6Modal}
+        current={settings.ipv6}
+        onSelect={handleSetIpv6}
+        onClose={() => handleSetIpv6(false)}
+      />
+
       <VibrationModeModal
         show={showVibrationModeModal}
         current={settings.vibration_mode}
@@ -277,6 +300,7 @@ function SettingsScreen({navigation}) {
 
       <SingnalModal
         show={showSignalingModal}
+        currentMode={currentModal}
         onSelect={() => setShowSignalingModal(false)}
         onClose={() => setShowSignalingModal(false)}
       />
@@ -349,11 +373,25 @@ function SettingsScreen({navigation}) {
           onPress={() => handleItemPress('region')}
         />
         <SettingItem
-          title={t('Signal server')}
+          title={t('Ipv6')}
+          description={t(
+            'Prioritize using IPv6 connection',
+          )}
+          onPress={() => handleItemPress('ipv6')}
+        />
+        <SettingItem
+          title={t('Signal server(xHome)')}
           description={t(
             'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option',
           )}
-          onPress={() => handleItemPress('signaling')}
+          onPress={() => handleItemPress('signaling_home')}
+        />
+        <SettingItem
+          title={t('Signal server(xCloud)')}
+          description={t(
+            'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option',
+          )}
+          onPress={() => handleItemPress('signaling_cloud')}
         />
         <SettingItem
           title={t('Preferred language of game')}

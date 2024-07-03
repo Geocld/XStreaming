@@ -18,6 +18,7 @@ export type Settings = {
   native_vibration: boolean;
   dead_zone: number;
   gamepad_maping: Record<string, number> | null;
+  ipv6: boolean;
   debug: boolean;
 };
 
@@ -35,6 +36,7 @@ const defaultSettings: Settings = {
   native_vibration: false,
   dead_zone: 0.2,
   gamepad_maping: null,
+  ipv6: false,
   debug: false,
 };
 

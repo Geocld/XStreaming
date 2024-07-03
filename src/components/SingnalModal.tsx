@@ -6,15 +6,30 @@ import {useSelector} from 'react-redux';
 
 type Props = {
   show: boolean;
+  currentMode: string;
   onSelect: () => void;
   onClose: () => void;
 };
 
-const SingnalModal: React.FC<Props> = ({show, onSelect, onClose}) => {
+const SingnalModal: React.FC<Props> = ({
+  show,
+  currentMode,
+  onSelect,
+  onClose,
+}) => {
   const {t} = useTranslation();
 
   const streamingTokens = useSelector((state: any) => state.streamingTokens);
-  const regions = streamingTokens.xHomeToken.getRegions() || [];
+  let regions = streamingTokens.xHomeToken.getRegions() || [];
+
+  let xgpuRegions = [];
+  if (streamingTokens.xCloudToken) {
+    xgpuRegions = streamingTokens.xCloudToken.getRegions();
+  }
+
+  if (currentMode === 'signaling_cloud') {
+    regions = xgpuRegions;
+  }
 
   const handleClose = () => {
     onClose();
@@ -44,7 +59,10 @@ const SingnalModal: React.FC<Props> = ({show, onSelect, onClose}) => {
       backdropStyle={styles.backdrop}
       onBackdropPress={() => handleClose()}>
       <Card disabled={true} style={styles.card}>
-        <Text category="h6">{t('Signal server')}</Text>
+        <Text category="h6">
+          {t('Signal server') +
+            (currentMode === 'signaling_home' ? '(home)' : '(cloud)')}
+        </Text>
         <ScrollView>
           <RadioGroup
             selectedIndex={selectedIndex}
