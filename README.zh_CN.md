@@ -5,56 +5,58 @@
 </p>
 
 <p align="center">
-  Opensource Xbox Remote Client.
+  开源Xbox/云游戏串流应用.
 </p>
 
 **English** | [中文](./README.zh_CN.md)
 
 ## Intro
 
-XStreaming is an open-source mobile client for xCloud and Xbox home streaming, great inspired by [Greenlight](https://github.com/unknownskl/greenlight).The application runs on Android 10+.
+XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[Greenlight](https://github.com/unknownskl/greenlight)提供的API接口和相关实现，推荐在Android10+版本上运行。
 
-> DISCLAIMER: XStreaming is not affiliated with Microsoft, Xbox. All rights and trademarks are property of their respective owners.
+> 声明: XStreaming与Microsoft、Xbox没有关联。所有权和商标属于其各自所有者。
 
-## Features
+## 功能
 
-- Stream video and audio from the Xbox One and Xbox Series S/X
-- Support for 1080P resolution
-- Support for virtual\OTG\bluetooth gamepad controls
-- Support gamepad vibration
-- Supports rumble on xCloud without any proxy in some regions.
+- 串流Xbox One、Xbox Series S/X的音视频
+- 支持1080P分辨率
+- 支持外接、蓝牙、虚拟手柄，支持手柄振动
+- 支持手柄按键映射
+- 免代理云游戏
+- IPv6优先连接支持
 
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.jpg" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.jpg" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.jpg" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings.jpg" width="400" />
 
-## Local Development
+## 本地开发
 
-### Requirements
+### 环境要求
 - [React Native](https://reactnative.dev/) >= 0.74
 - [NodeJs]((https://nodejs.org/)) >= 20
 - [Yarn](https://yarnpkg.com/) >= 1.22
 
-### Steps to get up and running
+### 运行项目
 
-Clone the repository:
+克隆本项目到本地:
 
 ```
 git clone https://github.com/Geocld/XStreaming
 cd XStreaming
 ```
-
-Install dependencies:
+安装依赖:
 
 ```
 yarn
 ```
 
-Run development build:
+启动开发模式:
 
 ```
 npm run android
 ```
 
-## Development document
+## 开发文档
 
-1. [Auth](/docs/1.Auth.md)
+1. [登录认证，获得串流凭据](./docs/1.Auth_zh.md)
+2. [Web API](./docs/2.Web_zh.md)
+3. [串流](./docs/3.Stream_zh.md)
