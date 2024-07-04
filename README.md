@@ -58,3 +58,5 @@ npm run android
 ## Development document
 
 1. [Auth](/docs/1.Auth.md)
+2. [Web API](./docs/2.Web.md)
+3. [Stream](./docs/3.Stream.md)
