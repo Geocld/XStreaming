@@ -32,7 +32,7 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 
 ### 环境要求
 - [React Native](https://reactnative.dev/) >= 0.74
-- [NodeJs]((https://nodejs.org/)) >= 20
+- [NodeJs](https://nodejs.org/) >= 20
 - [Yarn](https://yarnpkg.com/) >= 1.22
 
 ### 运行项目

@@ -31,7 +31,7 @@ XStreaming is an open-source mobile client for xCloud and Xbox home streaming, g
 
 ### Requirements
 - [React Native](https://reactnative.dev/) >= 0.74
-- [NodeJs]((https://nodejs.org/)) >= 20
+- [NodeJs](https://nodejs.org/) >= 20
 - [Yarn](https://yarnpkg.com/) >= 1.22
 
 ### Steps to get up and running
