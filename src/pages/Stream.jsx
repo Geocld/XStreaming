@@ -1,5 +1,10 @@
 import React from 'react';
-import {View, StyleSheet, Alert, NativeModules, Vibration} from 'react-native';
+import {
+  Alert,
+  NativeModules,
+  Vibration,
+  NativeEventEmitter,
+} from 'react-native';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import XcloudApi from '../xCloud';
@@ -11,7 +16,7 @@ import {debugFactory} from '../utils/debug';
 
 const log = debugFactory('StreamScreen');
 
-const {FullScreenManager} = NativeModules;
+const {FullScreenManager, GamepadManager} = NativeModules;
 
 const options = {
   enableVibrateFallback: true,
@@ -31,6 +36,21 @@ function StreamScreen({navigation, route}) {
 
   React.useEffect(() => {
     FullScreenManager.immersiveModeOn();
+
+    // const eventEmitter = new NativeEventEmitter();
+    // const dpEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
+    //   console.log('onDpadKeyDown:', event);
+
+    //   // Notice webview the code
+    //   const postData = {
+    //     type: 'gamepad',
+    //     message: {
+    //       single: 'dpad',
+    //       data: event,
+    //     },
+    //   };
+    //   webviewRef.current.injectJavaScript(generateOnMessageFunction(postData));
+    // });
 
     const _settings = getSettings();
     setSettings(_settings);
@@ -87,6 +107,7 @@ function StreamScreen({navigation, route}) {
       // 在组件卸载时解锁屏幕方向，恢复为默认状态
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
+      dpEventListener && dpEventListener.remove();
       setShow(false);
     };
   }, [

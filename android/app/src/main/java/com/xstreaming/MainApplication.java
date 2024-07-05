@@ -31,6 +31,7 @@ public class MainApplication extends Application implements ReactApplication {
           // packages.add(new MyReactNativePackage());
             packages.add(new XalPackage());
             packages.add(new FullScreenPackage());
+            packages.add(new GamepadPackage());
           return packages;
         }
 

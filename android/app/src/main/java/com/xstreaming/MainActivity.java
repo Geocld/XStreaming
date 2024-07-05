@@ -1,11 +1,90 @@
 package com.xstreaming;
 
 import android.os.Bundle;
+import android.util.Log;
 import com.facebook.react.ReactActivity;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
 import org.devio.rn.splashscreen.SplashScreen;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+
+import android.view.InputEvent;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.InputDevice;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableMap;
+
+class Dpad {
+  final static int UP       = 0;
+  final static int LEFT     = 1;
+  final static int RIGHT    = 2;
+  final static int DOWN     = 3;
+  final static int CENTER   = 4;
+
+  int directionPressed = -1; // initialized to -1
+
+  public int getDirectionPressed(InputEvent event) {
+    if (!isDpadDevice(event)) {
+      return -1;
+    }
+
+    // If the input event is a MotionEvent, check its hat axis values.
+    if (event instanceof MotionEvent) {
+
+      // Use the hat axis value to find the D-pad direction
+      MotionEvent motionEvent = (MotionEvent) event;
+      float xaxis = motionEvent.getAxisValue(MotionEvent.AXIS_HAT_X);
+      float yaxis = motionEvent.getAxisValue(MotionEvent.AXIS_HAT_Y);
+
+      // Check if the AXIS_HAT_X value is -1 or 1, and set the D-pad
+      // LEFT and RIGHT direction accordingly.
+      if (Float.compare(xaxis, -1.0f) == 0) {
+        directionPressed =  Dpad.LEFT;
+      } else if (Float.compare(xaxis, 1.0f) == 0) {
+        directionPressed =  Dpad.RIGHT;
+      }
+      // Check if the AXIS_HAT_Y value is -1 or 1, and set the D-pad
+      // UP and DOWN direction accordingly.
+      else if (Float.compare(yaxis, -1.0f) == 0) {
+        directionPressed =  Dpad.UP;
+      } else if (Float.compare(yaxis, 1.0f) == 0) {
+        directionPressed =  Dpad.DOWN;
+      }
+    }
+
+    // If the input event is a KeyEvent, check its key code.
+    else if (event instanceof KeyEvent) {
+
+      // Use the key code to find the D-pad direction.
+      KeyEvent keyEvent = (KeyEvent) event;
+      if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
+        directionPressed = Dpad.LEFT;
+      } else if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
+        directionPressed = Dpad.RIGHT;
+      } else if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+        directionPressed = Dpad.UP;
+      } else if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+        directionPressed = Dpad.DOWN;
+      } else if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER) {
+        directionPressed = Dpad.CENTER;
+      }
+    }
+    return directionPressed;
+  }
+
+  public static boolean isDpadDevice(InputEvent event) {
+    // Check that input comes from a device with directional pads.
+    if ((event.getSource() & InputDevice.SOURCE_DPAD)
+            != InputDevice.SOURCE_DPAD) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
 
 public class MainActivity extends ReactActivity {
 
@@ -16,6 +95,128 @@ public class MainActivity extends ReactActivity {
   @Override
   protected String getMainComponentName() {
     return "xstreaming";
+  }
+
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+      WritableMap params = Arguments.createMap();
+      params.putInt("keyCode", keyCode);
+      Log.d("MainActivity1", "keyCode:" + params);
+      sendEvent("onGamepadKeyDown", params);
+      return true;
+    }
+    return super.onKeyDown(keyCode, event);
+  }
+
+  private static float getCenteredAxis(MotionEvent event,
+                                       InputDevice device, int axis, int historyPos) {
+    final InputDevice.MotionRange range =
+            device.getMotionRange(axis, event.getSource());
+
+    // A joystick at rest does not always report an absolute position of
+    // (0,0). Use the getFlat() method to determine the range of values
+    // bounding the joystick axis center.
+    if (range != null) {
+      final float flat = range.getFlat();
+      final float value =
+              historyPos < 0 ? event.getAxisValue(axis):
+                      event.getHistoricalAxisValue(axis, historyPos);
+
+      // Ignore axis values that are within the 'flat' region of the
+      // joystick axis center.
+      if (Math.abs(value) > flat) {
+        return value;
+      }
+    }
+    return 0;
+  }
+
+  private void processJoystickInput(MotionEvent event,
+                                    int historyPos) {
+
+    InputDevice inputDevice = event.getDevice();
+
+    // Calculate the horizontal distance to move by
+    // using the input value from one of these physical controls:
+    // the left control stick, hat axis, or the right control stick.
+    float x = getCenteredAxis(event, inputDevice,
+            MotionEvent.AXIS_X, historyPos);
+
+    float rx = getCenteredAxis(event, inputDevice,
+            MotionEvent.AXIS_Z, historyPos);
+
+    // Calculate the vertical distance to move by
+    // using the input value from one of these physical controls:
+    // the left control stick, hat switch, or the right control stick.
+    float y = getCenteredAxis(event, inputDevice,
+            MotionEvent.AXIS_Y, historyPos);
+
+    float ry = getCenteredAxis(event, inputDevice,
+            MotionEvent.AXIS_RZ, historyPos);
+
+    if (x > 0 || y > 0) {
+      Log.d("MainActivity1", "left axisX:" + x);
+      Log.d("MainActivity1", "left axisY:" + y);
+      WritableMap leftParams = Arguments.createMap();
+      leftParams.putDouble("axisX", x);
+      leftParams.putDouble("axisY", y);
+      sendEvent("onLeftStickMove", leftParams);
+    }
+
+    if(rx > 0 || ry > 0) {
+      Log.d("MainActivity1", "right axisX:" + rx);
+      Log.d("MainActivity1", "right axisY:" + ry);
+      WritableMap rightParams = Arguments.createMap();
+      rightParams.putDouble("axisX", rx);
+      rightParams.putDouble("axisY", ry);
+      sendEvent("onRightStickMove", rightParams);
+    }
+
+
+    // Update the ship object based on the new x and y values
+  }
+
+  @Override
+  public boolean onGenericMotionEvent(MotionEvent event) {
+
+    // DPAD
+    Dpad dpad = new Dpad();
+    if (Dpad.isDpadDevice(event)) {
+      int dpadIdx = dpad.getDirectionPressed(event);
+      if (dpadIdx != -1) {
+        Log.d("MainActivity1", "DPAD press:" + dpadIdx);
+        WritableMap params = Arguments.createMap();
+        params.putInt("dpadIdx", dpadIdx);
+        sendEvent("onDpadKeyDown", params);
+      }
+    }
+
+    // Joystick
+    if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) ==
+            InputDevice.SOURCE_JOYSTICK &&
+            event.getAction() == MotionEvent.ACTION_MOVE) {
+      // Process all historical movement samples in the batch
+      final int historySize = event.getHistorySize();
+
+      // Process the movements starting from the
+      // earliest historical position in the batch
+      for (int i = 0; i < historySize; i++) {
+        // Process the event at historical position i
+        processJoystickInput(event, i);
+      }
+
+      // Process the current movement sample in the batch (position -1)
+      processJoystickInput(event, -1);
+    }
+    return super.onGenericMotionEvent(event);
+  }
+
+  private void sendEvent(String eventName, WritableMap params) {
+//    ReactContext reactContext = (ReactContext) getApplicationContext();
+    ReactContext reactContext = getReactInstanceManager().getCurrentReactContext();
+
+    reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
   }
 
   /**
@@ -32,4 +233,5 @@ public class MainActivity extends ReactActivity {
         // If you opted-in for the New Architecture, we enable the Fabric Renderer.
         DefaultNewArchitectureEntryPoint.getFabricEnabled());
   }
+
 }

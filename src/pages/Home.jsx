@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   RefreshControl,
+  NativeEventEmitter,
   NativeModules,
 } from 'react-native';
 import {Text, Icon, Divider, Button, Card, Modal} from '@ui-kitten/components';
@@ -57,6 +58,32 @@ function HomeScreen({navigation, route}) {
   React.useEffect(() => {
     log.info('Page loaded.');
     SplashScreen.hide();
+
+    // const eventEmitter = new NativeEventEmitter();
+    // const gpEventListener = eventEmitter.addListener(
+    //   'onGamepadKeyDown',
+    //   event => {
+    //     console.log('onGamepadKeyDown:', event);
+    //   },
+    // );
+
+    // const dpEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
+    //   console.log('onDpadKeyDown:', event);
+    // });
+
+    // const leftStickEventListener = eventEmitter.addListener(
+    //   'onLeftStickMove',
+    //   event => {
+    //     console.log('onLeftStickMove:', event);
+    //   },
+    // );
+
+    // const rightStickEventListener = eventEmitter.addListener(
+    //   'onRightStickMove',
+    //   event => {
+    //     console.log('onRightStickMove:', event);
+    //   },
+    // );
 
     if (!_authentication.current) {
       log.info('Authentication initial.');
@@ -156,6 +183,13 @@ function HomeScreen({navigation, route}) {
         });
       }
     }
+
+    return () => {
+      // gpEventListener && gpEventListener.remove();
+      // dpEventListener && dpEventListener.remove();
+      // leftStickEventListener && leftStickEventListener.remove();
+      // rightStickEventListener && rightStickEventListener.remove();
+    };
   }, [t, route.params?.xalUrl, dispatch, navigation]);
 
   const handleStartStream = sessionId => {
