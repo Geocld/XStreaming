@@ -107,7 +107,7 @@ function StreamScreen({navigation, route}) {
       // 在组件卸载时解锁屏幕方向，恢复为默认状态
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
-      dpEventListener && dpEventListener.remove();
+      // dpEventListener && dpEventListener.remove();
       setShow(false);
     };
   }, [
