@@ -59,7 +59,7 @@ function HomeScreen({navigation, route}) {
     log.info('Page loaded.');
     SplashScreen.hide();
 
-    // const eventEmitter = new NativeEventEmitter();
+    const eventEmitter = new NativeEventEmitter();
     // const gpEventListener = eventEmitter.addListener(
     //   'onGamepadKeyDown',
     //   event => {
@@ -67,8 +67,19 @@ function HomeScreen({navigation, route}) {
     //   },
     // );
 
+    // const gpEventListener2 = eventEmitter.addListener(
+    //   'onGamepadKeyUp',
+    //   event => {
+    //     console.log('onGamepadKeyUp:', event);
+    //   },
+    // );
+
     // const dpEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
     //   console.log('onDpadKeyDown:', event);
+    // });
+
+    // const dpEventListener2 = eventEmitter.addListener('onDpadKeyUp', event => {
+    //   console.log('onDpadKeyUp:', event);
     // });
 
     // const leftStickEventListener = eventEmitter.addListener(

@@ -6,12 +6,15 @@ import {
   SafeAreaView,
   ScrollView,
   RefreshControl,
+  NativeModules
 } from 'react-native';
 import {Button, Text, Icon} from '@ui-kitten/components';
 import {useSelector, useDispatch} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 import DebugModal from '../components/DebugModal';
+
+const {GamepadManager} = NativeModules;
 
 function DebugScreen({navigation, route}) {
   let authentication = useSelector(state => state.authentication);
@@ -21,6 +24,11 @@ function DebugScreen({navigation, route}) {
   React.useEffect(() => {
     const _settings = getSettings();
     setSettings(_settings);
+
+    navigation.addListener('beforeRemove', e => {
+      console.log('beforeRemove:', e.data.action.type);
+      // e.preventDefault();
+    });
   }, [navigation]);
 
   const handleChangeDebug = value => {
@@ -65,6 +73,13 @@ function DebugScreen({navigation, route}) {
         description={`Test OTG Gamepad.`}
         onPress={() => navigation.navigate('GamepadDebug')}
       /> */}
+      <SettingItem
+        title={'Vibration'}
+        description={'Test gamepad vibration'}
+        onPress={() => {
+          GamepadManager.vibrate(500);
+        }}
+      />
     </ScrollView>
   );
 }

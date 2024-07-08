@@ -18,6 +18,8 @@ import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 
 public class GamepadManager extends ReactContextBaseJavaModule {
 
@@ -37,7 +39,10 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
 
     @ReactMethod
-    public void test() {
-
+    public void vibrate(int duration) {
+        Vibrator vibrator = (Vibrator) reactContext.getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE));
+        }
     }
 }

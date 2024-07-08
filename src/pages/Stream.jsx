@@ -38,8 +38,27 @@ function StreamScreen({navigation, route}) {
     FullScreenManager.immersiveModeOn();
 
     // const eventEmitter = new NativeEventEmitter();
-    // const dpEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
-    //   console.log('onDpadKeyDown:', event);
+    // const dpDownEventListener = eventEmitter.addListener(
+    //   'onDpadKeyDown',
+    //   event => {
+    //     console.log('onDpadKeyDown:', event);
+
+    //     // Notice webview the code
+    //     const postData = {
+    //       type: 'gamepad',
+    //       message: {
+    //         single: 'dpad',
+    //         data: event,
+    //       },
+    //     };
+    //     webviewRef.current.injectJavaScript(
+    //       generateOnMessageFunction(postData),
+    //     );
+    //   },
+    // );
+
+    // const dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
+    //   console.log('onDpadKeyUp:', event);
 
     //   // Notice webview the code
     //   const postData = {
@@ -57,6 +76,7 @@ function StreamScreen({navigation, route}) {
     setShow(true);
 
     navigation.addListener('beforeRemove', e => {
+      console.log('beforeRemove:', e.data.action.type);
       if (e.data.action.type !== 'GO_BACK') {
         navigation.dispatch(e.data.action);
       } else {
@@ -107,7 +127,8 @@ function StreamScreen({navigation, route}) {
       // 在组件卸载时解锁屏幕方向，恢复为默认状态
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
-      // dpEventListener && dpEventListener.remove();
+      // dpDownEventListener && dpDownEventListener.remove();
+      // dpUpEventListener && dpUpEventListener.remove();
       setShow(false);
     };
   }, [

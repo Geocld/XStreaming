@@ -102,8 +102,19 @@ public class MainActivity extends ReactActivity {
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", keyCode);
-      Log.d("MainActivity1", "keyCode:" + params);
+      Log.d("MainActivity1", "keyCode down:" + params);
       sendEvent("onGamepadKeyDown", params);
+      return true;
+    }
+    return super.onKeyDown(keyCode, event);
+  }
+  @Override
+  public boolean onKeyUp(int keyCode, KeyEvent event) {
+    if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+      WritableMap params = Arguments.createMap();
+      params.putInt("keyCode", keyCode);
+      Log.d("MainActivity1", "keyCode up:" + params);
+      sendEvent("onGamepadKeyUp", params);
       return true;
     }
     return super.onKeyDown(keyCode, event);
@@ -189,6 +200,10 @@ public class MainActivity extends ReactActivity {
         WritableMap params = Arguments.createMap();
         params.putInt("dpadIdx", dpadIdx);
         sendEvent("onDpadKeyDown", params);
+      } else {
+        WritableMap params = Arguments.createMap();
+        params.putInt("dpadIdx", -1);
+        sendEvent("onDpadKeyUp", params);
       }
     }
 
@@ -198,6 +213,14 @@ public class MainActivity extends ReactActivity {
             event.getAction() == MotionEvent.ACTION_MOVE) {
       // Process all historical movement samples in the batch
       final int historySize = event.getHistorySize();
+
+      // 检测左侧扳机
+      float lTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+      // 检测右侧扳机
+      float rTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+
+      Log.d("MainActivity1", "L2:" + lTrigger);
+      Log.d("MainActivity1", "R2:" + rTrigger);
 
       // Process the movements starting from the
       // earliest historical position in the batch
