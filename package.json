@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "start": "react-native start",
     "release:android": "cd ./android && ./gradlew assembleRelease",
+    "postinstall": "patch-package",
     "test": "jest"
   },
   "dependencies": {

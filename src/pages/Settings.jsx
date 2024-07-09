@@ -7,6 +7,7 @@ import SettingItem from '../components/SettingItem';
 import LocaleModal from '../components/LocaleModal';
 import ResolutionModal from '../components/ResolutionModal';
 import BitrateModal from '../components/BitrateModal';
+import GamepadKernalModal from '../components/GamepadKernalModal';
 import VibrationModal from '../components/VibrationModal';
 import VibrationModeModal from '../components/VibrationModeModal';
 import DeadZoneModal from '../components/DeadZoneModal';
@@ -37,6 +38,8 @@ function SettingsScreen({navigation}) {
   const [showVibrationModeModal, setShowVibrationModeModal] =
     React.useState(false);
   const [showDeadZoneModal, setShowDeadZoneModal] = React.useState(false);
+  const [showGamepadKernalModal, setShowGamepadKernalModal] =
+    React.useState(false);
   const [showRegionModal, setShowRegionModal] = React.useState(false);
   const [showGameLangModal, setShowGameLangModal] = React.useState(false);
   const [showSignalingModal, setShowSignalingModal] = React.useState(false);
@@ -92,6 +95,9 @@ function SettingsScreen({navigation}) {
     }
     if (id === 'signaling_cloud') {
       setShowSignalingModal(true);
+    }
+    if (id === 'gamepad_kernal') {
+      setShowGamepadKernalModal(true);
     }
     if (id === 'debug') {
       navigation.navigate('Debug');
@@ -174,6 +180,13 @@ function SettingsScreen({navigation}) {
     setShowVibrationModeModal(false);
   };
 
+  // Set gamepad kernal
+  const handleGamepadKernal = value => {
+    settings.gamepad_kernal = value;
+    setSettings(settings);
+    saveSettings(settings);
+    setShowGamepadKernalModal(false);
+  };
   // Set Ipv6
   const handleSetIpv6 = value => {
     settings.ipv6 = value;
@@ -261,6 +274,12 @@ function SettingsScreen({navigation}) {
         onClose={() => setShowCodecModal(false)}
       />
 
+      <GamepadKernalModal
+        show={showGamepadKernalModal}
+        current={settings.gamepad_kernal}
+        onSelect={handleGamepadKernal}
+        onClose={() => setShowGamepadKernalModal(false)}
+      />
       <VibrationModal
         show={showVibrationModal}
         current={settings.vibration}
@@ -347,6 +366,11 @@ function SettingsScreen({navigation}) {
           onPress={() => handleItemPress('codec')}
         />
         <SettingItem
+          title={t('Gamepad kernal')}
+          description={t('Select gamepad kernal')}
+          onPress={() => handleItemPress('gamepad_kernal')}
+        />
+        <SettingItem
           title={t('Vibration')}
           description={`${t(
             'If your controller supports vibration, you can set whether it vibrates during the game.',
@@ -355,9 +379,9 @@ function SettingsScreen({navigation}) {
         />
         <SettingItem
           title={t('Vibration mode')}
-          description={t(
-            'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode',
-          )}
+          description={`${t('Native: Use native gamepad kernal to vibrate')}
+${t("Device: Use Phone/Pad's vibrate")}
+${t('Webview: Use Chromium kernal to vibrate')}`}
           onPress={() => handleItemPress('vibration_mode')}
         />
         <SettingItem
@@ -374,9 +398,7 @@ function SettingsScreen({navigation}) {
         />
         <SettingItem
           title={t('Ipv6')}
-          description={t(
-            'Prioritize using IPv6 connection',
-          )}
+          description={t('Prioritize using IPv6 connection')}
           onPress={() => handleItemPress('ipv6')}
         />
         <SettingItem

@@ -10,7 +10,6 @@ import Orientation from 'react-native-orientation-locker';
 import XcloudApi from '../xCloud';
 import {useSelector} from 'react-redux';
 import {getSettings} from '../store/settingStore';
-// import {trigger} from 'react-native-haptic-feedback';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 
@@ -18,9 +17,49 @@ const log = debugFactory('StreamScreen');
 
 const {FullScreenManager, GamepadManager} = NativeModules;
 
-const options = {
-  enableVibrateFallback: true,
-  ignoreAndroidSystemSettings: false,
+const gpMaping = {
+  96: 'A',
+  97: 'B',
+  99: 'X',
+  100: 'Y',
+  0: 'DPadUp',
+  3: 'DPadDown',
+  1: 'DPadLeft',
+  2: 'DPadRight',
+  102: 'LeftShoulder',
+  103: 'RightShoulder',
+  106: 'LeftThumb',
+  107: 'RightThumb',
+  104: 'LeftTrigger',
+  105: 'RightTrigger',
+  108: 'Menu',
+  109: 'View',
+  110: 'Nexus',
+};
+
+const gpState = {
+  A: 0,
+  B: 0,
+  X: 0,
+  Y: 0,
+  LeftShoulder: 0,
+  RightShoulder: 0,
+  LeftTrigger: 0,
+  RightTrigger: 0,
+  View: 0,
+  Menu: 0,
+  LeftThumb: 0,
+  RightThumb: 0,
+  DPadUp: 0,
+  DPadDown: 0,
+  DPadLeft: 0,
+  DPadRight: 0,
+  Nexus: 0,
+
+  LeftThumbXAxis: 0.0,
+  LeftThumbYAxis: 0.0,
+  RightThumbXAxis: 0.0,
+  RightThumbYAxis: 0.0,
 };
 
 function StreamScreen({navigation, route}) {
@@ -31,52 +70,95 @@ function StreamScreen({navigation, route}) {
   const [xHomeApi, setXHomeApi] = React.useState(null);
   const [xCloudApi, setXCloudApi] = React.useState(null);
   const [settings, setSettings] = React.useState({});
-  const [show, setShow] = React.useState(false);
   const [isExiting, setIsExiting] = React.useState(false);
 
   React.useEffect(() => {
-    FullScreenManager.immersiveModeOn();
-
-    // const eventEmitter = new NativeEventEmitter();
-    // const dpDownEventListener = eventEmitter.addListener(
-    //   'onDpadKeyDown',
-    //   event => {
-    //     console.log('onDpadKeyDown:', event);
-
-    //     // Notice webview the code
-    //     const postData = {
-    //       type: 'gamepad',
-    //       message: {
-    //         single: 'dpad',
-    //         data: event,
-    //       },
-    //     };
-    //     webviewRef.current.injectJavaScript(
-    //       generateOnMessageFunction(postData),
-    //     );
-    //   },
-    // );
-
-    // const dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
-    //   console.log('onDpadKeyUp:', event);
-
-    //   // Notice webview the code
-    //   const postData = {
-    //     type: 'gamepad',
-    //     message: {
-    //       single: 'dpad',
-    //       data: event,
-    //     },
-    //   };
-    //   webviewRef.current.injectJavaScript(generateOnMessageFunction(postData));
-    // });
-
     const _settings = getSettings();
     setSettings(_settings);
-    setShow(true);
+
+    FullScreenManager.immersiveModeOn();
+
+    let gpDownEventListener;
+    let gpUpEventListener;
+    let dpDownEventListener;
+    let dpUpEventListener;
+    let leftStickEventListener;
+    let rightStickEventListener;
+    let triggerEventListener;
+    let timer;
+
+    if (_settings.gamepad_kernal === 'Native') {
+      const eventEmitter = new NativeEventEmitter();
+
+      gpDownEventListener = eventEmitter.addListener(
+        'onGamepadKeyDown',
+        event => {
+          console.log('onGamepadKeyDown:', event);
+          const keyCode = event.keyCode;
+          gpState[gpMaping[keyCode]] = 1;
+        },
+      );
+
+      gpUpEventListener = eventEmitter.addListener('onGamepadKeyUp', event => {
+        console.log('onGamepadKeyUp:', event);
+        const keyCode = event.keyCode;
+        gpState[gpMaping[keyCode]] = 0;
+      });
+
+      dpDownEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
+        console.log('onDpadKeyDown:', event);
+        const keyCode = event.dpadIdx;
+        gpState[gpMaping[keyCode]] = 1;
+      });
+
+      dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
+        console.log('onDpadKeyUp:', event);
+        gpState[gpMaping[0]] = 0;
+        gpState[gpMaping[1]] = 0;
+        gpState[gpMaping[2]] = 0;
+        gpState[gpMaping[3]] = 0;
+      });
+
+      leftStickEventListener = eventEmitter.addListener(
+        'onLeftStickMove',
+        event => {
+          console.log('onLeftStickMove:', event);
+          gpState.LeftThumbXAxis = event.axisX;
+          gpState.LeftThumbYAxis = event.axisY;
+        },
+      );
+
+      rightStickEventListener = eventEmitter.addListener(
+        'onRightStickMove',
+        event => {
+          console.log('onRightStickMove:', event);
+          gpState.RightThumbXAxis = event.axisX;
+          gpState.RightThumbYAxis = event.axisY;
+        },
+      );
+
+      triggerEventListener = eventEmitter.addListener('onTrigger', event => {
+        console.log('onTrigger:', event);
+        gpState.LeftTrigger = event.leftTrigger;
+        gpState.RightTrigger = event.rightTrigger;
+      });
+
+      timer = setInterval(() => {
+        const postData = {
+          type: 'gamepad',
+          message: {
+            single: 'gpState',
+            data: gpState,
+          },
+        };
+        webviewRef.current &&
+          webviewRef.current.injectJavaScript(
+            generateOnMessageFunction(postData),
+          );
+      }, 1000 / 60);
+    }
 
     navigation.addListener('beforeRemove', e => {
-      console.log('beforeRemove:', e.data.action.type);
       if (e.data.action.type !== 'GO_BACK') {
         navigation.dispatch(e.data.action);
       } else {
@@ -121,15 +203,29 @@ function StreamScreen({navigation, route}) {
 
     setTimeout(() => {
       Orientation.lockToLandscape();
+
+      console.log('gamepad_kernal:', _settings.gamepad_kernal);
+      if (_settings.gamepad_kernal === 'Web') {
+        webviewRef.current && webviewRef.current.requestFocus();
+      }
+      if (_settings.gamepad_kernal === 'Native') {
+        // setFocusable(false);
+        webviewRef.current && webviewRef.current.stopLoading();
+      }
     }, 500);
 
     return () => {
       // 在组件卸载时解锁屏幕方向，恢复为默认状态
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
-      // dpDownEventListener && dpDownEventListener.remove();
-      // dpUpEventListener && dpUpEventListener.remove();
-      setShow(false);
+      gpDownEventListener && gpDownEventListener.remove();
+      gpUpEventListener && gpUpEventListener.remove();
+      dpDownEventListener && dpDownEventListener.remove();
+      dpUpEventListener && dpUpEventListener.remove();
+      leftStickEventListener && leftStickEventListener.remove();
+      rightStickEventListener && rightStickEventListener.remove();
+      triggerEventListener && triggerEventListener.remove();
+      timer && clearInterval(timer);
     };
   }, [
     route.params?.sessionId,
@@ -302,15 +398,22 @@ function StreamScreen({navigation, route}) {
     if (type === 'pressButton') {
       Vibration.vibrate(30);
     }
-    if (type === 'gameVibration') {
+    if (type === 'deviceVibration') {
       const {rumbleData, repeat} = message;
-      // TODO: More vibration effect
       if (rumbleData.strongMagnitude === 0 || rumbleData.weakMagnitude === 0) {
         Vibration.cancel();
       } else {
         Vibration.vibrate(rumbleData.duration / 10);
       }
       // trigger('impactMedium', options);
+    }
+    if (type === 'nativeVibration') {
+      const {rumbleData} = message;
+      if (rumbleData.strongMagnitude === 0 || rumbleData.weakMagnitude === 0) {
+        GamepadManager.vibrate(0, 0);
+      } else {
+        GamepadManager.vibrate(rumbleData.duration / 10, 1);
+      }
     }
     if (type === 'exit') {
       handleExit();
@@ -319,27 +422,26 @@ function StreamScreen({navigation, route}) {
 
   return (
     <>
-      {show && (
-        <WebView
-          ref={instance => {
-            webviewRef.current = instance;
-          }}
-          source={{uri}}
-          originWhitelist={['*']}
-          javaScriptEnabled={true}
-          setSupportMultipleWindows={false}
-          mediaPlaybackRequiresUserAction={false}
-          allowsFullscreenVideo={true}
-          allowsInlineMediaPlayback={true}
-          injectedJavaScriptObject={{
-            settings,
-            streamType: route.params?.streamType,
-          }}
-          onMessage={event => {
-            handleWebviewMessage(event);
-          }}
-        />
-      )}
+      <WebView
+        ref={instance => {
+          webviewRef.current = instance;
+        }}
+        source={{uri}}
+        originWhitelist={['*']}
+        javaScriptEnabled={true}
+        cacheEnabled={false}
+        setSupportMultipleWindows={false}
+        mediaPlaybackRequiresUserAction={false}
+        allowsFullscreenVideo={true}
+        allowsInlineMediaPlayback={true}
+        injectedJavaScriptObject={{
+          settings,
+          streamType: route.params?.streamType,
+        }}
+        onMessage={event => {
+          handleWebviewMessage(event);
+        }}
+      />
     </>
   );
 }

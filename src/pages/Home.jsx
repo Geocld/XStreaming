@@ -6,12 +6,10 @@ import {
   SafeAreaView,
   ScrollView,
   RefreshControl,
-  NativeEventEmitter,
-  NativeModules,
 } from 'react-native';
-import {Text, Icon, Divider, Button, Card, Modal} from '@ui-kitten/components';
+import {Text, Divider} from '@ui-kitten/components';
 import Spinner from 'react-native-loading-spinner-overlay';
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import ConsoleItem from '../components/ConsoleItem';
 import Profile from '../components/Profile';
 import {getSettings} from '../store/settingStore';
@@ -35,8 +33,6 @@ function HomeScreen({navigation, route}) {
   const [xalUrl, setXalUrl] = React.useState('');
   const [profile, setProfile] = React.useState(null);
   const [consoles, setConsoles] = React.useState([]);
-  const [settings, setSettings] = React.useState({});
-  const [consoleId, setConsoleId] = React.useState('');
   const [showLinkMode, setShowLinkMode] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
@@ -58,43 +54,6 @@ function HomeScreen({navigation, route}) {
   React.useEffect(() => {
     log.info('Page loaded.');
     SplashScreen.hide();
-
-    const eventEmitter = new NativeEventEmitter();
-    // const gpEventListener = eventEmitter.addListener(
-    //   'onGamepadKeyDown',
-    //   event => {
-    //     console.log('onGamepadKeyDown:', event);
-    //   },
-    // );
-
-    // const gpEventListener2 = eventEmitter.addListener(
-    //   'onGamepadKeyUp',
-    //   event => {
-    //     console.log('onGamepadKeyUp:', event);
-    //   },
-    // );
-
-    // const dpEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
-    //   console.log('onDpadKeyDown:', event);
-    // });
-
-    // const dpEventListener2 = eventEmitter.addListener('onDpadKeyUp', event => {
-    //   console.log('onDpadKeyUp:', event);
-    // });
-
-    // const leftStickEventListener = eventEmitter.addListener(
-    //   'onLeftStickMove',
-    //   event => {
-    //     console.log('onLeftStickMove:', event);
-    //   },
-    // );
-
-    // const rightStickEventListener = eventEmitter.addListener(
-    //   'onRightStickMove',
-    //   event => {
-    //     console.log('onRightStickMove:', event);
-    //   },
-    // );
 
     if (!_authentication.current) {
       log.info('Authentication initial.');
@@ -140,8 +99,6 @@ function HomeScreen({navigation, route}) {
 
     if (_isFocused.current) {
       log.info('HomeScreen isFocused:', _isFocused.current);
-      const _settings = getSettings();
-      log.info('LocalSettings:', _settings);
 
       // Return from Login screen
       if (route.params?.xalUrl) {
@@ -194,16 +151,10 @@ function HomeScreen({navigation, route}) {
         });
       }
     }
-
-    return () => {
-      // gpEventListener && gpEventListener.remove();
-      // dpEventListener && dpEventListener.remove();
-      // leftStickEventListener && leftStickEventListener.remove();
-      // rightStickEventListener && rightStickEventListener.remove();
-    };
   }, [t, route.params?.xalUrl, dispatch, navigation]);
 
   const handleStartStream = sessionId => {
+    const settings = getSettings();
     navigation.navigate({
       name: 'Stream',
       params: {

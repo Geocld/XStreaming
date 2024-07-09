@@ -15,8 +15,8 @@ export type Settings = {
   force_region_ip: string;
   codec: string;
   vibration: boolean;
-  native_vibration: boolean;
-  native_gamepad: boolean;
+  vibration_mode: string;
+  gamepad_kernal: string;
   dead_zone: number;
   gamepad_maping: Record<string, number> | null;
   ipv6: boolean;
@@ -34,8 +34,8 @@ const defaultSettings: Settings = {
   force_region_ip: '',
   codec: '',
   vibration: true,
-  native_vibration: false,
-  native_gamepad: true,
+  vibration_mode: 'Native',
+  gamepad_kernal: 'Native',
   dead_zone: 0.2,
   gamepad_maping: null,
   ipv6: false,

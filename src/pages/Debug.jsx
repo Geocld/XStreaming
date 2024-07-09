@@ -6,7 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   RefreshControl,
-  NativeModules
+  NativeModules,
 } from 'react-native';
 import {Button, Text, Icon} from '@ui-kitten/components';
 import {useSelector, useDispatch} from 'react-redux';
@@ -77,7 +77,7 @@ function DebugScreen({navigation, route}) {
         title={'Vibration'}
         description={'Test gamepad vibration'}
         onPress={() => {
-          GamepadManager.vibrate(500);
+          GamepadManager.vibrate(500, 1);
         }}
       />
     </ScrollView>

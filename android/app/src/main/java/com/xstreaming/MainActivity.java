@@ -117,7 +117,7 @@ public class MainActivity extends ReactActivity {
       sendEvent("onGamepadKeyUp", params);
       return true;
     }
-    return super.onKeyDown(keyCode, event);
+    return super.onKeyUp(keyCode, event);
   }
 
   private static float getCenteredAxis(MotionEvent event,
@@ -166,26 +166,19 @@ public class MainActivity extends ReactActivity {
     float ry = getCenteredAxis(event, inputDevice,
             MotionEvent.AXIS_RZ, historyPos);
 
-    if (x > 0 || y > 0) {
-      Log.d("MainActivity1", "left axisX:" + x);
-      Log.d("MainActivity1", "left axisY:" + y);
-      WritableMap leftParams = Arguments.createMap();
-      leftParams.putDouble("axisX", x);
-      leftParams.putDouble("axisY", y);
-      sendEvent("onLeftStickMove", leftParams);
-    }
+    Log.d("MainActivity1", "left axisX:" + x);
+    Log.d("MainActivity1", "left axisY:" + y);
+    WritableMap leftParams = Arguments.createMap();
+    leftParams.putDouble("axisX", x);
+    leftParams.putDouble("axisY", y);
+    sendEvent("onLeftStickMove", leftParams);
 
-    if(rx > 0 || ry > 0) {
-      Log.d("MainActivity1", "right axisX:" + rx);
-      Log.d("MainActivity1", "right axisY:" + ry);
-      WritableMap rightParams = Arguments.createMap();
-      rightParams.putDouble("axisX", rx);
-      rightParams.putDouble("axisY", ry);
-      sendEvent("onRightStickMove", rightParams);
-    }
-
-
-    // Update the ship object based on the new x and y values
+    Log.d("MainActivity1", "right axisX:" + rx);
+    Log.d("MainActivity1", "right axisY:" + ry);
+    WritableMap rightParams = Arguments.createMap();
+    rightParams.putDouble("axisX", rx);
+    rightParams.putDouble("axisY", ry);
+    sendEvent("onRightStickMove", rightParams);
   }
 
   @Override
@@ -221,6 +214,10 @@ public class MainActivity extends ReactActivity {
 
       Log.d("MainActivity1", "L2:" + lTrigger);
       Log.d("MainActivity1", "R2:" + rTrigger);
+      WritableMap triggerParams = Arguments.createMap();
+      triggerParams.putDouble("leftTrigger", lTrigger);
+      triggerParams.putDouble("rightTrigger", rTrigger);
+      sendEvent("onTrigger", triggerParams);
 
       // Process the movements starting from the
       // earliest historical position in the batch

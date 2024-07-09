@@ -36,6 +36,7 @@ export default {
     'If your device supports newer codecs, it can reduce the video bandwidth requirements.':
       '如果您的设备支持较新的编解码器，则可以降低视频带宽要求。',
     Vibration: '振动',
+    'Gamepad kernal': '手柄内核',
     'If your controller supports vibration, you can set whether it vibrates during the game.':
       '如果手柄支持振动，可以设置游戏中是否振动。',
     'Vibration mode': '振动模式',

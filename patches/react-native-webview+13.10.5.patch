@@ -1,0 +1,39 @@
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+index 4600a8d..99ae6fc 100644
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManagerImpl.kt
+@@ -311,7 +311,7 @@ class RNCWebViewManagerImpl {
+         "goBack" -> webView.goBack()
+         "goForward" -> webView.goForward()
+         "reload" -> webView.reload()
+-        "stopLoading" -> webView.stopLoading()
++        "stopLoading" -> webView.setFocusable(false)
+         "postMessage" -> try {
+           val eventInitDict = JSONObject()
+           eventInitDict.put("data", args.getString(0))
+diff --git a/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+index 5bae4aa..77809de 100644
+--- a/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
++++ b/node_modules/react-native-webview/android/src/newarch/com/reactnativecommunity/webview/RNCWebViewManager.java
+@@ -438,7 +438,8 @@ public class RNCWebViewManager extends ViewGroupManager<RNCWebViewWrapper>
+ 
+   @Override
+   public void stopLoading(RNCWebViewWrapper view) {
+-    view.getWebView().stopLoading();
++    // Hack this method
++    view.setFocusable(false);
+   }
+ 
+   @Override
+@@ -451,6 +452,11 @@ public class RNCWebViewManager extends ViewGroupManager<RNCWebViewWrapper>
+       view.requestFocus();
+   }
+ 
++  @Override
++  public void disableFocusable(RNCWebViewWrapper view) {
++      view.setFocusable(false);
++  }
++
+   @Override
+   public void postMessage(RNCWebViewWrapper view, String data) {
+       try {

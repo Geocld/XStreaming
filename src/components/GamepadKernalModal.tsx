@@ -17,7 +17,7 @@ type Props = {
   onClose: () => void;
 };
 
-const VibrationModeModal: React.FC<Props> = ({
+const GamepadKernalModal: React.FC<Props> = ({
   show,
   current,
   onSelect,
@@ -27,8 +27,7 @@ const VibrationModeModal: React.FC<Props> = ({
 
   const data = [
     {value: 'Native', text: t('Native')},
-    {value: 'Device', text: t('Device')},
-    {value: 'Webview', text: t('Webview')},
+    {value: 'Web', text: t('Web')},
   ];
 
   const handleClose = () => {
@@ -53,7 +52,7 @@ const VibrationModeModal: React.FC<Props> = ({
       onBackdropPress={() => handleClose()}>
       <Card disabled={true} style={styles.card}>
         <Text category="h6" style={styles.title}>
-          {t('Vibration mode')}
+          {t('Gamepad kernal')}
         </Text>
         <Divider />
         <View style={styles.content}>
@@ -85,4 +84,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VibrationModeModal;
+export default GamepadKernalModal;
