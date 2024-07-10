@@ -20,6 +20,8 @@ import SettingsScreen from './pages/Settings';
 import TitleDetailScreen from './pages/TitleDetail';
 import DebugScreen from './pages/Debug';
 import GameMapScreen from './pages/GameMap';
+import NativeGameMapScreen from './pages/NativeGameMap';
+import GameMapDetailScreen from './pages/GameMapDetail';
 import GamepadDebugScreen from './pages/GamepadDebug';
 import AboutScreen from './pages/About';
 
@@ -112,6 +114,10 @@ function App() {
                 <RootStack.Screen name="About" component={AboutScreen} />
                 <RootStack.Screen name="GameMap" component={GameMapScreen} />
                 <RootStack.Screen
+                  name="NativeGameMap"
+                  component={NativeGameMapScreen}
+                />
+                <RootStack.Screen
                   name="GamepadDebug"
                   component={GamepadDebugScreen}
                 />
@@ -121,6 +127,10 @@ function App() {
                 <RootStack.Screen
                   name="TitleDetail"
                   component={TitleDetailScreen}
+                />
+                <RootStack.Screen
+                  name="GameMapDetail"
+                  component={GameMapDetailScreen}
                 />
               </RootStack.Group>
             </RootStack.Navigator>

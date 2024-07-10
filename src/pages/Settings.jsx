@@ -424,7 +424,8 @@ ${t('Webview: Use Chromium kernal to vibrate')}`}
           title={t('Key mapping')}
           description={t('Mapping key of gamepad')}
           onPress={() => {
-            navigation.navigate('GameMap');
+            navigation.navigate('NativeGameMap');
+            // navigation.navigate('GameMap');
           }}
         />
         <SettingItem
