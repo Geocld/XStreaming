@@ -409,11 +409,11 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
-      if (rumbleData.strongMagnitude === 0 || rumbleData.weakMagnitude === 0) {
-        GamepadManager.vibrate(0, 0);
-      } else {
-        GamepadManager.vibrate(rumbleData.duration / 10, 1);
-      }
+      GamepadManager.vibrate(
+        rumbleData.duration / 10,
+        rumbleData.weakMagnitude * 100,
+        rumbleData.strongMagnitude * 100,
+      );
     }
     if (type === 'exit') {
       handleExit();

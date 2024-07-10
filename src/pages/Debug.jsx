@@ -77,7 +77,7 @@ function DebugScreen({navigation, route}) {
         title={'Vibration'}
         description={'Test gamepad vibration'}
         onPress={() => {
-          GamepadManager.vibrate(500, 1);
+          GamepadManager.vibrate(500, 10, 20);
         }}
       />
     </ScrollView>

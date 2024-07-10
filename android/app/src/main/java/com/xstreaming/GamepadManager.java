@@ -8,6 +8,7 @@ import android.content.Context;
 import android.os.Vibrator;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.os.CombinedVibration;
 import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -70,16 +71,19 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
 
     @ReactMethod
-    public void vibrate(int duration, int intensity) {
+    public void vibrate(int duration, int lowFreqMotor, int highFreqMotor) {
 
         int[] ids = InputDevice.getDeviceIds();
-        Log.d("GamepadManager", "ids:" + ids);
+//        Log.d("GamepadManager", "ids:" + ids);
         for (int id : ids) {
             InputDevice dev = InputDevice.getDevice(id);
             if (dev == null) {
                 // This device was removed during enumeration
                 continue;
             }
+//            String devName = dev.getName();
+//            Log.d("GamepadManager", "devName:" + devName);
+
             if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
                     (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
                 // This looks like a gamepad, but we'll check X and Y to be sure
@@ -99,13 +103,43 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                         int vibratorCount = vibratorIds.length;
                         Log.d("GamepadManager", "vibratorCount:" + vibratorCount);
 
-                        if (vibratorCount > 0) {
-                            updateVibrator(deviceVibratorManager.getVibrator(vibratorIds[0]), intensity, duration);
 
-//                            if (vibratorCount > 1) {
-//                                updateVibrator(deviceVibratorManager.getVibrator(vibratorIds[1]), 0, duration);
-//                            }
+                        // rumbleSingleVibrator: working in x-input mode
+                        int simulatedAmplitude = Math.min(255, (int)((lowFreqMotor * 0.80) + (highFreqMotor * 0.33)));
+                        Log.d("GamepadManager", "simulatedAmplitude:" + simulatedAmplitude);
+
+                        if (simulatedAmplitude == 0) {
+                            deviceVibratorManager.cancel();
+                            return;
                         }
+
+                        int[] vibratorAmplitudes = new int[] { highFreqMotor, lowFreqMotor };
+                        CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
+
+                        for (int i = 0; i < vibratorIds.length; i++) {
+                            // It's illegal to create a VibrationEffect with an amplitude of 0.
+                            // Simply excluding that vibrator from our ParallelCombination will turn it off.
+                            if (vibratorAmplitudes[i] != 0) {
+                                combo.addVibrator(vibratorIds[i], VibrationEffect.createOneShot(duration, vibratorAmplitudes[i]));
+                            }
+                        }
+                        VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder();
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
+                        }
+                        deviceVibratorManager.vibrate(combo.combine(), vibrationAttributes.build());
+
+
+                        // Origin: android mode can vibrate, but x-input not working
+//                        if (vibratorCount > 0) {
+//                            updateVibrator(deviceVibratorManager.getVibrator(vibratorIds[0]), intensity, duration);
+//
+////                            if (vibratorCount > 1) {
+////                                updateVibrator(deviceVibratorManager.getVibrator(vibratorIds[1]), 0, duration);
+////                            }
+//                        }
+
+
                     }
                 }
             }
