@@ -11,6 +11,7 @@ import GamepadKernalModal from '../components/GamepadKernalModal';
 import VibrationModal from '../components/VibrationModal';
 import VibrationModeModal from '../components/VibrationModeModal';
 import DeadZoneModal from '../components/DeadZoneModal';
+import OpacityModal from '../components/OpacityModal';
 import RegionModal from '../components/RegionModal';
 import GameLangModal from '../components/GameLangModal';
 import Ipv6Modal from '../components/Ipv6Modal';
@@ -38,6 +39,7 @@ function SettingsScreen({navigation}) {
   const [showVibrationModeModal, setShowVibrationModeModal] =
     React.useState(false);
   const [showDeadZoneModal, setShowDeadZoneModal] = React.useState(false);
+  const [showOpacityModal, setShowOpacityModal] = React.useState(false);
   const [showGamepadKernalModal, setShowGamepadKernalModal] =
     React.useState(false);
   const [showRegionModal, setShowRegionModal] = React.useState(false);
@@ -80,6 +82,9 @@ function SettingsScreen({navigation}) {
     }
     if (id === 'dead_zone') {
       setShowDeadZoneModal(true);
+    }
+    if (id === 'virtual_gamepad_opacity') {
+      setShowOpacityModal(true);
     }
     if (id === 'region') {
       setShowRegionModal(true);
@@ -203,6 +208,14 @@ function SettingsScreen({navigation}) {
     setShowDeadZoneModal(false);
   };
 
+  // Set virtual opacity
+  const handleVirtualOpacity = value => {
+    settings.virtual_gamepad_opacity = value;
+    setSettings(settings);
+    saveSettings(settings);
+    setShowOpacityModal(false);
+  };
+
   // Set region
   const handleChangeRegion = value => {
     setLoading(true);
@@ -301,14 +314,19 @@ function SettingsScreen({navigation}) {
         onClose={() => setShowVibrationModeModal(false)}
       />
 
-      {showDeadZoneModal && (
-        <DeadZoneModal
-          show={showDeadZoneModal}
-          current={settings.dead_zone}
-          onConfirm={handleChangeDeadZone}
-          onClose={() => setShowDeadZoneModal(false)}
-        />
-      )}
+      <DeadZoneModal
+        show={showDeadZoneModal}
+        current={settings.dead_zone}
+        onConfirm={handleChangeDeadZone}
+        onClose={() => setShowDeadZoneModal(false)}
+      />
+
+      <OpacityModal
+        show={showOpacityModal}
+        current={settings.virtual_gamepad_opacity}
+        onConfirm={handleVirtualOpacity}
+        onClose={() => setShowOpacityModal(false)}
+      />
 
       <RegionModal
         show={showRegionModal}
@@ -390,6 +408,11 @@ ${t('Webview: Use Chromium kernal to vibrate')}`}
           onPress={() => handleItemPress('dead_zone')}
         />
         <SettingItem
+          title={t('Virtual Opacity')}
+          description={t('Config joystick dead zone')}
+          onPress={() => handleItemPress('virtual_gamepad_opacity')}
+        />
+        <SettingItem
           title={t('Set region')}
           description={t(
             'Changing the region allows you to use XGPU services without a proxy',
@@ -424,8 +447,11 @@ ${t('Webview: Use Chromium kernal to vibrate')}`}
           title={t('Key mapping')}
           description={t('Mapping key of gamepad')}
           onPress={() => {
-            navigation.navigate('NativeGameMap');
-            // navigation.navigate('GameMap');
+            if (settings.gamepad_kernal === 'Web') {
+              navigation.navigate('GameMap');
+            } else {
+              navigation.navigate('NativeGameMap');
+            }
           }}
         />
         <SettingItem

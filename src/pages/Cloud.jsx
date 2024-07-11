@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, FlatList} from 'react-native';
+import {StyleSheet, View, FlatList, Dimensions} from 'react-native';
 import {
   Layout,
   Text,
@@ -27,6 +27,7 @@ function CloudScreen({navigation}) {
 
   // log.info('streamingTokens:', streamingTokens);
 
+  const [numColumns, setNumColumns] = React.useState(2);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [selectedIndex, setSelectedIndex] = React.useState(new IndexPath(0));
   const [selectedText, setSelectedText] = React.useState(
@@ -99,6 +100,18 @@ function CloudScreen({navigation}) {
       }
     };
     fetchGames();
+
+    const updateLayout = () => {
+      const {width, height} = Dimensions.get('window');
+      setNumColumns(width > height ? 4 : 2);
+    };
+
+    updateLayout();
+    const subscription = Dimensions.addEventListener('change', updateLayout);
+
+    return () => {
+      subscription?.remove();
+    };
   }, [streamingTokens.xCloudToken, navigation]);
 
   const handleViewDetail = titleItem => {
@@ -181,11 +194,15 @@ function CloudScreen({navigation}) {
                 <FlatList
                   ref={flatListRef}
                   data={showTitles}
-                  numColumns={2}
+                  numColumns={numColumns}
+                  key={numColumns}
                   contentContainerStyle={styles.listContainer}
                   renderItem={({item}) => {
                     return (
-                      <View style={styles.listItem}>
+                      <View
+                        style={
+                          numColumns === 2 ? styles.listItemH : styles.listItemV
+                        }>
                         <TitleItem
                           titleItem={item}
                           onPress={handleViewDetail}
@@ -244,8 +261,12 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   listContainer: {},
-  listItem: {
+  listItemH: {
     width: '50%',
+    justifyContent: 'center',
+  },
+  listItemV: {
+    width: '25%',
     justifyContent: 'center',
   },
 });

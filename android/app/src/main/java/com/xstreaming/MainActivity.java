@@ -18,11 +18,11 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
 class Dpad {
-  final static int UP       = 0;
-  final static int LEFT     = 1;
-  final static int RIGHT    = 2;
-  final static int DOWN     = 3;
-  final static int CENTER   = 4;
+  final static int UP       = 19;
+  final static int LEFT     = 21;
+  final static int RIGHT    = 22;
+  final static int DOWN     = 20;
+  final static int CENTER   = 23;
 
   int directionPressed = -1; // initialized to -1
 

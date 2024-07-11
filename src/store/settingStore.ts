@@ -18,7 +18,9 @@ export type Settings = {
   vibration_mode: string;
   gamepad_kernal: string;
   dead_zone: number;
+  virtual_gamepad_opacity: number;
   gamepad_maping: Record<string, number> | null;
+  native_gamepad_maping: Record<string, number> | null;
   ipv6: boolean;
   debug: boolean;
 };
@@ -37,7 +39,9 @@ const defaultSettings: Settings = {
   vibration_mode: 'Native',
   gamepad_kernal: 'Native',
   dead_zone: 0.2,
+  virtual_gamepad_opacity: 0.6,
   gamepad_maping: null,
+  native_gamepad_maping: null,
   ipv6: false,
   debug: false,
 };

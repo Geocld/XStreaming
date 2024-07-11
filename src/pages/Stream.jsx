@@ -12,30 +12,13 @@ import {useSelector} from 'react-redux';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
+import {GAMEPAD_MAPING} from '../common';
 
 const log = debugFactory('StreamScreen');
 
 const {FullScreenManager, GamepadManager} = NativeModules;
 
-const gpMaping = {
-  96: 'A',
-  97: 'B',
-  99: 'X',
-  100: 'Y',
-  0: 'DPadUp',
-  3: 'DPadDown',
-  1: 'DPadLeft',
-  2: 'DPadRight',
-  102: 'LeftShoulder',
-  103: 'RightShoulder',
-  106: 'LeftThumb',
-  107: 'RightThumb',
-  104: 'LeftTrigger',
-  105: 'RightTrigger',
-  108: 'Menu',
-  109: 'View',
-  110: 'Nexus',
-};
+const defaultMaping = GAMEPAD_MAPING;
 
 const gpState = {
   A: 0,
@@ -76,6 +59,17 @@ function StreamScreen({navigation, route}) {
     const _settings = getSettings();
     setSettings(_settings);
 
+    const sweap = obj => {
+      return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => [value, key]),
+      );
+    };
+
+    let gpMaping = sweap(defaultMaping);
+    if (_settings.native_gamepad_maping) {
+      gpMaping = sweap(_settings.native_gamepad_maping);
+    }
+
     FullScreenManager.immersiveModeOn();
 
     let gpDownEventListener;
@@ -93,30 +87,27 @@ function StreamScreen({navigation, route}) {
       gpDownEventListener = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
-          console.log('onGamepadKeyDown:', event);
           const keyCode = event.keyCode;
           gpState[gpMaping[keyCode]] = 1;
         },
       );
 
       gpUpEventListener = eventEmitter.addListener('onGamepadKeyUp', event => {
-        console.log('onGamepadKeyUp:', event);
         const keyCode = event.keyCode;
         gpState[gpMaping[keyCode]] = 0;
       });
 
       dpDownEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
-        console.log('onDpadKeyDown:', event);
         const keyCode = event.dpadIdx;
         gpState[gpMaping[keyCode]] = 1;
       });
 
       dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
-        console.log('onDpadKeyUp:', event);
-        gpState[gpMaping[0]] = 0;
-        gpState[gpMaping[1]] = 0;
-        gpState[gpMaping[2]] = 0;
-        gpState[gpMaping[3]] = 0;
+        const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
+        gpState[gpMaping[_gpMaping.DPadUp]] = 0;
+        gpState[gpMaping[_gpMaping.DPadDown]] = 0;
+        gpState[gpMaping[_gpMaping.DPadLeft]] = 0;
+        gpState[gpMaping[_gpMaping.DPadRight]] = 0;
       });
 
       leftStickEventListener = eventEmitter.addListener(
@@ -131,14 +122,12 @@ function StreamScreen({navigation, route}) {
       rightStickEventListener = eventEmitter.addListener(
         'onRightStickMove',
         event => {
-          console.log('onRightStickMove:', event);
           gpState.RightThumbXAxis = event.axisX;
           gpState.RightThumbYAxis = event.axisY;
         },
       );
 
       triggerEventListener = eventEmitter.addListener('onTrigger', event => {
-        console.log('onTrigger:', event);
         gpState.LeftTrigger = event.leftTrigger;
         gpState.RightTrigger = event.rightTrigger;
       });
@@ -413,6 +402,8 @@ function StreamScreen({navigation, route}) {
         rumbleData.duration / 10,
         rumbleData.weakMagnitude * 100,
         rumbleData.strongMagnitude * 100,
+        rumbleData.leftTrigger * 100,
+        rumbleData.rightTrigger * 100,
       );
     }
     if (type === 'exit') {

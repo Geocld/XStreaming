@@ -74,10 +74,11 @@ function DebugScreen({navigation, route}) {
         onPress={() => navigation.navigate('GamepadDebug')}
       /> */}
       <SettingItem
-        title={'Vibration'}
+        title={'Vibration(Native)'}
         description={'Test gamepad vibration'}
         onPress={() => {
-          GamepadManager.vibrate(500, 10, 20);
+          // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger)
+          GamepadManager.vibrate(500, 10, 20, 10, 10);
         }}
       />
     </ScrollView>

@@ -7,7 +7,6 @@ const log = debugFactory('GameMapScreen');
 
 function GameMap({navigation, route}) {
   const [settings, setSettings] = React.useState({});
-  const [show, setShow] = React.useState(false);
 
   const uri = 'file:///android_asset/stream/index.html#/map';
 
@@ -17,7 +16,6 @@ function GameMap({navigation, route}) {
     const _settings = getSettings();
     log.info('Get localSettings:', _settings);
     setSettings(_settings);
-    setShow(true);
   }, [navigation]);
 
   const handleWebviewMessage = event => {
@@ -31,23 +29,21 @@ function GameMap({navigation, route}) {
 
   return (
     <>
-      {show && (
-        <WebView
-          source={{uri}}
-          originWhitelist={['*']}
-          javaScriptEnabled={true}
-          setSupportMultipleWindows={false}
-          mediaPlaybackRequiresUserAction={false}
-          allowsFullscreenVideo={true}
-          allowsInlineMediaPlayback={true}
-          injectedJavaScriptObject={{
-            settings,
-          }}
-          onMessage={event => {
-            handleWebviewMessage(event);
-          }}
-        />
-      )}
+      <WebView
+        source={{uri}}
+        originWhitelist={['*']}
+        javaScriptEnabled={true}
+        setSupportMultipleWindows={false}
+        mediaPlaybackRequiresUserAction={false}
+        allowsFullscreenVideo={true}
+        allowsInlineMediaPlayback={true}
+        injectedJavaScriptObject={{
+          settings,
+        }}
+        onMessage={event => {
+          handleWebviewMessage(event);
+        }}
+      />
     </>
   );
 }
