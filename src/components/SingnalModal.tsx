@@ -20,11 +20,11 @@ const SingnalModal: React.FC<Props> = ({
   const {t} = useTranslation();
 
   const streamingTokens = useSelector((state: any) => state.streamingTokens);
-  let regions = streamingTokens.xHomeToken.getRegions() || [];
+  let regions = streamingTokens.xHomeToken?.getRegions() || [];
 
   let xgpuRegions = [];
   if (streamingTokens.xCloudToken) {
-    xgpuRegions = streamingTokens.xCloudToken.getRegions();
+    xgpuRegions = streamingTokens.xCloudToken?.getRegions() || [];
   }
 
   if (currentMode === 'signaling_cloud') {
