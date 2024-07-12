@@ -144,7 +144,7 @@ function StreamScreen({navigation, route}) {
           webviewRef.current.injectJavaScript(
             generateOnMessageFunction(postData),
           );
-      }, 1000 / 60);
+      }, 1000 / 120);
     }
 
     navigation.addListener('beforeRemove', e => {
