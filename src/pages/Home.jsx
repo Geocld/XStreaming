@@ -208,6 +208,14 @@ function HomeScreen({navigation, route}) {
                     onPress={() => {
                       handleStartStream(console.id);
                     }}
+                    onPress2={() => {
+                      navigation.navigate({
+                        name: 'NewStream',
+                        params: {
+                          sessionId: console.id,
+                        },
+                      });
+                    }}
                   />
                 );
               })}

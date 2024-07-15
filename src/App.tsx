@@ -16,6 +16,7 @@ import HomeScreen from './pages/Home';
 import CloudScreen from './pages/Cloud';
 import LoginScreen from './pages/Login';
 import StreamScreen from './pages/Stream';
+import NewStreamScreen from './pages/NewStream';
 import SettingsScreen from './pages/Settings';
 import TitleDetailScreen from './pages/TitleDetail';
 import DebugScreen from './pages/Debug';
@@ -31,6 +32,7 @@ import {default as theme} from '../theme.json';
 import {useTranslation} from 'react-i18next';
 
 import './i18n';
+import 'text-encoding-polyfill';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
@@ -108,6 +110,11 @@ function App() {
                 <RootStack.Screen
                   name="Stream"
                   component={StreamScreen}
+                  options={{headerShown: false}}
+                />
+                <RootStack.Screen
+                  name="NewStream"
+                  component={NewStreamScreen}
                   options={{headerShown: false}}
                 />
                 <RootStack.Screen name="Debug" component={DebugScreen} />

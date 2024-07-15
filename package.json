@@ -43,9 +43,11 @@
     "react-native-svg-transformer": "^1.5.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.1.0",
+    "react-native-webrtc": "^124.0.3",
     "react-native-webview": "^13.10.2",
     "react-redux": "^9.1.2",
-    "redux": "^5.0.1"
+    "redux": "^5.0.1",
+    "text-encoding-polyfill": "^0.6.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

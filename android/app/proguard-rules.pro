@@ -10,12 +10,5 @@
 # Add any project specific keep options here:
 
 -dontwarn dalvik.**
--dontwarn com.tencent.smtt.**
 
--keep class com.tencent.smtt.** {
- *;
-}
-
--keep class com.tencent.tbs.** {
- *;
-}
+-keep class org.webrtc.** { *; }

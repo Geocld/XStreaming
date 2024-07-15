@@ -41,6 +41,13 @@ const ConsoleItem = (props: any) => {
           onPress={props.onPress}>
           {t('Start stream')}
         </Button>
+
+        <Button
+          style={styles.footerControl}
+          size="small"
+          onPress={props.onPress2}>
+          {t('Start new stream')}
+        </Button>
       </View>
     </Card>
   );
