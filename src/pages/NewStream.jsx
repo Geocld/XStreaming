@@ -17,10 +17,38 @@ import {useTranslation} from 'react-i18next';
 import {RTCView, MediaStream} from 'react-native-webrtc';
 import webRTCClient from '../webrtc';
 import {debugFactory} from '../utils/debug';
+import {GAMEPAD_MAPING} from '../common';
 
 const log = debugFactory('NewStreamScreen');
 
 const {FullScreenManager, GamepadManager} = NativeModules;
+
+const defaultMaping = GAMEPAD_MAPING;
+
+const gpState = {
+  A: 0,
+  B: 0,
+  X: 0,
+  Y: 0,
+  LeftShoulder: 0,
+  RightShoulder: 0,
+  LeftTrigger: 0,
+  RightTrigger: 0,
+  View: 0,
+  Menu: 0,
+  LeftThumb: 0,
+  RightThumb: 0,
+  DPadUp: 0,
+  DPadDown: 0,
+  DPadLeft: 0,
+  DPadRight: 0,
+  Nexus: 0,
+
+  LeftThumbXAxis: 0.0,
+  LeftThumbYAxis: 0.0,
+  RightThumbXAxis: 0.0,
+  RightThumbYAxis: 0.0,
+};
 
 function NewStreamScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -41,8 +69,28 @@ function NewStreamScreen({navigation, route}) {
     const _settings = getSettings();
     setSettings(_settings);
 
+    const sweap = obj => {
+      return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => [value, key]),
+      );
+    };
+
+    let gpMaping = sweap(defaultMaping);
+    if (_settings.native_gamepad_maping) {
+      gpMaping = sweap(_settings.native_gamepad_maping);
+    }
+
     FullScreenManager.immersiveModeOn();
     Orientation.lockToLandscape();
+
+    let gpDownEventListener;
+    let gpUpEventListener;
+    let dpDownEventListener;
+    let dpUpEventListener;
+    let leftStickEventListener;
+    let rightStickEventListener;
+    let triggerEventListener;
+    let timer;
 
     if (!xHomeApi) {
       if (streamingTokens.xHomeToken) {
@@ -80,6 +128,60 @@ function NewStreamScreen({navigation, route}) {
         setLoading(false);
         setRemote(remoteStream.current.toURL());
       });
+
+      const eventEmitter = new NativeEventEmitter();
+
+      gpDownEventListener = eventEmitter.addListener(
+        'onGamepadKeyDown',
+        event => {
+          const keyCode = event.keyCode;
+          gpState[gpMaping[keyCode]] = 1;
+        },
+      );
+
+      gpUpEventListener = eventEmitter.addListener('onGamepadKeyUp', event => {
+        const keyCode = event.keyCode;
+        gpState[gpMaping[keyCode]] = 0;
+      });
+
+      dpDownEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
+        const keyCode = event.dpadIdx;
+        gpState[gpMaping[keyCode]] = 1;
+      });
+
+      dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
+        const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
+        gpState[gpMaping[_gpMaping.DPadUp]] = 0;
+        gpState[gpMaping[_gpMaping.DPadDown]] = 0;
+        gpState[gpMaping[_gpMaping.DPadLeft]] = 0;
+        gpState[gpMaping[_gpMaping.DPadRight]] = 0;
+      });
+
+      leftStickEventListener = eventEmitter.addListener(
+        'onLeftStickMove',
+        event => {
+          console.log('onLeftStickMove:', event);
+          gpState.LeftThumbXAxis = event.axisX;
+          gpState.LeftThumbYAxis = event.axisY;
+        },
+      );
+
+      rightStickEventListener = eventEmitter.addListener(
+        'onRightStickMove',
+        event => {
+          gpState.RightThumbXAxis = event.axisX;
+          gpState.RightThumbYAxis = event.axisY;
+        },
+      );
+
+      triggerEventListener = eventEmitter.addListener('onTrigger', event => {
+        gpState.LeftTrigger = event.leftTrigger;
+        gpState.RightTrigger = event.rightTrigger;
+      });
+
+      timer = setInterval(() => {
+        webrtcClient.setGamepadState(gpState);
+      }, 1000 / 120);
 
       const streamApi = xHomeApi;
 
@@ -121,6 +223,14 @@ function NewStreamScreen({navigation, route}) {
       if (webrtcClient) {
         webrtcClient.close();
       }
+      gpDownEventListener && gpDownEventListener.remove();
+      gpUpEventListener && gpUpEventListener.remove();
+      dpDownEventListener && dpDownEventListener.remove();
+      dpUpEventListener && dpUpEventListener.remove();
+      leftStickEventListener && leftStickEventListener.remove();
+      rightStickEventListener && rightStickEventListener.remove();
+      triggerEventListener && triggerEventListener.remove();
+      timer && clearInterval(timer);
     };
   }, [
     t,

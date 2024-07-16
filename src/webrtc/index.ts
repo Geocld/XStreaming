@@ -362,6 +362,10 @@ class webRTCClient {
   getChannelProcessor(name: string) {
     return this._webrtcChannelProcessors[name];
   }
+
+  setGamepadState(gpState: any) => {
+    this._gpState = gpState
+  }
 }
 
 export default webRTCClient;
