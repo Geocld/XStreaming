@@ -9,9 +9,13 @@ import ControlChannel from './Channel/Control';
 import MessageChannel from './Channel/Message';
 import ChatChannel from './Channel/Chat';
 
+import GamepadDriver from './Driver/Gamepad';
+
 class webRTCClient {
   _webrtcClient: RTCPeerConnection | undefined;
   _iceCandidates: Array<RTCIceCandidate> = [];
+
+  _inputDriver: any = undefined;
 
   _webrtcConfiguration = {
     iceServers: [
@@ -97,6 +101,9 @@ class webRTCClient {
     this._webrtcClient = new RTCPeerConnection(this._webrtcConfiguration);
 
     this._openDataChannels();
+
+    this._inputDriver = new GamepadDriver();
+    this._inputDriver.setApplication(this);
 
     this._gatherIce();
 
@@ -194,6 +201,10 @@ class webRTCClient {
       for (const name in this._webrtcChannelProcessors) {
         this._webrtcChannelProcessors[name].destroy();
       }
+
+      this._webrtcChannelProcessors = {};
+
+      this._inputDriver.stop();
     }
   }
 
@@ -363,8 +374,8 @@ class webRTCClient {
     return this._webrtcChannelProcessors[name];
   }
 
-  setGamepadState(gpState: any) => {
-    this._gpState = gpState
+  setGamepadState(gpState: any) {
+    this._gpState = gpState;
   }
 }
 

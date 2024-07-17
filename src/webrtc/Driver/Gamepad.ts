@@ -1,8 +1,5 @@
 import webRTCClient from '..';
-import {InputFrame} from '../Channel/Input';
-import Driver from './Dri';
-
-const KEYCODE_KEY_N = 'n';
+import Driver from './Driver';
 
 export default class GamepadDriver implements Driver {
   _application: webRTCClient | null = null;
@@ -34,13 +31,19 @@ export default class GamepadDriver implements Driver {
 
   _isVirtualButtonPressing = false;
 
+  _timer: any = null;
+
   setApplication(application: webRTCClient) {
     this._application = application;
   }
 
   start() {}
 
-  stop() {}
+  stop() {
+    if (this._timer) {
+      clearTimeout(this._timer);
+    }
+  }
 
   pressButtonStart(button: string) {
     console.log('pressButtonStart:', button);
@@ -100,7 +103,7 @@ export default class GamepadDriver implements Driver {
     }
 
     // requestAnimationFrame(() => { this.run() })
-    setTimeout(() => {
+    this._timer = setTimeout(() => {
       this.run();
     }, 1000 / 120);
   }

@@ -85,9 +85,7 @@ export default class InputChannel extends BaseChannel {
 
     this.send(Packet.toBuffer());
 
-    // if (this._client._config.input_legacykeyboard === false) {
-    //   this.getClient()._inputDriver.run();
-    // }
+    this.getClient()._inputDriver.run();
 
     this._inputInterval = setInterval(() => {
       const metadataQueue = this.getMetadataQueue();
