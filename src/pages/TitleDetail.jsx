@@ -27,8 +27,16 @@ function TitleDetail({navigation, route}) {
 
   const handleStartGame = () => {
     log.info('HandleStartCloudGame titleId:', titleItem.titleId);
+    // navigation.navigate({
+    //   name: 'Stream',
+    //   params: {
+    //     sessionId: titleItem.titleId,
+    //     settings,
+    //     streamType: 'cloud',
+    //   },
+    // });
     navigation.navigate({
-      name: 'Stream',
+      name: 'NewStream',
       params: {
         sessionId: titleItem.titleId,
         settings,

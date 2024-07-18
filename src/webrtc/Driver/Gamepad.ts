@@ -46,7 +46,7 @@ export default class GamepadDriver implements Driver {
   }
 
   pressButtonStart(button: string) {
-    console.log('pressButtonStart:', button);
+    // console.log('pressButtonStart:', button);
     this._isVirtualButtonPressing = true;
 
     this._shadowGamepad[button] = 1;
@@ -56,7 +56,7 @@ export default class GamepadDriver implements Driver {
   }
 
   pressButtonEnd(button: string) {
-    console.log('pressButtonEnd:', button);
+    // console.log('pressButtonEnd:', button);
     this._shadowGamepad[button] = 0;
     this._application
       ?.getChannelProcessor('input')

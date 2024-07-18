@@ -32,7 +32,6 @@ import {default as theme} from '../theme.json';
 import {useTranslation} from 'react-i18next';
 
 import './i18n';
-import 'text-encoding-polyfill';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();

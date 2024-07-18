@@ -11,6 +11,8 @@ import ChatChannel from './Channel/Chat';
 
 import GamepadDriver from './Driver/Gamepad';
 
+globalThis._lastStat = null;
+
 class webRTCClient {
   _webrtcClient: RTCPeerConnection | undefined;
   _iceCandidates: Array<RTCIceCandidate> = [];
@@ -375,6 +377,110 @@ class webRTCClient {
 
   setGamepadState(gpState: any) {
     this._gpState = gpState;
+  }
+
+  getStreamState() {
+    return new Promise(resove => {
+      const performances = {
+        // resolution: globalThis.resolution,
+        rtt: '-1 (-1%)',
+        fps: 0,
+        pl: '-1 (-1%)',
+        fl: '-1 (-1%)',
+        br: '',
+        decode: '',
+      };
+      if (this._webrtcClient) {
+        this._webrtcClient.getStats().then(stats => {
+          stats.forEach((stat: any) => {
+            if (stat.type === 'inbound-rtp' && stat.kind === 'video') {
+              // FPS
+              performances.fps = stat.framesPerSecond || 0;
+
+              // Frames Dropped
+              const framesDropped = stat.framesDropped;
+              if (framesDropped !== undefined) {
+                const framesReceived = stat.framesReceived;
+                const framesDroppedPercentage = (
+                  (framesDropped * 100) /
+                  (framesDropped + framesReceived || 1)
+                ).toFixed(2);
+                performances.fl = `${framesDropped} (${framesDroppedPercentage}%)`;
+              } else {
+                performances.fl = '-1 (-1%)';
+              }
+
+              // Packets Lost
+              const packetsLost = stat.packetsLost;
+              if (packetsLost !== undefined) {
+                const packetsReceived = stat.packetsReceived;
+                const packetsLostPercentage = (
+                  (packetsLost * 100) /
+                  (packetsLost + packetsReceived || 1)
+                ).toFixed(2);
+                performances.pl = `${packetsLost} (${packetsLostPercentage}%)`;
+              } else {
+                performances.pl = '-1 (-1%)';
+              }
+
+              if (globalThis._lastStat) {
+                try {
+                  const lastStat = globalThis._lastStat;
+                  // Bitrate
+                  const timeDiff = stat.timestamp - lastStat.timestamp;
+                  if (timeDiff !== 0) {
+                    const bitrate =
+                      (8 * (stat.bytesReceived - lastStat.bytesReceived)) /
+                      timeDiff /
+                      1000;
+                    performances.br = `${bitrate.toFixed(2)} Mbps`;
+                  } else {
+                    performances.br = '--';
+                  }
+
+                  // Decode time
+                  // Show decode time is a bug on Chromium based browsers on Android,so just reduce it.
+                  // Refer: https://github.com/redphx/better-xcloud/discussions/113
+                  const totalDecodeTimeDiff =
+                    stat.totalDecodeTime - lastStat.totalDecodeTime;
+                  const framesDecodedDiff =
+                    stat.framesDecoded - lastStat.framesDecoded;
+                  if (framesDecodedDiff !== 0) {
+                    let currentDecodeTime =
+                      (totalDecodeTimeDiff / framesDecodedDiff) * 1000;
+
+                    // Fix decode time incorrect in webview
+                    if (currentDecodeTime > 20) {
+                      currentDecodeTime -= 20;
+                    }
+                    if (currentDecodeTime > 18) {
+                      currentDecodeTime -= 15;
+                    }
+                    performances.decode = `${currentDecodeTime.toFixed(2)}ms`;
+                  } else {
+                    performances.decode = '--';
+                  }
+                } catch (e) {
+                  console.log('err:', e);
+                }
+              }
+              globalThis._lastStat = stat;
+            } else if (
+              stat.type === 'candidate-pair' &&
+              stat.state === 'succeeded'
+            ) {
+              // Round Trip Time（延迟）
+              const roundTripTime =
+                typeof stat.currentRoundTripTime !== 'undefined'
+                  ? stat.currentRoundTripTime * 1000
+                  : '???';
+              performances.rtt = `${roundTripTime}ms`;
+            }
+          });
+          resove(performances);
+        });
+      }
+    });
   }
 }
 

@@ -95,9 +95,10 @@ export default class InputChannel extends BaseChannel {
         this._inputSequenceNum++;
         const packet = new InputPacket(this._inputSequenceNum);
         packet.setData(metadataQueue, gamepadQueue);
+
         this.send(packet.toBuffer());
       }
-    }, 16); // 16 ms = 1 frame (1000/60)
+    }, 8); // 16 ms = 1 frame (1000/60)
   }
 
   onMessage(event: any) {

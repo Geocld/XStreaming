@@ -56,18 +56,20 @@ function NewStreamScreen({navigation, route}) {
   const authentication = useSelector(state => state.authentication);
   const streamingTokens = useSelector(state => state.streamingTokens);
 
-  const [xHomeApi, setXHomeApi] = React.useState(null);
-  const [xCloudApi, setXCloudApi] = React.useState(null);
+  const [streamApi, setStreamApi] = React.useState(null);
   const [settings, setSettings] = React.useState({});
   const [loading, setLoading] = React.useState(true);
   const [loadingText, setLoadingText] = React.useState('');
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [showPerformance, setShowPerformance] = React.useState(false);
+  const [performance, setPerformance] = React.useState(null);
 
   const [webrtcClient, setWebrtcClient] = React.useState(undefined);
   const [remote, setRemote] = React.useState(null);
   const remoteStream = React.useRef(null);
   const keepaliveInterval = React.useRef(null);
+  const performanceInterval = React.useRef(null);
+  
 
   React.useEffect(() => {
     FullScreenManager.immersiveModeOn();
@@ -88,15 +90,18 @@ function NewStreamScreen({navigation, route}) {
   };
 
   const handleStickMove = (id, data) => {
-    console.log('handleStickMove:', id, data);
+    // console.log('handleStickMove:', id, data);
+    const leveledX = data.dist.x.toFixed(2)
+    const leveledY = data.dist.y.toFixed(2)
+    
     if (id === 'right') {
       webrtcClient
         .getChannelProcessor('input')
-        .moveRightStick(0, data.dist.x, data.dist.y);
+        .moveRightStick(Number(leveledX), Number(leveledY));
     } else {
       webrtcClient
         .getChannelProcessor('input')
-        .moveLeftStick(0, data.dist.x, data.dist.y);
+        .moveLeftStick(Number(leveledX), Number(leveledY));
     }
   };
 
@@ -130,33 +135,35 @@ function NewStreamScreen({navigation, route}) {
     let triggerEventListener;
     let timer;
 
-    if (!xHomeApi) {
-      if (streamingTokens.xHomeToken) {
-        const _xHomeApi = new XcloudApi(
-          streamingTokens.xHomeToken.getDefaultRegion().baseUri,
-          streamingTokens.xHomeToken.data.gsToken,
-          'home',
-          authentication,
-        );
-        setXHomeApi(_xHomeApi);
-      }
-
-      if (streamingTokens.xCloudToken) {
-        const _xCloudApi = new XcloudApi(
-          streamingTokens.xCloudToken.getDefaultRegion().baseUri,
-          streamingTokens.xCloudToken.data.gsToken,
-          'cloud',
-          authentication,
-        );
-        setXCloudApi(_xCloudApi);
+    if (!streamApi) {
+      if (route.params?.streamType === 'cloud') {
+        if (streamingTokens.xCloudToken) {
+          const _xCloudApi = new XcloudApi(
+            streamingTokens.xCloudToken.getDefaultRegion().baseUri,
+            streamingTokens.xCloudToken.data.gsToken,
+            'cloud',
+            authentication,
+          );
+          setStreamApi(_xCloudApi);
+        }
+      } else {
+        if (streamingTokens.xHomeToken) {
+          const _xHomeApi = new XcloudApi(
+            streamingTokens.xHomeToken.getDefaultRegion().baseUri,
+            streamingTokens.xHomeToken.data.gsToken,
+            'home',
+            authentication,
+          );
+          setStreamApi(_xHomeApi);
+        }
       }
     }
 
-    if (xHomeApi && webrtcClient === undefined) {
+    if (streamApi && webrtcClient === undefined) {
       setWebrtcClient(new webRTCClient());
     }
 
-    if (xHomeApi && webrtcClient !== undefined) {
+    if (streamApi && webrtcClient !== undefined) {
       webrtcClient.init();
 
       remoteStream.current = new MediaStream(undefined);
@@ -178,7 +185,7 @@ function NewStreamScreen({navigation, route}) {
 
         // Start keepalive loop
         keepaliveInterval.current = setInterval(() => {
-          xHomeApi
+          streamApi
             .sendKeepalive()
             .then(result => {
               log.info('StartStream keepalive:', JSON.stringify(result));
@@ -190,6 +197,12 @@ function NewStreamScreen({navigation, route}) {
               );
             });
         }, 20 * 1000);
+
+        performanceInterval.current = setInterval(() => {
+          webrtcClient.getStreamState().then(res => {
+            setPerformance(res)
+          })
+        }, 1000)
       });
 
       const eventEmitter = new NativeEventEmitter();
@@ -245,8 +258,6 @@ function NewStreamScreen({navigation, route}) {
         webrtcClient.setGamepadState(gpState);
       }, 1000 / 120);
 
-      const streamApi = xHomeApi;
-
       setLoadingText(`${t('Connecting...')}`);
       console.log('Connecting...');
 
@@ -296,15 +307,19 @@ function NewStreamScreen({navigation, route}) {
       if (keepaliveInterval.current) {
         clearInterval(keepaliveInterval.current);
       }
+      if (performanceInterval.current) {
+        clearInterval(performanceInterval.current);
+      }
     };
   }, [
     t,
     route.params?.sessionId,
+    route.params?.streamType,
     webrtcClient,
     streamingTokens,
     navigation,
     authentication,
-    xHomeApi,
+    streamApi,
   ]);
 
   return (
@@ -315,6 +330,15 @@ function NewStreamScreen({navigation, route}) {
         textContent={loadingText}
         textStyle={styles.spinnerTextStyle}
       />
+      {
+        performance && (
+          <View style={styles.performance}>
+            <Text style={styles.performanceText}>RTT: {performance.rtt}|</Text>
+            <Text style={styles.performanceText}>DC: {performance.decode}|</Text>
+            <Text style={styles.performanceText}>FPS: {performance.fps}</Text>
+          </View>
+        )
+      }
       {remoteStream.current?.toURL() && (
         <RTCView
           style={styles.player}
@@ -345,6 +369,17 @@ const styles = StyleSheet.create({
   spinnerTextStyle: {
     color: '#107C10',
   },
+  performance: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+  performanceText: {
+    fontSize: 10,
+    color: '#fff'
+  }
 });
 
 export default NewStreamScreen;

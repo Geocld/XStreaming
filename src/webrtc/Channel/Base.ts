@@ -1,4 +1,6 @@
 import webrtcClient from '..';
+import 'fast-text-encoding';
+// import 'text-encoding-polyfill';
 
 export default class BaseChannel {
   _client: webrtcClient;
