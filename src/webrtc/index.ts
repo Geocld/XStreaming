@@ -120,8 +120,7 @@ class webRTCClient {
       direction: 'sendrecv',
     });
 
-    this._webrtcClient.addEventListener('connectionstatechange', event => {
-      console.log('connectionstatechange 0:', event);
+    this._webrtcClient.addEventListener('connectionstatechange', _ => {
       console.log(
         'connectionstatechange:',
         this._webrtcClient?.connectionState,

@@ -23,18 +23,18 @@ export default class XcloudApi {
       const deviceInfo = JSON.stringify({
         appInfo: {
           env: {
-            // clientAppId: 'Microsoft.GamingApp',
-            // clientAppType: 'native',
-            // clientAppVersion: '2203.1001.4.0',
-            // clientSdkVersion: '8.5.2',
-            // httpEnvironment: 'prod',
-            // sdkInstallId: '',
-            clientAppId: 'www.xbox.com',
-            clientAppType: 'browser',
-            clientAppVersion: '21.1.98',
-            clientSdkVersion: '8.5.3',
+            clientAppId: 'Microsoft.GamingApp',
+            clientAppType: 'native',
+            clientAppVersion: '2203.1001.4.0',
+            clientSdkVersion: '8.5.2',
             httpEnvironment: 'prod',
             sdkInstallId: '',
+            // clientAppId: 'www.xbox.com',
+            // clientAppType: 'browser',
+            // clientAppVersion: '21.1.98',
+            // clientSdkVersion: '8.5.3',
+            // httpEnvironment: 'prod',
+            // sdkInstallId: '',
           },
         },
         dev: {
@@ -389,8 +389,10 @@ export default class XcloudApi {
               lst.sort((a, b) => {
                 const firstIp = a.ip;
                 const secondIp = b.ip;
-  
-                return !firstIp.includes(':') && secondIp.includes(':') ? 1 : -1;
+
+                return !firstIp.includes(':') && secondIp.includes(':')
+                  ? 1
+                  : -1;
               });
             }
 
@@ -489,6 +491,7 @@ export default class XcloudApi {
   }
 
   sendKeepalive() {
+    console.log('sendKeepalive');
     return new Promise((resolve, reject) => {
       axios
         .post(

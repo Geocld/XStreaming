@@ -17,6 +17,8 @@ export default class ControlChannel extends BaseChannel {
 
     this.send(authRequest);
 
+    this._client._inputDriver.start();
+
     this.sendGamepadAdded(0);
   }
 

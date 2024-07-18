@@ -184,6 +184,22 @@ export default class InputChannel extends BaseChannel {
     return (int[0] = e), int[0];
   }
 
+  pressButtonStart(button: string) {
+    this._client._inputDriver.pressButtonStart(button);
+  }
+
+  pressButtonEnd(button: string) {
+    this._client._inputDriver.pressButtonEnd(button);
+  }
+
+  moveLeftStick(x: number, y: number) {
+    this._client._inputDriver.moveLeftStick(x, y);
+  }
+
+  moveRightStick(x: number, y: number) {
+    this._client._inputDriver.moveRightStick(x, y);
+  }
+
   destroy() {
     clearInterval(this._inputInterval);
     super.destroy();

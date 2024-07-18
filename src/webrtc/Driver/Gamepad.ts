@@ -65,31 +65,31 @@ export default class GamepadDriver implements Driver {
   }
 
   // left stick move
-  moveLeftStick(index: number, x: number, y: number) {
+  moveLeftStick(x: number, y: number) {
     if (x !== 0 || y !== 0) {
       this._isVirtualButtonPressing = true;
     } else {
       this._isVirtualButtonPressing = false;
     }
-    this._shadowGamepad[index].LeftThumbXAxis = x;
-    this._shadowGamepad[index].LeftThumbYAxis = -y;
+    this._shadowGamepad.LeftThumbXAxis = x;
+    this._shadowGamepad.LeftThumbYAxis = -y;
     this._application
       ?.getChannelProcessor('input')
-      .queueGamepadState(this._shadowGamepad[index]);
+      .queueGamepadState(this._shadowGamepad);
   }
 
   // right stick move
-  moveRightStick(index: number, x: number, y: number) {
+  moveRightStick(x: number, y: number) {
     if (x !== 0 || y !== 0) {
       this._isVirtualButtonPressing = true;
     } else {
       this._isVirtualButtonPressing = false;
     }
-    this._shadowGamepad[index].RightThumbXAxis = x;
-    this._shadowGamepad[index].RightThumbYAxis = -y;
+    this._shadowGamepad.RightThumbXAxis = x;
+    this._shadowGamepad.RightThumbYAxis = -y;
     this._application
       ?.getChannelProcessor('input')
-      .queueGamepadState(this._shadowGamepad[index]);
+      .queueGamepadState(this._shadowGamepad);
   }
 
   // Only ran when new gamepad driver is selected

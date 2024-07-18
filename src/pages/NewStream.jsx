@@ -61,10 +61,13 @@ function NewStreamScreen({navigation, route}) {
   const [settings, setSettings] = React.useState({});
   const [loading, setLoading] = React.useState(true);
   const [loadingText, setLoadingText] = React.useState('');
+  const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
+  const [showPerformance, setShowPerformance] = React.useState(false);
 
   const [webrtcClient, setWebrtcClient] = React.useState(undefined);
   const [remote, setRemote] = React.useState(null);
   const remoteStream = React.useRef(null);
+  const keepaliveInterval = React.useRef(null);
 
   React.useEffect(() => {
     FullScreenManager.immersiveModeOn();
@@ -74,186 +77,239 @@ function NewStreamScreen({navigation, route}) {
     }, 500);
   });
 
-  // React.useEffect(() => {
-  //   const _settings = getSettings();
-  //   setSettings(_settings);
+  const handleButtonPressIn = name => {
+    webrtcClient.getChannelProcessor('input').pressButtonStart(name);
+  };
 
-  //   const sweap = obj => {
-  //     return Object.fromEntries(
-  //       Object.entries(obj).map(([key, value]) => [value, key]),
-  //     );
-  //   };
+  const handleButtonPressOut = name => {
+    setTimeout(() => {
+      webrtcClient.getChannelProcessor('input').pressButtonEnd(name);
+    }, 50);
+  };
 
-  //   let gpMaping = sweap(defaultMaping);
-  //   if (_settings.native_gamepad_maping) {
-  //     gpMaping = sweap(_settings.native_gamepad_maping);
-  //   }
+  const handleStickMove = (id, data) => {
+    console.log('handleStickMove:', id, data);
+    if (id === 'right') {
+      webrtcClient
+        .getChannelProcessor('input')
+        .moveRightStick(0, data.dist.x, data.dist.y);
+    } else {
+      webrtcClient
+        .getChannelProcessor('input')
+        .moveLeftStick(0, data.dist.x, data.dist.y);
+    }
+  };
 
-  //   FullScreenManager.immersiveModeOn();
+  React.useEffect(() => {
+    const _settings = getSettings();
+    setSettings(_settings);
 
-  //   setTimeout(() => {
-  //     Orientation.lockToLandscape();
-  //   }, 500);
+    const sweap = obj => {
+      return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => [value, key]),
+      );
+    };
 
-  //   let gpDownEventListener;
-  //   let gpUpEventListener;
-  //   let dpDownEventListener;
-  //   let dpUpEventListener;
-  //   let leftStickEventListener;
-  //   let rightStickEventListener;
-  //   let triggerEventListener;
-  //   let timer;
+    let gpMaping = sweap(defaultMaping);
+    if (_settings.native_gamepad_maping) {
+      gpMaping = sweap(_settings.native_gamepad_maping);
+    }
 
-  //   if (!xHomeApi) {
-  //     if (streamingTokens.xHomeToken) {
-  //       const _xHomeApi = new XcloudApi(
-  //         streamingTokens.xHomeToken.getDefaultRegion().baseUri,
-  //         streamingTokens.xHomeToken.data.gsToken,
-  //         'home',
-  //         authentication,
-  //       );
-  //       setXHomeApi(_xHomeApi);
-  //     }
-  //   }
+    FullScreenManager.immersiveModeOn();
 
-  //   if (xHomeApi && webrtcClient === undefined) {
-  //     setWebrtcClient(new webRTCClient());
-  //   }
+    setTimeout(() => {
+      Orientation.lockToLandscape();
+    }, 500);
 
-  //   if (xHomeApi && webrtcClient !== undefined) {
-  //     webrtcClient.init();
+    let gpDownEventListener;
+    let gpUpEventListener;
+    let dpDownEventListener;
+    let dpUpEventListener;
+    let leftStickEventListener;
+    let rightStickEventListener;
+    let triggerEventListener;
+    let timer;
 
-  //     remoteStream.current = new MediaStream(undefined);
+    if (!xHomeApi) {
+      if (streamingTokens.xHomeToken) {
+        const _xHomeApi = new XcloudApi(
+          streamingTokens.xHomeToken.getDefaultRegion().baseUri,
+          streamingTokens.xHomeToken.data.gsToken,
+          'home',
+          authentication,
+        );
+        setXHomeApi(_xHomeApi);
+      }
 
-  //     webrtcClient.setTrackHandler(event => {
-  //       const track = event.track;
-  //       if (!remoteStream.current) {
-  //         remoteStream.current = new MediaStream();
-  //       }
-  //       remoteStream.current.addTrack(track, remoteStream.current);
-  //     });
+      if (streamingTokens.xCloudToken) {
+        const _xCloudApi = new XcloudApi(
+          streamingTokens.xCloudToken.getDefaultRegion().baseUri,
+          streamingTokens.xCloudToken.data.gsToken,
+          'cloud',
+          authentication,
+        );
+        setXCloudApi(_xCloudApi);
+      }
+    }
 
-  //     webrtcClient.setConnectedHandler(() => {
-  //       // Connected
-  //       setLoadingText(`${t('Connected')}`);
-  //       setLoading(false);
-  //       setRemote(remoteStream.current.toURL());
-  //     });
+    if (xHomeApi && webrtcClient === undefined) {
+      setWebrtcClient(new webRTCClient());
+    }
 
-  //     const eventEmitter = new NativeEventEmitter();
+    if (xHomeApi && webrtcClient !== undefined) {
+      webrtcClient.init();
 
-  //     gpDownEventListener = eventEmitter.addListener(
-  //       'onGamepadKeyDown',
-  //       event => {
-  //         const keyCode = event.keyCode;
-  //         gpState[gpMaping[keyCode]] = 1;
-  //       },
-  //     );
+      remoteStream.current = new MediaStream(undefined);
 
-  //     gpUpEventListener = eventEmitter.addListener('onGamepadKeyUp', event => {
-  //       const keyCode = event.keyCode;
-  //       gpState[gpMaping[keyCode]] = 0;
-  //     });
+      webrtcClient.setTrackHandler(event => {
+        const track = event.track;
+        if (!remoteStream.current) {
+          remoteStream.current = new MediaStream();
+        }
+        remoteStream.current.addTrack(track, remoteStream.current);
+      });
 
-  //     dpDownEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
-  //       const keyCode = event.dpadIdx;
-  //       gpState[gpMaping[keyCode]] = 1;
-  //     });
+      webrtcClient.setConnectedHandler(() => {
+        // Connected
+        setLoadingText(`${t('Connected')}`);
+        setLoading(false);
+        setShowVirtualGamepad(true);
+        setRemote(remoteStream.current.toURL());
 
-  //     dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
-  //       const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
-  //       gpState[gpMaping[_gpMaping.DPadUp]] = 0;
-  //       gpState[gpMaping[_gpMaping.DPadDown]] = 0;
-  //       gpState[gpMaping[_gpMaping.DPadLeft]] = 0;
-  //       gpState[gpMaping[_gpMaping.DPadRight]] = 0;
-  //     });
+        // Start keepalive loop
+        keepaliveInterval.current = setInterval(() => {
+          xHomeApi
+            .sendKeepalive()
+            .then(result => {
+              log.info('StartStream keepalive:', JSON.stringify(result));
+            })
+            .catch(error => {
+              log.error(
+                'Failed to send keepalive. Error details:\n',
+                JSON.stringify(error),
+              );
+            });
+        }, 20 * 1000);
+      });
 
-  //     leftStickEventListener = eventEmitter.addListener(
-  //       'onLeftStickMove',
-  //       event => {
-  //         gpState.LeftThumbXAxis = event.axisX;
-  //         gpState.LeftThumbYAxis = event.axisY;
-  //       },
-  //     );
+      const eventEmitter = new NativeEventEmitter();
 
-  //     rightStickEventListener = eventEmitter.addListener(
-  //       'onRightStickMove',
-  //       event => {
-  //         gpState.RightThumbXAxis = event.axisX;
-  //         gpState.RightThumbYAxis = event.axisY;
-  //       },
-  //     );
+      gpDownEventListener = eventEmitter.addListener(
+        'onGamepadKeyDown',
+        event => {
+          const keyCode = event.keyCode;
+          gpState[gpMaping[keyCode]] = 1;
+        },
+      );
 
-  //     triggerEventListener = eventEmitter.addListener('onTrigger', event => {
-  //       gpState.LeftTrigger = event.leftTrigger;
-  //       gpState.RightTrigger = event.rightTrigger;
-  //     });
+      gpUpEventListener = eventEmitter.addListener('onGamepadKeyUp', event => {
+        const keyCode = event.keyCode;
+        gpState[gpMaping[keyCode]] = 0;
+      });
 
-  //     timer = setInterval(() => {
-  //       webrtcClient.setGamepadState(gpState);
-  //     }, 1000 / 120);
+      dpDownEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
+        const keyCode = event.dpadIdx;
+        gpState[gpMaping[keyCode]] = 1;
+      });
 
-  //     const streamApi = xHomeApi;
+      dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
+        const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
+        gpState[gpMaping[_gpMaping.DPadUp]] = 0;
+        gpState[gpMaping[_gpMaping.DPadDown]] = 0;
+        gpState[gpMaping[_gpMaping.DPadLeft]] = 0;
+        gpState[gpMaping[_gpMaping.DPadRight]] = 0;
+      });
 
-  //     setLoadingText(`${t('Connecting...')}`);
+      leftStickEventListener = eventEmitter.addListener(
+        'onLeftStickMove',
+        event => {
+          gpState.LeftThumbXAxis = event.axisX;
+          gpState.LeftThumbYAxis = event.axisY;
+        },
+      );
 
-  //     streamApi
-  //       .startSession(route.params?.sessionId, _settings.resolution)
-  //       .then(configuration => {
-  //         setLoadingText(
-  //           `${t('Configuration obtained successfully, initiating offer...')}`,
-  //         );
-  //         webrtcClient.createOffer().then(offer => {
-  //           streamApi.sendSDPOffer(offer).then(sdpResponse => {
-  //             setLoadingText(`${t('Remote offer retrieved successfully...')}`);
-  //             log.info('sdpResponse.exchangeResponse:', sdpResponse);
-  //             const sdpDetails = JSON.parse(sdpResponse.exchangeResponse);
-  //             webrtcClient.setRemoteOffer(sdpDetails.sdp).then(() => {
-  //               setLoadingText(`${t('Ready to send ICE...')}`);
-  //               const iceCandidates = webrtcClient.getIceCandidates();
-  //               streamApi.sendICECandidates(iceCandidates).then(iceDetails => {
-  //                 log.info(
-  //                   'Client - ICE iceDetails:',
-  //                   JSON.stringify(iceDetails),
-  //                 );
-  //                 webrtcClient.setIceCandidates(iceDetails);
-  //                 setLoadingText(`${t('Exchange ICE successfully...')}`);
-  //               });
-  //             });
-  //           });
-  //         });
-  //       });
-  //   }
+      rightStickEventListener = eventEmitter.addListener(
+        'onRightStickMove',
+        event => {
+          gpState.RightThumbXAxis = event.axisX;
+          gpState.RightThumbYAxis = event.axisY;
+        },
+      );
 
-  //   return () => {
-  //     Orientation.unlockAllOrientations();
-  //     FullScreenManager.immersiveModeOff();
+      triggerEventListener = eventEmitter.addListener('onTrigger', event => {
+        gpState.LeftTrigger = event.leftTrigger;
+        gpState.RightTrigger = event.rightTrigger;
+      });
 
-  //     if (webrtcClient) {
-  //       webrtcClient.close();
-  //     }
-  //     gpDownEventListener && gpDownEventListener.remove();
-  //     gpUpEventListener && gpUpEventListener.remove();
-  //     dpDownEventListener && dpDownEventListener.remove();
-  //     dpUpEventListener && dpUpEventListener.remove();
-  //     leftStickEventListener && leftStickEventListener.remove();
-  //     rightStickEventListener && rightStickEventListener.remove();
-  //     triggerEventListener && triggerEventListener.remove();
-  //     timer && clearInterval(timer);
-  //   };
-  // }, [
-  //   t,
-  //   route.params?.sessionId,
-  //   webrtcClient,
-  //   streamingTokens,
-  //   navigation,
-  //   authentication,
-  //   xHomeApi,
-  // ]);
+      timer = setInterval(() => {
+        webrtcClient.setGamepadState(gpState);
+      }, 1000 / 120);
+
+      const streamApi = xHomeApi;
+
+      setLoadingText(`${t('Connecting...')}`);
+      console.log('Connecting...');
+
+      streamApi
+        .startSession(route.params?.sessionId, _settings.resolution)
+        .then(configuration => {
+          setLoadingText(
+            `${t('Configuration obtained successfully, initiating offer...')}`,
+          );
+          webrtcClient.createOffer().then(offer => {
+            streamApi.sendSDPOffer(offer).then(sdpResponse => {
+              setLoadingText(`${t('Remote offer retrieved successfully...')}`);
+              log.info('sdpResponse.exchangeResponse:', sdpResponse);
+              const sdpDetails = JSON.parse(sdpResponse.exchangeResponse);
+              webrtcClient.setRemoteOffer(sdpDetails.sdp).then(() => {
+                setLoadingText(`${t('Ready to send ICE...')}`);
+                const iceCandidates = webrtcClient.getIceCandidates();
+                streamApi.sendICECandidates(iceCandidates).then(iceDetails => {
+                  log.info(
+                    'Client - ICE iceDetails:',
+                    JSON.stringify(iceDetails),
+                  );
+                  webrtcClient.setIceCandidates(iceDetails);
+                  setLoadingText(`${t('Exchange ICE successfully...')}`);
+                });
+              });
+            });
+          });
+        });
+    }
+
+    return () => {
+      Orientation.unlockAllOrientations();
+      FullScreenManager.immersiveModeOff();
+
+      if (webrtcClient) {
+        webrtcClient.close();
+      }
+      gpDownEventListener && gpDownEventListener.remove();
+      gpUpEventListener && gpUpEventListener.remove();
+      dpDownEventListener && dpDownEventListener.remove();
+      dpUpEventListener && dpUpEventListener.remove();
+      leftStickEventListener && leftStickEventListener.remove();
+      rightStickEventListener && rightStickEventListener.remove();
+      triggerEventListener && triggerEventListener.remove();
+      timer && clearInterval(timer);
+      if (keepaliveInterval.current) {
+        clearInterval(keepaliveInterval.current);
+      }
+    };
+  }, [
+    t,
+    route.params?.sessionId,
+    webrtcClient,
+    streamingTokens,
+    navigation,
+    authentication,
+    xHomeApi,
+  ]);
 
   return (
     <View style={styles.container}>
-      {/* <Spinner
+      <Spinner
         visible={loading}
         color={'#107C10'}
         textContent={loadingText}
@@ -266,8 +322,14 @@ function NewStreamScreen({navigation, route}) {
           objectFit={'contain'}
           streamURL={remote}
         />
-      )} */}
-      <VirtualGamepad />
+      )}
+      {showVirtualGamepad && (
+        <VirtualGamepad
+          onPressIn={handleButtonPressIn}
+          onPressOut={handleButtonPressOut}
+          onStickMove={handleStickMove}
+        />
+      )}
     </View>
   );
 }

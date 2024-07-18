@@ -35,9 +35,6 @@ export const ReactNativeJoystick = ({
         y: fingerY - nippleRadius,
       };
 
-      console.log('fingerX:', fingerX);
-      console.log('startX:', startX.current);
-
       let distX = fingerX - startX.current;
       if (distX > 0 && distX > wrapperRadius) {
         distX = wrapperRadius;
@@ -148,6 +145,7 @@ export const ReactNativeJoystick = ({
   };
 
   const panGesture = Gesture.Pan()
+    .minDistance(0)
     .onStart(handleTouchStart)
     .onEnd(handleTouchEnd)
     .onTouchesMove(handleTouchMove);

@@ -98,16 +98,6 @@ export default class MessageChannel extends BaseChannel {
           safeAreaRight: 1920,
           safeAreaBottom: 1080,
           supportsCustomResolution: true,
-
-          // 'horizontal': 1280,
-          // 'vertical': 720,
-          // 'preferredWidth': 1280,
-          // 'preferredHeight': 720,
-          // 'safeAreaLeft': 0,
-          // 'safeAreaTop': 0,
-          // 'safeAreaRight': 1280,
-          // 'safeAreaBottom': 720,
-          // 'supportsCustomResolution':true,
         }),
       );
       console.log('send dimensionsConfig:', dimensionsConfig);
