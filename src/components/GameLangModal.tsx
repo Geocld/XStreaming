@@ -84,7 +84,7 @@ const GameLangModal: React.FC<Props> = ({show, current, onSelect, onClose}) => {
 const styles = StyleSheet.create({
   card: {
     width: 300,
-    maxHeight: 500,
+    maxHeight: 300,
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

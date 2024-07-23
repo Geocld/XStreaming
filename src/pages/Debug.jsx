@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
   NativeModules,
+  NativeEventEmitter,
 } from 'react-native';
 import {Button, Text, Icon} from '@ui-kitten/components';
 import {useSelector, useDispatch} from 'react-redux';
@@ -14,7 +15,7 @@ import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 import DebugModal from '../components/DebugModal';
 
-const {GamepadManager} = NativeModules;
+const {GamepadManager, UsbRumbleManager} = NativeModules;
 
 function DebugScreen({navigation, route}) {
   let authentication = useSelector(state => state.authentication);
@@ -24,6 +25,12 @@ function DebugScreen({navigation, route}) {
   React.useEffect(() => {
     const _settings = getSettings();
     setSettings(_settings);
+
+    const eventEmitter = new NativeEventEmitter();
+
+    eventEmitter.addListener('onDeviceConnect', event => {
+      Alert.alert('Token', JSON.stringify(event));
+    });
 
     navigation.addListener('beforeRemove', e => {
       console.log('beforeRemove:', e.data.action.type);
@@ -79,6 +86,14 @@ function DebugScreen({navigation, route}) {
         onPress={() => {
           // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger)
           GamepadManager.vibrate(500, 10, 20, 10, 10);
+        }}
+      />
+
+      <SettingItem
+        title={'Vibration(xInput)'}
+        description={'Test gamepad vibration with x-input mode'}
+        onPress={() => {
+          UsbRumbleManager.rumble();
         }}
       />
     </ScrollView>

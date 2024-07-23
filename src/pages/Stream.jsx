@@ -94,7 +94,9 @@ function StreamScreen({navigation, route}) {
 
       gpUpEventListener = eventEmitter.addListener('onGamepadKeyUp', event => {
         const keyCode = event.keyCode;
-        gpState[gpMaping[keyCode]] = 0;
+        setTimeout(() => {
+          gpState[gpMaping[keyCode]] = 0;
+        }, 16);
       });
 
       dpDownEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
@@ -128,8 +130,17 @@ function StreamScreen({navigation, route}) {
       );
 
       triggerEventListener = eventEmitter.addListener('onTrigger', event => {
-        gpState.LeftTrigger = event.leftTrigger;
-        gpState.RightTrigger = event.rightTrigger;
+        if (event.leftTrigger >= 0.9) {
+          gpState.LeftTrigger = 1;
+        } else {
+          gpState.LeftTrigger = event.leftTrigger;
+        }
+
+        if (event.RightTrigger >= 0.9) {
+          gpState.RightTrigger = 1;
+        } else {
+          gpState.RightTrigger = event.RightTrigger;
+        }
       });
 
       timer = setInterval(() => {

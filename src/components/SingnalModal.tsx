@@ -63,15 +63,17 @@ const SingnalModal: React.FC<Props> = ({
           {t('Signal server') +
             (currentMode === 'signaling_home' ? '(home)' : '(cloud)')}
         </Text>
-        <ScrollView>
-          <RadioGroup
-            selectedIndex={selectedIndex}
-            onChange={index => handleSelect(index)}>
-            {regions.map((region: any) => (
-              <Radio key={region.name}>{region.name}</Radio>
-            ))}
-          </RadioGroup>
-        </ScrollView>
+        {regions.length && (
+          <ScrollView>
+            <RadioGroup
+              selectedIndex={selectedIndex}
+              onChange={index => handleSelect(index)}>
+              {regions.map((region: any) => (
+                <Radio key={region.name}>{region.name}</Radio>
+              ))}
+            </RadioGroup>
+          </ScrollView>
+        )}
       </Card>
     </Modal>
   );
@@ -80,6 +82,7 @@ const SingnalModal: React.FC<Props> = ({
 const styles = StyleSheet.create({
   card: {
     width: 300,
+    maxHeight: 300,
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
