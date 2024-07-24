@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity} from 'react-native';
 import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import {SvgXml} from 'react-native-svg';
 import icons from '../common/virtualgp';
@@ -24,8 +24,7 @@ const GamepadButton: React.FC<Props> = ({
     .onEnd(() => {
       onPressOut && onPressOut(name);
     })
-    .maxDistance(0)
-    .minDuration(10);
+    .minDuration(16);
 
   return (
     <GestureDetector gesture={longPressGesture}>

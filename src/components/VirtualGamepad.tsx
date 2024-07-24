@@ -23,7 +23,6 @@ const VirtualGamepad: React.FC<Props> = ({
   };
 
   const handleStickMove = (id: string, data: any) => {
-    console.log('handleStickMove:', id, data);
     onStickMove && onStickMove(id, data);
   };
 

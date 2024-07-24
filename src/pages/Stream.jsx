@@ -5,11 +5,8 @@ import {
   Vibration,
   NativeEventEmitter,
   StyleSheet,
-  View,
-  Button,
-  TouchableOpacity,
 } from 'react-native';
-import {Modal, Card, Menu, MenuItem, Text} from '@ui-kitten/components';
+import {Modal, Card, Menu, MenuItem} from '@ui-kitten/components';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import XcloudApi from '../xCloud';
@@ -19,9 +16,6 @@ import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
 import VirtualGamepad from '../components/VirtualGamepad';
-
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {ReactNativeJoystick} from '../components/Joystick';
 
 const log = debugFactory('StreamScreen');
 
@@ -412,9 +406,6 @@ function StreamScreen({navigation, route}) {
         },
       ]);
     }
-    if (type === 'pressButton') {
-      Vibration.vibrate(30);
-    }
     if (type === 'deviceVibration') {
       const {rumbleData, repeat} = message;
       if (rumbleData.strongMagnitude === 0 || rumbleData.weakMagnitude === 0) {
@@ -439,18 +430,19 @@ function StreamScreen({navigation, route}) {
     }
   };
 
+  // Virtual gamepad press
   const handleButtonPressIn = name => {
-    console.log('handleButtonPressIn:', name);
     gpState[name] = 1;
+    Vibration.vibrate(30);
   };
 
   const handleButtonPressOut = name => {
-    console.log('handleButtonPressOut:', name);
     setTimeout(() => {
       gpState[name] = 0;
     }, 50);
   };
 
+  // Virtual gamepad move joystick
   const handleStickMove = (id, data) => {
     // console.log('handleStickMove:', id, data);
     let leveledX = data.dist.x;
