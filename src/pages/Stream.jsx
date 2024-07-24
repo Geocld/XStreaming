@@ -4,7 +4,12 @@ import {
   NativeModules,
   Vibration,
   NativeEventEmitter,
+  StyleSheet,
+  View,
+  Button,
+  TouchableOpacity,
 } from 'react-native';
+import {Modal, Card, Menu, MenuItem, Text} from '@ui-kitten/components';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import XcloudApi from '../xCloud';
@@ -13,6 +18,10 @@ import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
+import VirtualGamepad from '../components/VirtualGamepad';
+
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {ReactNativeJoystick} from '../components/Joystick';
 
 const log = debugFactory('StreamScreen');
 
@@ -54,6 +63,18 @@ function StreamScreen({navigation, route}) {
   const [xCloudApi, setXCloudApi] = React.useState(null);
   const [settings, setSettings] = React.useState({});
   const [isExiting, setIsExiting] = React.useState(false);
+  const [showModal, setShowModal] = React.useState(false);
+  const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
+  const [showPerformance, setShowPerformance] = React.useState(false);
+
+  const gpDownEventListener = React.useRef(undefined);
+  const gpUpEventListener = React.useRef(undefined);
+  const dpDownEventListener = React.useRef(undefined);
+  const dpUpEventListener = React.useRef(undefined);
+  const leftStickEventListener = React.useRef(undefined);
+  const rightStickEventListener = React.useRef(undefined);
+  const triggerEventListener = React.useRef(undefined);
+  const timer = React.useRef(undefined);
 
   React.useEffect(() => {
     const _settings = getSettings();
@@ -72,47 +93,48 @@ function StreamScreen({navigation, route}) {
 
     FullScreenManager.immersiveModeOn();
 
-    let gpDownEventListener;
-    let gpUpEventListener;
-    let dpDownEventListener;
-    let dpUpEventListener;
-    let leftStickEventListener;
-    let rightStickEventListener;
-    let triggerEventListener;
-    let timer;
-
     if (_settings.gamepad_kernal === 'Native') {
       const eventEmitter = new NativeEventEmitter();
 
-      gpDownEventListener = eventEmitter.addListener(
+      gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
+          console.log('onGamepadKeyDown:', event);
           const keyCode = event.keyCode;
           gpState[gpMaping[keyCode]] = 1;
         },
       );
 
-      gpUpEventListener = eventEmitter.addListener('onGamepadKeyUp', event => {
-        const keyCode = event.keyCode;
-        setTimeout(() => {
-          gpState[gpMaping[keyCode]] = 0;
-        }, 16);
-      });
+      gpUpEventListener.current = eventEmitter.addListener(
+        'onGamepadKeyUp',
+        event => {
+          const keyCode = event.keyCode;
+          setTimeout(() => {
+            gpState[gpMaping[keyCode]] = 0;
+          }, 16);
+        },
+      );
 
-      dpDownEventListener = eventEmitter.addListener('onDpadKeyDown', event => {
-        const keyCode = event.dpadIdx;
-        gpState[gpMaping[keyCode]] = 1;
-      });
+      dpDownEventListener.current = eventEmitter.addListener(
+        'onDpadKeyDown',
+        event => {
+          const keyCode = event.dpadIdx;
+          gpState[gpMaping[keyCode]] = 1;
+        },
+      );
 
-      dpUpEventListener = eventEmitter.addListener('onDpadKeyUp', event => {
-        const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
-        gpState[gpMaping[_gpMaping.DPadUp]] = 0;
-        gpState[gpMaping[_gpMaping.DPadDown]] = 0;
-        gpState[gpMaping[_gpMaping.DPadLeft]] = 0;
-        gpState[gpMaping[_gpMaping.DPadRight]] = 0;
-      });
+      dpUpEventListener.current = eventEmitter.addListener(
+        'onDpadKeyUp',
+        event => {
+          const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
+          gpState[gpMaping[_gpMaping.DPadUp]] = 0;
+          gpState[gpMaping[_gpMaping.DPadDown]] = 0;
+          gpState[gpMaping[_gpMaping.DPadLeft]] = 0;
+          gpState[gpMaping[_gpMaping.DPadRight]] = 0;
+        },
+      );
 
-      leftStickEventListener = eventEmitter.addListener(
+      leftStickEventListener.current = eventEmitter.addListener(
         'onLeftStickMove',
         event => {
           console.log('onLeftStickMove:', event);
@@ -121,7 +143,7 @@ function StreamScreen({navigation, route}) {
         },
       );
 
-      rightStickEventListener = eventEmitter.addListener(
+      rightStickEventListener.current = eventEmitter.addListener(
         'onRightStickMove',
         event => {
           gpState.RightThumbXAxis = event.axisX;
@@ -129,21 +151,25 @@ function StreamScreen({navigation, route}) {
         },
       );
 
-      triggerEventListener = eventEmitter.addListener('onTrigger', event => {
-        if (event.leftTrigger >= 0.9) {
-          gpState.LeftTrigger = 1;
-        } else {
-          gpState.LeftTrigger = event.leftTrigger;
-        }
+      triggerEventListener.current = eventEmitter.addListener(
+        'onTrigger',
+        event => {
+          if (event.leftTrigger >= 0.9) {
+            gpState.LeftTrigger = 1;
+          } else {
+            gpState.LeftTrigger = event.leftTrigger;
+          }
 
-        if (event.RightTrigger >= 0.9) {
-          gpState.RightTrigger = 1;
-        } else {
-          gpState.RightTrigger = event.RightTrigger;
-        }
-      });
+          if (event.RightTrigger >= 0.9) {
+            gpState.RightTrigger = 1;
+          } else {
+            gpState.RightTrigger = event.RightTrigger;
+          }
+        },
+      );
 
-      timer = setInterval(() => {
+      timer.current = setInterval(() => {
+        // console.log('gpState3:', gpState);
         const postData = {
           type: 'gamepad',
           message: {
@@ -164,16 +190,8 @@ function StreamScreen({navigation, route}) {
       } else {
         e.preventDefault();
 
-        const postData = {
-          type: 'action',
-          message: {
-            single: 'pageBack',
-            data: '',
-          },
-        };
-        webviewRef.current.injectJavaScript(
-          generateOnMessageFunction(postData),
-        );
+        // Show confirm modal
+        setShowModal(true);
       }
     });
     if (route.params?.sessionId) {
@@ -215,17 +233,17 @@ function StreamScreen({navigation, route}) {
     }, 500);
 
     return () => {
-      // 在组件卸载时解锁屏幕方向，恢复为默认状态
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
-      gpDownEventListener && gpDownEventListener.remove();
-      gpUpEventListener && gpUpEventListener.remove();
-      dpDownEventListener && dpDownEventListener.remove();
-      dpUpEventListener && dpUpEventListener.remove();
-      leftStickEventListener && leftStickEventListener.remove();
-      rightStickEventListener && rightStickEventListener.remove();
-      triggerEventListener && triggerEventListener.remove();
-      timer && clearInterval(timer);
+      gpDownEventListener.current && gpDownEventListener.current.remove();
+      gpUpEventListener.current && gpUpEventListener.current.remove();
+      dpDownEventListener.current && dpDownEventListener.current.remove();
+      dpUpEventListener.current && dpUpEventListener.current.remove();
+      leftStickEventListener.current && leftStickEventListener.current.remove();
+      rightStickEventListener.current &&
+        rightStickEventListener.current.remove();
+      triggerEventListener.current && triggerEventListener.current.remove();
+      timer.current && clearInterval(timer.current);
     };
   }, [
     route.params?.sessionId,
@@ -237,7 +255,6 @@ function StreamScreen({navigation, route}) {
 
   const streamApi = route.params?.streamType === 'cloud' ? xCloudApi : xHomeApi;
 
-  // const uri = 'file:///android_asset/www/stream.html';
   const uri = 'file:///android_asset/stream/index.html';
 
   const webviewRef = React.useRef(null);
@@ -422,8 +439,109 @@ function StreamScreen({navigation, route}) {
     }
   };
 
+  const handleButtonPressIn = name => {
+    console.log('handleButtonPressIn:', name);
+    gpState[name] = 1;
+  };
+
+  const handleButtonPressOut = name => {
+    console.log('handleButtonPressOut:', name);
+    setTimeout(() => {
+      gpState[name] = 0;
+    }, 50);
+  };
+
+  const handleStickMove = (id, data) => {
+    // console.log('handleStickMove:', id, data);
+    let leveledX = data.dist.x;
+    let leveledY = data.dist.y;
+
+    if (typeof leveledX === 'string') {
+      leveledX = leveledX.toFixed(2);
+    }
+    if (typeof leveledY === 'string') {
+      leveledX = leveledY.toFixed(2);
+    }
+
+    if (id === 'right') {
+      gpState.RightThumbXAxis = Number(leveledX);
+      gpState.RightThumbYAxis = Number(-leveledY);
+    } else {
+      gpState.LeftThumbXAxis = Number(leveledX);
+      gpState.LeftThumbYAxis = Number(-leveledY);
+    }
+  };
+
+  const requestVirtualGamepad = () => {
+    // Close
+    if (showVirtualGamepad) {
+      setShowVirtualGamepad(false);
+      if (settings.gamepad_kernal !== 'Native') {
+        timer.current && clearInterval(timer.current);
+      }
+    } else {
+      setShowVirtualGamepad(true);
+      if (settings.gamepad_kernal !== 'Native') {
+        timer.current = setInterval(() => {
+          const postData = {
+            type: 'gamepad',
+            message: {
+              single: 'gpState',
+              data: gpState,
+            },
+          };
+          webviewRef.current &&
+            webviewRef.current.injectJavaScript(
+              generateOnMessageFunction(postData),
+            );
+        }, 1000 / 120);
+      }
+    }
+  };
+
+  const requestExit = () => {
+    setShowPerformance(false);
+    setShowVirtualGamepad(false);
+    const postData = {
+      type: 'stream',
+      message: {
+        single: 'disconnect',
+        data: {},
+      },
+    };
+    webviewRef.current.injectJavaScript(generateOnMessageFunction(postData));
+    setShowModal(false);
+  };
+
   return (
     <>
+      {showVirtualGamepad && (
+        <VirtualGamepad
+          onPressIn={handleButtonPressIn}
+          onPressOut={handleButtonPressOut}
+          onStickMove={handleStickMove}
+        />
+      )}
+
+      <Modal
+        visible={showModal}
+        backdropStyle={styles.backdrop}
+        onBackdropPress={() => setShowModal(false)}>
+        <Card disabled={true} style={styles.card}>
+          <Menu>
+            <MenuItem title={t('Toggle Performance')} />
+            <MenuItem
+              title={t('Toggle Virtual Gamepad')}
+              onPress={() => {
+                requestVirtualGamepad();
+                setShowModal(false);
+              }}
+            />
+            <MenuItem title={t('Disconnect')} onPress={requestExit} />
+            <MenuItem title={t('Cancel')} onPress={() => setShowModal(false)} />
+          </Menu>
+        </Card>
+      </Modal>
       <WebView
         ref={instance => {
           webviewRef.current = instance;
@@ -447,5 +565,20 @@ function StreamScreen({navigation, route}) {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    width: 300,
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  title: {
+    paddingBottom: 10,
+  },
+  content: {
+    paddingTop: 10,
+  },
+});
 
 export default StreamScreen;

@@ -1,5 +1,6 @@
 package com.xstreaming;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import com.facebook.react.ReactActivity;
@@ -16,6 +17,7 @@ import android.view.MotionEvent;
 import android.view.InputDevice;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+import android.view.View;
 
 class Dpad {
   final static int UP       = 19;
@@ -229,7 +231,8 @@ public class MainActivity extends ReactActivity {
       // Process the current movement sample in the batch (position -1)
       processJoystickInput(event, -1);
     }
-    return super.onGenericMotionEvent(event);
+    return true;
+//    return super.onGenericMotionEvent(event);
   }
 
   private void sendEvent(String eventName, WritableMap params) {

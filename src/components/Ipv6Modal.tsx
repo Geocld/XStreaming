@@ -17,12 +17,7 @@ type Props = {
   onClose: () => void;
 };
 
-const Ipv6Modal: React.FC<Props> = ({
-  show,
-  current,
-  onSelect,
-  onClose,
-}) => {
+const Ipv6Modal: React.FC<Props> = ({show, current, onSelect, onClose}) => {
   const {t} = useTranslation();
 
   const data = [
