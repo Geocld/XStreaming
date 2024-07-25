@@ -148,13 +148,13 @@ function StreamScreen({navigation, route}) {
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
-          if (event.leftTrigger >= 0.9) {
+          if (event.leftTrigger >= 0.5) {
             gpState.LeftTrigger = 1;
           } else {
             gpState.LeftTrigger = event.leftTrigger;
           }
 
-          if (event.RightTrigger >= 0.9) {
+          if (event.RightTrigger >= 0.5) {
             gpState.RightTrigger = 1;
           } else {
             gpState.RightTrigger = event.RightTrigger;
@@ -172,10 +172,10 @@ function StreamScreen({navigation, route}) {
           },
         };
         webviewRef.current &&
-          webviewRef.current.injectJavaScript(
-            generateOnMessageFunction(postData),
+          webviewRef.current.postMessage(
+            JSON.stringify({type: 'gamepad', message: gpState}),
           );
-      }, 1000 / 120);
+      }, 4);
     }
 
     navigation.addListener('beforeRemove', e => {
@@ -253,13 +253,6 @@ function StreamScreen({navigation, route}) {
 
   const webviewRef = React.useRef(null);
 
-  const generateOnMessageFunction = data =>
-    `(function() {
-          document.dispatchEvent(new MessageEvent('message', {data: ${JSON.stringify(
-            data,
-          )}}));
-        })()`;
-
   const handleExit = () => {
     if (isExiting) {
       return;
@@ -276,6 +269,11 @@ function StreamScreen({navigation, route}) {
     });
   };
 
+  const postData2Webview = (type, value) => {
+    webviewRef.current &&
+      webviewRef.current.postMessage(JSON.stringify({type, value}));
+  };
+
   const handleWebviewMessage = event => {
     const data = JSON.parse(event.nativeEvent.data);
     const {type, message} = data;
@@ -288,17 +286,7 @@ function StreamScreen({navigation, route}) {
       streamApi
         .startSession(route.params?.sessionId, _settings.resolution)
         .then(configuration => {
-          // log.info('configuration:', configuration);
-          const postData = {
-            type: 'stream',
-            message: {
-              single: 'startSessionEnd',
-              data: configuration,
-            },
-          };
-          webviewRef.current.injectJavaScript(
-            generateOnMessageFunction(postData),
-          );
+          postData2Webview('startSessionEnd', configuration);
         })
         .catch(e => {
           if (e !== '') {
@@ -327,16 +315,7 @@ function StreamScreen({navigation, route}) {
         .then(sdpResponse => {
           log.info('sdpResponse.exchangeResponse:', sdpResponse);
           const sdpDetails = JSON.parse(sdpResponse.exchangeResponse);
-          const postData = {
-            type: 'stream',
-            message: {
-              single: 'sendSDPOfferEnd',
-              data: sdpDetails,
-            },
-          };
-          webviewRef.current.injectJavaScript(
-            generateOnMessageFunction(postData),
-          );
+          postData2Webview('sendSDPOfferEnd', sdpDetails);
         })
         .catch(e => {
           Alert.alert(t('Warning'), '[sendSDPOffer] fail:' + e, [
@@ -357,17 +336,7 @@ function StreamScreen({navigation, route}) {
         .sendICECandidates(message)
         .then(candidates => {
           log.info('Client - ICE Candidates:', JSON.stringify(candidates));
-
-          const postData = {
-            type: 'stream',
-            message: {
-              single: 'sendIceEnd',
-              data: candidates,
-            },
-          };
-          webviewRef.current.injectJavaScript(
-            generateOnMessageFunction(postData),
-          );
+          postData2Webview('sendIceEnd', candidates);
         })
         .catch(e => {
           Alert.alert(t('Warning'), '[sendICECandidates] fail:' + e, [
@@ -475,18 +444,8 @@ function StreamScreen({navigation, route}) {
       setShowVirtualGamepad(true);
       if (settings.gamepad_kernal !== 'Native') {
         timer.current = setInterval(() => {
-          const postData = {
-            type: 'gamepad',
-            message: {
-              single: 'gpState',
-              data: gpState,
-            },
-          };
-          webviewRef.current &&
-            webviewRef.current.injectJavaScript(
-              generateOnMessageFunction(postData),
-            );
-        }, 1000 / 120);
+          postData2Webview('gamepad', gpState);
+        }, 4);
       }
     }
   };
@@ -494,14 +453,7 @@ function StreamScreen({navigation, route}) {
   const requestExit = () => {
     setShowPerformance(false);
     setShowVirtualGamepad(false);
-    const postData = {
-      type: 'stream',
-      message: {
-        single: 'disconnect',
-        data: {},
-      },
-    };
-    webviewRef.current.injectJavaScript(generateOnMessageFunction(postData));
+    postData2Webview('disconnect', {});
     setShowModal(false);
   };
 
