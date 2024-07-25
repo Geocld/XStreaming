@@ -29,7 +29,7 @@ function DebugScreen({navigation, route}) {
     const eventEmitter = new NativeEventEmitter();
 
     eventEmitter.addListener('onDeviceConnect', event => {
-      Alert.alert('Token', JSON.stringify(event));
+      Alert.alert('onDeviceConnect', JSON.stringify(event));
     });
 
     navigation.addListener('beforeRemove', e => {

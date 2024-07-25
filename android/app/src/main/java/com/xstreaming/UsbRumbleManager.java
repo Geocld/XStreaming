@@ -35,6 +35,8 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
     private static final String ACTION_USB_PERMISSION =
             "com.xstreaming.USB_PERMISSION";
     protected UsbEndpoint inEndpt, outEndpt;
+
+    private  UsbDevice usbDevice;
     private final ReactApplicationContext reactContext;
   
     public UsbRumbleManager(ReactApplicationContext reactContext) {
@@ -62,6 +64,7 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
                 String event = intent.getAction().equals(ACTION_USB_ATTACHED) ? "onDeviceConnect"
                         : "onDeviceDisconnect";
                 UsbDevice device = (UsbDevice) intent.getExtras().get(UsbManager.EXTRA_DEVICE);
+                usbDevice = device;
                 getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                         .emit(event, buildMapFromDevice(device));
             }
@@ -119,21 +122,21 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
     @ReactMethod
     private void rumble() {
         Log.d("UsbRumbleManager", "rmble");
-        Intent intent = getCurrentActivity().getIntent();
-        final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+//        Intent intent = getCurrentActivity().getIntent();
+//        final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-        Log.d("UsbRumbleManager", "UsbDevice：" + device);
+        Log.d("UsbRumbleManager", "UsbDevice：" + usbDevice);
 
-        if(device == null) {
+        if(usbDevice == null) {
             return;
         }
 
         UsbManager usbManager = (UsbManager) reactContext.getSystemService(Context.USB_SERVICE);
 
-        boolean test = usbManager.hasPermission(device);
+        boolean test = usbManager.hasPermission(usbDevice);
         Log.d("UsbRumbleManager", "Are we able to operate it：" + test);
         // Do we have permission yet?
-        if (!usbManager.hasPermission(device)) {
+        if (!usbManager.hasPermission(usbDevice)) {
             try {
                 int intentFlags = 0;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -145,42 +148,59 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
                 Intent i = new Intent(ACTION_USB_PERMISSION);
                 i.setPackage("com.streaming");
 
-                usbManager.requestPermission(device, PendingIntent.getBroadcast(reactContext, 0, i, intentFlags));
+                usbManager.requestPermission(usbDevice, PendingIntent.getBroadcast(reactContext, 0, i, intentFlags));
             } catch (SecurityException e) {
 
             }
             return;
         }
-        UsbDeviceConnection connection = usbManager.openDevice(device);
+        UsbDeviceConnection connection = usbManager.openDevice(usbDevice);
 
         if (connection == null) {
-            Log.d("UsbRumbleManager", "Unable to open USB device: "+device.getDeviceName());
+            Log.d("UsbRumbleManager", "Unable to open USB device: "+usbDevice.getDeviceName());
             return;
         }
 
         // Find the endpoints
-        UsbInterface iface = device.getInterface(0);
+        UsbInterface iface = usbDevice.getInterface(0);
         for (int i = 0; i < iface.getEndpointCount(); i++) {
             UsbEndpoint endpt = iface.getEndpoint(i);
-            if (endpt.getDirection() == UsbConstants.USB_DIR_OUT) {
-                if (outEndpt != null) {
-                    Log.d("UsbRumbleManager", "Found duplicate OUT endpoint");
-                    return;
-                }
-                outEndpt = endpt;
-            }
+            outEndpt = endpt;
         }
 
-        short lowFreqMotor = 300;
-        short highFreqMotor = 300;
+        short lowFreqMotor = 3000;
+        short highFreqMotor = 3000;
 
+        short leftTriggerMotor = 2000;
+        short rightTriggerMotor = 2000;
+
+        // TODO
         if (outEndpt != null) {
+            // xbox360
             byte[] data = {
                     0x00, 0x08, 0x00,
                     (byte)(lowFreqMotor >> 8), (byte)(highFreqMotor >> 8),
                     0x00, 0x00, 0x00
             };
+
             connection.bulkTransfer(outEndpt, data, data.length, 100);
+
+            // xbox one
+            byte[] data2 = {
+                    0x09, 0x00, 5, 0x09, 0x00,
+                    0x0F,
+                    (byte)(leftTriggerMotor >> 9),
+                    (byte)(rightTriggerMotor >> 9),
+                    (byte)(lowFreqMotor >> 9),
+                    (byte)(highFreqMotor >> 9),
+                    (byte)0xFF, 0x00, (byte)0xFF
+            };
+
+            Log.d("UsbRumbleManager", "connection: "+connection);
+            Log.d("UsbRumbleManager", "bulkTransfer");
+            connection.bulkTransfer(outEndpt, data2, data2.length, 100);
+
+            connection.close();
         }
     }
 }
