@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, NativeEventEmitter} from 'react-native';
+import {StyleSheet, View, ScrollView, NativeEventEmitter, Alert} from 'react-native';
 import {Layout, Text} from '@ui-kitten/components';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useTranslation} from 'react-i18next';
@@ -39,9 +39,29 @@ function GameMapDetail({navigation, route}) {
       },
     );
 
+    // const triggerEventListener = eventEmitter.addListener(
+    //   'onTrigger',
+    //   event => {
+    //     if (event.leftTrigger > 0) {
+    //       Alert.alert(
+    //         t('Warning'),
+    //         `leftTrigger: ${event.leftTrigger}`,
+    //       );
+    //     }
+
+    //     if (event.rightTrigger > 0) {
+    //       Alert.alert(
+    //         t('Warning'),
+    //         `rightTrigger: ${event.rightTrigger}`,
+    //       );
+    //     }
+    //   },
+    // );
+
     return () => {
       gpDownEventListener && gpDownEventListener.remove();
       dpDownEventListener && dpDownEventListener.remove();
+      triggerEventListener && triggerEventListener.remove();
     };
   }, [route.params?.button, navigation]);
 

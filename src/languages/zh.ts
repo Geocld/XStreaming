@@ -18,6 +18,11 @@ export default {
     'Local connect': '本地连接',
     'Remote connect': '远程连接',
     'Search game': '搜索游戏',
+    'Toggle Performance': '显示/隐藏性能信息',
+    'Toggle Virtual Gamepad': '显示/隐藏虚拟手柄',
+    'Press Nexus': '按下西瓜键',
+    'Long press Nexus': '长按西瓜键',
+    'Disconnect': '断开连接',
     NoXGP:
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
     'Recent Games': '最近游玩',

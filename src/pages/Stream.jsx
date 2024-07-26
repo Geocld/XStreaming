@@ -157,13 +157,17 @@ function StreamScreen({navigation, route}) {
           if (event.leftTrigger >= 0.5) {
             gpState.LeftTrigger = 1;
           } else {
-            gpState.LeftTrigger = event.leftTrigger;
+            setTimeout(() => {
+              gpState.LeftTrigger = 0;
+            }, 16);
           }
 
-          if (event.RightTrigger >= 0.5) {
+          if (event.rightTrigger >= 0.5) {
             gpState.RightTrigger = 1;
           } else {
-            gpState.RightTrigger = event.RightTrigger;
+            setTimeout(() => {
+              gpState.RightTrigger = 0;
+            }, 16);
           }
         },
       );
