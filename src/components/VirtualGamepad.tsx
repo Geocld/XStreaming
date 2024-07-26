@@ -4,12 +4,14 @@ import GamepadButton from './GamepadButton';
 import {ReactNativeJoystick} from '../components/Joystick';
 
 type Props = {
+  opacity: number;
   onPressIn: (name: string) => {};
   onPressOut: (name: string) => {};
   onStickMove: (id: string, position: any) => {};
 };
 
 const VirtualGamepad: React.FC<Props> = ({
+  opacity = 0.6,
   onPressIn,
   onPressOut,
   onStickMove,
@@ -36,97 +38,97 @@ const VirtualGamepad: React.FC<Props> = ({
     <View style={styles.wrap} pointerEvents="box-none">
       <GamepadButton
         name="LeftTrigger"
-        style={[styles.button, styles.lt]}
+        style={[styles.button, styles.lt, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="RightTrigger"
-        style={[styles.button, styles.rt]}
+        style={[styles.button, styles.rt, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="LeftShoulder"
-        style={[styles.button, styles.lb]}
+        style={[styles.button, styles.lb, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="RightShoulder"
-        style={[styles.button, styles.rb]}
+        style={[styles.button, styles.rb, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="A"
-        style={[styles.button, styles.a]}
+        style={[styles.button, styles.a, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="B"
-        style={[styles.button, styles.b]}
+        style={[styles.button, styles.b, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="X"
-        style={[styles.button, styles.x]}
+        style={[styles.button, styles.x, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="Y"
-        style={[styles.button, styles.y]}
+        style={[styles.button, styles.y, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="LeftThumb"
-        style={[styles.button, styles.l3]}
+        style={[styles.button, styles.l3, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="RightThumb"
-        style={[styles.button, styles.r3]}
+        style={[styles.button, styles.r3, {opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="View"
-        style={[styles.button, styles.view, {left: viewLeft}]}
+        style={[styles.button, styles.view, {left: viewLeft, opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="Nexus"
-        style={[styles.button, styles.nexus, {left: nexusLeft}]}
+        style={[styles.button, styles.nexus, {left: nexusLeft, opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <GamepadButton
         name="Menu"
-        style={[styles.button, styles.menu, {left: menuLeft}]}
+        style={[styles.button, styles.menu, {left: menuLeft, opacity}]}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       />
 
       <TouchableOpacity
-        style={[styles.button, styles.dpadLeft]}
+        style={[styles.button, styles.dpadLeft, {opacity}]}
         onPressIn={() => {
           handlePressIn('DPadLeft');
         }}
@@ -135,7 +137,7 @@ const VirtualGamepad: React.FC<Props> = ({
         }}
       />
       <TouchableOpacity
-        style={[styles.button, styles.dpadTop]}
+        style={[styles.button, styles.dpadTop, {opacity}]}
         onPressIn={() => {
           handlePressIn('DPadUp');
         }}
@@ -144,7 +146,7 @@ const VirtualGamepad: React.FC<Props> = ({
         }}
       />
       <TouchableOpacity
-        style={[styles.button, styles.dpadRight]}
+        style={[styles.button, styles.dpadRight, {opacity}]}
         onPressIn={() => {
           handlePressIn('DPadRight');
         }}
@@ -153,7 +155,7 @@ const VirtualGamepad: React.FC<Props> = ({
         }}
       />
       <TouchableOpacity
-        style={[styles.button, styles.dpadBottom]}
+        style={[styles.button, styles.dpadBottom, {opacity}]}
         onPressIn={() => {
           handlePressIn('DPadDown');
         }}
@@ -162,7 +164,7 @@ const VirtualGamepad: React.FC<Props> = ({
         }}
       />
 
-      <View style={[styles.button, styles.leftJs]}>
+      <View style={[styles.button, styles.leftJs, {opacity}]}>
         <ReactNativeJoystick
           color="#ffffff"
           radius={50}
@@ -172,9 +174,10 @@ const VirtualGamepad: React.FC<Props> = ({
         />
       </View>
 
-      <View style={[styles.button, styles.rightJs]}>
+      <View style={[styles.button, styles.rightJs, {opacity}]}>
         <ReactNativeJoystick
           color="#ffffff"
+          style={{opacity}}
           radius={50}
           onMove={data => handleStickMove('right', data)}
           onStart={data => handleStickMove('right', data)}

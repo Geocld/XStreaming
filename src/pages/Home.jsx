@@ -20,6 +20,7 @@ import WebApi from '../web';
 import {useSelector, useDispatch} from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
 import {useTranslation} from 'react-i18next';
+import NetInfo from '@react-native-community/netinfo';
 import {debugFactory} from '../utils/debug';
 import LinkModeModal from '../components/LinkModeModal';
 
@@ -33,6 +34,7 @@ function HomeScreen({navigation, route}) {
   const [xalUrl, setXalUrl] = React.useState('');
   const [profile, setProfile] = React.useState(null);
   const [consoles, setConsoles] = React.useState([]);
+  const [isConnected, setIsConnected] = React.useState(true);
   const [showLinkMode, setShowLinkMode] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
@@ -54,6 +56,25 @@ function HomeScreen({navigation, route}) {
   React.useEffect(() => {
     log.info('Page loaded.');
     SplashScreen.hide();
+
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    if (!isConnected) {
+      Alert.alert(
+        t('Warning'),
+        t('Currently no network connection, please connect and try again'),
+        [
+          {
+            text: t('Confirm'),
+            style: 'default',
+            onPress: () => {},
+          },
+        ],
+      );
+      return;
+    }
 
     if (!_authentication.current) {
       log.info('Authentication initial.');
@@ -150,8 +171,12 @@ function HomeScreen({navigation, route}) {
           }
         });
       }
+
+      return () => {
+        unsubscribe();
+      };
     }
-  }, [t, route.params?.xalUrl, dispatch, navigation]);
+  }, [t, route.params?.xalUrl, dispatch, navigation, isConnected]);
 
   const handleStartStream = sessionId => {
     const settings = getSettings();

@@ -2378,6 +2378,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-community/netinfo@npm:^11.3.2":
+  version: 11.3.2
+  resolution: "@react-native-community/netinfo@npm:11.3.2"
+  peerDependencies:
+    react-native: ">=0.59"
+  checksum: 10c0/1f54960ca49edbc226e48e7b7788e457e25d1a0770501c09f63e587873a905b80168231ebd13f4013bb34c865f5a36f26e330058c3e1be84e865c21b5aca92b6
+  languageName: node
+  linkType: hard
+
 "@react-native-community/slider@npm:^4.5.2":
   version: 4.5.2
   resolution: "@react-native-community/slider@npm:4.5.2"
@@ -2941,7 +2950,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:^7.3.12":
+"@types/semver@npm:^7, @types/semver@npm:^7.3.12":
   version: 7.5.8
   resolution: "@types/semver@npm:7.5.8"
   checksum: 10c0/8663ff927234d1c5fcc04b33062cb2b9fcfbe0f5f351ed26c4d1e1581657deebd506b41ff7fdf89e787e3d33ce05854bc01686379b89e9c49b564c4cfa988efa
@@ -8878,7 +8887,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-svg@npm:^15.3.0":
+"react-native-svg@npm:15.3.0":
   version: 15.3.0
   resolution: "react-native-svg@npm:15.3.0"
   dependencies:
@@ -9437,6 +9446,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/97d3441e97ace8be4b1976433d1c32658f6afaff09f143e52c593bae7eef33de19e3e369c88bd985ce1042c6f441c80c6803078d1de2a9988080b66684cbb30c
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.6.3":
+  version: 7.6.3
+  resolution: "semver@npm:7.6.3"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/88f33e148b210c153873cb08cfe1e281d518aaa9a666d4d148add6560db5cd3c582f3a08ccb91f38d5f379ead256da9931234ed122057f40bb5766e65e58adaf
   languageName: node
   linkType: hard
 
@@ -10707,6 +10725,7 @@ __metadata:
     "@babel/runtime": "npm:^7.20.0"
     "@cherry-soft/react-native-basic-pagination": "npm:^1.0.4"
     "@eva-design/eva": "npm:^2.2.0"
+    "@react-native-community/netinfo": "npm:^11.3.2"
     "@react-native-community/slider": "npm:^4.5.2"
     "@react-native-cookies/cookies": "npm:^6.2.1"
     "@react-native/eslint-config": "npm:^0.72.2"
@@ -10719,6 +10738,7 @@ __metadata:
     "@types/debug": "npm:^4"
     "@types/react": "npm:^18.0.24"
     "@types/react-test-renderer": "npm:^18.0.0"
+    "@types/semver": "npm:^7"
     "@ui-kitten/components": "npm:^5.3.1"
     "@ui-kitten/eva-icons": "npm:^5.3.1"
     axios: "npm:^1.7.2"
@@ -10744,7 +10764,7 @@ __metadata:
     react-native-safe-area-context: "npm:^4.10.1"
     react-native-screens: "npm:^3.31.1"
     react-native-splash-screen: "npm:^3.3.0"
-    react-native-svg: "npm:^15.3.0"
+    react-native-svg: "npm:15.3.0"
     react-native-svg-transformer: "npm:^1.5.0"
     react-native-url-polyfill: "npm:^2.0.0"
     react-native-vector-icons: "npm:^10.1.0"
@@ -10752,6 +10772,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-test-renderer: "npm:18.2.0"
     redux: "npm:^5.0.1"
+    semver: "npm:^7.6.3"
     typescript: "npm:4.8.4"
   languageName: unknown
   linkType: soft

@@ -1,5 +1,6 @@
 import React from 'react';
 import * as eva from '@eva-design/eva';
+import {Alert, Linking} from 'react-native';
 import {ApplicationProvider, IconRegistry} from '@ui-kitten/components';
 import {EvaIconsPack} from '@ui-kitten/eva-icons/index';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -24,6 +25,7 @@ import NativeGameMapScreen from './pages/NativeGameMap';
 import GameMapDetailScreen from './pages/GameMapDetail';
 import GamepadDebugScreen from './pages/GamepadDebug';
 import AboutScreen from './pages/About';
+import updater from './utils/updater';
 
 // Change theme: https://akveo.github.io/react-native-ui-kitten/docs/guides/branding#primary-color
 import {default as theme} from '../theme.json';
@@ -95,6 +97,30 @@ const darkTheme = {
 };
 
 function App() {
+  const {t} = useTranslation();
+  updater().then((infos: any) => {
+    if (infos) {
+      const {latestVer, version, url} = infos;
+      Alert.alert(
+        t('Warning'),
+        t(`Check new version ${latestVer}, current version is ${version}`),
+        [
+          {
+            text: t('Cancel'),
+            style: 'default',
+            onPress: () => {},
+          },
+          {
+            text: t('Download'),
+            style: 'default',
+            onPress: () => {
+              Linking.openURL(url).catch(_ => {});
+            },
+          },
+        ],
+      );
+    }
+  });
   return (
     <>
       <IconRegistry icons={EvaIconsPack} />

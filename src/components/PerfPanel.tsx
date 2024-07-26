@@ -21,19 +21,29 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
           </Text>
         </View>
         <View>
-          <Text style={styles.text}>FPS: {performance.fps || '-1'} | </Text>
+          <Text style={styles.text}>
+            {t('FPS')}: {performance.fps || '-1'} |{' '}
+          </Text>
         </View>
         <View>
-          <Text style={styles.text}>FD: {performance.fl || '-1'} | </Text>
+          <Text style={styles.text}>
+            {t('FD')}: {performance.fl || '-1'} |{' '}
+          </Text>
         </View>
         <View>
-          <Text style={styles.text}>PL: {performance.pl || '-1'} | </Text>
+          <Text style={styles.text}>
+            {t('PL')}: {performance.pl || '-1'} |{' '}
+          </Text>
         </View>
         <View>
-          <Text style={styles.text}>Bitrate: {performance.br || '-1'} | </Text>
+          <Text style={styles.text}>
+            {t('Bitrate')}: {performance.br || '-1'} |{' '}
+          </Text>
         </View>
         <View>
-          <Text style={styles.text}>DT: {performance.decode || '-1'}</Text>
+          <Text style={styles.text}>
+            {t('DT')}: {performance.decode || '-1'}
+          </Text>
         </View>
       </View>
     </View>

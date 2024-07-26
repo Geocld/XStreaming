@@ -86,6 +86,10 @@ function DebugScreen({navigation, route}) {
         onPress={() => {
           // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger)
           GamepadManager.vibrate(500, 10, 20, 10, 10);
+
+          setTimeout(() => {
+            GamepadManager.vibrate(0, 0, 0, 0, 0);
+          }, 1000);
         }}
       />
 

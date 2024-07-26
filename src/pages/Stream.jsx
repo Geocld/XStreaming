@@ -464,6 +464,7 @@ function StreamScreen({navigation, route}) {
 
       {showVirtualGamepad && (
         <VirtualGamepad
+          opacity={settings.virtual_gamepad_opacity}
           onPressIn={handleButtonPressIn}
           onPressOut={handleButtonPressOut}
           onStickMove={handleStickMove}

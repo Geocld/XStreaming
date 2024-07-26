@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, ScrollView, Alert} from 'react-native';
-import {Layout} from '@ui-kitten/components';
+import {StyleSheet, ScrollView, Alert, View} from 'react-native';
+import {Layout, Text} from '@ui-kitten/components';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
@@ -350,11 +350,30 @@ function SettingsScreen({navigation}) {
       />
 
       <ScrollView>
+        <View style={styles.contentTitle}>
+          <Text category="h5" style={styles.titleText}>
+            {t('Language')}
+          </Text>
+        </View>
+
         <SettingItem
           title={t('App language')}
           description={t('Set language of XStreaming')}
           onPress={() => handleItemPress('locale')}
         />
+
+        <SettingItem
+          title={t('Preferred language of game')}
+          description={t('Set language of cloud game')}
+          onPress={() => handleItemPress('game_lang')}
+        />
+
+        <View style={styles.contentTitle}>
+          <Text category="h5" style={styles.titleText}>
+            {t('Display')}
+          </Text>
+        </View>
+
         <SettingItem
           title={t('Resolution')}
           description={`${t('Set resolution, support 720P/1080P.')} ${t(
@@ -382,6 +401,24 @@ function SettingsScreen({navigation}) {
             'If your device supports newer codecs, it can reduce the video bandwidth requirements.',
           )} ${t('Current')}: ${!settings.codec ? 'Auto' : settings.codec}`}
           onPress={() => handleItemPress('codec')}
+        />
+
+        <View style={styles.contentTitle}>
+          <Text category="h5" style={styles.titleText}>
+            {t('Gamepad')}
+          </Text>
+        </View>
+
+        <SettingItem
+          title={t('Key mapping')}
+          description={t('Mapping key of gamepad')}
+          onPress={() => {
+            if (settings.gamepad_kernal === 'Web') {
+              navigation.navigate('GameMap');
+            } else {
+              navigation.navigate('NativeGameMap');
+            }
+          }}
         />
         <SettingItem
           title={t('Gamepad kernal')}
@@ -412,6 +449,12 @@ ${t('Webview: Use Chromium kernal to vibrate')}`}
           description={t('Config joystick dead zone')}
           onPress={() => handleItemPress('virtual_gamepad_opacity')}
         />
+
+        <View style={styles.contentTitle}>
+          <Text category="h5" style={styles.titleText}>
+            {t('xCloud')}
+          </Text>
+        </View>
         <SettingItem
           title={t('Set region')}
           description={t(
@@ -419,6 +462,12 @@ ${t('Webview: Use Chromium kernal to vibrate')}`}
           )}
           onPress={() => handleItemPress('region')}
         />
+
+        <View style={styles.contentTitle}>
+          <Text category="h5" style={styles.titleText}>
+            {t('Serve & Connection')}
+          </Text>
+        </View>
         <SettingItem
           title={t('Ipv6')}
           description={t('Prioritize using IPv6 connection')}
@@ -438,22 +487,12 @@ ${t('Webview: Use Chromium kernal to vibrate')}`}
           )}
           onPress={() => handleItemPress('signaling_cloud')}
         />
-        <SettingItem
-          title={t('Preferred language of game')}
-          description={t('Set language of cloud game')}
-          onPress={() => handleItemPress('game_lang')}
-        />
-        <SettingItem
-          title={t('Key mapping')}
-          description={t('Mapping key of gamepad')}
-          onPress={() => {
-            if (settings.gamepad_kernal === 'Web') {
-              navigation.navigate('GameMap');
-            } else {
-              navigation.navigate('NativeGameMap');
-            }
-          }}
-        />
+
+        <View style={styles.contentTitle}>
+          <Text category="h5" style={styles.titleText}>
+            {t('Others')}
+          </Text>
+        </View>
         <SettingItem
           title={'About'}
           description={'About XStreaming.'}
@@ -487,6 +526,13 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  contentTitle: {
+    padding: 15,
+    paddingBottom: 0,
+  },
+  titleText: {
+    color: 'rgba(255, 255, 255, 0.8)',
   },
 });
 
