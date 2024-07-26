@@ -28,9 +28,9 @@ function DebugScreen({navigation, route}) {
 
     const eventEmitter = new NativeEventEmitter();
 
-    eventEmitter.addListener('onDeviceConnect', event => {
-      Alert.alert('onDeviceConnect', JSON.stringify(event));
-    });
+    // eventEmitter.addListener('onDeviceConnect', event => {
+    //   Alert.alert('onDeviceConnect', JSON.stringify(event));
+    // });
 
     navigation.addListener('beforeRemove', e => {
       console.log('beforeRemove:', e.data.action.type);

@@ -1,12 +1,13 @@
 import React from 'react';
 import {
+  View,
   Alert,
   NativeModules,
   Vibration,
   NativeEventEmitter,
   StyleSheet,
 } from 'react-native';
-import {Modal, Card, Menu, MenuItem} from '@ui-kitten/components';
+import {Modal, Menu, MenuItem} from '@ui-kitten/components';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import XcloudApi from '../xCloud';
@@ -16,8 +17,11 @@ import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
 import VirtualGamepad from '../components/VirtualGamepad';
+import PerfPanel from '../components/PerfPanel';
 
 const log = debugFactory('StreamScreen');
+
+const CONNECTED = 'connected';
 
 const {FullScreenManager, GamepadManager} = NativeModules;
 
@@ -59,6 +63,8 @@ function StreamScreen({navigation, route}) {
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
+  const [connectState, setConnectState] = React.useState('');
+  const [performance, setPerformance] = React.useState({});
   const [showPerformance, setShowPerformance] = React.useState(false);
 
   const gpDownEventListener = React.useRef(undefined);
@@ -383,6 +389,12 @@ function StreamScreen({navigation, route}) {
         rumbleData.rightTrigger * 100,
       );
     }
+    if (type === 'performance') {
+      setPerformance(message);
+    }
+    if (type === 'connectionstate') {
+      setConnectState(message);
+    }
     if (type === 'exit') {
       handleExit();
     }
@@ -448,6 +460,8 @@ function StreamScreen({navigation, route}) {
 
   return (
     <>
+      {showPerformance && <PerfPanel performance={performance} />}
+
       {showVirtualGamepad && (
         <VirtualGamepad
           onPressIn={handleButtonPressIn}
@@ -460,20 +474,58 @@ function StreamScreen({navigation, route}) {
         visible={showModal}
         backdropStyle={styles.backdrop}
         onBackdropPress={() => setShowModal(false)}>
-        <Card disabled={true} style={styles.card}>
+        <View style={styles.card}>
           <Menu>
-            <MenuItem title={t('Toggle Performance')} />
-            <MenuItem
-              title={t('Toggle Virtual Gamepad')}
-              onPress={() => {
-                requestVirtualGamepad();
-                setShowModal(false);
-              }}
-            />
+            {connectState === CONNECTED && (
+              <MenuItem
+                title={t('Toggle Performance')}
+                onPress={() => {
+                  setShowPerformance(!showPerformance);
+                  setShowModal(false);
+                }}
+              />
+            )}
+
+            {connectState === CONNECTED && (
+              <MenuItem
+                title={t('Toggle Virtual Gamepad')}
+                onPress={() => {
+                  requestVirtualGamepad();
+                  setShowModal(false);
+                }}
+              />
+            )}
+
+            {connectState === CONNECTED && (
+              <MenuItem
+                title={t('Press Nexus')}
+                onPress={() => {
+                  gpState.Nexus = 1;
+                  setTimeout(() => {
+                    gpState.Nexus = 0;
+                  }, 50);
+                  setShowModal(false);
+                }}
+              />
+            )}
+
+            {connectState === CONNECTED && (
+              <MenuItem
+                title={t('Long press Nexus')}
+                onPress={() => {
+                  gpState.Nexus = 1;
+                  setTimeout(() => {
+                    gpState.Nexus = 0;
+                  }, 1000);
+                  setShowModal(false);
+                }}
+              />
+            )}
+
             <MenuItem title={t('Disconnect')} onPress={requestExit} />
             <MenuItem title={t('Cancel')} onPress={() => setShowModal(false)} />
           </Menu>
-        </Card>
+        </View>
       </Modal>
       <WebView
         ref={instance => {
@@ -502,6 +554,7 @@ function StreamScreen({navigation, route}) {
 const styles = StyleSheet.create({
   card: {
     width: 300,
+    padding: 5,
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

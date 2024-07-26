@@ -82,7 +82,7 @@ function TitleDetail({navigation, route}) {
               status="primary"
               style={styles.button}
               onPress={handleStartGame}>
-              {t('Start stream')}
+              {t('Start game')}
             </Button>
             <Button
               status="basic"

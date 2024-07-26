@@ -1,14 +1,21 @@
 import React from 'react';
-import {StyleSheet, View, FlatList, Dimensions} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 import {
   Layout,
   Text,
   IndexPath,
   Select,
   SelectItem,
+  Input,
+  TopNavigation,
 } from '@ui-kitten/components';
 import Spinner from 'react-native-loading-spinner-overlay';
-import Pagination from '@cherry-soft/react-native-basic-pagination';
 import {useSelector} from 'react-redux';
 import TitleItem from '../components/TitleItem';
 import XcloudApi from '../xCloud';
@@ -33,13 +40,19 @@ function CloudScreen({navigation}) {
   const [selectedText, setSelectedText] = React.useState(
     selectLists[selectedIndex.row],
   );
+
   const [loading, setLoading] = React.useState(false);
+  const [loadmoring, setLoadmoring] = React.useState(false);
   const [isLimited, setIsLimited] = React.useState(false);
   const [titles, setTitles] = React.useState([]);
   const [newTitles, setNewTitles] = React.useState([]);
   const [titlesMap, setTitlesMap] = React.useState({});
   const [RecentTitles, setRecentNewTitles] = React.useState([]);
+  const [keyword, setKeyword] = React.useState('');
   const flatListRef = React.useRef(null);
+
+  const currentTitles = React.useRef([]);
+  const totalPage = React.useRef(0);
 
   React.useEffect(() => {
     if (!streamingTokens.xCloudToken) {
@@ -118,6 +131,51 @@ function CloudScreen({navigation}) {
     navigation.navigate('TitleDetail', {titleItem});
   };
 
+  const scrollToTop = () => {
+    flatListRef.current?.scrollToOffset({animated: true, offset: 0});
+  };
+
+  const loadMoreData = () => {
+    if (currentPage <= totalPage.current) {
+      setLoadmoring(true);
+      setCurrentPage(currentPage + 1);
+      setTimeout(() => {
+        setLoadmoring(false);
+      }, 1500);
+    } else {
+      setLoadmoring(false);
+    }
+  };
+
+  const footLoading = () => {
+    if (loadmoring) {
+      return (
+        <ActivityIndicator
+          size="large"
+          color="#0000ff"
+          style={styles.loadingIndicator}
+        />
+      );
+    } else {
+      return null;
+    }
+  };
+
+  const renderSelect = () => {
+    return (
+      <View style={styles.categoryWrap}>
+        <Select
+          value={selectedText}
+          selectedIndex={selectedIndex}
+          onSelect={handleSelectCategories}>
+          {selectLists.map(select => {
+            return <SelectItem title={select} key={select} />;
+          })}
+        </Select>
+      </View>
+    );
+  };
+
   const handleSelectCategories = indexPath => {
     setLoading(true);
     setSelectedIndex(indexPath);
@@ -129,16 +187,6 @@ function CloudScreen({navigation}) {
     }, 1000);
   };
 
-  const handleChangePage = page => {
-    setCurrentPage(page);
-    scrollToTop();
-  };
-
-  const scrollToTop = () => {
-    flatListRef.current?.scrollToOffset({animated: true, offset: 0});
-  };
-
-  let currentTitles = [];
   /**
    * 0 - recent
    * 1 - new
@@ -146,23 +194,38 @@ function CloudScreen({navigation}) {
    */
   switch (selectedIndex.row) {
     case 0:
-      currentTitles = RecentTitles;
+      currentTitles.current = RecentTitles;
       break;
     case 1:
-      currentTitles = newTitles;
+      currentTitles.current = newTitles;
       break;
     case 2:
-      currentTitles = titles;
+      currentTitles.current = titles;
       break;
     default:
-      currentTitles = [];
+      currentTitles.current = [];
       break;
   }
 
+  if (keyword.length > 0) {
+    currentTitles.current = currentTitles.current.filter(title => {
+      return (
+        title.catalogDetails &&
+        title.catalogDetails.ProductTitle &&
+        title.catalogDetails.ProductTitle.toUpperCase().indexOf(
+          keyword.toUpperCase(),
+        ) > -1
+      );
+    });
+  }
+
+  if (currentTitles.current.length > 0) {
+    totalPage.current = Math.ceil(currentTitles.current.length / 20);
+  }
+
   // Show 20 titles per page
-  const startIdx = (currentPage - 1) * 20;
   const endIdx = currentPage * 20;
-  const showTitles = currentTitles.slice(startIdx, endIdx);
+  let showTitles = currentTitles.current.slice(0, endIdx);
 
   return (
     <>
@@ -176,15 +239,15 @@ function CloudScreen({navigation}) {
       {!isLimited && (
         <>
           <Layout style={styles.gameContainer}>
-            <View style={styles.categoryWrap}>
-              <Select
-                value={selectedText}
-                selectedIndex={selectedIndex}
-                onSelect={handleSelectCategories}>
-                {selectLists.map(select => {
-                  return <SelectItem title={select} key={select} />;
-                })}
-              </Select>
+            <TopNavigation title={() => renderSelect()} />
+
+            <View style={styles.search}>
+              <Input
+                placeholder={t('Search your game')}
+                value={keyword}
+                size="small"
+                onChangeText={nextValue => setKeyword(nextValue)}
+              />
             </View>
 
             {!loading && !showTitles.length && <Empty />}
@@ -210,15 +273,10 @@ function CloudScreen({navigation}) {
                       </View>
                     );
                   }}
+                  onEndReached={loadMoreData}
+                  onEndReachedThreshold={0.1}
+                  ListFooterComponent={footLoading}
                 />
-                {!loading && currentTitles.length > 20 && (
-                  <Pagination
-                    totalItems={currentTitles.length}
-                    pageSize={20}
-                    currentPage={currentPage}
-                    onPageChange={handleChangePage}
-                  />
-                )}
               </>
             )}
           </Layout>
@@ -258,6 +316,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryWrap: {
+    width: 200,
     padding: 10,
   },
   listContainer: {},
@@ -268,6 +327,13 @@ const styles = StyleSheet.create({
   listItemV: {
     width: '25%',
     justifyContent: 'center',
+  },
+  loadingIndicator: {
+    padding: 20,
+  },
+  search: {
+    paddingLeft: 10,
+    paddingRight: 10,
   },
 });
 

@@ -14,8 +14,10 @@ export default {
       '登录已失效或未登录，请重新登录',
     'Loading...': '加载中...',
     'Start stream': '开始串流',
+    'Start game': '开始云游戏',
     'Local connect': '本地连接',
     'Remote connect': '远程连接',
+    'Search game': '搜索游戏',
     NoXGP:
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
     'Recent Games': '最近游玩',
@@ -47,7 +49,8 @@ export default {
     'Set region': '地区设置',
     'Changing the region allows you to use XGPU services without a proxy':
       '修改地区可以免代理使用XGPU服务',
-    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option': '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项',
+    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
+      '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项',
     'Prioritize using IPv6 connection': '优先使用Ipv6连接',
     'Preferred language of game': '游戏偏好语言',
     'Set language of cloud game': '设置云游戏语言',

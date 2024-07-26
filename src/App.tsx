@@ -67,7 +67,11 @@ function HomeTabs() {
       <Tab.Screen
         name="Cloud"
         component={CloudScreen}
-        options={{tabBarLabel: t('Xcloud'), title: t('Xcloud')}}
+        options={{
+          headerShown: false,
+          tabBarLabel: t('Xcloud'),
+          title: t('Xcloud'),
+        }}
       />
       <Tab.Screen
         name="Settings"
