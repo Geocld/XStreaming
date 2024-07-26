@@ -163,18 +163,7 @@ function StreamScreen({navigation, route}) {
       );
 
       timer.current = setInterval(() => {
-        // console.log('gpState3:', gpState);
-        const postData = {
-          type: 'gamepad',
-          message: {
-            single: 'gpState',
-            data: gpState,
-          },
-        };
-        webviewRef.current &&
-          webviewRef.current.postMessage(
-            JSON.stringify({type: 'gamepad', message: gpState}),
-          );
+        postData2Webview('gamepad', gpState);
       }, 4);
     }
 
