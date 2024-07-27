@@ -508,7 +508,7 @@ function StreamScreen({navigation, route}) {
                   gpState.Nexus = 1;
                   setTimeout(() => {
                     gpState.Nexus = 0;
-                  }, 50);
+                  }, 100);
                   setShowModal(false);
                 }}
               />

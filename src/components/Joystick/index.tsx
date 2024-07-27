@@ -36,6 +36,9 @@ export const ReactNativeJoystick = ({
       };
 
       let distX = fingerX - startX.current;
+      if (Math.abs(distX) > 300) {
+        return;
+      }
       if (distX > 0 && distX > wrapperRadius) {
         distX = wrapperRadius;
       }
