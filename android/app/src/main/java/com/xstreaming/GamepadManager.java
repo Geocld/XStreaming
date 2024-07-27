@@ -271,7 +271,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                         // There's no documentation that states that vibrators for FF_RUMBLE input devices will
                         // always be enumerated in this order, but it seems consistent between Xbox Series X (USB),
                         // PS3 (USB), and PS4 (USB+BT) controllers on Android 12 Beta 3.
-                        int[] qualVibratorIds = vm.getVibratorIds();
+                        int[] qualVibratorIds = vibratorManager.getVibratorIds();
                         int[] vibratorAmplitudes = new int[] { highFreqMotor, lowFreqMotor };
 
                         CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
@@ -290,6 +290,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                             vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
                         }
 
+                        Log.d("GamepadManager", "rumbleDualVibrators:" + vibrator);
                         vibratorManager.vibrate(combo.combine(), vibrationAttributes.build());
                     }
                 }
@@ -300,6 +301,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 }
                 // Force device rumble
                 else {
+                    Log.d("GamepadManager", "Force device rumble");
                     rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor);
                 }
             }
