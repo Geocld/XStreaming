@@ -34,6 +34,8 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
     private boolean hasGameController;
 
+    private static String currentScreen = "";
+
     private final ReactApplicationContext reactContext;
     public GamepadManager(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -158,6 +160,15 @@ public class GamepadManager extends ReactContextBaseJavaModule {
             }
         }
         return false;
+    }
+
+    @ReactMethod
+    public void setCurrentScreen(String value) {
+        currentScreen = value;
+    }
+
+    public static String getCurrentScreen() {
+        return currentScreen;
     }
 
     @ReactMethod

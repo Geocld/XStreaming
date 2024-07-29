@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, View, Image} from 'react-native';
-import {Button, Card, Text} from '@ui-kitten/components';
+import {StyleSheet, View, Image, Button} from 'react-native';
+import {Card, Text} from '@ui-kitten/components';
 import {useTranslation} from 'react-i18next';
 
 const ConsoleItem = (props: any) => {
@@ -14,7 +14,7 @@ const ConsoleItem = (props: any) => {
   }
 
   return (
-    <Card style={styles.consoleCard} status={cardStatus}>
+    <View style={styles.consoleCard}>
       <Text category="h6" style={styles.top}>
         {consoleItem.name}
       </Text>
@@ -36,19 +36,21 @@ const ConsoleItem = (props: any) => {
       )}
       <View style={styles.footer}>
         <Button
-          style={styles.footerControl}
-          size="small"
-          onPress={props.onPress}>
-          {t('Start stream')}
-        </Button>
+          color={'#107C10'}
+          title={t('Start stream')}
+          onPress={props.onPress}
+        />
       </View>
-    </Card>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   consoleCard: {
     marginBottom: 20,
+    padding: 10,
+    backgroundColor: 'rgba(143, 155, 179, 0.30)',
+    borderRadius: 8,
   },
   xboxImg: {
     width: '100%',
@@ -62,6 +64,7 @@ const styles = StyleSheet.create({
   },
   footerControl: {
     marginHorizontal: 2,
+    backgroundColor: 'red',
   },
 });
 

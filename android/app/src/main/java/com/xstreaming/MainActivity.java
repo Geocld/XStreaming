@@ -101,6 +101,11 @@ public class MainActivity extends ReactActivity {
 
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
+    String currentScreen = GamepadManager.getCurrentScreen();
+
+    if (!currentScreen.equals("stream")) {
+      return super.onKeyDown(keyCode, event);
+    }
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", keyCode);
@@ -112,6 +117,11 @@ public class MainActivity extends ReactActivity {
   }
   @Override
   public boolean onKeyUp(int keyCode, KeyEvent event) {
+    String currentScreen = GamepadManager.getCurrentScreen();
+
+    if (!currentScreen.equals("stream")) {
+      return super.onKeyDown(keyCode, event);
+    }
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", keyCode);
@@ -186,6 +196,12 @@ public class MainActivity extends ReactActivity {
   @Override
   public boolean onGenericMotionEvent(MotionEvent event) {
 
+    String currentScreen = GamepadManager.getCurrentScreen();
+
+    if (!currentScreen.equals("stream")) {
+      return super.onGenericMotionEvent(event);
+    }
+
     // DPAD
     Dpad dpad = new Dpad();
     if (Dpad.isDpadDevice(event)) {
@@ -232,7 +248,6 @@ public class MainActivity extends ReactActivity {
       processJoystickInput(event, -1);
     }
     return true;
-//    return super.onGenericMotionEvent(event);
   }
 
   private void sendEvent(String eventName, WritableMap params) {

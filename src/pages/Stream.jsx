@@ -77,6 +77,8 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
 
   React.useEffect(() => {
+    GamepadManager.setCurrentScreen('stream');
+
     const _settings = getSettings();
     setSettings(_settings);
 
@@ -237,6 +239,7 @@ function StreamScreen({navigation, route}) {
         rightStickEventListener.current.remove();
       triggerEventListener.current && triggerEventListener.current.remove();
       timer.current && clearInterval(timer.current);
+      GamepadManager.setCurrentScreen('');
     };
   }, [
     route.params?.sessionId,

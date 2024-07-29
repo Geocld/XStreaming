@@ -1,7 +1,12 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, NativeEventEmitter, Alert} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  NativeModules,
+  NativeEventEmitter,
+} from 'react-native';
 import {Layout, Text} from '@ui-kitten/components';
-import Spinner from 'react-native-loading-spinner-overlay';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {SvgXml} from 'react-native-svg';
@@ -9,11 +14,14 @@ import maping from '../common/svg';
 
 const log = debugFactory('GameMapDetailScreen');
 
+const {GamepadManager} = NativeModules;
+
 function GameMapDetail({navigation, route}) {
   const {t} = useTranslation();
 
   React.useEffect(() => {
     log.info('TitleDetail button:', route.params?.button);
+    GamepadManager.setCurrentScreen('stream');
     const eventEmitter = new NativeEventEmitter();
     const gpDownEventListener = eventEmitter.addListener(
       'onGamepadKeyDown',
@@ -61,7 +69,8 @@ function GameMapDetail({navigation, route}) {
     return () => {
       gpDownEventListener && gpDownEventListener.remove();
       dpDownEventListener && dpDownEventListener.remove();
-      triggerEventListener && triggerEventListener.remove();
+      // triggerEventListener && triggerEventListener.remove();
+      GamepadManager.setCurrentScreen('');
     };
   }, [route.params?.button, navigation]);
 

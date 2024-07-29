@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, Button} from 'react-native';
 import {Avatar, Text} from '@ui-kitten/components';
 import {useTranslation} from 'react-i18next';
 
