@@ -10,6 +10,7 @@ import {
 import {Modal, Menu, MenuItem} from '@ui-kitten/components';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
+import RNRestart from 'react-native-restart';
 import XcloudApi from '../xCloud';
 import {useSelector} from 'react-redux';
 import {getSettings} from '../store/settingStore';
@@ -265,9 +266,18 @@ function StreamScreen({navigation, route}) {
         setIsExiting(false);
         Orientation.unlockAllOrientations();
         FullScreenManager.immersiveModeOff();
-        // navigation.pop();
         navigation.navigate('Home');
       }, 500);
+    });
+  };
+
+  const handleTimeoutExit = () => {
+    streamApi.stopStream().then(() => {
+      authentication._tokenStore &&
+        authentication._tokenStore.clearTokenUpdateTime();
+      setTimeout(() => {
+        RNRestart.restart();
+      }, 100);
     });
   };
 
@@ -285,6 +295,7 @@ function StreamScreen({navigation, route}) {
     if (type === 'xcloudReady') {
       const _settings = getSettings();
       log.info('Get localSettings:', _settings);
+
       streamApi
         .startSession(route.params?.sessionId, _settings.resolution)
         .then(configuration => {
@@ -292,7 +303,15 @@ function StreamScreen({navigation, route}) {
         })
         .catch(e => {
           if (e !== '') {
-            const msg = '[StartSession] Fail:' + e;
+            let msg = '';
+            if (typeof e === 'string') {
+              if (e.includes('WaitingForServerToRegister')) {
+                msg =
+                  '[StartSession] Fail:' + t('WaitingForServerToRegister') + e;
+              }
+            } else {
+              msg = '[StartSession] Fail:' + e;
+            }
             Alert.alert(t('Warning'), msg, [
               {
                 text: t('Confirm'),
@@ -301,7 +320,6 @@ function StreamScreen({navigation, route}) {
                   if (isExiting) {
                     return;
                   }
-                  // navigation.pop();
                   navigation.navigate('Home');
                 },
               },
@@ -402,8 +420,11 @@ function StreamScreen({navigation, route}) {
     if (type === 'connectionstate') {
       setConnectState(message);
     }
-    if (type === 'exit') {
-      handleExit();
+    if (type === 'timeoutExit') {
+      /* Timeout, almost is connectionstate is failed,
+         this situation we should refresh all tokens to make new connection.
+       */
+      handleTimeoutExit();
     }
   };
 

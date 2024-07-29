@@ -89,6 +89,16 @@ export default class TokenStore {
     this._sisuToken = undefined;
   }
 
+  clearTokenUpdateTime() {
+    const data = JSON.stringify({
+      userToken: this._userToken?.data,
+      sisuToken: this._sisuToken?.data,
+      tokenUpdateTime: 0,
+    });
+
+    storage.set(STORE_KEY, data);
+  }
+
   hasValidAuthTokens() {
     if (this._userToken) {
       if (!this._userToken.isValid()) {

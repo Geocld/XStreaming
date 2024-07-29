@@ -49,7 +49,7 @@ export default class Authentication {
     log.info('[startSilentFlow()] Starting silent flow...');
     this._isAuthenticating = true;
 
-    // 一个小时内不重复进行refreshTokens操作
+    // Skip refreshTokens within 1 hour
     if (Date.now() - this._tokenStore.getTokenUpdateTime() < 60 * 60 * 1000) {
       log.info('[startSilentFlow] skip refreshTokens');
       this._xal.getStreamingToken(this._tokenStore).then(streamingTokens => {

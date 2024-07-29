@@ -15,6 +15,8 @@ import store from './store';
 
 import HomeScreen from './pages/Home';
 import CloudScreen from './pages/Cloud';
+import FriendsScreen from './pages/Friends';
+import AchivementScreen from './pages/Achivements';
 import LoginScreen from './pages/Login';
 import StreamScreen from './pages/Stream';
 import SettingsScreen from './pages/Settings';
@@ -46,6 +48,10 @@ const TabIcon = (route: any, params: any) => {
     iconName = focused ? 'settings' : 'settings-outline';
   } else if (route.name === 'Cloud') {
     iconName = 'logo-xbox';
+  } else if (route.name === 'Friends') {
+    iconName = 'people-outline';
+  } else if (route.name === 'Achivements') {
+    iconName = 'ribbon-outline';
   }
   return <Ionicons name={iconName} size={size} color={color} />;
 };
@@ -73,6 +79,22 @@ function HomeTabs() {
           headerShown: false,
           tabBarLabel: t('Xcloud'),
           title: t('Xcloud'),
+        }}
+      />
+      <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{
+          tabBarLabel: t('Friends'),
+          title: t('Friends'),
+        }}
+      />
+      <Tab.Screen
+        name="Achivements"
+        component={AchivementScreen}
+        options={{
+          tabBarLabel: t('Achivements'),
+          title: t('Achivements'),
         }}
       />
       <Tab.Screen

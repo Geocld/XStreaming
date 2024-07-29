@@ -88,4 +88,45 @@ export default class WebApi {
         });
     });
   }
+
+  getFriends() {
+    const http = new Http();
+    return new Promise((resolve, reject) => {
+      const params = [
+        'preferredcolor',
+        'detail',
+        'multiplayersummary',
+        'presencedetail',
+      ];
+      http
+        .get(
+          'peoplehub.xboxlive.com',
+          '/users/me/people/social/decoration/' + params.join(','),
+          {
+            Authorization:
+              'XBL3.0 x=' +
+              this.webToken.data.DisplayClaims.xui[0].uhs +
+              ';' +
+              this.webToken.data.Token,
+            'Accept-Language': 'en-US',
+            'x-xbl-contract-version': 3,
+            'x-xbl-client-name': 'XboxApp',
+            'x-xbl-client-type': 'UWA',
+            'x-xbl-client-version': '39.39.22001.0',
+          },
+        )
+        .then((res: any) => {
+          // log.info('[getFriends] response:', JSON.stringify(res));
+          if (res.people) {
+            resolve(res.people);
+          } else {
+            resolve([]);
+          }
+        })
+        .catch(e => {
+          console.log('[getFriends] error:', e);
+          reject(e);
+        });
+    });
+  }
 }

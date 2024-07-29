@@ -15,6 +15,7 @@ export default class XcloudApi {
     this.isStoped = false;
   }
 
+  // FIXME: Sometime connectstate change failed, nextTime should refresh sessionId to make a new connect.
   startSession(consoleId, resolution) {
     log.info('[startSession] consoleId:', consoleId);
     this.isStoped = false;
@@ -530,6 +531,25 @@ export default class XcloudApi {
         })
         .catch(e => {
           reject(e);
+        });
+    });
+  }
+
+  getActiveSessions() {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${this.host}/v5/sessions/${this.type}/active`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + this.gsToken,
+          },
+        })
+        .then(res => {
+          resolve(res.data);
+        })
+        .catch(e => {
+          log.info('getActiveSessions error: ', e);
+          resolve([]);
         });
     });
   }

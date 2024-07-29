@@ -10,6 +10,8 @@ export default {
       '登录成功，正在刷新登录凭证...',
     'Checking login status...': '正在检查登录...',
     Warning: '提示',
+    WaitingForServerToRegister:
+      '无法在主机上建立串流，原因是主机没有连接到Xbox服务器，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试手动重启主机并重试',
     'Login has expired or not logged in, please log in again':
       '登录已失效或未登录，请重新登录',
     'Loading...': '加载中...',
@@ -22,7 +24,7 @@ export default {
     'Toggle Virtual Gamepad': '显示/隐藏虚拟手柄',
     'Press Nexus': '按下西瓜键',
     'Long press Nexus': '长按西瓜键',
-    'Disconnect': '断开连接',
+    Disconnect: '断开连接',
     NoXGP:
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
     'Recent Games': '最近游玩',
@@ -61,10 +63,13 @@ export default {
     'Set language of cloud game': '设置云游戏语言',
     'Key mapping': '按键映射',
     'Mapping key of gamepad': '映射手柄按键',
-    'Currently no network connection, please connect and try again': '当前无网络连接，请连接后再使用',
+    'Currently no network connection, please connect and try again':
+      '当前无网络连接，请连接后再使用',
     Logout: '退出登录',
     'Do you want to logout?': '要退出登录吗?',
     'Current user': '当前用户',
+    Friends: '好友',
+    Achivements: '成就',
     Auto: '自动',
     Custom: '自定义',
     bitrate: '码率',
