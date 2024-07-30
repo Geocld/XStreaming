@@ -17,6 +17,7 @@ import HomeScreen from './pages/Home';
 import CloudScreen from './pages/Cloud';
 import FriendsScreen from './pages/Friends';
 import AchivementScreen from './pages/Achivements';
+import AchivementDetailScreen from './pages/ArchivementDetail';
 import LoginScreen from './pages/Login';
 import StreamScreen from './pages/Stream';
 import SettingsScreen from './pages/Settings';
@@ -179,6 +180,10 @@ function App() {
                 <RootStack.Screen
                   name="TitleDetail"
                   component={TitleDetailScreen}
+                />
+                <RootStack.Screen
+                  name="AchivementDetail"
+                  component={AchivementDetailScreen}
                 />
                 <RootStack.Screen
                   name="GameMapDetail"

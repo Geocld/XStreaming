@@ -140,7 +140,7 @@ function StreamScreen({navigation, route}) {
       leftStickEventListener.current = eventEmitter.addListener(
         'onLeftStickMove',
         event => {
-          console.log('onLeftStickMove:', event);
+          // console.log('onLeftStickMove:', event);
           gpState.LeftThumbXAxis = event.axisX;
           gpState.LeftThumbYAxis = event.axisY;
         },
@@ -420,6 +420,9 @@ function StreamScreen({navigation, route}) {
     if (type === 'connectionstate') {
       setConnectState(message);
     }
+    if (type === 'exit') {
+      handleExit();
+    }
     if (type === 'timeoutExit') {
       /* Timeout, almost is connectionstate is failed,
          this situation we should refresh all tokens to make new connection.
@@ -430,12 +433,14 @@ function StreamScreen({navigation, route}) {
 
   // Virtual gamepad press
   const handleButtonPressIn = name => {
+    // console.log('handleButtonPressIn:', name);
     gpState[name] = 1;
     Vibration.vibrate(30);
   };
 
   const handleButtonPressOut = name => {
     setTimeout(() => {
+      // console.log('handleButtonPressOut:', name);
       gpState[name] = 0;
     }, 50);
   };

@@ -6,6 +6,7 @@ import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 import LocaleModal from '../components/LocaleModal';
 import ResolutionModal from '../components/ResolutionModal';
+import VideoFormatModal from '../components/VideoFormatModal';
 import BitrateModal from '../components/BitrateModal';
 import GamepadKernalModal from '../components/GamepadKernalModal';
 import VibrationModal from '../components/VibrationModal';
@@ -33,6 +34,7 @@ function SettingsScreen({navigation}) {
   const [loading, setLoading] = React.useState(false);
   const [showLocaleModal, setShowLocaleModal] = React.useState(false);
   const [showResolutionModal, setShowResolutionModal] = React.useState(false);
+  const [showVideoFormatModal, setShowVideoFormatModal] = React.useState(false);
   const [showBitrateModal, setShowBitrateModal] = React.useState(false);
   const [showCodecModal, setShowCodecModal] = React.useState(false);
   const [showVibrationModal, setShowVibrationModal] = React.useState(false);
@@ -64,6 +66,9 @@ function SettingsScreen({navigation}) {
     }
     if (id === 'resolution') {
       setShowResolutionModal(true);
+    }
+    if (id === 'video_format') {
+      setShowVideoFormatModal(true);
     }
     if (id === 'xhome_bitrate') {
       setShowBitrateModal(true);
@@ -144,6 +149,14 @@ function SettingsScreen({navigation}) {
     setSettings(settings);
     saveSettings(settings);
     setShowResolutionModal(false);
+  };
+
+  // Set video format
+  const handleChangeVideoFormat = value => {
+    settings.video_format = value;
+    setSettings(settings);
+    saveSettings(settings);
+    setShowVideoFormatModal(false);
   };
 
   // Set bitrate
@@ -259,6 +272,13 @@ function SettingsScreen({navigation}) {
         current={settings.resolution}
         onSelect={handleChangeResolution}
         onClose={() => setShowResolutionModal(false)}
+      />
+
+      <VideoFormatModal
+        show={showVideoFormatModal}
+        current={settings.video_format}
+        onSelect={handleChangeVideoFormat}
+        onClose={() => setShowVideoFormatModal(false)}
       />
 
       {showBitrateModal && (
@@ -380,6 +400,13 @@ function SettingsScreen({navigation}) {
             'Current',
           )}: ${settings.resolution ? settings.resolution : ''}`}
           onPress={() => handleItemPress('resolution')}
+        />
+        <SettingItem
+          title={t('Video stream format')}
+          description={`${t(
+            'Select video stream format, if you want video fullscreen, please select Stretch or Zoom',
+          )}`}
+          onPress={() => handleItemPress('video_format')}
         />
         <SettingItem
           title={t('Host stream bitrate')}

@@ -146,6 +146,7 @@ export default class Xal {
           });
         })
         .catch(e => {
+          console.log('error:', e);
           log.error('[doSisuAuthentication] error:', e);
         });
     });

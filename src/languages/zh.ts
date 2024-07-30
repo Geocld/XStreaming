@@ -45,6 +45,12 @@ export default {
     'If your device supports newer codecs, it can reduce the video bandwidth requirements.':
       '如果您的设备支持较新的编解码器，则可以降低视频带宽要求。',
     Vibration: '振动',
+    'Video stream format': '视频流格式',
+    'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
+      '选择视频流格式，如果你需要画面全屏,请选择拉伸或缩放，如果你的物理显示器不是16:9，会导致画面不协调或展示不全',
+    'Aspect ratio': '保持长宽比(16:9)',
+    Stretch: '拉伸',
+    Zoom: '缩放',
     'Gamepad kernal': '手柄内核',
     'If your controller supports vibration, you can set whether it vibrates during the game.':
       '如果手柄支持振动，可以设置游戏中是否振动。',
@@ -60,7 +66,8 @@ export default {
       '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项',
     'Prioritize using IPv6 connection': '优先使用Ipv6连接',
     'Preferred language of game': '游戏偏好语言',
-    'Set language of cloud game': '设置云游戏语言',
+    'Set language of cloud game':
+      '设置云游戏语言,该选项会影响云游戏语言及好友、成就语言',
     'Key mapping': '按键映射',
     'Mapping key of gamepad': '映射手柄按键',
     'Currently no network connection, please connect and try again':

@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Dimensions,
-  ActivityIndicator,
-} from 'react-native';
+import {StyleSheet, View, ScrollView, Pressable} from 'react-native';
 import {
   Layout,
   Text,
@@ -16,36 +10,42 @@ import {
   TopNavigation,
   Avatar,
   ListItem,
+  ProgressBar,
 } from '@ui-kitten/components';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Empty from '../components/Empty';
 // import mockData from '../mock/data';
 import {debugFactory} from '../utils/debug';
 import {useTranslation} from 'react-i18next';
+import moment from 'moment';
+import {useSelector, useDispatch} from 'react-redux';
+import WebApi from '../web';
 
 const log = debugFactory('AchivementScreen');
-
-const AvatarImage = props => (
-  <Avatar
-    {...props}
-    style={[props.style, styles.itemImage]}
-    source={{
-      uri: 'https://images-eds-ssl.xboxlive.com/image?url=wHwbXKif8cus8csoZ03RW3apWESZjav65Yncai8aRmWL5wD_dXiCeIhr2I61i4BQAmQDiTqhWewfOSx.eg94Rasl01XcDS.5hocvl3FFDyhzsjta0h0yuKfN90YYGjROhz3CUgP7DE1EgZFOk_zKJxrpyR05l2GcDhh6wfkoBGrfGQ2rjIHQCPBNIqzB3YmY&format=png'
-    }}
-  />
-);
 
 function AchivementScreen({navigation}) {
   const {t} = useTranslation();
 
   const [loading, setLoading] = React.useState(false);
+  const [archivements, setArchivements] = React.useState([]);
+  const webToken = useSelector(state => state.webToken);
 
   React.useEffect(() => {
-    console.log('123');
-  });
+    setLoading(true);
+    const webApi = new WebApi(webToken);
+    webApi.getHistoryAchivements().then(data => {
+      setArchivements(data);
+      setLoading(false);
+    });
+  }, [webToken]);
+
+  const formatTime = isoString => {
+    const date = moment(isoString).local();
+    return date.format('YYYY-MM-DD HH:mm:ss');
+  };
 
   return (
-    <>
+    <View style={styles.container}>
       <Spinner
         visible={loading}
         color={'#107C10'}
@@ -54,23 +54,79 @@ function AchivementScreen({navigation}) {
       />
 
       <ScrollView>
-        <ListItem
-          title='UI Kitten'
-          description='A set of React Native components'
-          accessoryLeft={AvatarImage}
-        />
+        {archivements.map((infos, idx) => {
+          return (
+            <Pressable
+              style={styles.listItem}
+              key={infos.titleId || idx}
+              onPress={() => {
+                navigation.navigate('AchivementDetail', {
+                  name: infos.name,
+                  titleId: infos.titleId,
+                });
+              }}>
+              <View style={styles.title}>
+                <Text style={styles.text} category="h6" appearance="hint">
+                  {infos.name}
+                </Text>
+              </View>
+              <View style={styles.time}>
+                <Text style={styles.text} category="c1" appearance="hint">
+                  {formatTime(infos.lastUnlock)}
+                </Text>
+              </View>
+              <View style={styles.progressBar}>
+                <ProgressBar
+                  progress={infos.currentGamerscore / infos.maxGamerscore}
+                />
+              </View>
+              <View style={styles.footer}>
+                <View style={styles.score}>
+                  <Text style={styles.text} category="p2" appearance="hint">
+                    {t('score')}: {infos.currentGamerscore}/
+                    {infos.maxGamerscore}
+                  </Text>
+                </View>
+                <View style={styles.percent}>
+                  <Text style={styles.text} category="c2" appearance="hint">
+                    {Math.floor(
+                      (infos.currentGamerscore / infos.maxGamerscore) * 100,
+                    ) + '%'}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          );
+        })}
       </ScrollView>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    padding: 10,
+  },
+  listItem: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    padding: 20,
+    backgroundColor: 'rgba(143, 155, 179, 0.30)',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  text: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  progressBar: {
+    marginTop: 15,
+  },
+  footer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    marginTop: 10,
   },
 });
 
