@@ -67,10 +67,12 @@ function SettingDetailScreen({navigation, route}) {
   }, [navigation, route.params?.id]);
 
   const handleSave = () => {
-    if (current === 'locale' || current === 'force_region_ip') {
+    if (settings[current]) {
       settings[current] = value;
       setSettings(settings);
       saveSettings(settings);
+    }
+    if (current === 'locale' || current === 'force_region_ip') {
       restart();
     } else if (current === 'xhome_bitrate_mode') {
       settings.xhome_bitrate_mode = value;
@@ -95,8 +97,6 @@ function SettingDetailScreen({navigation, route}) {
         }
       });
     }
-    setSettings(settings);
-    saveSettings(settings);
     navigation.goBack();
   };
 
