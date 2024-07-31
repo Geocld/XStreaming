@@ -7,7 +7,7 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import {Text, Divider} from '@ui-kitten/components';
+import {Text, Divider} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
 import ConsoleItem from '../components/ConsoleItem';
@@ -22,7 +22,6 @@ import SplashScreen from 'react-native-splash-screen';
 import {useTranslation} from 'react-i18next';
 import NetInfo from '@react-native-community/netinfo';
 import {debugFactory} from '../utils/debug';
-import LinkModeModal from '../components/LinkModeModal';
 
 const log = debugFactory('HomeScreen');
 
@@ -210,17 +209,11 @@ function HomeScreen({navigation, route}) {
           textStyle={styles.spinnerTextStyle}
         />
 
-        <LinkModeModal
-          show={showLinkMode}
-          onConfirm={handleStartStream}
-          onClose={() => setShowLinkMode(false)}
-        />
-
         {profile && <Profile profile={profile} />}
 
         {consoles.length > 0 ? (
           <View>
-            <Text style={styles.title} category="h6">
+            <Text style={styles.title} variant="titleMedium">
               {t('Consoles')}
             </Text>
             <Divider />

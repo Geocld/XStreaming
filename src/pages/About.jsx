@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView, RefreshControl} from 'react-native';
-import {Button, Text, Layout} from '@ui-kitten/components';
+import {Text} from 'react-native-paper';
 import LinkText from '../components/LinkText';
 
 function AboutScreen({navigation, route}) {
@@ -8,27 +8,26 @@ function AboutScreen({navigation, route}) {
     <ScrollView style={styles.container}>
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text category="h5">XStreaming</Text>
+          <Text variant="titleLarge">XStreaming</Text>
         </View>
         <View>
-          <Text category="s1">
+          <Text variant="titleMedium">
             XStreaming is an full open-source mobile client for xCloud and Xbox
             home streaming, great inspired by
             <LinkText url={'https://github.com/unknownskl/greenlight'}>
               Greenlight
             </LinkText>
-            .The application runs on Android 10+.
           </Text>
         </View>
       </View>
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text category="h5">Want to contribute to XStreaming?</Text>
+          <Text variant="titleLarge">Want to contribute to XStreaming?</Text>
         </View>
 
         <View>
-          <Text category="s1">XStreaming:</Text>
+          <Text variant="titleMedium">XStreaming:</Text>
         </View>
         <View>
           <LinkText url={'https://github.com/Geocld/XStreaming'}>
@@ -37,7 +36,7 @@ function AboutScreen({navigation, route}) {
         </View>
 
         <View>
-          <Text category="s1">XStreaming-webview:</Text>
+          <Text variant="titleMedium">XStreaming-webview:</Text>
         </View>
         <View>
           <LinkText url={'https://github.com/Geocld/XStreaming-webview'}>
@@ -46,7 +45,7 @@ function AboutScreen({navigation, route}) {
         </View>
 
         <View>
-          <Text category="s1">XStreaming-webview:</Text>
+          <Text variant="titleMedium">XStreaming-webview:</Text>
         </View>
         <View>
           <LinkText url={'https://github.com/Geocld/XStreaming-player'}>
@@ -57,11 +56,11 @@ function AboutScreen({navigation, route}) {
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text category="h5">About author</Text>
+          <Text variant="titleLarge">About author</Text>
         </View>
         <View>
           <View>
-            <Text category="s1">Geocld:</Text>
+            <Text variant="titleMedium">Geocld:</Text>
           </View>
           <View>
             <LinkText url={'https://github.com/Geocld'}>

@@ -1,6 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, FlatList, Dimensions} from 'react-native';
-import {Layout, Text, Button} from '@ui-kitten/components';
+import {StyleSheet, View, FlatList, Dimensions} from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
@@ -47,7 +46,7 @@ function ArchivementDetail({navigation, route}) {
   }, [route.params?.titleId, route.params?.name, navigation, webToken]);
 
   return (
-    <Layout style={styles.container}>
+    <View style={styles.container}>
       <Spinner
         visible={loading}
         textContent={t('Loading...')}
@@ -69,7 +68,7 @@ function ArchivementDetail({navigation, route}) {
           );
         }}
       />
-    </Layout>
+    </View>
   );
 }
 

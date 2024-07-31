@@ -6,15 +6,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import {
-  Layout,
-  Text,
-  IndexPath,
-  Select,
-  SelectItem,
-  Input,
-  TopNavigation,
-} from '@ui-kitten/components';
+import {Text, SegmentedButtons, Appbar, Searchbar} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useSelector} from 'react-redux';
 import TitleItem from '../components/TitleItem';
@@ -28,18 +20,13 @@ const log = debugFactory('CloudScreen');
 
 function CloudScreen({navigation}) {
   const {t} = useTranslation();
-  const selectLists = [t('Recent Games'), t('Recently added'), t('All Games')];
-
   const streamingTokens = useSelector(state => state.streamingTokens);
 
   // log.info('streamingTokens:', streamingTokens);
 
+  const [current, setCurrent] = React.useState(0);
   const [numColumns, setNumColumns] = React.useState(2);
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [selectedIndex, setSelectedIndex] = React.useState(new IndexPath(0));
-  const [selectedText, setSelectedText] = React.useState(
-    selectLists[selectedIndex.row],
-  );
 
   const [loading, setLoading] = React.useState(false);
   const [loadmoring, setLoadmoring] = React.useState(false);
@@ -161,25 +148,8 @@ function CloudScreen({navigation}) {
     }
   };
 
-  const renderSelect = () => {
-    return (
-      <View style={styles.categoryWrap}>
-        <Select
-          value={selectedText}
-          selectedIndex={selectedIndex}
-          onSelect={handleSelectCategories}>
-          {selectLists.map(select => {
-            return <SelectItem title={select} key={select} />;
-          })}
-        </Select>
-      </View>
-    );
-  };
-
   const handleSelectCategories = indexPath => {
     setLoading(true);
-    setSelectedIndex(indexPath);
-    setSelectedText(selectLists[indexPath.row]);
     setCurrentPage(1);
     scrollToTop();
     setTimeout(() => {
@@ -192,7 +162,7 @@ function CloudScreen({navigation}) {
    * 1 - new
    * 2 - all
    */
-  switch (selectedIndex.row) {
+  switch (current) {
     case 0:
       currentTitles.current = RecentTitles;
       break;
@@ -238,15 +208,40 @@ function CloudScreen({navigation}) {
 
       {!isLimited && (
         <>
-          <Layout style={styles.gameContainer}>
-            <TopNavigation title={() => renderSelect()} />
+          <View style={styles.gameContainer}>
+            <Appbar.Header>
+              <Appbar.Content
+                title={
+                  <SegmentedButtons
+                    value={current}
+                    onValueChange={setCurrent}
+                    buttons={[
+                      {
+                        value: 0,
+                        label: 'Recently',
+                      },
+                      {
+                        value: 1,
+                        label: 'Newest',
+                      },
+                      {value: 2, label: 'All'},
+                    ]}
+                  />
+                }
+              />
+            </Appbar.Header>
 
             <View style={styles.search}>
-              <Input
-                placeholder={t('Search your game')}
+              <Searchbar
+                placeholder="Search"
+                style={{
+                  height: 40,
+                }}
+                inputStyle={{
+                  minHeight: 0,
+                }}
+                onChangeText={val => setKeyword(val)}
                 value={keyword}
-                size="small"
-                onChangeText={nextValue => setKeyword(nextValue)}
               />
             </View>
 
@@ -279,18 +274,18 @@ function CloudScreen({navigation}) {
                 />
               </>
             )}
-          </Layout>
+          </View>
         </>
       )}
 
       {isLimited && (
-        <Layout style={styles.container}>
+        <View style={styles.container}>
           <View>
             <Text style={styles.tips} category="s1">
               {t('NoXGP')}
             </Text>
           </View>
-        </Layout>
+        </View>
       )}
     </>
   );
@@ -301,12 +296,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
     padding: 20,
   },
   tips: {
     textAlign: 'center',
-    color: '#666666',
     lineHeight: 30,
   },
   spinnerTextStyle: {

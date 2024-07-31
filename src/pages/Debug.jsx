@@ -3,24 +3,20 @@ import {
   StyleSheet,
   View,
   Alert,
-  SafeAreaView,
   ScrollView,
-  RefreshControl,
   NativeModules,
   NativeEventEmitter,
 } from 'react-native';
-import {Button, Text, Icon} from '@ui-kitten/components';
 import {useSelector, useDispatch} from 'react-redux';
+import {Portal, Modal, List, Text} from 'react-native-paper';
 import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
-import DebugModal from '../components/DebugModal';
 
 const {GamepadManager, UsbRumbleManager} = NativeModules;
 
 function DebugScreen({navigation, route}) {
   let authentication = useSelector(state => state.authentication);
   const [settings, setSettings] = React.useState({});
-  const [showDebugModal, setShowDebugModal] = React.useState(false);
 
   React.useEffect(() => {
     const _settings = getSettings();
@@ -38,21 +34,40 @@ function DebugScreen({navigation, route}) {
     });
   }, [navigation]);
 
-  const handleChangeDebug = value => {
-    settings.debug = value;
-    setSettings(settings);
-    saveSettings(settings);
-    setShowDebugModal(false);
-  };
-
   return (
     <ScrollView>
-      <DebugModal
-        show={showDebugModal}
-        current={settings.debug}
-        onSelect={handleChangeDebug}
-        onClose={() => handleChangeDebug(false)}
-      />
+      <Portal>
+        <Modal
+          visible={false}
+          contentContainerStyle={{
+            backgroundColor: 'white',
+            padding: 20,
+            marginLeft: '10%',
+            marginRight: '10%',
+          }}>
+          <List.Section>
+            <List.Item
+              background={{
+                borderless: false,
+                color: 'red',
+                foreground: true,
+              }}
+              title={'Disconnect'}
+              onPress={() => {}}
+            />
+            <List.Item
+              title={'Cancel'}
+              // style={{width: '100%'}}
+              background={{
+                borderless: false,
+                color: 'red',
+                foreground: true,
+              }}
+              onPress={() => {}}
+            />
+          </List.Section>
+        </Modal>
+      </Portal>
 
       <SettingItem
         title={'Show tokens'}
@@ -69,11 +84,6 @@ function DebugScreen({navigation, route}) {
       `;
           Alert.alert('Token', result);
         }}
-      />
-      <SettingItem
-        title={'Open debug mode'}
-        description={`Open stream screen debug mode`}
-        onPress={() => setShowDebugModal(true)}
       />
       {/* <SettingItem
         title={'Gamepad debug'}

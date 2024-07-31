@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, StyleSheet, FlatList} from 'react-native';
-import {Button} from '@ui-kitten/components';
+import {Button} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {debugFactory} from '../utils/debug';
@@ -113,10 +113,10 @@ function NativeGameMap({navigation, route}) {
       />
 
       <View style={styles.buttonWrap}>
-        <Button status="primary" style={styles.button} onPress={handleSave}>
+        <Button mode="contained" style={styles.button} onPress={handleSave}>
           {t('Save Maping')}
         </Button>
-        <Button status="basic" style={styles.button} onPress={handleReset}>
+        <Button mode="outlined" style={styles.button} onPress={handleReset}>
           {t('Reset')}
         </Button>
       </View>

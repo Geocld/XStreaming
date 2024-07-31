@@ -1,15 +1,22 @@
 import React from 'react';
-import * as eva from '@eva-design/eva';
 import {Alert, Linking} from 'react-native';
-import {ApplicationProvider, IconRegistry} from '@ui-kitten/components';
-import {EvaIconsPack} from '@ui-kitten/eva-icons/index';
+import {
+  PaperProvider,
+  MD3DarkTheme,
+  MD3LightTheme,
+  adaptNavigationTheme,
+} from 'react-native-paper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {createStackNavigator} from '@react-navigation/stack';
-import {NavigationContainer} from '@react-navigation/native';
-// import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {
+  NavigationContainer,
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationDefaultTheme,
+} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
+import merge from 'deepmerge';
 import {Provider} from 'react-redux';
 import store from './store';
 
@@ -21,17 +28,14 @@ import AchivementDetailScreen from './pages/ArchivementDetail';
 import LoginScreen from './pages/Login';
 import StreamScreen from './pages/Stream';
 import SettingsScreen from './pages/Settings';
+import SettingDetailScreen from './pages/SettingDetail';
 import TitleDetailScreen from './pages/TitleDetail';
 import DebugScreen from './pages/Debug';
 import GameMapScreen from './pages/GameMap';
 import NativeGameMapScreen from './pages/NativeGameMap';
 import GameMapDetailScreen from './pages/GameMapDetail';
-import GamepadDebugScreen from './pages/GamepadDebug';
 import AboutScreen from './pages/About';
 import updater from './utils/updater';
-
-// Change theme: https://akveo.github.io/react-native-ui-kitten/docs/guides/branding#primary-color
-import {default as theme} from '../theme.json';
 
 import {useTranslation} from 'react-i18next';
 
@@ -39,6 +43,14 @@ import './i18n';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
+
+const {LightTheme, DarkTheme} = adaptNavigationTheme({
+  reactNavigationLight: NavigationDefaultTheme,
+  reactNavigationDark: NavigationDarkTheme,
+});
+
+const CombinedDefaultTheme = merge(MD3LightTheme, LightTheme);
+const CombinedDarkTheme = merge(MD3DarkTheme, DarkTheme);
 
 const TabIcon = (route: any, params: any) => {
   const {focused, color, size} = params;
@@ -107,18 +119,6 @@ function HomeTabs() {
   );
 }
 
-const darkTheme = {
-  dark: true,
-  colors: {
-    primary: 'black',
-    background: 'black',
-    card: 'black',
-    text: 'white',
-    border: 'gray',
-    notification: 'orange',
-  },
-};
-
 function App() {
   const {t} = useTranslation();
   updater().then((infos: any) => {
@@ -146,10 +146,9 @@ function App() {
   });
   return (
     <>
-      <IconRegistry icons={EvaIconsPack} />
       <Provider store={store}>
-        <ApplicationProvider {...eva} theme={{...eva.dark, ...theme}}>
-          <NavigationContainer theme={darkTheme}>
+        <PaperProvider theme={CombinedDarkTheme}>
+          <NavigationContainer theme={CombinedDarkTheme}>
             <RootStack.Navigator>
               <RootStack.Group>
                 <RootStack.Screen
@@ -167,12 +166,12 @@ function App() {
                 <RootStack.Screen name="About" component={AboutScreen} />
                 <RootStack.Screen name="GameMap" component={GameMapScreen} />
                 <RootStack.Screen
-                  name="NativeGameMap"
-                  component={NativeGameMapScreen}
+                  name="SettingDetail"
+                  component={SettingDetailScreen}
                 />
                 <RootStack.Screen
-                  name="GamepadDebug"
-                  component={GamepadDebugScreen}
+                  name="NativeGameMap"
+                  component={NativeGameMapScreen}
                 />
               </RootStack.Group>
 
@@ -192,7 +191,7 @@ function App() {
               </RootStack.Group>
             </RootStack.Navigator>
           </NavigationContainer>
-        </ApplicationProvider>
+        </PaperProvider>
       </Provider>
     </>
   );

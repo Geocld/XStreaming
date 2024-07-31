@@ -6,7 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import {Text} from '@ui-kitten/components';
+import {Text} from 'react-native-paper';
 
 type Props = {
   titleItem: any;

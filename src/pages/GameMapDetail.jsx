@@ -6,7 +6,7 @@ import {
   NativeModules,
   NativeEventEmitter,
 } from 'react-native';
-import {Layout, Text} from '@ui-kitten/components';
+import {Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {SvgXml} from 'react-native-svg';
@@ -78,7 +78,7 @@ function GameMapDetail({navigation, route}) {
   console.log('current:', current);
 
   return (
-    <Layout style={styles.container}>
+    <View style={styles.container}>
       <ScrollView>
         <Text style={styles.text}>
           {t(
@@ -92,7 +92,7 @@ function GameMapDetail({navigation, route}) {
           {t('After successful mapping, this pop-up will automatically close')}
         </Text>
       </ScrollView>
-    </Layout>
+    </View>
   );
 }
 

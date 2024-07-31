@@ -1,17 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView, Pressable} from 'react-native';
-import {
-  Layout,
-  Text,
-  IndexPath,
-  Select,
-  SelectItem,
-  Input,
-  TopNavigation,
-  Avatar,
-  ListItem,
-  ProgressBar,
-} from '@ui-kitten/components';
+import {Text, ProgressBar} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Empty from '../components/Empty';
 // import mockData from '../mock/data';
@@ -66,12 +55,12 @@ function AchivementScreen({navigation}) {
                 });
               }}>
               <View style={styles.title}>
-                <Text style={styles.text} category="h6" appearance="hint">
+                <Text style={styles.text} variant="titleMedium">
                   {infos.name}
                 </Text>
               </View>
               <View style={styles.time}>
-                <Text style={styles.text} category="c1" appearance="hint">
+                <Text style={styles.text} variant="titleSmall">
                   {formatTime(infos.lastUnlock)}
                 </Text>
               </View>
@@ -82,13 +71,13 @@ function AchivementScreen({navigation}) {
               </View>
               <View style={styles.footer}>
                 <View style={styles.score}>
-                  <Text style={styles.text} category="p2" appearance="hint">
+                  <Text style={styles.text} variant="titleSmall">
                     {t('score')}: {infos.currentGamerscore}/
                     {infos.maxGamerscore}
                   </Text>
                 </View>
                 <View style={styles.percent}>
-                  <Text style={styles.text} category="c2" appearance="hint">
+                  <Text style={styles.text} variant="titleSmall">
                     {Math.floor(
                       (infos.currentGamerscore / infos.maxGamerscore) * 100,
                     ) + '%'}

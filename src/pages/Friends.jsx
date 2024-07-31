@@ -1,30 +1,11 @@
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Dimensions,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
-import {
-  Layout,
-  Text,
-  IndexPath,
-  Select,
-  SelectItem,
-  Input,
-  TopNavigation,
-  Avatar,
-  ListItem,
-} from '@ui-kitten/components';
+import {StyleSheet, View, ScrollView, RefreshControl} from 'react-native';
+import {Text, Avatar} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Empty from '../components/Empty';
-// import mockData from '../mock/data';
 import {debugFactory} from '../utils/debug';
 import {useTranslation} from 'react-i18next';
-import {useSelector, useDispatch} from 'react-redux';
-// import data from '../mock/friends';
+import {useSelector} from 'react-redux';
 import WebApi from '../web';
 
 const log = debugFactory('FriendsScreen');
@@ -91,42 +72,40 @@ function FriendsScreen({navigation}) {
         {friends.map((userinfo, idx) => {
           return (
             <View style={styles.listItem} key={userinfo.xuid || idx}>
-              <Avatar
+              <Avatar.Image
                 style={styles.avatar}
-                size="large"
+                size={46}
                 source={{
                   uri: userinfo.displayPicRaw || '',
                 }}
               />
               <View>
                 <View style={styles.title}>
-                  <Text style={styles.text} category="h6" appearance="hint">
+                  <Text style={styles.text} variant="titleMedium">
                     {userinfo.modernGamertag}
                   </Text>
                   {userinfo.modernGamertagSuffix && (
                     <Text
                       style={[styles.text, styles.suffix]}
-                      category="s2"
-                      appearance="hint">
+                      variant="titleSmall">
                       #{userinfo.modernGamertagSuffix}
                     </Text>
                   )}
                 </View>
                 <View style={styles.title}>
-                  <Text style={styles.text} category="p1" appearance="hint">
+                  <Text style={styles.text} variant="labelSmall">
                     {userinfo.displayName}
                   </Text>
                   {userinfo.realName && (
                     <Text
                       style={[styles.text, styles.realName]}
-                      category="p1"
-                      appearance="hint">
+                      variant="labelSmall">
                       ({userinfo.realName})
                     </Text>
                   )}
                 </View>
                 <View>
-                  <Text style={styles.text} category="p2" appearance="hint">
+                  <Text style={styles.text} variant="labelSmall">
                     {drawPresence(userinfo)}
                   </Text>
                 </View>

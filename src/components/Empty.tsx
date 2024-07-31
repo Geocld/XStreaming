@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Text} from '@ui-kitten/components';
+import {Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 
 type Props = {
@@ -12,9 +12,7 @@ const Empty: React.FC<Props> = () => {
   const {t} = useTranslation();
   return (
     <View style={styles.container}>
-      <Text category="p1" appearance="hint">
-        {t('NoData')}
-      </Text>
+      <Text variant="titleMedium">{t('NoData')}</Text>
     </View>
   );
 };

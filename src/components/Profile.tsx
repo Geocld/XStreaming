@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, View, Button} from 'react-native';
-import {Avatar, Text} from '@ui-kitten/components';
+import {StyleSheet, View} from 'react-native';
+import {Avatar, Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 
 type Props = {
@@ -11,19 +11,19 @@ const Profile: React.FC<Props> = ({profile}) => {
   const {t} = useTranslation();
   return (
     <View style={styles.container}>
-      <Avatar
+      <Avatar.Image
         style={styles.avatar}
-        size="large"
+        size={64}
         source={{uri: profile.GameDisplayPicRaw}}
       />
       <View>
         <View>
-          <Text style={styles.text} category="h6" appearance="hint">
+          <Text style={styles.text} variant="titleMedium">
             {profile.GameDisplayName}
           </Text>
         </View>
         <View>
-          <Text style={styles.text} category="p2" appearance="hint">
+          <Text style={styles.text}>
             {t('Gamerscore')}: {profile.Gamerscore}
           </Text>
         </View>

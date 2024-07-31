@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView, Image} from 'react-native';
-import {Layout, Text, Button} from '@ui-kitten/components';
+import {Text, Button} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
@@ -38,7 +38,7 @@ function TitleDetail({navigation, route}) {
   };
 
   return (
-    <Layout style={styles.container}>
+    <View style={styles.container}>
       <Spinner
         visible={!titleItem}
         textContent={t('Loading...')}
@@ -56,10 +56,10 @@ function TitleDetail({navigation, route}) {
               style={styles.image}
             />
             <View style={styles.textWrap}>
-              <Text category="h4" style={styles.productTitle}>
+              <Text variant="titleLarge" style={styles.productTitle}>
                 {titleItem.catalogDetails.ProductTitle}
               </Text>
-              <Text category="p1">
+              <Text variant="titleMedium">
                 {titleItem.catalogDetails.ProductDescriptionShort}
               </Text>
             </View>
@@ -69,7 +69,7 @@ function TitleDetail({navigation, route}) {
                 if (item.LocalizedName) {
                   return (
                     <View style={styles.tagContainer} key={item.Name}>
-                      <Text appearance="hint">{item.LocalizedName}</Text>
+                      <Text variant="titleSmall">{item.LocalizedName}</Text>
                     </View>
                   );
                 }
@@ -79,13 +79,13 @@ function TitleDetail({navigation, route}) {
 
           <View style={styles.buttonWrap}>
             <Button
-              status="primary"
+              mode="contained"
               style={styles.button}
               onPress={handleStartGame}>
               {t('Start game')}
             </Button>
             <Button
-              status="basic"
+              mode="outlined"
               style={styles.button}
               onPress={() => navigation.goBack()}>
               {t('Back')}
@@ -93,7 +93,7 @@ function TitleDetail({navigation, route}) {
           </View>
         </>
       )}
-    </Layout>
+    </View>
   );
 }
 

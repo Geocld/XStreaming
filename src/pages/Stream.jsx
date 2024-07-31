@@ -7,7 +7,7 @@ import {
   NativeEventEmitter,
   StyleSheet,
 } from 'react-native';
-import {Modal, Menu, MenuItem} from '@ui-kitten/components';
+import {Portal, Modal, List, Button} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
@@ -188,6 +188,7 @@ function StreamScreen({navigation, route}) {
 
         // Show confirm modal
         setShowModal(true);
+        GamepadManager.setCurrentScreen('');
       }
     });
     if (route.params?.sessionId) {
@@ -279,6 +280,11 @@ function StreamScreen({navigation, route}) {
         RNRestart.restart();
       }, 100);
     });
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    GamepadManager.setCurrentScreen('stream');
   };
 
   const postData2Webview = (type, value) => {
@@ -491,6 +497,12 @@ function StreamScreen({navigation, route}) {
     setShowModal(false);
   };
 
+  const background = {
+    borderless: false,
+    color: 'rgba(255, 255, 255, 0.2)',
+    foreground: true,
+  };
+
   return (
     <>
       {showPerformance && <PerfPanel performance={performance} />}
@@ -504,63 +516,83 @@ function StreamScreen({navigation, route}) {
         />
       )}
 
-      <Modal
-        visible={showModal}
-        backdropStyle={styles.backdrop}
-        onBackdropPress={() => setShowModal(false)}>
-        <View style={styles.card}>
-          <Menu>
-            {connectState === CONNECTED && (
-              <MenuItem
-                title={t('Toggle Performance')}
-                onPress={() => {
-                  setShowPerformance(!showPerformance);
-                  setShowModal(false);
-                }}
-              />
-            )}
+      {showModal && (
+        <Button mode="contained" style={styles.phantom} onPress={() => {}}>
+          You can not see me
+        </Button>
+      )}
 
-            {connectState === CONNECTED && (
-              <MenuItem
-                title={t('Toggle Virtual Gamepad')}
-                onPress={() => {
-                  requestVirtualGamepad();
-                  setShowModal(false);
-                }}
-              />
-            )}
+      <Portal>
+        <Modal
+          visible={showModal}
+          onDismiss={() => handleCloseModal()}
+          contentContainerStyle={styles.modal}>
+          <View style={styles.card}>
+            <List.Section>
+              {connectState === CONNECTED && (
+                <List.Item
+                  title={t('Toggle Performance')}
+                  background={background}
+                  onPress={() => {
+                    setShowPerformance(!showPerformance);
+                    handleCloseModal();
+                  }}
+                />
+              )}
 
-            {connectState === CONNECTED && (
-              <MenuItem
-                title={t('Press Nexus')}
-                onPress={() => {
-                  gpState.Nexus = 1;
-                  setTimeout(() => {
-                    gpState.Nexus = 0;
-                  }, 100);
-                  setShowModal(false);
-                }}
-              />
-            )}
+              {connectState === CONNECTED && (
+                <List.Item
+                  title={t('Toggle Virtual Gamepad')}
+                  background={background}
+                  onPress={() => {
+                    requestVirtualGamepad();
+                    handleCloseModal();
+                  }}
+                />
+              )}
 
-            {connectState === CONNECTED && (
-              <MenuItem
-                title={t('Long press Nexus')}
-                onPress={() => {
-                  gpState.Nexus = 1;
-                  setTimeout(() => {
-                    gpState.Nexus = 0;
-                  }, 1000);
-                  setShowModal(false);
-                }}
-              />
-            )}
+              {connectState === CONNECTED && (
+                <List.Item
+                  title={t('Press Nexus')}
+                  background={background}
+                  onPress={() => {
+                    gpState.Nexus = 1;
+                    setTimeout(() => {
+                      gpState.Nexus = 0;
+                    }, 100);
+                    handleCloseModal();
+                  }}
+                />
+              )}
 
-            <MenuItem title={t('Disconnect')} onPress={requestExit} />
-            <MenuItem title={t('Cancel')} onPress={() => setShowModal(false)} />
-          </Menu>
-        </View>
-      </Modal>
+              {connectState === CONNECTED && (
+                <List.Item
+                  title={t('Long press Nexus')}
+                  background={background}
+                  onPress={() => {
+                    gpState.Nexus = 1;
+                    setTimeout(() => {
+                      gpState.Nexus = 0;
+                    }, 1000);
+                    handleCloseModal();
+                  }}
+                />
+              )}
+              <List.Item
+                title={t('Disconnect')}
+                background={background}
+                onPress={requestExit}
+              />
+              <List.Item
+                title={t('Cancel')}
+                background={background}
+                onPress={() => handleCloseModal()}
+              />
+            </List.Section>
+          </View>
+        </Modal>
+      </Portal>
+
       <WebView
         ref={instance => {
           webviewRef.current = instance;
@@ -590,6 +622,11 @@ const styles = StyleSheet.create({
     width: 300,
     padding: 5,
   },
+  modal: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    marginLeft: '20%',
+    marginRight: '20%',
+  },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
@@ -598,6 +635,13 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingTop: 10,
+  },
+  phantom: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    opacity: 0,
+    zIndex: -1,
   },
 });
 

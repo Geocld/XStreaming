@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Text} from '@ui-kitten/components';
+import {Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 
 type Props = {

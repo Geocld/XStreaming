@@ -102,6 +102,8 @@ public class MainActivity extends ReactActivity {
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     String currentScreen = GamepadManager.getCurrentScreen();
+    Log.d("MainActivity1", "keyCode down:" + keyCode);
+    Log.d("MainActivity1", "currentScreen:" + currentScreen);
 
     if (!currentScreen.equals("stream")) {
       return super.onKeyDown(keyCode, event);
@@ -109,7 +111,7 @@ public class MainActivity extends ReactActivity {
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", keyCode);
-      Log.d("MainActivity1", "keyCode down:" + params);
+      Log.d("MainActivity1", "keyCode down2:" + params);
       sendEvent("onGamepadKeyDown", params);
       return true;
     }
@@ -193,62 +195,62 @@ public class MainActivity extends ReactActivity {
     sendEvent("onRightStickMove", rightParams);
   }
 
-//  @Override
-//  public boolean onGenericMotionEvent(MotionEvent event) {
-//
-//    String currentScreen = GamepadManager.getCurrentScreen();
-//
-//    if (!currentScreen.equals("stream")) {
-//      return super.onGenericMotionEvent(event);
-//    }
-//
-//    // DPAD
-//    Dpad dpad = new Dpad();
-//    if (Dpad.isDpadDevice(event)) {
-//      int dpadIdx = dpad.getDirectionPressed(event);
-//      if (dpadIdx != -1) {
-//        Log.d("MainActivity1", "DPAD press:" + dpadIdx);
-//        WritableMap params = Arguments.createMap();
-//        params.putInt("dpadIdx", dpadIdx);
-//        sendEvent("onDpadKeyDown", params);
-//      } else {
-//        WritableMap params = Arguments.createMap();
-//        params.putInt("dpadIdx", -1);
-//        sendEvent("onDpadKeyUp", params);
-//      }
-//    }
-//
-//    // Joystick
-//    if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) ==
-//            InputDevice.SOURCE_JOYSTICK &&
-//            event.getAction() == MotionEvent.ACTION_MOVE) {
-//      // Process all historical movement samples in the batch
-//      final int historySize = event.getHistorySize();
-//
-//      // 检测左侧扳机
-//      float lTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-//      // 检测右侧扳机
-//      float rTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
-//
-//      Log.d("MainActivity1", "L2:" + lTrigger);
-//      Log.d("MainActivity1", "R2:" + rTrigger);
-//      WritableMap triggerParams = Arguments.createMap();
-//      triggerParams.putDouble("leftTrigger", lTrigger);
-//      triggerParams.putDouble("rightTrigger", rTrigger);
-//      sendEvent("onTrigger", triggerParams);
-//
-//      // Process the movements starting from the
-//      // earliest historical position in the batch
-//      for (int i = 0; i < historySize; i++) {
-//        // Process the event at historical position i
-//        processJoystickInput(event, i);
-//      }
-//
-//      // Process the current movement sample in the batch (position -1)
-//      processJoystickInput(event, -1);
-//    }
-//    return true;
-//  }
+  @Override
+  public boolean onGenericMotionEvent(MotionEvent event) {
+
+    String currentScreen = GamepadManager.getCurrentScreen();
+
+    if (!currentScreen.equals("stream")) {
+      return super.onGenericMotionEvent(event);
+    }
+
+    // DPAD
+    Dpad dpad = new Dpad();
+    if (Dpad.isDpadDevice(event)) {
+      int dpadIdx = dpad.getDirectionPressed(event);
+      if (dpadIdx != -1) {
+        Log.d("MainActivity1", "DPAD press:" + dpadIdx);
+        WritableMap params = Arguments.createMap();
+        params.putInt("dpadIdx", dpadIdx);
+        sendEvent("onDpadKeyDown", params);
+      } else {
+        WritableMap params = Arguments.createMap();
+        params.putInt("dpadIdx", -1);
+        sendEvent("onDpadKeyUp", params);
+      }
+    }
+
+    // Joystick
+    if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) ==
+            InputDevice.SOURCE_JOYSTICK &&
+            event.getAction() == MotionEvent.ACTION_MOVE) {
+      // Process all historical movement samples in the batch
+      final int historySize = event.getHistorySize();
+
+      // 检测左侧扳机
+      float lTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+      // 检测右侧扳机
+      float rTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+
+      Log.d("MainActivity1", "L2:" + lTrigger);
+      Log.d("MainActivity1", "R2:" + rTrigger);
+      WritableMap triggerParams = Arguments.createMap();
+      triggerParams.putDouble("leftTrigger", lTrigger);
+      triggerParams.putDouble("rightTrigger", rTrigger);
+      sendEvent("onTrigger", triggerParams);
+
+      // Process the movements starting from the
+      // earliest historical position in the batch
+      for (int i = 0; i < historySize; i++) {
+        // Process the event at historical position i
+        processJoystickInput(event, i);
+      }
+
+      // Process the current movement sample in the batch (position -1)
+      processJoystickInput(event, -1);
+    }
+    return true;
+  }
 
   private void sendEvent(String eventName, WritableMap params) {
 //    ReactContext reactContext = (ReactContext) getApplicationContext();

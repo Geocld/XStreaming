@@ -1,7 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, Pressable} from 'react-native';
-import {Text} from '@ui-kitten/components';
-import {useTranslation} from 'react-i18next';
+import {Text} from 'react-native-paper';
 import {SvgXml} from 'react-native-svg';
 import maping from '../common/svg';
 

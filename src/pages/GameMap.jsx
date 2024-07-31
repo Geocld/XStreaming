@@ -62,18 +62,6 @@ function GameMap({navigation, route}) {
     }
   };
 
-  const injectedJavaScript = `
-    window.gpState = ${gpState};
-    window.addEventListener('message', function(event) {
-      const message = JSON.parse(event.data);
-      if (message.type === 'updateGlobalVariable') {
-        window.globalVariable = message.value;
-        console.log('Global variable updated:', window.globalVariable);
-      }
-    });
-    true; // 注意：这行很重要
-  `;
-
   return (
     <>
       <WebView
