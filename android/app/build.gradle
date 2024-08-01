@@ -124,6 +124,10 @@ dependencies {
 
     implementation project(':react-native-splash-screen')
 
+    // umeng
+    implementation  'com.umeng.umsdk:common:9.4.7'// required
+    implementation  'com.umeng.umsdk:asms:1.4.0'// required
+
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
