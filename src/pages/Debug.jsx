@@ -8,7 +8,7 @@ import {
   NativeEventEmitter,
 } from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
-import {Portal, Modal, List, Text} from 'react-native-paper';
+import {Portal, Dialog, Switch} from 'react-native-paper';
 import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 
@@ -16,11 +16,15 @@ const {GamepadManager, UsbRumbleManager} = NativeModules;
 
 function DebugScreen({navigation, route}) {
   let authentication = useSelector(state => state.authentication);
+  const [showDebug, setShowDebug] = React.useState(false);
+  const [debug, setDebug] = React.useState(false);
   const [settings, setSettings] = React.useState({});
 
   React.useEffect(() => {
     const _settings = getSettings();
     setSettings(_settings);
+
+    setDebug(_settings.debug);
 
     const eventEmitter = new NativeEventEmitter();
 
@@ -34,41 +38,32 @@ function DebugScreen({navigation, route}) {
     });
   }, [navigation]);
 
+  const handleToggleDebug = value => {
+    setDebug(value);
+    setShowDebug(false);
+    settings.debug = value;
+    setSettings(settings);
+    saveSettings(settings);
+  };
+
   return (
     <ScrollView>
       <Portal>
-        <Modal
-          visible={false}
-          contentContainerStyle={{
-            backgroundColor: 'white',
-            padding: 20,
-            marginLeft: '10%',
-            marginRight: '10%',
-          }}>
-          <List.Section>
-            <List.Item
-              background={{
-                borderless: false,
-                color: 'red',
-                foreground: true,
-              }}
-              title={'Disconnect'}
-              onPress={() => {}}
-            />
-            <List.Item
-              title={'Cancel'}
-              // style={{width: '100%'}}
-              background={{
-                borderless: false,
-                color: 'red',
-                foreground: true,
-              }}
-              onPress={() => {}}
-            />
-          </List.Section>
-        </Modal>
+        <Dialog visible={showDebug} onDismiss={() => setShowDebug(false)}>
+          <Dialog.Title>Open debug</Dialog.Title>
+          <Dialog.Content>
+            <Switch value={debug} onValueChange={handleToggleDebug} />
+          </Dialog.Content>
+        </Dialog>
       </Portal>
 
+      <SettingItem
+        title={'Webview debug'}
+        description={'Open webview debug'}
+        onPress={() => {
+          setShowDebug(true);
+        }}
+      />
       <SettingItem
         title={'Show tokens'}
         description={'Show auth token'}

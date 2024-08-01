@@ -23,6 +23,7 @@ export type Settings = {
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
   ipv6: boolean;
+  theme: string;
   debug: boolean;
 };
 
@@ -45,6 +46,7 @@ const defaultSettings: Settings = {
   gamepad_maping: null,
   native_gamepad_maping: null,
   ipv6: false,
+  theme: 'dark',
   debug: false,
 };
 

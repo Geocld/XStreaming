@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Linking} from 'react-native';
+import {Alert, Linking, useColorScheme} from 'react-native';
 import {
   PaperProvider,
   MD3DarkTheme,
@@ -19,6 +19,10 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import merge from 'deepmerge';
 import {Provider} from 'react-redux';
 import store from './store';
+import {getSettings} from './store/settingStore';
+
+import customLightTheme from './theme/index';
+import customDarkTheme from './theme/index.dark';
 
 import HomeScreen from './pages/Home';
 import CloudScreen from './pages/Cloud';
@@ -49,8 +53,20 @@ const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationDark: NavigationDarkTheme,
 });
 
-const CombinedDefaultTheme = merge(MD3LightTheme, LightTheme);
-const CombinedDarkTheme = merge(MD3DarkTheme, DarkTheme);
+const paperLightTheme = {
+  ...MD3LightTheme,
+  colors: customLightTheme.colors,
+};
+
+console.log('customDarkTheme.colors:', customDarkTheme)
+
+const paperDarkTheme = {
+  ...MD3DarkTheme,
+  colors: customDarkTheme.colors,
+};
+
+const CombinedDefaultTheme = merge(paperLightTheme, LightTheme);
+const CombinedDarkTheme = merge(paperDarkTheme, DarkTheme);
 
 const TabIcon = (route: any, params: any) => {
   const {focused, color, size} = params;
@@ -121,6 +137,9 @@ function HomeTabs() {
 
 function App() {
   const {t} = useTranslation();
+  const colorScheme = useColorScheme();
+  const settings = getSettings();
+
   updater().then((infos: any) => {
     if (infos) {
       const {latestVer, version, url} = infos;
@@ -144,11 +163,24 @@ function App() {
       );
     }
   });
+
+  let paperTheme = paperDarkTheme;
+  let navigationTheme = CombinedDarkTheme;
+
+  if (settings.theme === 'auto') {
+    paperTheme = colorScheme === 'dark' ? paperDarkTheme : paperLightTheme;
+    navigationTheme =
+      colorScheme === 'dark' ? CombinedDarkTheme : CombinedDefaultTheme;
+  } else if (settings.theme === 'light') {
+    paperTheme = paperLightTheme;
+    navigationTheme = CombinedDefaultTheme;
+  }
+
   return (
     <>
       <Provider store={store}>
-        <PaperProvider theme={CombinedDarkTheme}>
-          <NavigationContainer theme={CombinedDarkTheme}>
+        <PaperProvider theme={paperTheme}>
+          <NavigationContainer theme={navigationTheme}>
             <RootStack.Navigator>
               <RootStack.Group>
                 <RootStack.Screen
@@ -156,15 +188,27 @@ function App() {
                   component={HomeTabs}
                   options={{headerShown: false}}
                 />
-                <RootStack.Screen name="Login" component={LoginScreen} />
+                <RootStack.Screen
+                  name="Login"
+                  component={LoginScreen}
+                  options={{title: t('Login')}}
+                />
                 <RootStack.Screen
                   name="Stream"
                   component={StreamScreen}
                   options={{headerShown: false}}
                 />
                 <RootStack.Screen name="Debug" component={DebugScreen} />
-                <RootStack.Screen name="About" component={AboutScreen} />
-                <RootStack.Screen name="GameMap" component={GameMapScreen} />
+                <RootStack.Screen
+                  name="About"
+                  component={AboutScreen}
+                  options={{title: t('About')}}
+                />
+                <RootStack.Screen
+                  name="GameMap"
+                  component={GameMapScreen}
+                  options={{title: t('GameMap')}}
+                />
                 <RootStack.Screen
                   name="SettingDetail"
                   component={SettingDetailScreen}
@@ -172,6 +216,7 @@ function App() {
                 <RootStack.Screen
                   name="NativeGameMap"
                   component={NativeGameMapScreen}
+                  options={{title: t('GameMap')}}
                 />
               </RootStack.Group>
 
@@ -187,6 +232,7 @@ function App() {
                 <RootStack.Screen
                   name="GameMapDetail"
                   component={GameMapDetailScreen}
+                  options={{title: t('GameMap')}}
                 />
               </RootStack.Group>
             </RootStack.Navigator>

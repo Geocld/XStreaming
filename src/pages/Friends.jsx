@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView, RefreshControl} from 'react-native';
-import {Text, Avatar} from 'react-native-paper';
+import {Card, Text, Avatar} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Empty from '../components/Empty';
 import {debugFactory} from '../utils/debug';
@@ -23,10 +23,15 @@ function FriendsScreen({navigation}) {
   React.useEffect(() => {
     setLoading(true);
     const webApi = new WebApi(webToken);
-    webApi.getFriends().then(data => {
-      setFriends(data);
-      setLoading(false);
-    });
+    webApi
+      .getFriends()
+      .then(data => {
+        setFriends(data);
+        setLoading(false);
+      })
+      .catch(e => {
+        log('GetFriends error:', e);
+      });
 
     timer.current = setInterval(() => {
       webApi.getFriends().then(data => {
@@ -65,55 +70,61 @@ function FriendsScreen({navigation}) {
         textStyle={styles.spinnerTextStyle}
       />
 
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        {friends.map((userinfo, idx) => {
-          return (
-            <View style={styles.listItem} key={userinfo.xuid || idx}>
-              <Avatar.Image
-                style={styles.avatar}
-                size={46}
-                source={{
-                  uri: userinfo.displayPicRaw || '',
-                }}
-              />
-              <View>
-                <View style={styles.title}>
-                  <Text style={styles.text} variant="titleMedium">
-                    {userinfo.modernGamertag}
-                  </Text>
-                  {userinfo.modernGamertagSuffix && (
-                    <Text
-                      style={[styles.text, styles.suffix]}
-                      variant="titleSmall">
-                      #{userinfo.modernGamertagSuffix}
-                    </Text>
-                  )}
-                </View>
-                <View style={styles.title}>
-                  <Text style={styles.text} variant="labelSmall">
-                    {userinfo.displayName}
-                  </Text>
-                  {userinfo.realName && (
-                    <Text
-                      style={[styles.text, styles.realName]}
-                      variant="labelSmall">
-                      ({userinfo.realName})
-                    </Text>
-                  )}
-                </View>
-                <View>
-                  <Text style={styles.text} variant="labelSmall">
-                    {drawPresence(userinfo)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          );
-        })}
-      </ScrollView>
+      {!loading && !friends.length && <Empty />}
+
+      {friends.length > 0 && (
+        <ScrollView
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
+          {friends.map((userinfo, idx) => {
+            return (
+              <Card key={userinfo.xuid || idx} style={styles.card}>
+                <Card.Content style={styles.listItem}>
+                  <Avatar.Image
+                    style={styles.avatar}
+                    size={64}
+                    source={{
+                      uri: userinfo.displayPicRaw || '',
+                    }}
+                  />
+                  <View>
+                    <View style={styles.title}>
+                      <Text style={styles.text} variant="titleMedium">
+                        {userinfo.modernGamertag}
+                      </Text>
+                      {userinfo.modernGamertagSuffix && (
+                        <Text
+                          style={[styles.text, styles.suffix]}
+                          variant="titleSmall">
+                          #{userinfo.modernGamertagSuffix}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.title}>
+                      <Text style={styles.text} variant="labelSmall">
+                        {userinfo.displayName}
+                      </Text>
+                      {userinfo.realName && (
+                        <Text
+                          style={[styles.text, styles.realName]}
+                          variant="labelSmall">
+                          ({userinfo.realName})
+                        </Text>
+                      )}
+                    </View>
+                    <View>
+                      <Text style={styles.text} variant="labelSmall">
+                        {drawPresence(userinfo)}
+                      </Text>
+                    </View>
+                  </View>
+                </Card.Content>
+              </Card>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -121,12 +132,18 @@ function FriendsScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
+    flex: 1,
+  },
+  card: {
+    marginBottom: 10,
+  },
+  spinnerTextStyle: {
+    color: '#107C10',
   },
   listItem: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(143, 155, 179, 0.30)',
     padding: 15,
     marginBottom: 10,
     borderRadius: 5,
@@ -138,7 +155,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   text: {
-    color: '#ffffff',
     fontWeight: 'bold',
     marginBottom: 2,
   },

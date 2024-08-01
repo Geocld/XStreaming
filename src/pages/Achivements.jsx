@@ -1,9 +1,8 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, Pressable} from 'react-native';
-import {Text, ProgressBar} from 'react-native-paper';
+import {StyleSheet, View, ScrollView} from 'react-native';
+import {Card, Text, ProgressBar} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Empty from '../components/Empty';
-// import mockData from '../mock/data';
 import {debugFactory} from '../utils/debug';
 import {useTranslation} from 'react-i18next';
 import moment from 'moment';
@@ -22,10 +21,15 @@ function AchivementScreen({navigation}) {
   React.useEffect(() => {
     setLoading(true);
     const webApi = new WebApi(webToken);
-    webApi.getHistoryAchivements().then(data => {
-      setArchivements(data);
-      setLoading(false);
-    });
+    webApi
+      .getHistoryAchivements()
+      .then(data => {
+        setArchivements(data);
+        setLoading(false);
+      })
+      .catch(e => {
+        log('GetHistoryAchivements error:', e);
+      });
   }, [webToken]);
 
   const formatTime = isoString => {
@@ -42,52 +46,58 @@ function AchivementScreen({navigation}) {
         textStyle={styles.spinnerTextStyle}
       />
 
-      <ScrollView>
-        {archivements.map((infos, idx) => {
-          return (
-            <Pressable
-              style={styles.listItem}
-              key={infos.titleId || idx}
-              onPress={() => {
-                navigation.navigate('AchivementDetail', {
-                  name: infos.name,
-                  titleId: infos.titleId,
-                });
-              }}>
-              <View style={styles.title}>
-                <Text style={styles.text} variant="titleMedium">
-                  {infos.name}
-                </Text>
-              </View>
-              <View style={styles.time}>
-                <Text style={styles.text} variant="titleSmall">
-                  {formatTime(infos.lastUnlock)}
-                </Text>
-              </View>
-              <View style={styles.progressBar}>
-                <ProgressBar
-                  progress={infos.currentGamerscore / infos.maxGamerscore}
-                />
-              </View>
-              <View style={styles.footer}>
-                <View style={styles.score}>
-                  <Text style={styles.text} variant="titleSmall">
-                    {t('score')}: {infos.currentGamerscore}/
-                    {infos.maxGamerscore}
-                  </Text>
-                </View>
-                <View style={styles.percent}>
-                  <Text style={styles.text} variant="titleSmall">
-                    {Math.floor(
-                      (infos.currentGamerscore / infos.maxGamerscore) * 100,
-                    ) + '%'}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      {!loading && !archivements.length && <Empty />}
+
+      {archivements.length > 0 && (
+        <ScrollView>
+          {archivements.map((infos, idx) => {
+            return (
+              <Card
+                style={styles.card}
+                key={infos.titleId || idx}
+                onPress={() => {
+                  navigation.navigate('AchivementDetail', {
+                    name: infos.name,
+                    titleId: infos.titleId,
+                  });
+                }}>
+                <Card.Content style={styles.listItem}>
+                  <View style={styles.title}>
+                    <Text style={styles.text} variant="titleMedium">
+                      {infos.name}
+                    </Text>
+                  </View>
+                  <View style={styles.time}>
+                    <Text style={styles.text} variant="titleSmall">
+                      {formatTime(infos.lastUnlock)}
+                    </Text>
+                  </View>
+                  <View style={styles.progressBar}>
+                    <ProgressBar
+                      progress={infos.currentGamerscore / infos.maxGamerscore}
+                    />
+                  </View>
+                  <View style={styles.footer}>
+                    <View style={styles.score}>
+                      <Text style={styles.text} variant="titleSmall">
+                        {t('score')}: {infos.currentGamerscore}/
+                        {infos.maxGamerscore}
+                      </Text>
+                    </View>
+                    <View style={styles.percent}>
+                      <Text style={styles.text} variant="titleSmall">
+                        {Math.floor(
+                          (infos.currentGamerscore / infos.maxGamerscore) * 100,
+                        ) + '%'}
+                      </Text>
+                    </View>
+                  </View>
+                </Card.Content>
+              </Card>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -95,16 +105,19 @@ function AchivementScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
+    flex: 1,
+  },
+  card: {
+    marginBottom: 10,
+  },
+  spinnerTextStyle: {
+    color: '#107C10',
   },
   listItem: {
     flex: 1,
-    backgroundColor: 'rgba(143, 155, 179, 0.30)',
-    padding: 15,
-    marginBottom: 10,
     borderRadius: 5,
   },
   text: {
-    color: '#ffffff',
     fontWeight: 'bold',
     marginBottom: 2,
   },

@@ -148,7 +148,8 @@ function CloudScreen({navigation}) {
     }
   };
 
-  const handleSelectCategories = indexPath => {
+  const handleSelectCategories = val => {
+    setCurrent(val);
     setLoading(true);
     setCurrentPage(1);
     scrollToTop();
@@ -214,17 +215,17 @@ function CloudScreen({navigation}) {
                 title={
                   <SegmentedButtons
                     value={current}
-                    onValueChange={setCurrent}
+                    onValueChange={handleSelectCategories}
                     buttons={[
                       {
                         value: 0,
-                        label: 'Recently',
+                        label: t('Recently'),
                       },
                       {
                         value: 1,
-                        label: 'Newest',
+                        label: t('Newest'),
                       },
-                      {value: 2, label: 'All'},
+                      {value: 2, label: t('All')},
                     ]}
                   />
                 }
@@ -233,7 +234,7 @@ function CloudScreen({navigation}) {
 
             <View style={styles.search}>
               <Searchbar
-                placeholder="Search"
+                placeholder={t('Search')}
                 style={{
                   height: 40,
                 }}

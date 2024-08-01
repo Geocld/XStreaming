@@ -87,8 +87,8 @@ function SettingsScreen({navigation}) {
           </Text>
         </View>
         <SettingItem
-          title={'About'}
-          description={'About XStreaming.'}
+          title={t('About')}
+          description={t('About XStreaming')}
           onPress={() => navigation.navigate('About')}
         />
         <SettingItem
@@ -123,9 +123,6 @@ const styles = StyleSheet.create({
   contentTitle: {
     padding: 15,
     paddingBottom: 0,
-  },
-  titleText: {
-    color: 'rgba(255, 255, 255, 0.8)',
   },
 });
 

@@ -98,15 +98,19 @@ function HomeScreen({navigation, route}) {
         const webApi = new WebApi(_webToken);
 
         setLoadingText(t('Fetching user info...'));
-        const _profile = await webApi.getUserProfile();
-        setProfile(_profile);
-        dispatch({
-          type: 'SET_PROFILE',
-          payload: _profile,
-        });
-        setLoadingText(t('Fetching consoles...'));
-        const _consoles = await webApi.getConsoles();
-        setConsoles(_consoles);
+        try {
+          const _profile = await webApi.getUserProfile();
+          setProfile(_profile);
+          dispatch({
+            type: 'SET_PROFILE',
+            payload: _profile,
+          });
+          setLoadingText(t('Fetching consoles...'));
+          const _consoles = await webApi.getConsoles();
+          setConsoles(_consoles);
+        } catch (e) {
+          Alert.alert(t('Error'), e);
+        }
         setLoading(false);
       };
 
@@ -137,38 +141,47 @@ function HomeScreen({navigation, route}) {
       } else {
         setLoading(true);
         setLoadingText(t('Checking login status...'));
-        _authentication.current.checkAuthentication().then(isAuth => {
-          dispatch({
-            type: 'SET_AUTHENTICATION',
-            payload: _authentication.current,
-          });
-          if (!isAuth) {
-            _authentication.current._xal.getRedirectUri().then(redirectObj => {
-              setLoading(false);
-              log.info('Redirect:', redirectObj);
-              _redirect.current = redirectObj;
-              dispatch({
-                type: 'SET_REDIRECT',
-                payload: redirectObj,
-              });
-              Alert.alert(
-                t('Warning'),
-                t('Login has expired or not logged in, please log in again'),
-                [
-                  {
-                    text: t('Confirm'),
-                    style: 'default',
-                    onPress: () => {
-                      navigation.navigate('Login', {
-                        authUrl: redirectObj.sisuAuth.MsaOauthRedirect,
-                      });
-                    },
-                  },
-                ],
-              );
+        _authentication.current
+          .checkAuthentication()
+          .then(isAuth => {
+            dispatch({
+              type: 'SET_AUTHENTICATION',
+              payload: _authentication.current,
             });
-          }
-        });
+            if (!isAuth) {
+              _authentication.current._xal
+                .getRedirectUri()
+                .then(redirectObj => {
+                  setLoading(false);
+                  log.info('Redirect:', redirectObj);
+                  _redirect.current = redirectObj;
+                  dispatch({
+                    type: 'SET_REDIRECT',
+                    payload: redirectObj,
+                  });
+                  Alert.alert(
+                    t('Warning'),
+                    t(
+                      'Login has expired or not logged in, please log in again',
+                    ),
+                    [
+                      {
+                        text: t('Confirm'),
+                        style: 'default',
+                        onPress: () => {
+                          navigation.navigate('Login', {
+                            authUrl: redirectObj.sisuAuth.MsaOauthRedirect,
+                          });
+                        },
+                      },
+                    ],
+                  );
+                });
+            }
+          })
+          .catch(e => {
+            Alert.alert(t('Error'), e);
+          });
       }
 
       return () => {

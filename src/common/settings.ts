@@ -14,6 +14,17 @@ const settings = [
     ],
   },
   {
+    name: 'theme',
+    type: 'radio',
+    title: t('Theme'),
+    description: t('Set the app theme to take effect on the next launch'),
+    data: [
+      {value: 'auto', text: t('Auto')},
+      {value: 'light', text: t('Light')},
+      {value: 'dark', text: t('Dark')},
+    ],
+  },
+  {
     name: 'preferred_game_language',
     type: 'radio',
     title: t('Preferred language of game'),
@@ -144,8 +155,8 @@ const settings = [
     type: 'radio',
     title: t('Vibration mode'),
     description: `${t('Native: Use native gamepad kernal to vibrate')}
-    ${t("Device: Use Phone/Pad's vibrate")}
-    ${t('Webview: Use Chromium kernal to vibrate')}`,
+${t("Device: Use Phone/Pad's vibrate")}
+${t('Webview: Use Chromium kernal to vibrate')}`,
     data: [
       {value: 'Native', text: t('Native')},
       {value: 'Device', text: t('Device')},
@@ -202,7 +213,7 @@ const settings = [
   {
     name: 'signaling_home',
     type: 'radio',
-    title: t('Signal server(xHome)'),
+    title: t('Signal server') + '(xHome)',
     description: t(
       'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option',
     ),
@@ -211,7 +222,7 @@ const settings = [
   {
     name: 'signaling_cloud',
     type: 'radio',
-    title: t('Signal server(xCloud)'),
+    title: t('Signal server') + '(xCloud)',
     description: t(
       'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option',
     ),

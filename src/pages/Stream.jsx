@@ -7,7 +7,7 @@ import {
   NativeEventEmitter,
   StyleSheet,
 } from 'react-native';
-import {Portal, Modal, List, Button} from 'react-native-paper';
+import {Portal, Modal, Card, List, Button} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
@@ -453,9 +453,11 @@ function StreamScreen({navigation, route}) {
 
   // Virtual gamepad press
   const handleButtonPressIn = name => {
-    // console.log('handleButtonPressIn:', name);
+    console.log('handleButtonPressIn:', name);
     gpState[name] = 1;
-    Vibration.vibrate(30);
+    if (settings.vibration) {
+      Vibration.vibrate(30);
+    }
   };
 
   const handleButtonPressOut = name => {
@@ -541,69 +543,71 @@ function StreamScreen({navigation, route}) {
           visible={showModal}
           onDismiss={() => handleCloseModal()}
           contentContainerStyle={styles.modal}>
-          <View style={styles.card}>
-            <List.Section>
-              {connectState === CONNECTED && (
-                <List.Item
-                  title={t('Toggle Performance')}
-                  background={background}
-                  onPress={() => {
-                    setShowPerformance(!showPerformance);
-                    handleCloseModal();
-                  }}
-                />
-              )}
+          <Card>
+            <Card.Content>
+              <List.Section>
+                {connectState === CONNECTED && (
+                  <List.Item
+                    title={t('Toggle Performance')}
+                    background={background}
+                    onPress={() => {
+                      setShowPerformance(!showPerformance);
+                      handleCloseModal();
+                    }}
+                  />
+                )}
 
-              {connectState === CONNECTED && (
-                <List.Item
-                  title={t('Toggle Virtual Gamepad')}
-                  background={background}
-                  onPress={() => {
-                    requestVirtualGamepad();
-                    handleCloseModal();
-                  }}
-                />
-              )}
+                {connectState === CONNECTED && (
+                  <List.Item
+                    title={t('Toggle Virtual Gamepad')}
+                    background={background}
+                    onPress={() => {
+                      requestVirtualGamepad();
+                      handleCloseModal();
+                    }}
+                  />
+                )}
 
-              {connectState === CONNECTED && (
-                <List.Item
-                  title={t('Press Nexus')}
-                  background={background}
-                  onPress={() => {
-                    gpState.Nexus = 1;
-                    setTimeout(() => {
-                      gpState.Nexus = 0;
-                    }, 120);
-                    handleCloseModal();
-                  }}
-                />
-              )}
+                {connectState === CONNECTED && (
+                  <List.Item
+                    title={t('Press Nexus')}
+                    background={background}
+                    onPress={() => {
+                      gpState.Nexus = 1;
+                      setTimeout(() => {
+                        gpState.Nexus = 0;
+                      }, 120);
+                      handleCloseModal();
+                    }}
+                  />
+                )}
 
-              {connectState === CONNECTED && (
+                {connectState === CONNECTED && (
+                  <List.Item
+                    title={t('Long press Nexus')}
+                    background={background}
+                    onPress={() => {
+                      gpState.Nexus = 1;
+                      setTimeout(() => {
+                        gpState.Nexus = 0;
+                      }, 1000);
+                      handleCloseModal();
+                    }}
+                  />
+                )}
                 <List.Item
-                  title={t('Long press Nexus')}
+                  title={t('Disconnect')}
                   background={background}
-                  onPress={() => {
-                    gpState.Nexus = 1;
-                    setTimeout(() => {
-                      gpState.Nexus = 0;
-                    }, 1000);
-                    handleCloseModal();
-                  }}
+                  onPress={requestExit}
                 />
-              )}
-              <List.Item
-                title={t('Disconnect')}
-                background={background}
-                onPress={requestExit}
-              />
-              <List.Item
-                title={t('Cancel')}
-                background={background}
-                onPress={() => handleCloseModal()}
-              />
-            </List.Section>
-          </View>
+                <List.Item
+                  title={t('Cancel')}
+                  background={background}
+                  onPress={() => handleCloseModal()}
+                />
+              </List.Section>
+            </Card.Content>
+          </Card>
         </Modal>
       </Portal>
 
@@ -637,9 +641,9 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   modal: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginLeft: '20%',
-    marginRight: '20%',
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    marginLeft: '25%',
+    marginRight: '25%',
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

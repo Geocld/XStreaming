@@ -4,6 +4,9 @@ export default {
     Xcloud: '云游戏',
     Host: '主机',
     Settings: '设置',
+    Login: '登录',
+    About: '关于',
+    GameMap: '手柄映射',
     'Fetching user info...': '正在获取用户信息...',
     'Fetching consoles...': '正在获取终端信息...',
     'Login successful, refreshing login credentials...':
@@ -27,14 +30,14 @@ export default {
     Disconnect: '断开连接',
     NoXGP:
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
-    'Recent Games': '最近游玩',
-    'Recently added': '新入库',
-    'All Games': '全部游戏',
+    Recently: '最近游玩',
+    Newest: '新入库',
+    All: '全部',
+    Search: '搜索',
     'App language': '应用语言',
     'Set language of XStreaming': '设置XSreaming应用语言',
     Resolution: '分辨率',
-    'Set resolution, support 720P/1080P.':
-      '设置串流分辨率，支持720P/1080P切换。',
+    'Set resolution, support 720P/1080P': '设置串流分辨率，支持720P/1080P切换',
     'Host stream bitrate': '主机串流码率',
     'Cloud stream bitrate': '云游戏码率',
     'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
@@ -42,17 +45,23 @@ export default {
     'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
       '设置主机串流码率(注意：并不是码率越高越好，最终码率以串流协商为准)',
     Codec: '编码器',
-    'If your device supports newer codecs, it can reduce the video bandwidth requirements.':
+    'If your device supports newer codecs, it can reduce the video bandwidth requirements':
       '如果您的设备支持较新的编解码器，则可以降低视频带宽要求。',
     Vibration: '振动',
     'Video stream format': '视频流格式',
     'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
       '选择视频流格式，如果你需要画面全屏,请选择拉伸或缩放，如果你的物理显示器不是16:9，会导致画面不协调或展示不全',
     'Aspect ratio': '保持长宽比(16:9)',
+    'Native: Use native gamepad kernal to vibrate':
+      'Native: 使用安卓原生手柄内核振动',
+    "Device: Use Phone/Pad's vibrate":
+      'Device: 使用手机或平板机身振动，如需手柄振动，请配合振动重定向使用',
+    'Webview: Use Chromium kernal to vibrate':
+      'Webview: 使用内置Chromium内核振动',
     Stretch: '拉伸',
     Zoom: '缩放',
     'Gamepad kernal': '手柄内核',
-    'If your controller supports vibration, you can set whether it vibrates during the game.':
+    'If your controller supports vibration, you can set whether it vibrates during the game':
       '如果手柄支持振动，可以设置游戏中是否振动。',
     'Vibration mode': '振动模式',
     'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode':
@@ -75,6 +84,17 @@ export default {
     Logout: '退出登录',
     'Do you want to logout?': '要退出登录吗?',
     'Current user': '当前用户',
+    'Powered on': '开机',
+    Theme: '主题',
+    'Set the app theme to take effect on the next launch':
+      '设置APP主题，下次启动生效',
+    'Signal server': '信令服务器',
+    'Select gamepad kernal': '选择手柄驱动内核',
+    'Config opacity of virtual gamepad': '设置虚拟按键透明度',
+    'About XStreaming': '关于SXtreaming',
+    Light: '明亮',
+    Dark: '暗黑',
+    Standby: '待机',
     Friends: '好友',
     Achivements: '成就',
     Auto: '自动',

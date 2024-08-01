@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   spinnerTextStyle: {
-    color: '#FFF',
+    color: '#107C10',
   },
   listContainer: {},
   listItemH: {
