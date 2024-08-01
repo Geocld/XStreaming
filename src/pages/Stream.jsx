@@ -94,6 +94,20 @@ function StreamScreen({navigation, route}) {
       gpMaping = sweap(_settings.native_gamepad_maping);
     }
 
+    const normaliseAxis = value => {
+      if (_settings.dead_zone) {
+        if (Math.abs(value) < _settings.dead_zone) {
+          return 0;
+        }
+
+        value = value - Math.sign(value) * _settings.dead_zone;
+        value /= 1.0 - _settings.dead_zone;
+        return value;
+      } else {
+        return value;
+      }
+    };
+
     FullScreenManager.immersiveModeOn();
 
     if (_settings.gamepad_kernal === 'Native') {
@@ -102,7 +116,7 @@ function StreamScreen({navigation, route}) {
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
-          console.log('onGamepadKeyDown:', event);
+          // console.log('onGamepadKeyDown:', event);
           const keyCode = event.keyCode;
           gpState[gpMaping[keyCode]] = 1;
         },
@@ -141,16 +155,16 @@ function StreamScreen({navigation, route}) {
         'onLeftStickMove',
         event => {
           // console.log('onLeftStickMove:', event);
-          gpState.LeftThumbXAxis = event.axisX;
-          gpState.LeftThumbYAxis = event.axisY;
+          gpState.LeftThumbXAxis = normaliseAxis(event.axisX);
+          gpState.LeftThumbYAxis = normaliseAxis(event.axisY);
         },
       );
 
       rightStickEventListener.current = eventEmitter.addListener(
         'onRightStickMove',
         event => {
-          gpState.RightThumbXAxis = event.axisX;
-          gpState.RightThumbYAxis = event.axisY;
+          gpState.RightThumbXAxis = normaliseAxis(event.axisX);
+          gpState.RightThumbYAxis = normaliseAxis(event.axisY);
         },
       );
 
@@ -559,7 +573,7 @@ function StreamScreen({navigation, route}) {
                     gpState.Nexus = 1;
                     setTimeout(() => {
                       gpState.Nexus = 0;
-                    }, 100);
+                    }, 120);
                     handleCloseModal();
                   }}
                 />
