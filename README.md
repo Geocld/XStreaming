@@ -12,7 +12,7 @@
 
 ## Intro
 
-XStreaming is an open-source mobile client for xCloud and Xbox home streaming, great inspired by [Greenlight](https://github.com/unknownskl/greenlight).The application runs on Android 10+.
+XStreaming is an open-source mobile client for xCloud and Xbox home streaming, great inspired by [Greenlight](https://github.com/unknownskl/greenlight).
 
 > DISCLAIMER: XStreaming is not affiliated with Microsoft, Xbox. All rights and trademarks are property of their respective owners.
 
@@ -23,6 +23,9 @@ XStreaming is an open-source mobile client for xCloud and Xbox home streaming, g
 - Support for virtual\OTG\bluetooth gamepad controls
 - Support gamepad vibration
 - Supports rumble on xCloud without any proxy in some regions.
+- Friends system
+- Archivements system
+- IPv6
 
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.jpg" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.jpg" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.jpg" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings.jpg" width="400" />

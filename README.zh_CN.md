@@ -12,7 +12,7 @@
 
 ## Intro
 
-XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[Greenlight](https://github.com/unknownskl/greenlight)提供的API接口和相关实现，推荐在Android10+版本上运行。
+XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[Greenlight](https://github.com/unknownskl/greenlight)提供的API接口和相关实现。
 
 > 声明: XStreaming与Microsoft、Xbox没有关联。所有权和商标属于其各自所有者。
 
@@ -23,10 +23,15 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 - 支持外接、蓝牙、虚拟手柄，支持手柄振动
 - 支持手柄按键映射
 - 免代理云游戏
+- 好友列表
+- 成就系统
 - IPv6优先连接支持
 
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.jpg" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.jpg" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.jpg" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings.jpg" width="400" />
+
+## 兼容性
+理论上XStreaming兼容Android 8+甚至更低版本，但要保证设备的Webview版本不低于91,具体可以查看[低版本安卓无法运行方法](https://github.com/Geocld/XStreaming/blob/main/tools/readme.md)
 
 ## 本地开发
 
