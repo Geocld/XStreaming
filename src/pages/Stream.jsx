@@ -76,6 +76,8 @@ function StreamScreen({navigation, route}) {
   const rightStickEventListener = React.useRef(undefined);
   const triggerEventListener = React.useRef(undefined);
   const timer = React.useRef(undefined);
+  const isLeftTriggerCanClick = React.useRef(false);
+  const isRightTriggerCanClick = React.useRef(false);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
@@ -118,7 +120,16 @@ function StreamScreen({navigation, route}) {
         event => {
           // console.log('onGamepadKeyDown:', event);
           const keyCode = event.keyCode;
-          gpState[gpMaping[keyCode]] = 1;
+          const keyName = gpMaping[keyCode];
+          gpState[keyName] = 1;
+
+          // If LeftTrigger or RightTrigger is a button, onTrigger event should not be processed.
+          if (keyName === 'LeftTrigger') {
+            isLeftTriggerCanClick.current = true;
+          }
+          if (keyName === 'RightTrigger') {
+            isRightTriggerCanClick.current = true;
+          }
         },
       );
 
@@ -126,8 +137,16 @@ function StreamScreen({navigation, route}) {
         'onGamepadKeyUp',
         event => {
           const keyCode = event.keyCode;
+          const keyName = gpMaping[keyCode];
+          if (keyName === 'LeftTrigger') {
+            isLeftTriggerCanClick.current = true;
+          }
+          if (keyName === 'RightTrigger') {
+            isRightTriggerCanClick.current = true;
+          }
+
           setTimeout(() => {
-            gpState[gpMaping[keyCode]] = 0;
+            gpState[keyName] = 0;
           }, 16);
         },
       );
@@ -171,20 +190,24 @@ function StreamScreen({navigation, route}) {
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
-          if (event.leftTrigger >= 0.5) {
-            gpState.LeftTrigger = 1;
-          } else {
-            setTimeout(() => {
-              gpState.LeftTrigger = 0;
-            }, 16);
+          if (!isLeftTriggerCanClick.current) {
+            if (event.leftTrigger >= 0.5) {
+              gpState.LeftTrigger = 1;
+            } else {
+              setTimeout(() => {
+                gpState.LeftTrigger = 0;
+              }, 16);
+            }
           }
 
-          if (event.rightTrigger >= 0.5) {
-            gpState.RightTrigger = 1;
-          } else {
-            setTimeout(() => {
-              gpState.RightTrigger = 0;
-            }, 16);
+          if (!isRightTriggerCanClick.current) {
+            if (event.rightTrigger >= 0.5) {
+              gpState.RightTrigger = 1;
+            } else {
+              setTimeout(() => {
+                gpState.RightTrigger = 0;
+              }, 16);
+            }
           }
         },
       );
@@ -426,12 +449,15 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
+      const intensity = settings.vibration_intensity || 1;
+
       GamepadManager.vibrate(
         rumbleData.duration / 10,
-        rumbleData.weakMagnitude * 100,
-        rumbleData.strongMagnitude * 100,
-        rumbleData.leftTrigger * 100,
-        rumbleData.rightTrigger * 100,
+        rumbleData.weakMagnitude * 100 * intensity,
+        rumbleData.strongMagnitude * 100 * intensity,
+        rumbleData.leftTrigger * 100 * intensity,
+        rumbleData.rightTrigger * 100 * intensity,
+        intensity,
       );
     }
     if (type === 'performance') {

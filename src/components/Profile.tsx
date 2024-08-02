@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Avatar, Text} from 'react-native-paper';
+import {Avatar, Text, Icon} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 
 type Props = {
@@ -22,10 +22,9 @@ const Profile: React.FC<Props> = ({profile}) => {
             {profile.GameDisplayName}
           </Text>
         </View>
-        <View>
-          <Text style={styles.text}>
-            {t('Gamerscore')}: {profile.Gamerscore}
-          </Text>
+        <View style={styles.sorce}>
+          <Icon source="alpha-g-circle-outline" color={'#fff'} size={20} />
+          <Text style={styles.gamerscore}>{profile.Gamerscore}</Text>
         </View>
       </View>
     </View>
@@ -49,6 +48,14 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     marginBottom: 5,
+  },
+  gamerscore: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  sorce: {
+    flexDirection: 'row',
   },
 });
 

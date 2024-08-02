@@ -1,5 +1,12 @@
 import React from 'react';
-import {StyleSheet, View, FlatList, Dimensions} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  FlatList,
+  Dimensions,
+  RefreshControl,
+} from 'react-native';
+import {SegmentedButtons} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
@@ -14,6 +21,8 @@ const log = debugFactory('ArchivementDetail');
 function ArchivementDetail({navigation, route}) {
   const {t} = useTranslation();
   const [loading, setLoading] = React.useState(false);
+  const [current, setCurrent] = React.useState('all');
+  const [refreshing, setRefreshing] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
   const [archivements, setArchivements] = React.useState([]);
 
@@ -45,6 +54,31 @@ function ArchivementDetail({navigation, route}) {
     };
   }, [route.params?.titleId, route.params?.name, navigation, webToken]);
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    const webApi = new WebApi(webToken);
+    if (route.params?.titleId) {
+      const resultes = await webApi.getAchivementDetail(route.params.titleId);
+      setArchivements(resultes);
+      setRefreshing(false);
+    } else {
+      setRefreshing(false);
+    }
+  }, [webToken, route.params?.titleId]);
+
+  let showArchivements = [];
+  if (current === 'unlocked') {
+    showArchivements = archivements.filter(item => {
+      return item.progressState === 'Achieved';
+    });
+  } else if (current === 'lock') {
+    showArchivements = archivements.filter(item => {
+      return item.progressState !== 'Achieved';
+    });
+  } else {
+    showArchivements = archivements;
+  }
+
   return (
     <View style={styles.container}>
       <Spinner
@@ -52,13 +86,34 @@ function ArchivementDetail({navigation, route}) {
         textContent={t('Loading...')}
         textStyle={styles.spinnerTextStyle}
       />
+      <SegmentedButtons
+        value={current}
+        onValueChange={setCurrent}
+        buttons={[
+          {
+            value: 'all',
+            label: t('All'),
+          },
+          {
+            value: 'unlocked',
+            label: t('Unlocked'),
+          },
+          {
+            value: 'lock',
+            label: t('Lock'),
+          },
+        ]}
+      />
 
       <FlatList
         ref={flatListRef}
-        data={archivements}
+        data={showArchivements}
         numColumns={numColumns}
         key={numColumns}
         contentContainerStyle={styles.listContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         renderItem={({item}) => {
           return (
             <View

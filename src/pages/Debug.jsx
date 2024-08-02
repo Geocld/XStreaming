@@ -24,6 +24,8 @@ function DebugScreen({navigation, route}) {
     const _settings = getSettings();
     setSettings(_settings);
 
+    console.log('_settings:', _settings);
+
     setDebug(_settings.debug);
 
     const eventEmitter = new NativeEventEmitter();
@@ -89,8 +91,15 @@ function DebugScreen({navigation, route}) {
         title={'Vibration(Native)'}
         description={'Test gamepad vibration'}
         onPress={() => {
-          // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger)
-          GamepadManager.vibrate(500, 10, 20, 10, 10);
+          // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger, int intensity)
+          GamepadManager.vibrate(
+            500,
+            10,
+            20,
+            10,
+            10,
+            settings.vibration_intensity,
+          );
 
           // setTimeout(() => {
           //   GamepadManager.vibrate(0, 0, 0, 0, 0);

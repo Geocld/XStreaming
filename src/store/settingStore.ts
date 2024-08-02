@@ -16,6 +16,7 @@ export type Settings = {
   codec: string;
   vibration: boolean;
   vibration_mode: string;
+  vibration_intensity: number;
   gamepad_kernal: string;
   dead_zone: number;
   video_format: string;
@@ -39,6 +40,7 @@ const defaultSettings: Settings = {
   codec: '',
   vibration: true,
   vibration_mode: 'Native',
+  vibration_intensity: 1,
   gamepad_kernal: 'Native',
   dead_zone: 0.2,
   video_format: '',

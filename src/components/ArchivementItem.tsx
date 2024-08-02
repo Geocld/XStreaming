@@ -6,7 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import {Text} from 'react-native-paper';
+import {Text, Icon, ProgressBar} from 'react-native-paper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 type Props = {
@@ -15,6 +15,21 @@ type Props = {
 
 const ArchivementItem: React.FC<Props> = ({item}) => {
   const [loading, setLoading] = React.useState(true);
+
+  let progress = 0;
+  if (item.progressState === 'Achieved') {
+    progress = 1;
+  } else if (
+    item.progressState === 'InProgress' &&
+    item.progression &&
+    item.progression.requirements
+  ) {
+    progress =
+      item.progression.requirements[0].current /
+      item.progression.requirements[0].target;
+  }
+
+  const sorce = (item.rewards && item.rewards[0] && item.rewards[0].value) || 0;
 
   return (
     <Pressable>
@@ -50,6 +65,22 @@ const ArchivementItem: React.FC<Props> = ({item}) => {
             ellipsizeMode="tail">
             {item.description}
           </Text>
+        </View>
+        <View style={styles.footer}>
+          {sorce > 0 && (
+            <View style={styles.score}>
+              <Icon source="alpha-g-circle-outline" color={'#fff'} size={15} />
+              <Text variant="labelSmall" style={{marginLeft: 5}}>
+                {sorce}
+              </Text>
+            </View>
+          )}
+          <View style={styles.percent}>
+            <Text variant="labelSmall">{Math.floor(progress * 100) + '%'}</Text>
+          </View>
+        </View>
+        <View style={styles.progressBar}>
+          <ProgressBar progress={progress} />
         </View>
       </View>
     </Pressable>
@@ -97,6 +128,23 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 12,
     marginTop: 8,
+  },
+  footer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
+  score: {
+    flexDirection: 'row',
+  },
+  percent: {},
+  progressBar: {
+    paddingTop: 5,
+    paddingBottom: 10,
+    paddingLeft: 10,
+    paddingRight: 10,
   },
 });
 
