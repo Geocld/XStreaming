@@ -58,8 +58,6 @@ const paperLightTheme = {
   colors: customLightTheme.colors,
 };
 
-console.log('customDarkTheme.colors:', customDarkTheme)
-
 const paperDarkTheme = {
   ...MD3DarkTheme,
   colors: customDarkTheme.colors,

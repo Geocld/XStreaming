@@ -67,7 +67,7 @@ function SettingDetailScreen({navigation, route}) {
   }, [navigation, route.params?.id]);
 
   const handleSave = () => {
-    if (settings[current]) {
+    if (settings[current] !== undefined) {
       settings[current] = value;
       setSettings(settings);
       saveSettings(settings);
