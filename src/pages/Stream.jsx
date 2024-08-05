@@ -53,6 +53,10 @@ const gpState = {
   RightThumbYAxis: 0.0,
 };
 
+const keyDownTimestamp = {};
+
+const BUTTON_CLICK_THRESHOLD = 4;
+
 function StreamScreen({navigation, route}) {
   const {t} = useTranslation();
   const authentication = useSelector(state => state.authentication);
@@ -123,6 +127,8 @@ function StreamScreen({navigation, route}) {
           const keyName = gpMaping[keyCode];
           gpState[keyName] = 1;
 
+          keyDownTimestamp[keyName] = Date.now();
+
           // If LeftTrigger or RightTrigger is a button, onTrigger event should not be processed.
           if (keyName === 'LeftTrigger') {
             isLeftTriggerCanClick.current = true;
@@ -138,6 +144,16 @@ function StreamScreen({navigation, route}) {
         event => {
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
+
+          const keyUpTimestamp = Date.now();
+          const timeDiff = keyUpTimestamp - (keyDownTimestamp[keyName] || 0);
+          // console.log('timeDiff:', timeDiff);
+
+          // if (timeDiff < BUTTON_CLICK_THRESHOLD) {
+          //   return;
+          // }
+          // console.log('onGamepadKeyUp:', event);
+
           if (keyName === 'LeftTrigger') {
             isLeftTriggerCanClick.current = true;
           }
@@ -145,9 +161,7 @@ function StreamScreen({navigation, route}) {
             isRightTriggerCanClick.current = true;
           }
 
-          setTimeout(() => {
-            gpState[keyName] = 0;
-          }, 16);
+          gpState[keyName] = 0;
         },
       );
 
