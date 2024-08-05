@@ -13,12 +13,13 @@ import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
 import XcloudApi from '../xCloud';
 import {useSelector} from 'react-redux';
-import {getSettings} from '../store/settingStore';
+import {getSettings, saveSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
 import VirtualGamepad from '../components/VirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
+import Display from '../components/Display';
 
 const log = debugFactory('StreamScreen');
 
@@ -67,6 +68,7 @@ function StreamScreen({navigation, route}) {
   const [settings, setSettings] = React.useState({});
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
+  const [showDisplayModal, setShowDisplayModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [connectState, setConnectState] = React.useState('');
   const [performance, setPerformance] = React.useState({});
@@ -553,6 +555,12 @@ function StreamScreen({navigation, route}) {
     setShowModal(false);
   };
 
+  const handleDisplayOptionsChange = options => {
+    postData2Webview('refreshVideo', options);
+    settings.display_options = options;
+    saveSettings(settings);
+  };
+
   const background = {
     borderless: false,
     color: 'rgba(255, 255, 255, 0.2)',
@@ -580,6 +588,24 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
+          visible={showDisplayModal}
+          onDismiss={() => {
+            setShowDisplayModal(false);
+          }}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              <Display
+                options={settings.display_options}
+                onChange={handleDisplayOptionsChange}
+              />
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+
+      <Portal>
+        <Modal
           visible={showModal}
           onDismiss={() => handleCloseModal()}
           contentContainerStyle={styles.modal}>
@@ -603,6 +629,17 @@ function StreamScreen({navigation, route}) {
                     background={background}
                     onPress={() => {
                       requestVirtualGamepad();
+                      handleCloseModal();
+                    }}
+                  />
+                )}
+
+                {connectState === CONNECTED && (
+                  <List.Item
+                    title={t('Display settings')}
+                    background={background}
+                    onPress={() => {
+                      setShowDisplayModal(true);
                       handleCloseModal();
                     }}
                   />

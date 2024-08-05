@@ -4,6 +4,13 @@ const log = debugFactory('settingStore');
 
 const STORE_KEY = 'user.settings';
 
+type DisplayOptions = {
+  sharpness: number;
+  saturation: number;
+  contrast: number;
+  brightness: number;
+};
+
 export type Settings = {
   locale: string;
   resolution: number;
@@ -23,6 +30,7 @@ export type Settings = {
   virtual_gamepad_opacity: number;
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
+  display_options: DisplayOptions;
   ipv6: boolean;
   theme: string;
   debug: boolean;
@@ -42,12 +50,18 @@ const defaultSettings: Settings = {
   vibration_mode: 'Native',
   vibration_intensity: 1,
   gamepad_kernal: 'Native',
-  dead_zone: 0.2,
+  dead_zone: 0.1,
   video_format: '',
   virtual_gamepad_opacity: 0.6,
   gamepad_maping: null,
   native_gamepad_maping: null,
   ipv6: false,
+  display_options: {
+    sharpness: 5,
+    saturation: 100,
+    contrast: 100,
+    brightness: 100,
+  },
   theme: 'dark',
   debug: false,
 };

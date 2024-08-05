@@ -38,6 +38,7 @@ import DebugScreen from './pages/Debug';
 import GameMapScreen from './pages/GameMap';
 import NativeGameMapScreen from './pages/NativeGameMap';
 import GameMapDetailScreen from './pages/GameMapDetail';
+import DisplaySettingsScreen from './pages/DisplaySettings';
 import AboutScreen from './pages/About';
 import updater from './utils/updater';
 
@@ -197,6 +198,11 @@ function App() {
                   options={{headerShown: false}}
                 />
                 <RootStack.Screen name="Debug" component={DebugScreen} />
+                <RootStack.Screen
+                  name="Display"
+                  component={DisplaySettingsScreen}
+                  options={{title: t('Display')}}
+                />
                 <RootStack.Screen
                   name="About"
                   component={AboutScreen}

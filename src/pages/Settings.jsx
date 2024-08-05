@@ -81,6 +81,14 @@ function SettingsScreen({navigation}) {
           );
         })}
 
+        <SettingItem
+          title={t('Display')}
+          description={t(
+            'Set parameters such as screen clarity and saturation',
+          )}
+          onPress={() => navigation.navigate('Display')}
+        />
+
         <View style={styles.contentTitle}>
           <Text variant="titleLarge" style={styles.titleText}>
             {t('Others')}

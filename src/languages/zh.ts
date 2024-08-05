@@ -6,6 +6,7 @@ export default {
     Settings: '设置',
     Login: '登录',
     About: '关于',
+    Close: '关闭',
     GameMap: '手柄映射',
     'Fetching user info...': '正在获取用户信息...',
     'Fetching consoles...': '正在获取终端信息...',
@@ -76,7 +77,7 @@ export default {
     'Changing the region allows you to use XGPU services without a proxy':
       '修改地区可以免代理使用XGPU服务',
     'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
-      '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项',
+      '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项(该选项关闭APP后将重置)',
     'Prioritize using IPv6 connection': '优先使用Ipv6连接',
     'Preferred language of game': '游戏偏好语言',
     'Set language of cloud game':
@@ -95,6 +96,13 @@ export default {
     'Signal server': '信令服务器',
     'Select gamepad kernal': '选择手柄驱动内核',
     'Config opacity of virtual gamepad': '设置虚拟按键透明度',
+    'Display settings': '画面设置',
+    'Set parameters such as screen clarity and saturation':
+      '设置画面清晰度、饱和度等参数',
+    Sharpness: '锐化',
+    Saturation: '饱和度',
+    Contrast: '对比度',
+    Brightness: '亮度',
     'About XStreaming': '关于SXtreaming',
     Light: '明亮',
     Dark: '暗黑',
