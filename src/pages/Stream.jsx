@@ -580,11 +580,11 @@ function StreamScreen({navigation, route}) {
         />
       )}
 
-      {showModal && (
+      {/* {showModal && (
         <Button mode="contained" style={styles.phantom} onPress={() => {}}>
           You can not see me
         </Button>
-      )}
+      )} */}
 
       <Portal>
         <Modal
@@ -719,8 +719,8 @@ const styles = StyleSheet.create({
   },
   modal: {
     // backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginLeft: '25%',
-    marginRight: '25%',
+    marginLeft: '32%',
+    marginRight: '32%',
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

@@ -45,7 +45,7 @@ function DisplaySettings({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView style={styles.displayWrap}>
         <Display options={options} onChange={handleChange} />
       </ScrollView>
 
@@ -70,6 +70,11 @@ function DisplaySettings({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  displayWrap: {
+    paddingTop: 30,
+    paddingLeft: 10,
+    paddingRight: 10,
   },
   buttonWrap: {
     position: 'absolute',

@@ -139,10 +139,7 @@ const Display: React.FC<Props> = ({options, onChange}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: 30,
-    padding: 10,
-  },
+  container: {},
   block: {
     marginBottom: 10,
   },
@@ -154,7 +151,7 @@ const styles = StyleSheet.create({
   titleLeft: {},
   titleRight: {},
   slider: {
-    marginTop: 20,
+    marginTop: 10,
   },
 });
 
