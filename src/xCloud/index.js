@@ -50,6 +50,7 @@ export default class XcloudApi {
           os: {
             // name: 'android', // 720P
             // name: 'windows', // 1080P
+            // For console streaming
             name: resolution === 720 ? 'android' : 'windows',
             ver: '22631.2715',
             platform: 'desktop',
@@ -85,7 +86,8 @@ export default class XcloudApi {
           useIceConnection: false,
           timezoneOffsetMinutes: 120,
           sdkType: 'web',
-          osName: 'windows',
+          // For xCloud streaming
+          osName: resolution === 720 ? 'android' : 'windows',
         },
         serverId: this.type === 'home' ? consoleId : '',
         fallbackRegionNames: [],
