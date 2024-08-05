@@ -32,7 +32,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
         )}
         <Image
           source={{
-            uri: 'https:' + titleItem.catalogDetails.Image_Tile.URL,
+            uri: 'https:' + titleItem.Image_Tile.URL,
           }}
           resizeMode={'cover'}
           onLoad={() => setLoading(false)}
@@ -43,7 +43,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
             style={styles.description}
             numberOfLines={2}
             ellipsizeMode="tail">
-            {titleItem.catalogDetails.ProductTitle}
+            {titleItem.ProductTitle}
           </Text>
         </View>
       </View>

@@ -21,16 +21,16 @@ function TitleDetail({navigation, route}) {
     const _settings = getSettings();
     setSettings(_settings);
     navigation.setOptions({
-      title: route.params?.titleItem.catalogDetails.ProductTitle || '',
+      title: route.params?.titleItem.ProductTitle || '',
     });
   }, [route.params?.titleItem, navigation]);
 
   const handleStartGame = () => {
-    log.info('HandleStartCloudGame titleId:', titleItem.titleId);
+    log.info('HandleStartCloudGame titleId:', titleItem.XCloudTitleId);
     navigation.navigate({
       name: 'Stream',
       params: {
-        sessionId: titleItem.titleId,
+        sessionId: titleItem.XCloudTitleId,
         settings,
         streamType: 'cloud',
       },
@@ -50,29 +50,25 @@ function TitleDetail({navigation, route}) {
           <ScrollView style={styles.scrollView}>
             <Image
               source={{
-                uri: 'https:' + titleItem.catalogDetails.Image_Poster.URL,
+                uri: 'https:' + titleItem.Image_Poster.URL,
               }}
               resizeMode="cover"
               style={styles.image}
             />
             <View style={styles.textWrap}>
               <Text variant="titleLarge" style={styles.productTitle}>
-                {titleItem.catalogDetails.ProductTitle}
+                {titleItem.ProductTitle}
               </Text>
-              <Text variant="titleMedium">
-                {titleItem.catalogDetails.ProductDescriptionShort}
-              </Text>
+              <Text variant="titleMedium">{titleItem.PublisherName}</Text>
             </View>
 
             <View style={styles.tagsWrap}>
-              {titleItem.catalogDetails.Attributes.map(item => {
-                if (item.LocalizedName) {
-                  return (
-                    <View style={styles.tagContainer} key={item.Name}>
-                      <Text variant="titleSmall">{item.LocalizedName}</Text>
-                    </View>
-                  );
-                }
+              {titleItem.Categories.map(item => {
+                return (
+                  <View style={styles.tagContainer} key={item}>
+                    <Text variant="titleSmall">{item}</Text>
+                  </View>
+                );
               })}
             </View>
           </ScrollView>

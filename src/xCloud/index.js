@@ -2,6 +2,7 @@ import axios from 'axios';
 import {getSettings} from '../store/settingStore';
 import {debugFactory} from '../utils/debug';
 import {Address6} from 'ip-address';
+import officialTitles from './titles';
 
 const log = debugFactory('xCloud/index.js');
 
@@ -390,8 +391,10 @@ export default class XcloudApi {
               lst.sort((a, b) => {
                 const firstIp = a.ip;
                 const secondIp = b.ip;
-  
-                return !firstIp.includes(':') && secondIp.includes(':') ? 1 : -1;
+
+                return !firstIp.includes(':') && secondIp.includes(':')
+                  ? 1
+                  : -1;
               });
             }
 
@@ -566,11 +569,16 @@ export default class XcloudApi {
           productIdQueue.push(title.details.productId);
         }
       });
+
+      // Fix: v2/titles API can not get full games
+      const mergeProductIds = [
+        ...new Set([...productIdQueue, ...officialTitles]),
+      ];
       axios
         .post(
-          `https://catalog.gamepass.com/v3/products?market=US&language=en-US&hydration=RemoteHighSapphire0`,
+          `https://catalog.gamepass.com/v3/products?market=US&language=en-US&hydration=RemoteLowJade0`,
           {
-            Products: productIdQueue,
+            Products: mergeProductIds,
           },
           {
             headers: {
@@ -578,7 +586,7 @@ export default class XcloudApi {
               'Content-Type': 'application/json',
               'ms-cv': 0,
               'calling-app-name': 'Xbox Cloud Gaming Web',
-              'calling-app-version': '21.0.0',
+              'calling-app-version': '24.17.63',
             },
           },
         )
@@ -586,18 +594,15 @@ export default class XcloudApi {
           if (res.data && res.data.Products) {
             const products = res.data.Products;
             const mergedTitles = [];
-            titles.forEach(title => {
-              if (
-                title.details &&
-                title.details.productId &&
-                products[title.details.productId]
-              ) {
-                mergedTitles.push({
-                  ...title,
-                  catalogDetails: products[title.details.productId],
-                });
-              }
-            });
+            for (const key in products) {
+              mergedTitles.push({
+                productId: key,
+                ...products[key],
+              });
+            }
+            mergedTitles.sort((a, b) =>
+              a.ProductTitle.localeCompare(b.ProductTitle),
+            );
             resolve(mergedTitles);
           } else {
             resolve([]);

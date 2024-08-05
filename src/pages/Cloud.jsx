@@ -61,9 +61,7 @@ function CloudScreen({navigation}) {
 
               const _titleMap = {};
               _titles.forEach(item => {
-                if (item.details && item.details.productId) {
-                  _titleMap[item.details.productId] = item;
-                }
+                _titleMap[item.productId] = item;
               });
               setTitlesMap(_titleMap);
 
@@ -181,11 +179,7 @@ function CloudScreen({navigation}) {
   if (keyword.length > 0) {
     currentTitles.current = currentTitles.current.filter(title => {
       return (
-        title.catalogDetails &&
-        title.catalogDetails.ProductTitle &&
-        title.catalogDetails.ProductTitle.toUpperCase().indexOf(
-          keyword.toUpperCase(),
-        ) > -1
+        title.ProductTitle.toUpperCase().indexOf(keyword.toUpperCase()) > -1
       );
     });
   }
