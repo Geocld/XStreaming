@@ -555,17 +555,21 @@ function StreamScreen({navigation, route}) {
     setShowModal(false);
   };
 
-  const handleDisplayOptionsChange = options => {
-    postData2Webview('refreshVideo', options);
-    settings.display_options = options;
-    saveSettings(settings);
-  };
-
   const background = {
     borderless: false,
     color: 'rgba(255, 255, 255, 0.2)',
     foreground: true,
   };
+
+  const handleDisplayOptionsChange = React.useCallback(
+    options => {
+      postData2Webview('refreshVideo', options);
+      settings.display_options = options;
+      // setSettings(settings);
+      saveSettings(settings);
+    },
+    [settings],
+  );
 
   return (
     <>

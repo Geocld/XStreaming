@@ -63,3 +63,7 @@ npm run android
 1. [Auth](/docs/1.Auth.md)
 2. [Web API](./docs/2.Web.md)
 3. [Stream](./docs/3.Stream.md)
+
+### License
+
+XStreaming is [MIT licensed](./LICENSE).

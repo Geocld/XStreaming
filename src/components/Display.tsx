@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView} from 'react-native';
-import {Text, Button} from 'react-native-paper';
+import {Text, Button, IconButton} from 'react-native-paper';
 import Slider from '@react-native-community/slider';
 import {useTranslation} from 'react-i18next';
 
@@ -29,7 +29,9 @@ const Display: React.FC<Props> = ({options, onChange}) => {
 
   const handleValChange = (key: string, value: string | number) => {
     innerOptions[key] = value;
-    setInnerOptions(innerOptions);
+    setInnerOptions(() => ({
+      ...innerOptions,
+    }));
     onChange && onChange(innerOptions);
   };
 
@@ -41,11 +43,37 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             <Text variant="titleMedium">{t('Sharpness')}</Text>
           </View>
           <View style={styles.titleRight}>
+            <IconButton
+              icon="minus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.sharpness > 0) {
+                  innerOptions.sharpness = innerOptions.sharpness - 1;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
             <Text variant="titleMedium">
               {innerOptions.sharpness === 0
                 ? t('Close')
                 : innerOptions.sharpness}
             </Text>
+            <IconButton
+              icon="plus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.sharpness < 10) {
+                  innerOptions.sharpness = innerOptions.sharpness + 1;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
           </View>
         </View>
         <Slider
@@ -69,7 +97,33 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             <Text variant="titleMedium">{t('Saturation')}</Text>
           </View>
           <View style={styles.titleRight}>
+            <IconButton
+              icon="minus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.saturation > 50) {
+                  innerOptions.saturation = innerOptions.saturation - 10;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
             <Text variant="titleMedium">{innerOptions.saturation}%</Text>
+            <IconButton
+              icon="plus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.saturation < 150) {
+                  innerOptions.saturation = innerOptions.saturation + 10;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
           </View>
         </View>
         <Slider
@@ -93,7 +147,33 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             <Text variant="titleMedium">{t('Contrast')}</Text>
           </View>
           <View style={styles.titleRight}>
+            <IconButton
+              icon="minus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.contrast > 50) {
+                  innerOptions.contrast = innerOptions.contrast - 10;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
             <Text variant="titleMedium">{innerOptions.contrast}%</Text>
+            <IconButton
+              icon="plus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.contrast < 150) {
+                  innerOptions.contrast = innerOptions.contrast + 10;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
           </View>
         </View>
         <Slider
@@ -117,7 +197,33 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             <Text variant="titleMedium">{t('Brightness')}</Text>
           </View>
           <View style={styles.titleRight}>
+            <IconButton
+              icon="minus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.brightness > 50) {
+                  innerOptions.brightness = innerOptions.brightness - 10;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
             <Text variant="titleMedium">{innerOptions.brightness}%</Text>
+            <IconButton
+              icon="plus"
+              size={20}
+              onPress={() => {
+                if (innerOptions.brightness < 150) {
+                  innerOptions.brightness = innerOptions.brightness + 10;
+                  setInnerOptions(() => ({
+                    ...innerOptions,
+                  }));
+                  onChange && onChange(innerOptions);
+                }
+              }}
+            />
           </View>
         </View>
         <Slider
@@ -149,7 +255,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   titleLeft: {},
-  titleRight: {},
+  titleRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   slider: {
     marginTop: 10,
   },

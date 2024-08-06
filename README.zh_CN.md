@@ -65,3 +65,7 @@ npm run android
 1. [登录认证，获得串流凭据](./docs/1.Auth_zh.md)
 2. [Web API](./docs/2.Web_zh.md)
 3. [串流](./docs/3.Stream_zh.md)
+
+### 开源协议
+
+XStreaming 遵循 [MIT 协议](./LICENSE).
