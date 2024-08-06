@@ -50,7 +50,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         return "GamepadManager";
     }
 
-    private void rumbleSingleVibrator(Vibrator vibrator, int duration, short lowFreqMotor, short highFreqMotor, int intensity) {
+    private void rumbleSingleVibrator(Vibrator vibrator, int duration, short lowFreqMotor, short highFreqMotor) {
         Log.d("GamepadManager", "rumbleSingleVibrator");
 
         int simulatedAmplitude = Math.min(255, (int)((lowFreqMotor * 0.9) + (highFreqMotor * 0.5)));
@@ -103,7 +103,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME)
                     .build();
-            vibrator.vibrate(new long[]{0, onTime * 100 * intensity, offTime * 100 * intensity}, 0, audioAttributes);
+            vibrator.vibrate(new long[]{0, onTime * 100, offTime * 100}, 0, audioAttributes);
         }
     }
 
@@ -172,7 +172,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void vibrate(int duration, int lowFreqMotor, int highFreqMotor, int leftTrigger, int rightTrigger, int intensity) {
+    public void vibrate(int duration, int lowFreqMotor, int highFreqMotor, int leftTrigger, int rightTrigger) {
         short _lowFreqMotor = (short) lowFreqMotor;
         short _highFreqMotor = (short) highFreqMotor;
         short _leftTrigger = (short) leftTrigger;
@@ -308,12 +308,12 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 // If all else fails, we have to try the old Vibrator API
                 else if (vibrator != null) {
                     Log.d("GamepadManager", "rumbleSingleVibrator123:");
-                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
+                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor);
                 }
                 // Force device rumble
                 else {
                     Log.d("GamepadManager", "Force device rumble");
-                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
+                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor);
                 }
             }
 
@@ -344,12 +344,12 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
                 if (vibrator != null) {
                     Log.d("GamepadManager", "Old sdk rumbleSingleVibrator:");
-                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
+                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor);
                 }
                 // Force device rumble
                 else {
                     Log.d("GamepadManager", "Old sdk device rumble:");
-                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
+                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor);
                 }
             }
         }

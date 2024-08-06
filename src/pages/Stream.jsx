@@ -84,6 +84,7 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
+  const isVibrating = React.useRef(false);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
@@ -117,6 +118,10 @@ function StreamScreen({navigation, route}) {
     };
 
     FullScreenManager.immersiveModeOn();
+
+    const stopVibrate = () => {
+      GamepadManager.vibrate(10, 0, 0, 0, 0);
+    };
 
     if (_settings.gamepad_kernal === 'Native') {
       const eventEmitter = new NativeEventEmitter();
@@ -234,6 +239,7 @@ function StreamScreen({navigation, route}) {
     }
 
     navigation.addListener('beforeRemove', e => {
+      stopVibrate();
       if (e.data.action.type !== 'GO_BACK') {
         navigation.dispatch(e.data.action);
       } else {
@@ -285,6 +291,7 @@ function StreamScreen({navigation, route}) {
     return () => {
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
+      stopVibrate();
       gpDownEventListener.current && gpDownEventListener.current.remove();
       gpUpEventListener.current && gpUpEventListener.current.remove();
       dpDownEventListener.current && dpDownEventListener.current.remove();
@@ -465,15 +472,24 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
-      const intensity = settings.vibration_intensity || 1;
+      let weakMagnitude = rumbleData.weakMagnitude * 100;
+      let strongMagnitude = rumbleData.strongMagnitude * 100;
+      let leftTrigger = rumbleData.leftTrigger * 100;
+      let rightTrigger = rumbleData.rightTrigger * 100;
+
+      if (weakMagnitude > 100) {
+        weakMagnitude = 100;
+      }
+      if (strongMagnitude > 100) {
+        strongMagnitude = 100;
+      }
 
       GamepadManager.vibrate(
-        rumbleData.duration / 10,
-        rumbleData.weakMagnitude * 100 * intensity,
-        rumbleData.strongMagnitude * 100 * intensity,
-        rumbleData.leftTrigger * 100 * intensity,
-        rumbleData.rightTrigger * 100 * intensity,
-        intensity,
+        60000,
+        weakMagnitude,
+        strongMagnitude,
+        leftTrigger,
+        rightTrigger,
       );
     }
     if (type === 'performance') {
@@ -704,6 +720,7 @@ function StreamScreen({navigation, route}) {
         mediaPlaybackRequiresUserAction={false}
         allowsFullscreenVideo={true}
         allowsInlineMediaPlayback={true}
+        androidLayerType={'hardware'}
         injectedJavaScriptObject={{
           settings,
           streamType: route.params?.streamType,

@@ -92,14 +92,11 @@ function DebugScreen({navigation, route}) {
         description={'Test gamepad vibration'}
         onPress={() => {
           // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger, int intensity)
-          GamepadManager.vibrate(
-            500,
-            10,
-            20,
-            10,
-            10,
-            settings.vibration_intensity,
-          );
+          GamepadManager.vibrate(60000, 100, 100, 0, 0);
+
+          setTimeout(() => {
+            GamepadManager.vibrate(0, 0, 0, 0, 0);
+          }, 500);
 
           // setTimeout(() => {
           //   GamepadManager.vibrate(0, 0, 0, 0, 0);
