@@ -63,6 +63,7 @@ function CloudScreen({navigation}) {
               _titles.forEach(item => {
                 _titleMap[item.productId] = item;
               });
+
               setTitlesMap(_titleMap);
 
               // Get new games
@@ -80,12 +81,14 @@ function CloudScreen({navigation}) {
                   const results = recentTitleRes.results || [];
                   const _recentTitles = [];
                   results.forEach(item => {
-                    if (
-                      item.details &&
-                      item.details.productId &&
-                      _titleMap[item.details.productId]
-                    ) {
-                      _recentTitles.push(_titleMap[item.details.productId]);
+                    if (item.details && item.details.productId) {
+                      const productId = item.details.productId;
+                      const productIdUp = productId.toUpperCase();
+                      if (_titleMap[productId] || _titleMap[productIdUp]) {
+                        _recentTitles.push(
+                          _titleMap[productId] || _titleMap[productIdUp],
+                        );
+                      }
                     }
                   });
                   setRecentNewTitles(_recentTitles);
