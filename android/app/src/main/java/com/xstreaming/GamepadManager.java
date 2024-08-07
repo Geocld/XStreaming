@@ -200,10 +200,17 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 }
 
                 if (!isGamepad) {
-                    return;
+                    continue;
+                }
+
+                // FIX: Check if is real game controller
+                boolean isRealGamepad = isGameControllerDevice(dev);
+                if (!isRealGamepad) {
+                    continue;
                 }
 
                 Log.d("GamepadManager", "isGameControllerDevice:" + dev.getName());
+
                 boolean hasQuadAmplitudeControlledRumbleVibrators = true;
                 boolean hasDualAmplitudeControlledRumbleVibrators = true;
 

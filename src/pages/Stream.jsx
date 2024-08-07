@@ -7,7 +7,7 @@ import {
   NativeEventEmitter,
   StyleSheet,
 } from 'react-native';
-import {Portal, Modal, Card, List, Button} from 'react-native-paper';
+import {Portal, Modal, Card, List} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
@@ -708,27 +708,29 @@ function StreamScreen({navigation, route}) {
         </Modal>
       </Portal>
 
-      <WebView
-        ref={instance => {
-          webviewRef.current = instance;
-        }}
-        source={{uri}}
-        originWhitelist={['*']}
-        javaScriptEnabled={true}
-        cacheEnabled={false}
-        setSupportMultipleWindows={false}
-        mediaPlaybackRequiresUserAction={false}
-        allowsFullscreenVideo={true}
-        allowsInlineMediaPlayback={true}
-        androidLayerType={'hardware'}
-        injectedJavaScriptObject={{
-          settings,
-          streamType: route.params?.streamType,
-        }}
-        onMessage={event => {
-          handleWebviewMessage(event);
-        }}
-      />
+      <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
+        <WebView
+          ref={instance => {
+            webviewRef.current = instance;
+          }}
+          source={{uri}}
+          originWhitelist={['*']}
+          javaScriptEnabled={true}
+          cacheEnabled={false}
+          setSupportMultipleWindows={false}
+          mediaPlaybackRequiresUserAction={false}
+          allowsFullscreenVideo={true}
+          allowsInlineMediaPlayback={true}
+          androidLayerType={'hardware'}
+          injectedJavaScriptObject={{
+            settings,
+            streamType: route.params?.streamType,
+          }}
+          onMessage={event => {
+            handleWebviewMessage(event);
+          }}
+        />
+      </View>
     </>
   );
 }
