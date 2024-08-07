@@ -562,6 +562,7 @@ export default class XcloudApi {
   getGamePassProducts(titles) {
     return new Promise((resolve, reject) => {
       const productIdQueue = [];
+      const v2TitleMap = {};
       if (!Array.isArray(titles)) {
         log.info('[getGamePassProducts] error titles is not a array:', titles);
         resolve([]);
@@ -569,6 +570,7 @@ export default class XcloudApi {
       titles.forEach(title => {
         if (title.details && title.details.productId) {
           productIdQueue.push(title.details.productId);
+          v2TitleMap[title.details.productId] = title;
         }
       });
 
@@ -597,10 +599,18 @@ export default class XcloudApi {
             const products = res.data.Products;
             const mergedTitles = [];
             for (const key in products) {
-              mergedTitles.push({
-                productId: key,
-                ...products[key],
-              });
+              if (v2TitleMap[key]) {
+                mergedTitles.push({
+                  productId: key,
+                  ...products[key],
+                  ...v2TitleMap[key],
+                });
+              } else {
+                mergedTitles.push({
+                  productId: key,
+                  ...products[key],
+                });
+              }
             }
             mergedTitles.sort((a, b) =>
               a.ProductTitle.localeCompare(b.ProductTitle),

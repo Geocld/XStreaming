@@ -30,7 +30,7 @@ function TitleDetail({navigation, route}) {
     navigation.navigate({
       name: 'Stream',
       params: {
-        sessionId: titleItem.XCloudTitleId,
+        sessionId: titleItem.titleId || titleItem.XCloudTitleId,
         settings,
         streamType: 'cloud',
       },
