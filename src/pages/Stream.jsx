@@ -678,20 +678,6 @@ function StreamScreen({navigation, route}) {
                     }}
                   />
                 )}
-
-                {connectState === CONNECTED && (
-                  <List.Item
-                    title={t('Long press Nexus')}
-                    background={background}
-                    onPress={() => {
-                      gpState.Nexus = 1;
-                      setTimeout(() => {
-                        gpState.Nexus = 0;
-                      }, 1000);
-                      handleCloseModal();
-                    }}
-                  />
-                )}
                 <List.Item
                   title={t('Disconnect')}
                   background={background}

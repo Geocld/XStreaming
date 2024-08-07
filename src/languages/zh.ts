@@ -51,7 +51,7 @@ export default {
     'If your device supports newer codecs, it can reduce the video bandwidth requirements':
       '如果您的设备支持较新的编解码器，则可以降低视频带宽要求。',
     Vibration: '振动',
-    'Video stream format': '视频流格式',
+    'Video stream format': '画面比例',
     'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
       '选择视频流格式，如果你需要画面全屏,请选择拉伸或缩放，如果你的物理显示器不是16:9，会导致画面不协调或展示不全',
     'Aspect ratio': '保持长宽比(16:9)',
