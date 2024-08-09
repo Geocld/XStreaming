@@ -116,9 +116,17 @@ const settings = [
     ),
     data: [
       {value: '', text: 'Auto'},
+      // {value: 'video/AV1', text: 'AV1'},
+      // {value: 'video/VP9', text: 'VP9'},
+      {value: 'video/H265', text: 'H265'},
+      // {value: 'video/VP8', text: 'VP8'},
       {value: 'video/H264-4d', text: 'H264-High'},
       {value: 'video/H264-42e', text: 'H264-Medium'},
       {value: 'video/H264-420', text: 'H264-Low'},
+      // {value: 'video/flexfec-03', text: 'flexfec-03'},
+      // {value: 'video/ulpfec', text: 'ulpfec'},
+      // {value: 'video/rtx', text: 'rtx'},
+      // {value: 'video/red', text: 'red'},
     ],
   },
   {
