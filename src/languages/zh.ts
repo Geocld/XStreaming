@@ -6,6 +6,7 @@ export default {
     Settings: '设置',
     Login: '登录',
     About: '关于',
+    Feedback: '反馈及支持',
     Close: '关闭',
     GameMap: '手柄映射',
     'Fetching user info...': '正在获取用户信息...',

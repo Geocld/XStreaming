@@ -40,11 +40,13 @@ import NativeGameMapScreen from './pages/NativeGameMap';
 import GameMapDetailScreen from './pages/GameMapDetail';
 import DisplaySettingsScreen from './pages/DisplaySettings';
 import AboutScreen from './pages/About';
+import FeedbackScreen from './pages/Feedback';
 import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
 
 import './i18n';
+import SearchScreen from './pages/Search';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
@@ -204,9 +206,19 @@ function App() {
                   options={{title: t('Display')}}
                 />
                 <RootStack.Screen
+                  name="Search"
+                  component={SearchScreen}
+                  options={{title: t('Search'), headerShown: false}}
+                />
+                <RootStack.Screen
                   name="About"
                   component={AboutScreen}
                   options={{title: t('About')}}
+                />
+                <RootStack.Screen
+                  name="Feedback"
+                  component={FeedbackScreen}
+                  options={{title: t('Feedback')}}
                 />
                 <RootStack.Screen
                   name="GameMap"

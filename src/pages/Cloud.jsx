@@ -6,7 +6,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import {Text, SegmentedButtons, Appbar, Searchbar} from 'react-native-paper';
+import {Text, SegmentedButtons, Appbar, Chip} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useSelector} from 'react-redux';
 import TitleItem from '../components/TitleItem';
@@ -18,7 +18,7 @@ import {useTranslation} from 'react-i18next';
 
 const log = debugFactory('CloudScreen');
 
-function CloudScreen({navigation}) {
+function CloudScreen({navigation, route}) {
   const {t} = useTranslation();
   const streamingTokens = useSelector(state => state.streamingTokens);
 
@@ -37,11 +37,15 @@ function CloudScreen({navigation}) {
   const [RecentTitles, setRecentNewTitles] = React.useState([]);
   const [keyword, setKeyword] = React.useState('');
   const flatListRef = React.useRef(null);
+  const isFetchGame = React.useRef(false);
 
   const currentTitles = React.useRef([]);
   const totalPage = React.useRef(0);
 
   React.useEffect(() => {
+    if (route.params?.keyword) {
+      setKeyword(route.params.keyword);
+    }
     if (!streamingTokens.xCloudToken) {
       setIsLimited(true);
     }
@@ -93,6 +97,7 @@ function CloudScreen({navigation}) {
                   });
                   setRecentNewTitles(_recentTitles);
                   setLoading(false);
+                  isFetchGame.current = true;
                 });
               });
             });
@@ -100,7 +105,9 @@ function CloudScreen({navigation}) {
         });
       }
     };
-    fetchGames();
+    if (!isFetchGame.current) {
+      fetchGames();
+    }
 
     const updateLayout = () => {
       const {width, height} = Dimensions.get('window');
@@ -113,7 +120,7 @@ function CloudScreen({navigation}) {
     return () => {
       subscription?.remove();
     };
-  }, [streamingTokens.xCloudToken, navigation]);
+  }, [route.params?.keyword, streamingTokens.xCloudToken, navigation]);
 
   const handleViewDetail = titleItem => {
     navigation.navigate('TitleDetail', {titleItem});
@@ -227,21 +234,25 @@ function CloudScreen({navigation}) {
                   />
                 }
               />
+              <Appbar.Action
+                icon="magnify"
+                onPress={() => {
+                  navigation.navigate('Search', {
+                    keyword,
+                  });
+                }}
+              />
             </Appbar.Header>
 
-            <View style={styles.search}>
-              <Searchbar
-                placeholder={t('Search')}
-                style={{
-                  height: 40,
-                }}
-                inputStyle={{
-                  minHeight: 0,
-                }}
-                onChangeText={val => setKeyword(val)}
-                value={keyword}
-              />
-            </View>
+            {keyword && (
+              <View style={styles.search}>
+                <Chip
+                  icon="cloud-search-outline"
+                  onClose={() => setKeyword('')}>
+                  {keyword}
+                </Chip>
+              </View>
+            )}
 
             {!loading && !showTitles.length && <Empty />}
 

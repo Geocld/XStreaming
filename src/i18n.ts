@@ -2,6 +2,8 @@ import i18n from 'i18next';
 import {initReactI18next} from 'react-i18next';
 import en from './languages/en';
 import zh from './languages/zh';
+import zht from './languages/zht';
+import jp from './languages/jp';
 import {getSettings} from './store/settingStore';
 
 const settings = getSettings();
@@ -9,6 +11,8 @@ const settings = getSettings();
 const resources = {
   en,
   zh,
+  zht,
+  jp,
 };
 
 i18n

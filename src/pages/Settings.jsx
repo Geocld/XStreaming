@@ -14,9 +14,12 @@ import settingsMeta from '../common/settings';
 const log = debugFactory('SettingsScreen');
 
 function SettingsScreen({navigation}) {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
   const authentication = useSelector(state => state.authentication);
   const profile = useSelector(state => state.profile);
+
+  const currentLanguage = i18n.language;
+  console.log('currentLanguage:', currentLanguage);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -99,11 +102,20 @@ function SettingsScreen({navigation}) {
           description={t('About XStreaming')}
           onPress={() => navigation.navigate('About')}
         />
+        {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
+          <SettingItem
+            title={'反馈及支持'}
+            description={'如果你遇到使用问题或希望支持XStreaming，请从此进'}
+            onPress={() => navigation.navigate('Feedback')}
+          />
+        )}
+
         <SettingItem
           title={'DEBUG'}
           description={'Enter debug.'}
           onPress={() => handleItemPress('debug')}
         />
+
         {profile && profile.GameDisplayName ? (
           <SettingItem
             title={t('Logout')}

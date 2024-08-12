@@ -11,6 +11,8 @@ const settings = [
     data: [
       {value: 'en', text: 'English'},
       {value: 'zh', text: '简体中文'},
+      {value: 'zht', text: '繁體中文'},
+      {value: 'jp', text: '日本語'},
     ],
   },
   {
@@ -45,7 +47,7 @@ const settings = [
       {value: 'he-IL', text: 'Hebrew'},
       {value: 'hu-HU', text: 'Hungarian'},
       {value: 'it-IT', text: 'Italian'},
-      {value: 'ja-JP', text: 'Japanese'},
+      {value: 'ja-JP', text: '日本語'},
       {value: 'ko-KR', text: 'Korean'},
       {value: 'nb-NO', text: 'Norwegian'},
       {value: 'nl-NL', text: 'Dutch'},
@@ -57,7 +59,7 @@ const settings = [
       {value: 'sv-SE', text: 'Swedish'},
       {value: 'tr-TR', text: 'Turkish'},
       {value: 'zh-CN', text: '简体中文'},
-      {value: 'zh-TW', text: '繁体中文'},
+      {value: 'zh-TW', text: '繁體中文'},
     ],
   },
   {
