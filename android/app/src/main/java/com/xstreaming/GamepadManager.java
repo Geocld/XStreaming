@@ -351,7 +351,9 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
                 if (vibrator != null) {
                     Log.d("GamepadManager", "Old sdk rumbleSingleVibrator:");
-                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor);
+//                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor);
+                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor);
+                    break;
                 }
                 // Force device rumble
                 else {
