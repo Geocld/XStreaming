@@ -580,7 +580,7 @@ export default class XcloudApi {
       ];
       axios
         .post(
-          `https://catalog.gamepass.com/v3/products?market=US&language=en-US&hydration=RemoteLowJade0`,
+          'https://catalog.gamepass.com/v3/products?market=US&language=en-US&hydration=RemoteLowJade0',
           {
             Products: mergeProductIds,
           },
