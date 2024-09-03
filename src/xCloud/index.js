@@ -2,7 +2,6 @@ import axios from 'axios';
 import {getSettings} from '../store/settingStore';
 import {debugFactory} from '../utils/debug';
 import {Address6} from 'ip-address';
-import officialTitles from './titles';
 
 const log = debugFactory('xCloud/index.js');
 
@@ -559,6 +558,26 @@ export default class XcloudApi {
     });
   }
 
+  getOfficialTitles() {
+    return new Promise(resolve => {
+      let officialTitles = [];
+      axios
+        .get('https://cdn.jsdelivr.net/gh/Geocld/XStreaming@main/titles.json', {
+          timeout: 30,
+        })
+        .then(res => {
+          if (res.status === 200) {
+            officialTitles = res.data.Products;
+            console.log('officialTitles:', officialTitles);
+          }
+          resolve(officialTitles);
+        })
+        .catch(e => {
+          resolve([]);
+        });
+    });
+  }
+
   getGamePassProducts(titles) {
     return new Promise((resolve, reject) => {
       const productIdQueue = [];
@@ -574,56 +593,59 @@ export default class XcloudApi {
         }
       });
 
-      // Fix: v2/titles API can not get full games
-      const mergeProductIds = [
-        ...new Set([...productIdQueue, ...officialTitles]),
-      ];
-      axios
-        .post(
-          'https://catalog.gamepass.com/v3/products?market=US&language=en-US&hydration=RemoteLowJade0',
-          {
-            Products: mergeProductIds,
-          },
-          {
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-              'ms-cv': 0,
-              'calling-app-name': 'Xbox Cloud Gaming Web',
-              'calling-app-version': '24.17.63',
+      // Get officialTitles
+      this.getOfficialTitles().then(officialTitles => {
+        // Fix: v2/titles API can not get full games
+        const mergeProductIds = [
+          ...new Set([...productIdQueue, ...officialTitles]),
+        ];
+        axios
+          .post(
+            'https://catalog.gamepass.com/v3/products?market=US&language=en-US&hydration=RemoteLowJade0',
+            {
+              Products: mergeProductIds,
             },
-          },
-        )
-        .then(res => {
-          if (res.data && res.data.Products) {
-            const products = res.data.Products;
-            const mergedTitles = [];
-            for (const key in products) {
-              if (v2TitleMap[key]) {
-                mergedTitles.push({
-                  productId: key,
-                  ...products[key],
-                  ...v2TitleMap[key],
-                });
-              } else {
-                mergedTitles.push({
-                  productId: key,
-                  ...products[key],
-                });
+            {
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'ms-cv': 0,
+                'calling-app-name': 'Xbox Cloud Gaming Web',
+                'calling-app-version': '24.17.63',
+              },
+            },
+          )
+          .then(res => {
+            if (res.data && res.data.Products) {
+              const products = res.data.Products;
+              const mergedTitles = [];
+              for (const key in products) {
+                if (v2TitleMap[key]) {
+                  mergedTitles.push({
+                    productId: key,
+                    ...products[key],
+                    ...v2TitleMap[key],
+                  });
+                } else {
+                  mergedTitles.push({
+                    productId: key,
+                    ...products[key],
+                  });
+                }
               }
+              mergedTitles.sort((a, b) =>
+                a.ProductTitle.localeCompare(b.ProductTitle),
+              );
+              resolve(mergedTitles);
+            } else {
+              resolve([]);
             }
-            mergedTitles.sort((a, b) =>
-              a.ProductTitle.localeCompare(b.ProductTitle),
-            );
-            resolve(mergedTitles);
-          } else {
-            resolve([]);
-          }
-        })
-        .catch(e => {
-          log.info('getGamePassProducts error:', e);
-          reject(e);
-        });
+          })
+          .catch(e => {
+            log.info('getGamePassProducts error:', e);
+            reject(e);
+          });
+      });
     });
   }
 
