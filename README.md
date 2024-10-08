@@ -16,6 +16,10 @@ XStreaming is an open-source mobile client for xCloud and Xbox home streaming, g
 
 > DISCLAIMER: XStreaming is not affiliated with Microsoft, Xbox. All rights and trademarks are property of their respective owners.
 
+## Windows/MacOS/Linux(steamOS)
+
+If you are looking for Windows/MacOS/Linux(steamOS) Xbox streaming application, you can use [XStreaming](https://github.com/Geocld/XStreaming) or [Greenlight](https://github.com/unknownskl/greenlight).
+
 ## Features
 
 - Stream video and audio from the Xbox One and Xbox Series S/X

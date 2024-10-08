@@ -8,13 +8,15 @@
   开源Xbox/云游戏串流应用.
 </p>
 
-**English** | [中文](./README.zh_CN.md)
-
-## Intro
+## 介绍
 
 XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[Greenlight](https://github.com/unknownskl/greenlight)提供的API接口和相关实现。
 
 > 声明: XStreaming与Microsoft、Xbox没有关联。所有权和商标属于其各自所有者。
+
+## Windows/MacOS/Linux(steamOS)
+
+如果你在找 Windows/MacOS/Linux(steamOS) 平台的xbox串流应用, 请使用 [XStreaming-desktop](https://github.com/Geocld/XStreaming-desktop) 或 [Greenlight](https://github.com/unknownskl/greenlight).
 
 ## 功能
 
