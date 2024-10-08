@@ -104,13 +104,13 @@ function DebugScreen({navigation, route}) {
         }}
       />
 
-      <SettingItem
+      {/* <SettingItem
         title={'Vibration(xInput)'}
         description={'Test gamepad vibration with x-input mode'}
         onPress={() => {
           UsbRumbleManager.rumble();
         }}
-      />
+      /> */}
     </ScrollView>
   );
 }
