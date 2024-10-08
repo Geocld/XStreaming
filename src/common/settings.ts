@@ -83,6 +83,10 @@ const settings = [
       {value: '', text: t('Aspect ratio')},
       {value: 'Stretch', text: t('Stretch')},
       {value: 'Zoom', text: t('Zoom')},
+      {value: '16:10', text: '16:10'},
+      {value: '18:9', text: '18:9'},
+      {value: '21:9', text: '21:9'},
+      {value: '4:3', text: '4:3'},
     ],
   },
   {
@@ -142,7 +146,9 @@ const settings = [
     name: 'gamepad_kernal',
     type: 'radio',
     title: t('Gamepad kernal'),
-    description: t('Select gamepad kernal'),
+    description: t(
+      'Select gamepad kernal, you can not use virtual gamepad in Web kernal',
+    ),
     data: [
       {value: 'Native', text: 'Native'},
       {value: 'Web', text: 'Web'},
@@ -192,6 +198,16 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     title: t('Joystick dead zone'),
     description: t('Config joystick dead zone'),
     data: [],
+  },
+  {
+    name: 'show_virtual_gamead',
+    type: 'radio',
+    title: t('Virtual gamepad'),
+    description: t('Always display the virtual gamepad'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
   },
   {
     name: 'virtual_gamepad_opacity',

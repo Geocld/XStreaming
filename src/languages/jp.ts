@@ -95,7 +95,10 @@ export default {
     'Set the app theme to take effect on the next launch':
       'アプリのテーマを設定します。次回起動時に反映されます。',
     'Signal server': 'シグナルサーバー',
-    'Select gamepad kernal': 'ゲームパッドカーネルを選択',
+    'Virtual gamepad': '仮想ゲームパッド',
+    'Always display the virtual gamepad': '常に仮想ゲームパッドを表示',
+    'Select gamepad kernal, you can not use virtual gamepad in Web kerna':
+      'ゲームパッドカーネルを選択, Web カーネルでは仮想コントローラーを使用できません。',
     'Config opacity of virtual gamepad': '仮想ゲームパッドの透明度を設定',
     'Display settings': 'ディスプレイ設定',
     'Set parameters such as screen clarity and saturation':

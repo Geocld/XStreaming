@@ -28,6 +28,7 @@ function SettingDetailScreen({navigation, route}) {
 
   React.useEffect(() => {
     const _settings = getSettings();
+    console.log('Get localSettings:', _settings);
     setSettings(_settings);
 
     if (route.params?.id) {
@@ -66,13 +67,17 @@ function SettingDetailScreen({navigation, route}) {
     }
   }, [navigation, route.params?.id]);
 
-  const handleSave = () => {
+  const handleSaveSettings = () => {
     if (settings[current] !== undefined) {
       settings[current] = value;
       setSettings(settings);
       saveSettings(settings);
     }
+  };
+
+  const handleSave = () => {
     if (current === 'locale' || current === 'force_region_ip') {
+      handleSaveSettings();
       restart();
     } else if (current === 'xhome_bitrate_mode') {
       settings.xhome_bitrate_mode = value;
@@ -97,6 +102,7 @@ function SettingDetailScreen({navigation, route}) {
         }
       });
     }
+    handleSaveSettings();
     navigation.goBack();
   };
 
@@ -137,7 +143,7 @@ function SettingDetailScreen({navigation, route}) {
                 style={styles.slider}
                 value={value2}
                 minimumValue={1}
-                maximumValue={150}
+                maximumValue={50}
                 step={1}
                 lowerLimit={1}
                 onValueChange={val => {

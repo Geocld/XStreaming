@@ -27,6 +27,7 @@ export type Settings = {
   gamepad_kernal: string;
   dead_zone: number;
   video_format: string;
+  show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
@@ -52,6 +53,7 @@ const defaultSettings: Settings = {
   gamepad_kernal: 'Native',
   dead_zone: 0.1,
   video_format: '',
+  show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.6,
   gamepad_maping: null,
   native_gamepad_maping: null,

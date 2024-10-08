@@ -95,7 +95,10 @@ export default {
     'Set the app theme to take effect on the next launch':
       '設置APP主題，下次啟動生效',
     'Signal server': '信令伺服器',
-    'Select gamepad kernal': '選擇手柄驅動內核',
+    'Virtual gamepad': '虛擬手柄',
+    'Always display the virtual gamepad': '始終顯示虛擬手柄',
+    'Select gamepad kernal, you can not use virtual gamepad in Web kernal':
+      '選擇手柄驅動內核，在 Web 內核下你將無法使用虛擬手柄',
     'Config opacity of virtual gamepad': '設置虛擬按鍵透明度',
     'Display settings': '畫面設置',
     'Set parameters such as screen clarity and saturation':

@@ -84,7 +84,6 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
-  const isVibrating = React.useRef(false);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
@@ -497,6 +496,9 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'connectionstate') {
       setConnectState(message);
+      if (message === CONNECTED && settings.show_virtual_gamead) {
+        setShowVirtualGamepad(true);
+      }
     }
     if (type === 'exit') {
       handleExit();
@@ -643,16 +645,17 @@ function StreamScreen({navigation, route}) {
                   />
                 )}
 
-                {connectState === CONNECTED && (
-                  <List.Item
-                    title={t('Toggle Virtual Gamepad')}
-                    background={background}
-                    onPress={() => {
-                      requestVirtualGamepad();
-                      handleCloseModal();
-                    }}
-                  />
-                )}
+                {connectState === CONNECTED &&
+                  settings.gamepad_kernal === 'Native' && (
+                    <List.Item
+                      title={t('Toggle Virtual Gamepad')}
+                      background={background}
+                      onPress={() => {
+                        requestVirtualGamepad();
+                        handleCloseModal();
+                      }}
+                    />
+                  )}
 
                 {connectState === CONNECTED && (
                   <List.Item

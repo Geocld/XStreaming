@@ -35,7 +35,7 @@ export default class Xal {
 
   getDeviceTokenHack() {
     console.log('getDeviceTokenHack...');
-    return new Promise()((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.getDeviceToken()
         .then(deviceToken => {
           console.log('getDeviceToken success:', deviceToken);
