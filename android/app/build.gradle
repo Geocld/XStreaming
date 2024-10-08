@@ -77,12 +77,12 @@ android {
     namespace "com.xstreaming"
     defaultConfig {
         applicationId "com.xstreaming"
-//         applicationId "com.gamepass"
+        versionCode 1
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+//        applicationId "com.gamepass"
+//        versionCode 1999999999
         versionName "1.1.4"
-//        versionName "9527.1.4"
     }
     signingConfigs {
         debug {
