@@ -8,6 +8,8 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
+import android.os.Build;
+import android.view.WindowManager;
 
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
@@ -34,6 +36,7 @@ public class FullScreenManager extends ReactContextBaseJavaModule {
     @ReactMethod
     private void immersiveModeOn() {
         final Activity reactActivity = getCurrentActivity();
+
         final int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -45,6 +48,11 @@ public class FullScreenManager extends ReactContextBaseJavaModule {
             reactActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        WindowManager.LayoutParams layoutParams = reactActivity.getWindow().getAttributes();
+                        layoutParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                        reactActivity.getWindow().setAttributes(layoutParams);
+                    }
                     reactActivity.getWindow()
                             .getDecorView()
                             .setSystemUiVisibility(flags);

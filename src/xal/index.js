@@ -33,6 +33,25 @@ export default class Xal {
     XalManager.init && XalManager.init();
   }
 
+  getDeviceTokenHack() {
+    console.log('getDeviceTokenHack...');
+    return new Promise()((resolve, reject) => {
+      this.getDeviceToken()
+        .then(deviceToken => {
+          console.log('getDeviceToken success:', deviceToken);
+          resolve(deviceToken);
+        })
+        .catch(error => {
+          if (error.statuscode === 400) {
+            console.log('device token get error, retry...');
+            return this.getDeviceTokenHack().then(resolve).catch(reject);
+          } else {
+            reject(error);
+          }
+        });
+    });
+  }
+
   getDeviceToken() {
     return new Promise((resolve, reject) => {
       const payload = {
@@ -153,7 +172,7 @@ export default class Xal {
   }
 
   async getRedirectUri() {
-    const deviceToken = await this.getDeviceToken();
+    const deviceToken = await this.getDeviceTokenHack();
     const codeChallange = await this.getCodeChallange();
     const state = this.getRandomState();
     const sisuAuth = await this.doSisuAuthentication(
@@ -384,7 +403,7 @@ export default class Xal {
 
     try {
       const userToken = await this.refreshUserToken(curUserToken);
-      const deviceToken = await this.getDeviceToken();
+      const deviceToken = await this.getDeviceTokenHack();
       const sisuToken = await this.doSisuAuthorization(userToken, deviceToken);
 
       tokenStore.setUserToken(userToken);

@@ -58,15 +58,24 @@ export default class Authentication {
         });
       });
     } else {
-      this._xal.refreshTokens(this._tokenStore).then(() => {
-        log.info('[startSilentFlow()] Tokens have been refreshed');
-        this._xal.getStreamingToken(this._tokenStore).then(streamingTokens => {
-          // log.info('streamingTokens:', streamingTokens);
-          this._xal.getWebToken(this._tokenStore).then(webToken => {
-            this._authenticationCompleted(streamingTokens, webToken);
-          });
+      this._xal
+        .refreshTokens(this._tokenStore)
+        .then(() => {
+          log.info('[startSilentFlow()] Tokens have been refreshed');
+          this._xal
+            .getStreamingToken(this._tokenStore)
+            .then(streamingTokens => {
+              // log.info('streamingTokens:', streamingTokens);
+              this._xal.getWebToken(this._tokenStore).then(webToken => {
+                this._authenticationCompleted(streamingTokens, webToken);
+              });
+            });
+        })
+        .catch(e => {
+          log.info('[startSilentFlow()] refreshTokens error:', e);
+          // Clear tokenstore if auth fail
+          this._tokenStore.clear();
         });
-      });
     }
   }
 
