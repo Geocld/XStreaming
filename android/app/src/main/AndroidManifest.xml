@@ -16,6 +16,10 @@
       android:hardwareAccelerated="true"
       android:theme="@style/Theme.AppCompat.NoActionBar">
 
+      <service
+        android:name=".input.UsbDriverService"
+        android:label="Usb Driver Service" />
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

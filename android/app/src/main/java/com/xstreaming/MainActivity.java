@@ -18,6 +18,14 @@ import android.view.InputDevice;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import android.view.View;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.os.IBinder;
+import android.app.Service;
+import android.content.ServiceConnection;
+
+import com.xstreaming.input.UsbDriverService;
+import com.xstreaming.input.ControllerHandler;
 
 class Dpad {
   final static int UP       = 19;
@@ -88,7 +96,9 @@ class Dpad {
   }
 }
 
-public class MainActivity extends ReactActivity {
+public class MainActivity extends ReactActivity implements UsbDriverService.UsbDriverStateListener {
+
+  public static MainActivity instance;
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
@@ -259,9 +269,44 @@ public class MainActivity extends ReactActivity {
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
   }
 
+
+  private boolean connectedToUsbDriverService = false;
+  private ControllerHandler controllerHandler;
+  private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+      UsbDriverService.UsbDriverBinder binder = (UsbDriverService.UsbDriverBinder) iBinder;
+      binder.setListener(controllerHandler);
+      binder.setStateListener(MainActivity.this);
+      binder.start();
+      connectedToUsbDriverService = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+      connectedToUsbDriverService = false;
+    }
+  };
+
+  @Override
+  public void onUsbPermissionPromptStarting() {
+  }
+
+  @Override
+  public void onUsbPermissionPromptCompleted() {
+  }
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(null);
+
+    instance = this;
+
+    controllerHandler = new ControllerHandler(this);
+
+    // Start the USB driver
+    bindService(new Intent(this, UsbDriverService.class),
+            usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
   }
 
   /**

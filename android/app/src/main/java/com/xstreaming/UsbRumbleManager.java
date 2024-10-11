@@ -61,6 +61,7 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                Log.d("UsbRumbleManager", "setDeviceConnectionReceiver onReceive");
                 String event = intent.getAction().equals(ACTION_USB_ATTACHED) ? "onDeviceConnect"
                         : "onDeviceDisconnect";
                 UsbDevice device = (UsbDevice) intent.getExtras().get(UsbManager.EXTRA_DEVICE);
@@ -146,7 +147,7 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
 
                 // Use an explicit intent to activate our unexported broadcast receiver, as required on Android 14+
                 Intent i = new Intent(ACTION_USB_PERMISSION);
-                i.setPackage("com.streaming");
+                i.setPackage("com.xstreaming");
 
                 usbManager.requestPermission(usbDevice, PendingIntent.getBroadcast(reactContext, 0, i, intentFlags));
             } catch (SecurityException e) {
@@ -185,22 +186,25 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
 
             connection.bulkTransfer(outEndpt, data, data.length, 100);
 
-            // xbox one
-            byte[] data2 = {
-                    0x09, 0x00, 5, 0x09, 0x00,
-                    0x0F,
-                    (byte)(leftTriggerMotor >> 9),
-                    (byte)(rightTriggerMotor >> 9),
-                    (byte)(lowFreqMotor >> 9),
-                    (byte)(highFreqMotor >> 9),
-                    (byte)0xFF, 0x00, (byte)0xFF
-            };
-
             Log.d("UsbRumbleManager", "connection: "+connection);
             Log.d("UsbRumbleManager", "bulkTransfer");
-            connection.bulkTransfer(outEndpt, data2, data2.length, 100);
 
-            connection.close();
+            // xbox one
+//            byte[] data2 = {
+//                    0x09, 0x00, 5, 0x09, 0x00,
+//                    0x0F,
+//                    (byte)(leftTriggerMotor >> 9),
+//                    (byte)(rightTriggerMotor >> 9),
+//                    (byte)(lowFreqMotor >> 9),
+//                    (byte)(highFreqMotor >> 9),
+//                    (byte)0xFF, 0x00, (byte)0xFF
+//            };
+
+//            Log.d("UsbRumbleManager", "connection: "+connection);
+//            Log.d("UsbRumbleManager", "bulkTransfer");
+//            connection.bulkTransfer(outEndpt, data2, data2.length, 100);
+
+//            connection.close();
         }
     }
 }
