@@ -8952,6 +8952,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-uuid@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "react-native-uuid@npm:2.0.2"
+  checksum: 10c0/326678b3e1d076e7cda6db41ab3ee073695b31217a0e849f87bae3616a7f79e876fd8b5d735bee030275bddd44312eea9b6bfc5217997b2001d68a5d4aceec96
+  languageName: node
+  linkType: hard
+
 "react-native-vector-icons@npm:^10.1.0":
   version: 10.1.0
   resolution: "react-native-vector-icons@npm:10.1.0"
@@ -10810,6 +10817,7 @@ __metadata:
     react-native-svg: "npm:15.3.0"
     react-native-svg-transformer: "npm:^1.5.0"
     react-native-url-polyfill: "npm:^2.0.0"
+    react-native-uuid: "npm:^2.0.2"
     react-native-vector-icons: "npm:^10.1.0"
     react-native-webview: "npm:^13.10.2"
     react-redux: "npm:^9.1.2"

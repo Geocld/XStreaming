@@ -190,6 +190,28 @@ function HomeScreen({navigation, route}) {
     }
   }, [t, route.params?.xalUrl, dispatch, navigation, isConnected]);
 
+  const handlePowerOn = async sessionId => {
+    const webApi = new WebApi(webToken);
+    const powerOnRes = await webApi.powerOn(sessionId);
+    console.log('powerOn:', powerOnRes);
+
+    setTimeout(async () => {
+      const result = await webApi.getConsoleStatus(sessionId);
+      console.log('getConsoleStatus:', result);
+    }, 2000);
+  };
+
+  const handlePowerOff = async sessionId => {
+    const webApi = new WebApi(webToken);
+    const powerOffRes = await webApi.powerOff(sessionId);
+    console.log('powerOff:', powerOffRes);
+
+    setTimeout(async () => {
+      const result = await webApi.getConsoleStatus(sessionId);
+      console.log('getConsoleStatus:', result);
+    }, 2000);
+  };
+
   const handleStartStream = sessionId => {
     const settings = getSettings();
     navigation.navigate({
@@ -236,9 +258,9 @@ function HomeScreen({navigation, route}) {
                   <ConsoleItem
                     consoleItem={console}
                     key={console.id}
-                    onPress={() => {
-                      handleStartStream(console.id);
-                    }}
+                    onPowerOn={() => handlePowerOn(console.id)}
+                    onPowerOff={() => handlePowerOff(console.id)}
+                    onPress={() => handleStartStream(console.id)}
                   />
                 );
               })}

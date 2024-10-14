@@ -51,6 +51,26 @@ const ConsoleItem = (props: any) => {
               color: 'rgba(255, 255, 255, 0.2)',
               foreground: true,
             }}
+            onPress={props.onPowerOn}>
+            {t('Power On')}
+          </Button>
+          <Button
+            mode="outlined"
+            background={{
+              borderless: false,
+              color: 'rgba(255, 255, 255, 0.2)',
+              foreground: true,
+            }}
+            onPress={props.onPowerOff}>
+            {t('Power Off')}
+          </Button>
+          <Button
+            mode="outlined"
+            background={{
+              borderless: false,
+              color: 'rgba(255, 255, 255, 0.2)',
+              foreground: true,
+            }}
             onPress={props.onPress}>
             {t('Start stream')}
           </Button>
