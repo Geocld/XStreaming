@@ -108,7 +108,11 @@ function DebugScreen({navigation, route}) {
         title={'Vibration(xInput)'}
         description={'Test gamepad vibration with x-input mode'}
         onPress={() => {
-          UsbRumbleManager.rumble();
+          UsbRumbleManager.rumble(32767, 32767);
+
+          setTimeout(() => {
+            UsbRumbleManager.rumble(0, 0);
+          }, 2000);
         }}
       />
     </ScrollView>

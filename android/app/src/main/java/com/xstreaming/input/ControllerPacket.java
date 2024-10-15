@@ -17,11 +17,4 @@ public class ControllerPacket {
     public static final int RS_CLK_FLAG = 0x0080;
     public static final int SPECIAL_BUTTON_FLAG = 0x0400;
 
-    // Extended buttons (Sunshine only)
-    public static final int PADDLE1_FLAG  = 0x010000;
-    public static final int PADDLE2_FLAG  = 0x020000;
-    public static final int PADDLE3_FLAG  = 0x040000;
-    public static final int PADDLE4_FLAG  = 0x080000;
-    public static final int TOUCHPAD_FLAG = 0x100000; // Touchpad buttons on Sony controllers
-    public static final int MISC_FLAG     = 0x200000; // Share/Mic/Capture/Mute buttons on various controllers
 }

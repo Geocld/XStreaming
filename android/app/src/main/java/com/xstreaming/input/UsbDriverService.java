@@ -136,8 +136,9 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         // Are we able to operate it?
 
         // Open usb gamepad
-//        boolean bindAllUsb = true;
-        boolean bindAllUsb = false;
+        // TODO: use USB devices
+        boolean bindAllUsb = true;
+//        boolean bindAllUsb = false;
 
         Log.d("UsbDriverService", "shouldClaimDevice1: " + shouldClaimDevice(device, bindAllUsb));
         if (shouldClaimDevice(device, bindAllUsb)) {
@@ -307,8 +308,8 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         }
 
         // Open usb gamepad
-        boolean bindAllUsb = false;
-//        boolean bindAllUsb = true;
+//        boolean bindAllUsb = false;
+        boolean bindAllUsb = true;
 
         // Enumerate existing devices
         for (UsbDevice dev : usbManager.getDeviceList().values()) {

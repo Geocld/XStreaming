@@ -66,7 +66,7 @@ public abstract class AbstractXboxController extends AbstractController {
                         // Read the next input state packet
                         long lastMillis = SystemClock.uptimeMillis();
                         res = connection.bulkTransfer(inEndpt, buffer, buffer.length, 3000);
-                        Log.d("UsbDriverService AbstractXboxController.java", "bulkTransfer result:" + res);
+//                        Log.d("UsbDriverService AbstractXboxController.java", "bulkTransfer result:" + res);
 
                         // If we get a zero length response, treat it as an error
                         if (res == 0) {
@@ -138,6 +138,8 @@ public abstract class AbstractXboxController extends AbstractController {
         // Start listening for controller input
         inputThread = createInputThread();
         inputThread.start();
+
+//        rumble((short)65535, (short)65535);
 
         return true;
     }

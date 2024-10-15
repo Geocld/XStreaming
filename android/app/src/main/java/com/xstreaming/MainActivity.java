@@ -262,17 +262,21 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     return true;
   }
 
-  private void sendEvent(String eventName, WritableMap params) {
+  public void sendEvent(String eventName, WritableMap params) {
 //    ReactContext reactContext = (ReactContext) getApplicationContext();
     ReactContext reactContext = getReactInstanceManager().getCurrentReactContext();
 
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
   }
 
+  public void handleRumble(short lowFreMotor, short highFreMotor) {
+    this.controllerHandler.handleRumble(lowFreMotor, highFreMotor);
+  }
+
 
   private boolean connectedToUsbDriverService = false;
   private ControllerHandler controllerHandler;
-  private ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
+  private final ServiceConnection usbDriverServiceConnection = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
       UsbDriverService.UsbDriverBinder binder = (UsbDriverService.UsbDriverBinder) iBinder;
