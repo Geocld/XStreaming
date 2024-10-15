@@ -266,7 +266,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
 //    ReactContext reactContext = (ReactContext) getApplicationContext();
     ReactContext reactContext = getReactInstanceManager().getCurrentReactContext();
 
-    reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
+    if (reactContext != null) {
+      reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
+    }
   }
 
   public void handleRumble(short lowFreMotor, short highFreMotor) {

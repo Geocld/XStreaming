@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Linking, useColorScheme} from 'react-native';
+import {Alert, Linking, useColorScheme, NativeModules} from 'react-native';
 import {
   PaperProvider,
   MD3DarkTheme,
@@ -50,6 +50,8 @@ import SearchScreen from './pages/Search';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
+
+const {UsbRumbleManager} = NativeModules;
 
 const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
@@ -140,6 +142,10 @@ function App() {
   const {t} = useTranslation();
   const colorScheme = useColorScheme();
   const settings = getSettings();
+
+  if (settings.bind_usb_device !== undefined) {
+    UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
+  }
 
   updater().then((infos: any) => {
     if (infos) {

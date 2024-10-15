@@ -179,6 +179,16 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
       {value: 'Webview', text: t('Webview')},
     ],
   },
+  {
+    name: 'bind_usb_device',
+    type: 'radio',
+    title: t('Override native Xbox gamepad support'),
+    description: t('bind_usb_device_description'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
+  },
   // {
   //   name: 'vibration_intensity',
   //   type: 'slider',

@@ -17,6 +17,7 @@ import {getSettings, saveSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
+import {GAMEPAD_MAPING as USB_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
 import VirtualGamepad from '../components/VirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
 import Display from '../components/Display';
@@ -25,9 +26,9 @@ const log = debugFactory('StreamScreen');
 
 const CONNECTED = 'connected';
 
-const {FullScreenManager, GamepadManager} = NativeModules;
+const {FullScreenManager, GamepadManager, UsbRumbleManager} = NativeModules;
 
-const defaultMaping = GAMEPAD_MAPING;
+let defaultMaping = GAMEPAD_MAPING;
 
 const gpState = {
   A: 0,
@@ -85,11 +86,16 @@ function StreamScreen({navigation, route}) {
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
 
+  const usbGpEventListener = React.useRef(undefined);
+
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
+    const isUsbMode = route.params?.isUsbMode || false;
 
     const _settings = getSettings();
     setSettings(_settings);
+
+    console.log('isUsbMode:', isUsbMode);
 
     const sweap = obj => {
       return Object.fromEntries(
@@ -97,8 +103,11 @@ function StreamScreen({navigation, route}) {
       );
     };
 
+    if (isUsbMode) {
+      defaultMaping = USB_GAMEPAD_MAPING;
+    }
     let gpMaping = sweap(defaultMaping);
-    if (_settings.native_gamepad_maping) {
+    if (!isUsbMode && _settings.native_gamepad_maping) {
       gpMaping = sweap(_settings.native_gamepad_maping);
     }
 
@@ -122,7 +131,72 @@ function StreamScreen({navigation, route}) {
       GamepadManager.vibrate(10, 0, 0, 0, 0);
     };
 
-    if (_settings.gamepad_kernal === 'Native') {
+    const resetButtonState = () => {
+      const keys = [
+        'A',
+        'B',
+        'X',
+        'Y',
+        'LeftShoulder',
+        'RightShoulder',
+        'View',
+        'Menu',
+        'LeftThumb',
+        'RightThumb',
+        'DPadUp',
+        'DPadDown',
+        'DPadLeft',
+        'DPadRight',
+        'Nexus',
+      ];
+      keys.forEach(k => {
+        gpState[k] = 0;
+      });
+    };
+
+    // USB Mode
+    if (isUsbMode) {
+      log.info('Entry usb mode');
+      const eventEmitter = new NativeEventEmitter();
+      usbGpEventListener.current = eventEmitter.addListener(
+        'onGamepadReport',
+        params => {
+          // console.log('onGamepadReport:', params);
+          const {
+            keyCode,
+            leftTrigger,
+            rightTrigger,
+            leftStickX,
+            leftStickY,
+            rightStickX,
+            rightStickY,
+          } = params;
+
+          // Button
+          if (keyCode !== 0) {
+            const keyName = gpMaping[keyCode];
+            gpState[keyName] = 1;
+          } else {
+            resetButtonState();
+          }
+
+          // Trigger
+          gpState.LeftTrigger = leftTrigger;
+          gpState.RightTrigger = rightTrigger;
+
+          // Joystick
+          gpState.LeftThumbXAxis = leftStickX;
+          gpState.LeftThumbYAxis = leftStickY;
+          gpState.RightThumbXAxis = rightStickX;
+          gpState.RightThumbYAxis = rightStickY;
+        },
+      );
+
+      timer.current = setInterval(() => {
+        postData2Webview('gamepad', gpState);
+      }, 4);
+    } else if (_settings.gamepad_kernal === 'Native') {
+      log.info('Entry native mode');
       const eventEmitter = new NativeEventEmitter();
 
       gpDownEventListener.current = eventEmitter.addListener(
@@ -291,6 +365,7 @@ function StreamScreen({navigation, route}) {
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
       stopVibrate();
+      usbGpEventListener.current && usbGpEventListener.current.remove();
       gpDownEventListener.current && gpDownEventListener.current.remove();
       gpUpEventListener.current && gpUpEventListener.current.remove();
       dpDownEventListener.current && dpDownEventListener.current.remove();
@@ -305,6 +380,7 @@ function StreamScreen({navigation, route}) {
   }, [
     route.params?.sessionId,
     route.params?.streamType,
+    route.params?.isUsbMode,
     streamingTokens,
     navigation,
     authentication,
@@ -471,25 +547,37 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
-      let weakMagnitude = rumbleData.weakMagnitude * 100;
-      let strongMagnitude = rumbleData.strongMagnitude * 100;
-      let leftTrigger = rumbleData.leftTrigger * 100;
-      let rightTrigger = rumbleData.rightTrigger * 100;
 
-      if (weakMagnitude > 100) {
-        weakMagnitude = 100;
+      const isUsbMode = route.params?.isUsbMode || false;
+      if (isUsbMode) {
+        let weakMagnitude = rumbleData.weakMagnitude * 32767;
+        let strongMagnitude = rumbleData.strongMagnitude * 32767;
+        if (weakMagnitude > 32767) {
+          weakMagnitude = 32767;
+        }
+        if (strongMagnitude > 32767) {
+          strongMagnitude = 32767;
+        }
+        UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
+      } else {
+        let weakMagnitude = rumbleData.weakMagnitude * 100;
+        let strongMagnitude = rumbleData.strongMagnitude * 100;
+        let leftTrigger = rumbleData.leftTrigger * 100;
+        let rightTrigger = rumbleData.rightTrigger * 100;
+        if (weakMagnitude > 100) {
+          weakMagnitude = 100;
+        }
+        if (strongMagnitude > 100) {
+          strongMagnitude = 100;
+        }
+        GamepadManager.vibrate(
+          60000,
+          weakMagnitude,
+          strongMagnitude,
+          leftTrigger,
+          rightTrigger,
+        );
       }
-      if (strongMagnitude > 100) {
-        strongMagnitude = 100;
-      }
-
-      GamepadManager.vibrate(
-        60000,
-        weakMagnitude,
-        strongMagnitude,
-        leftTrigger,
-        rightTrigger,
-      );
     }
     if (type === 'performance') {
       setPerformance(message);
@@ -601,12 +689,6 @@ function StreamScreen({navigation, route}) {
           onStickMove={handleStickMove}
         />
       )}
-
-      {/* {showModal && (
-        <Button mode="contained" style={styles.phantom} onPress={() => {}}>
-          You can not see me
-        </Button>
-      )} */}
 
       <Portal>
         <Modal

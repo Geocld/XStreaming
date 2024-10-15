@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   RefreshControl,
+  NativeModules,
 } from 'react-native';
 import {Text, Divider} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -24,6 +25,8 @@ import NetInfo from '@react-native-community/netinfo';
 import {debugFactory} from '../utils/debug';
 
 const log = debugFactory('HomeScreen');
+
+const {UsbRumbleManager} = NativeModules;
 
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -212,13 +215,16 @@ function HomeScreen({navigation, route}) {
     }, 2000);
   };
 
-  const handleStartStream = sessionId => {
+  const handleStartStream = async sessionId => {
     const settings = getSettings();
+    const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
+    const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
     navigation.navigate({
       name: 'Stream',
       params: {
         sessionId,
         settings,
+        isUsbMode,
       },
     });
   };

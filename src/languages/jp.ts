@@ -103,6 +103,10 @@ export default {
     'Display settings': 'ディスプレイ設定',
     'Set parameters such as screen clarity and saturation':
       '画面の鮮明度や彩度などのパラメータを設定',
+    'Override native Xbox gamepad support':
+      'Override native Xbox gamepad support',
+    bind_usb_device_description:
+      "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present",
     Sharpness: 'シャープネス',
     Saturation: '彩度',
     Contrast: 'コントラスト',

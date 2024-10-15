@@ -103,6 +103,9 @@ export default {
     'Display settings': '畫面設置',
     'Set parameters such as screen clarity and saturation':
       '設置畫面清晰度、飽和度等參數',
+    'Override native Xbox gamepad support': '覆寫原生 Xbox 手把支援',
+    bind_usb_device_description:
+      '強制 XStreaming 的 USB 驅動程式接管所有受支援的原生 Xbox 控制器',
     Sharpness: '銳化',
     Saturation: '飽和度',
     Contrast: '對比度',

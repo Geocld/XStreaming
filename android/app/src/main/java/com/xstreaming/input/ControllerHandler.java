@@ -235,24 +235,23 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        // TODO: use USB devices(bindAllUsb)
-        // Count all USB devices that match our drivers
-        boolean usbDriver = true;
-
-        if (usbDriver) {
-            UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-            if (usbManager != null) {
-                for (UsbDevice dev : usbManager.getDeviceList().values()) {
-                    // We explicitly check not to claim devices that appear as InputDevices
-                    // otherwise we will double count them.
-                    if (UsbDriverService.shouldClaimDevice(dev, false) &&
-                            !UsbDriverService.isRecognizedInputDevice(dev)) {
-                        Log.d("UsbDriverService controllerHandler", "Counting UsbDevice: "+dev.getDeviceName());
-                        mask |= 1 << count++;
-                    }
-                }
-            }
-        }
+        // Count all USB devices that match our drivers(bindAllUsb)
+//        boolean usbDriver = true;
+//
+//        if (usbDriver) {
+//            UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+//            if (usbManager != null) {
+//                for (UsbDevice dev : usbManager.getDeviceList().values()) {
+//                    // We explicitly check not to claim devices that appear as InputDevices
+//                    // otherwise we will double count them.
+//                    if (UsbDriverService.shouldClaimDevice(dev, false) &&
+//                            !UsbDriverService.isRecognizedInputDevice(dev)) {
+//                        Log.d("UsbDriverService controllerHandler", "Counting UsbDevice: "+dev.getDeviceName());
+//                        mask |= 1 << count++;
+//                    }
+//                }
+//            }
+//        }
         return mask;
     }
 
@@ -726,37 +725,62 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         Vector2d leftStickVector = populateCachedVector(leftStickX, leftStickY);
 
-        context.leftStickX = (short) (leftStickVector.getX());
-        context.leftStickY = (short) (-leftStickVector.getY());
+        context.leftStickX = (short) (leftStickVector.getX() * 0x7FFE);
+        context.leftStickY = (short) (-leftStickVector.getY() * 0x7FFE);
 
         Vector2d rightStickVector = populateCachedVector(rightStickX, rightStickY);
 
         context.rightStickX = (short) (rightStickVector.getX());
         context.rightStickY = (short) (-rightStickVector.getY());
 
-        context.leftTrigger = (byte)(leftTrigger * 0xFF);
-        context.rightTrigger = (byte)(rightTrigger * 0xFF);
+        context.rightStickX = (short) (rightStickVector.getX() * 0x7FFE);
+        context.rightStickY = (short) (-rightStickVector.getY() * 0x7FFE);
 
         context.inputMap = buttonFlags;
 
-        if (leftTrigger != 0) {
-            Log.d("UsbDriverService reportControllerState", "leftTrigger:" + leftTrigger);
-        }
-
-        if (rightTrigger != 0) {
-            Log.d("UsbDriverService reportControllerState", "rightTrigger:" + rightTrigger);
-        }
+//        if (buttonFlags != 0) {
+//            Log.d("UsbDriverService reportControllerState", "buttonFlags:" + buttonFlags);
+//        }
+//
+//        if (leftTrigger != 0) {
+//            Log.d("UsbDriverService reportControllerState", "leftTrigger:" + leftTrigger);
+//        }
+//
+//        if (rightTrigger != 0) {
+//            Log.d("UsbDriverService reportControllerState", "rightTrigger:" + rightTrigger);
+//        }
 
 //        if (context.leftStickX != 0) {
 //            Log.d("UsbDriverService reportControllerState", "leftStickX:" + context.leftStickX);
 //            Log.d("UsbDriverService reportControllerState", "leftStickY:" + context.leftStickY);
 //        }
 
-        // TODO: send data to RN there
-        WritableMap triggerParams = Arguments.createMap();
-        this.activityContext.sendEvent("onTrigger", triggerParams);
 
-//        sendControllerInputPacket(context);
+        float _leftStickX = (float) context.leftStickX / 32766;
+        float _leftStickY = (float) -context.leftStickY / 32766;
+
+        float _rightStickX = (float) context.rightStickX / 32766;
+        float _rightStickY = (float) -context.rightStickY / 32766;
+
+//        if (_leftStickX != 0) {
+//            Log.d("UsbDriverService reportControllerState", "leftStickX:" + _leftStickX);
+//            Log.d("UsbDriverService reportControllerState", "leftStickY:" + _leftStickY);
+//        }
+
+        // TODO: send data to RN there
+        WritableMap params = Arguments.createMap();
+        params.putInt("keyCode", buttonFlags);
+        params.putDouble("leftTrigger", leftTrigger);
+        params.putDouble("rightTrigger", rightTrigger);
+        params.putDouble("leftStickX", _leftStickX);
+        params.putDouble("leftStickY", _leftStickY);
+        params.putDouble("rightStickX", _rightStickX);
+        params.putDouble("rightStickY", _rightStickY);
+
+        if(this.activityContext != null) {
+            this.activityContext.sendEvent("onGamepadReport", params);
+        }
+
     }
 
     @Override

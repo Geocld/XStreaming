@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView} from 'react-native';
+import {StyleSheet, View, ScrollView, NativeModules} from 'react-native';
 import {Button, RadioButton, Text, Divider} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import RNRestart from 'react-native-restart';
@@ -7,6 +7,8 @@ import Slider from '@react-native-community/slider';
 import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
 import settingsMeta from '../common/settings';
+
+const {UsbRumbleManager} = NativeModules;
 
 function SettingDetailScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -101,6 +103,8 @@ function SettingDetailScreen({navigation, route}) {
           region.isDefault = false;
         }
       });
+    } else if (currentMetas.name === 'bind_usb_device') {
+      UsbRumbleManager.setBindUsbDevice(value);
     }
     handleSaveSettings();
     navigation.goBack();

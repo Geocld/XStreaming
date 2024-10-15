@@ -1,10 +1,12 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, Image} from 'react-native';
+import {StyleSheet, View, ScrollView, Image, NativeModules} from 'react-native';
 import {Text, Button} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
+
+const {UsbRumbleManager} = NativeModules;
 
 const log = debugFactory('TitleDetailScreen');
 
@@ -25,14 +27,17 @@ function TitleDetail({navigation, route}) {
     });
   }, [route.params?.titleItem, navigation]);
 
-  const handleStartGame = () => {
+  const handleStartGame = async () => {
     log.info('HandleStartCloudGame titleId:', titleItem.XCloudTitleId);
+    const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
+    const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
     navigation.navigate({
       name: 'Stream',
       params: {
         sessionId: titleItem.titleId || titleItem.XCloudTitleId,
         settings,
         streamType: 'cloud',
+        isUsbMode,
       },
     });
   };

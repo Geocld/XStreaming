@@ -51,6 +51,10 @@ export default {
     'Set language of cloud game': 'Set language of cloud game',
     'Key mapping': 'Key mapping',
     'Mapping key of gamepad': 'Mapping key of gamepad',
+    'Override native Xbox gamepad support':
+      'Override native Xbox gamepad support',
+    bind_usb_device_description:
+      "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present(experimental)",
     Logout: 'Logout',
     'Do you want to logout?': 'Do you want to logout?',
     'Current user': 'Current user',

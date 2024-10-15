@@ -103,6 +103,9 @@ export default {
     'Display settings': '画面设置',
     'Set parameters such as screen clarity and saturation':
       '设置画面清晰度、饱和度等参数',
+    'Override native Xbox gamepad support': '覆盖安卓手柄支持',
+    bind_usb_device_description:
+      '强制XStreaming的USB驱动接管所有受支持的Xbox手柄(实验性)',
     Sharpness: '锐化',
     Saturation: '饱和度',
     Contrast: '对比度',

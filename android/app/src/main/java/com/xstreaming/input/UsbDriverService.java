@@ -18,6 +18,8 @@ import android.util.Log;
 import android.view.InputDevice;
 import android.widget.Toast;
 
+import com.xstreaming.UsbRumbleManager;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -54,6 +56,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         // Call through to the client's listener
         if (listener != null) {
             listener.deviceRemoved(controller);
+            UsbRumbleManager.setHasValidUsbDevice(false);
         }
     }
 
@@ -63,6 +66,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         // Call through to the client's listener
         if (listener != null) {
             listener.deviceAdded(controller);
+            UsbRumbleManager.setHasValidUsbDevice(true);
         }
     }
 
@@ -136,11 +140,9 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         // Are we able to operate it?
 
         // Open usb gamepad
-        // TODO: use USB devices
-        boolean bindAllUsb = true;
-//        boolean bindAllUsb = false;
+        boolean bindAllUsb = UsbRumbleManager.getBindUsbDevice();
 
-        Log.d("UsbDriverService", "shouldClaimDevice1: " + shouldClaimDevice(device, bindAllUsb));
+        Log.d("UsbDriverService", "shouldClaimDevice: " + shouldClaimDevice(device, bindAllUsb));
         if (shouldClaimDevice(device, bindAllUsb)) {
             // Do we have permission yet?
             if (!usbManager.hasPermission(device)) {
@@ -212,6 +214,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             }
 
             // Add this controller to the list
+            UsbRumbleManager.setHasValidUsbDevice(true);
             controllers.add(controller);
         }
     }
