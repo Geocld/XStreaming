@@ -116,6 +116,14 @@ function SettingsScreen({navigation}) {
           onPress={() => handleItemPress('debug')}
         />
 
+        <SettingItem
+          title={'Custom gamepad'}
+          description={'Custom gamepad'}
+          onPress={() => {
+            navigation.navigate('CustomGamepad');
+          }}
+        />
+
         {profile && profile.GameDisplayName ? (
           <SettingItem
             title={t('Logout')}

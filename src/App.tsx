@@ -41,6 +41,7 @@ import GameMapDetailScreen from './pages/GameMapDetail';
 import DisplaySettingsScreen from './pages/DisplaySettings';
 import AboutScreen from './pages/About';
 import FeedbackScreen from './pages/Feedback';
+import CustomGamepadScreen from './pages/CustomGamepad';
 import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
@@ -206,6 +207,11 @@ function App() {
                   options={{headerShown: false}}
                 />
                 <RootStack.Screen name="Debug" component={DebugScreen} />
+                <RootStack.Screen
+                  name="CustomGamepad"
+                  component={CustomGamepadScreen}
+                  options={{headerShown: false}}
+                />
                 <RootStack.Screen
                   name="Display"
                   component={DisplaySettingsScreen}
