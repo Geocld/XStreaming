@@ -17,6 +17,7 @@ import {getSettings, saveSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
+import WebApi from '../web';
 import {GAMEPAD_MAPING as USB_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
 import VirtualGamepad from '../components/VirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
@@ -63,6 +64,7 @@ function StreamScreen({navigation, route}) {
   const {t} = useTranslation();
   const authentication = useSelector(state => state.authentication);
   const streamingTokens = useSelector(state => state.streamingTokens);
+  const webToken = useSelector(state => state.webToken);
 
   const [xHomeApi, setXHomeApi] = React.useState(null);
   const [xCloudApi, setXCloudApi] = React.useState(null);
@@ -74,6 +76,7 @@ function StreamScreen({navigation, route}) {
   const [connectState, setConnectState] = React.useState('');
   const [performance, setPerformance] = React.useState({});
   const [showPerformance, setShowPerformance] = React.useState(false);
+  const [needPoweroff, setNeedPoweroff] = React.useState(false);
 
   const gpDownEventListener = React.useRef(undefined);
   const gpUpEventListener = React.useRef(undefined);
@@ -392,12 +395,21 @@ function StreamScreen({navigation, route}) {
 
   const webviewRef = React.useRef(null);
 
+  const handlePowerOff = async () => {
+    const webApi = new WebApi(webToken);
+    const powerOffRes = await webApi.powerOff(route.params?.sessionId);
+    console.log('powerOff:', powerOffRes);
+  };
+
   const handleExit = () => {
     if (isExiting) {
       return;
     }
     setIsExiting(true);
     streamApi.stopStream().then(() => {
+      if (needPoweroff) {
+        handlePowerOff();
+      }
       setTimeout(() => {
         setIsExiting(false);
         Orientation.unlockAllOrientations();
@@ -777,6 +789,19 @@ function StreamScreen({navigation, route}) {
                       }}
                     />
                   )}
+                {connectState === CONNECTED &&
+                  settings.power_on &&
+                  route.params?.streamType !== 'cloud' && (
+                    <List.Item
+                      title={t('Disconnect and power off')}
+                      background={background}
+                      onPress={() => {
+                        setNeedPoweroff(true);
+                        requestExit();
+                      }}
+                    />
+                  )}
+
                 <List.Item
                   title={t('Disconnect')}
                   background={background}

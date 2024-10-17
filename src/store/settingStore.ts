@@ -34,6 +34,7 @@ export type Settings = {
   native_gamepad_maping: Record<string, number> | null;
   display_options: DisplayOptions;
   ipv6: boolean;
+  power_on: boolean;
   theme: string;
   debug: boolean;
 };
@@ -60,6 +61,7 @@ const defaultSettings: Settings = {
   gamepad_maping: null,
   native_gamepad_maping: null,
   ipv6: false,
+  power_on: false,
   display_options: {
     sharpness: 5,
     saturation: 100,

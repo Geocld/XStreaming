@@ -44,36 +44,30 @@ const ConsoleItem = (props: any) => {
           </View>
         </View>
         <View style={styles.footer}>
-          <Button
-            mode="outlined"
-            background={{
-              borderless: false,
-              color: 'rgba(255, 255, 255, 0.2)',
-              foreground: true,
-            }}
-            onPress={props.onPowerOn}>
-            {t('Power On')}
-          </Button>
-          <Button
-            mode="outlined"
-            background={{
-              borderless: false,
-              color: 'rgba(255, 255, 255, 0.2)',
-              foreground: true,
-            }}
-            onPress={props.onPowerOff}>
-            {t('Power Off')}
-          </Button>
-          <Button
-            mode="outlined"
-            background={{
-              borderless: false,
-              color: 'rgba(255, 255, 255, 0.2)',
-              foreground: true,
-            }}
-            onPress={props.onPress}>
-            {t('Start stream')}
-          </Button>
+          {settings.power_on &&
+          consoleItem.powerState === 'ConnectedStandby' ? (
+            <Button
+              mode="outlined"
+              background={{
+                borderless: false,
+                color: 'rgba(255, 255, 255, 0.2)',
+                foreground: true,
+              }}
+              onPress={props.onPoweronStream}>
+              {t('Power on and start stream')}
+            </Button>
+          ) : (
+            <Button
+              mode="outlined"
+              background={{
+                borderless: false,
+                color: 'rgba(255, 255, 255, 0.2)',
+                foreground: true,
+              }}
+              onPress={props.onPress}>
+              {t('Start stream')}
+            </Button>
+          )}
         </View>
       </Card.Content>
     </Card>

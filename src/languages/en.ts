@@ -16,8 +16,10 @@ export default {
       'Login has expired or not logged in, please log in again',
     'Loading...': 'Loading...',
     'Start stream': 'Start stream',
+    'Power on and start stream': 'Power on and start stream',
     'Local connect': 'Local connect',
     'Remote connect': 'Remote connect',
+    'Disconnect and power off': 'Disconnect and power off',
     NoXGP:
       'You have not activated XGPU or do not have XGPU permission in your region. Please check your account permissions or change the region in settings and try again.',
     'Recent Games': 'Recent Games',
@@ -55,6 +57,8 @@ export default {
       'Override native Xbox gamepad support',
     bind_usb_device_description:
       "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present(experimental)",
+    power_on_description:
+      "Choose whether to power on the console when streaming. By default, the console remains in sleep mode, and the power light won't turn on during streaming. Enabling this option will fully power on the host and may wake up the monitor",
     Logout: 'Logout',
     'Do you want to logout?': 'Do you want to logout?',
     'Current user': 'Current user',

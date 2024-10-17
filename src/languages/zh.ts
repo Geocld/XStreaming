@@ -21,6 +21,7 @@ export default {
       '登录已失效或未登录，请重新登录',
     'Loading...': '加载中...',
     'Start stream': '开始串流',
+    'Power on and start stream': '开机并开始串流',
     'Start game': '开始云游戏',
     'Local connect': '本地连接',
     'Remote connect': '远程连接',
@@ -30,6 +31,7 @@ export default {
     'Press Nexus': '按下西瓜键',
     'Long press Nexus': '长按西瓜键',
     Disconnect: '断开连接',
+    'Disconnect and power off': '断开连接并关机',
     NoXGP:
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
     Recently: '最近游玩',
@@ -106,6 +108,9 @@ export default {
     'Override native Xbox gamepad support': '覆盖安卓手柄支持',
     bind_usb_device_description:
       '强制XStreaming的USB驱动接管所有受支持的Xbox手柄(实验性)',
+    'Power on when streaming': '开机并开始串流',
+    power_on_description:
+      '选择主机串流时是否开启，默认主机开启睡眠模式后串流时电源灯不会亮，开启此选项后主机会彻底开机，并可能唤醒显示器',
     Sharpness: '锐化',
     Saturation: '饱和度',
     Contrast: '对比度',

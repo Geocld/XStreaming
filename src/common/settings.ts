@@ -247,6 +247,16 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     ],
   },
   {
+    name: 'power_on',
+    type: 'radio',
+    title: t('Power on when streaming'),
+    description: t('power_on_description'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
+  },
+  {
     name: 'ipv6',
     type: 'radio',
     title: t('Ipv6'),

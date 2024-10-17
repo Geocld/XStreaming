@@ -21,6 +21,7 @@ export default {
       '登錄已失效或未登錄，請重新登錄',
     'Loading...': '加載中...',
     'Start stream': '開始串流',
+    'Power on and start stream': '開機並開始串流',
     'Start game': '開始雲遊戲',
     'Local connect': '本地連接',
     'Remote connect': '遠程連接',
@@ -30,6 +31,7 @@ export default {
     'Press Nexus': '按下西瓜鍵',
     'Long press Nexus': '長按西瓜鍵',
     Disconnect: '斷開連接',
+    'Disconnect and power off': '斷開連接并關機',
     NoXGP:
       '你沒有開通XGPU或所在地區沒有XGPU權限，請檢查賬號權限或到設置中修改地區重試。',
     Recently: '最近遊玩',

@@ -105,6 +105,9 @@ function SettingDetailScreen({navigation, route}) {
       });
     } else if (currentMetas.name === 'bind_usb_device') {
       UsbRumbleManager.setBindUsbDevice(value);
+    } else if (currentMetas.name === 'gamepad_kernal') {
+      settings.gamepad_maping = null;
+      settings.native_gamepad_maping = null;
     }
     handleSaveSettings();
     navigation.goBack();

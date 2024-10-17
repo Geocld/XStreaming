@@ -193,26 +193,19 @@ function HomeScreen({navigation, route}) {
     }
   }, [t, route.params?.xalUrl, dispatch, navigation, isConnected]);
 
-  const handlePowerOn = async sessionId => {
+  const handlePoweronAndStream = async sessionId => {
+    setLoading(true);
+    setLoadingText(t('Loading...'));
     const webApi = new WebApi(webToken);
     const powerOnRes = await webApi.powerOn(sessionId);
-    console.log('powerOn:', powerOnRes);
+    log.info('powerOn:', powerOnRes);
 
-    setTimeout(async () => {
-      const result = await webApi.getConsoleStatus(sessionId);
-      console.log('getConsoleStatus:', result);
-    }, 2000);
-  };
+    const _consoles = await webApi.getConsoles();
+    setConsoles(_consoles);
 
-  const handlePowerOff = async sessionId => {
-    const webApi = new WebApi(webToken);
-    const powerOffRes = await webApi.powerOff(sessionId);
-    console.log('powerOff:', powerOffRes);
+    setLoading(false);
 
-    setTimeout(async () => {
-      const result = await webApi.getConsoleStatus(sessionId);
-      console.log('getConsoleStatus:', result);
-    }, 2000);
+    handleStartStream(sessionId);
   };
 
   const handleStartStream = async sessionId => {
@@ -264,9 +257,8 @@ function HomeScreen({navigation, route}) {
                   <ConsoleItem
                     consoleItem={console}
                     key={console.id}
-                    onPowerOn={() => handlePowerOn(console.id)}
-                    onPowerOff={() => handlePowerOff(console.id)}
                     onPress={() => handleStartStream(console.id)}
+                    onPoweronStream={() => handlePoweronAndStream(console.id)}
                   />
                 );
               })}
