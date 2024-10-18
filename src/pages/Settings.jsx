@@ -120,7 +120,7 @@ function SettingsScreen({navigation}) {
           title={'Custom gamepad'}
           description={'Custom gamepad'}
           onPress={() => {
-            navigation.navigate('CustomGamepad');
+            navigation.navigate('VirtualGamepadSettings');
           }}
         />
 

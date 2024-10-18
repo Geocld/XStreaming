@@ -2,17 +2,16 @@ import React from 'react';
 import {View, TouchableOpacity, StyleSheet} from 'react-native';
 
 type Props = {
-  name: string;
-  style?: any;
+  style: any;
 };
 
-const GamepadButton: React.FC<Props> = ({style}) => {
+const GamepadButton: React.FC<Props> = ({style = {}}) => {
   return (
-    <View style={styles.dpad}>
-      {/* <TouchableOpacity style={[styles.button, styles.dpadLeft]} />
+    <View style={[styles.dpad, style]}>
+      <TouchableOpacity style={[styles.button, styles.dpadLeft]} />
       <TouchableOpacity style={[styles.button, styles.dpadTop]} />
       <TouchableOpacity style={[styles.button, styles.dpadRight]} />
-      <TouchableOpacity style={[styles.button, styles.dpadBottom]} /> */}
+      <TouchableOpacity style={[styles.button, styles.dpadBottom]} />
     </View>
   );
 };
@@ -22,7 +21,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 50,
     height: 50,
-    backgroundColor: '#fff',
   },
   button: {
     position: 'absolute',

@@ -41,6 +41,7 @@ import GameMapDetailScreen from './pages/GameMapDetail';
 import DisplaySettingsScreen from './pages/DisplaySettings';
 import AboutScreen from './pages/About';
 import FeedbackScreen from './pages/Feedback';
+import VirtualGamepadSettingsScreen from './pages/VirtualGamepadSettings';
 import CustomGamepadScreen from './pages/CustomGamepad';
 import updater from './utils/updater';
 
@@ -211,6 +212,10 @@ function App() {
                   name="CustomGamepad"
                   component={CustomGamepadScreen}
                   options={{headerShown: false}}
+                />
+                <RootStack.Screen
+                  name="VirtualGamepadSettings"
+                  component={VirtualGamepadSettingsScreen}
                 />
                 <RootStack.Screen
                   name="Display"

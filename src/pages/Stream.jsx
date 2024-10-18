@@ -20,6 +20,7 @@ import {GAMEPAD_MAPING} from '../common';
 import WebApi from '../web';
 import {GAMEPAD_MAPING as USB_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
 import VirtualGamepad from '../components/VirtualGamepad';
+import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
 import Display from '../components/Display';
 
@@ -362,6 +363,10 @@ function StreamScreen({navigation, route}) {
         // setFocusable(false);
         webviewRef.current && webviewRef.current.stopLoading();
       }
+
+      setTimeout(() => {
+        setShowVirtualGamepad(true);
+      }, 3000);
     }, 500);
 
     return () => {
@@ -694,7 +699,13 @@ function StreamScreen({navigation, route}) {
       {showPerformance && <PerfPanel performance={performance} />}
 
       {showVirtualGamepad && (
-        <VirtualGamepad
+        // <VirtualGamepad
+        //   opacity={settings.virtual_gamepad_opacity}
+        //   onPressIn={handleButtonPressIn}
+        //   onPressOut={handleButtonPressOut}
+        //   onStickMove={handleStickMove}
+        // />
+        <CustomVirtualGamepad
           opacity={settings.virtual_gamepad_opacity}
           onPressIn={handleButtonPressIn}
           onPressOut={handleButtonPressOut}
@@ -818,7 +829,7 @@ function StreamScreen({navigation, route}) {
         </Modal>
       </Portal>
 
-      <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
+      {/* <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
         <WebView
           ref={instance => {
             webviewRef.current = instance;
@@ -840,7 +851,7 @@ function StreamScreen({navigation, route}) {
             handleWebviewMessage(event);
           }}
         />
-      </View>
+      </View> */}
     </>
   );
 }
