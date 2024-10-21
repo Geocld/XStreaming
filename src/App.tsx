@@ -149,29 +149,31 @@ function App() {
     UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
   }
 
-  updater().then((infos: any) => {
-    if (infos) {
-      const {latestVer, version, url} = infos;
-      Alert.alert(
-        t('Warning'),
-        t(`Check new version ${latestVer}, current version is ${version}`),
-        [
-          {
-            text: t('Cancel'),
-            style: 'default',
-            onPress: () => {},
-          },
-          {
-            text: t('Download'),
-            style: 'default',
-            onPress: () => {
-              Linking.openURL(url).catch(_ => {});
+  if (settings.check_update) {
+    updater().then((infos: any) => {
+      if (infos) {
+        const {latestVer, version, url} = infos;
+        Alert.alert(
+          t('Warning'),
+          t(`Check new version ${latestVer}, current version is ${version}`),
+          [
+            {
+              text: t('Cancel'),
+              style: 'default',
+              onPress: () => {},
             },
-          },
-        ],
-      );
-    }
-  });
+            {
+              text: t('Download'),
+              style: 'default',
+              onPress: () => {
+                Linking.openURL(url).catch(_ => {});
+              },
+            },
+          ],
+        );
+      }
+    });
+  }
 
   let paperTheme = paperDarkTheme;
   let navigationTheme = CombinedDarkTheme;
@@ -220,6 +222,7 @@ function App() {
                 <RootStack.Screen
                   name="VirtualGamepadSettings"
                   component={VirtualGamepadSettingsScreen}
+                  options={{title: t('Custom')}}
                 />
                 <RootStack.Screen
                   name="Display"

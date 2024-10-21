@@ -93,6 +93,11 @@ export default {
     'Do you want to logout?': '要登出嗎？',
     'Current user': '當前用戶',
     'Powered on': '開機',
+    'Low Latency Mode': 'WIFI低延迟模式',
+    low_latency_mode_description:
+      '使用Android wifi性能模式，以实现最佳的串流效果。可能导致某些设备蓝牙出现延迟，如果遇到蓝牙延迟问题，请选择停用此模式',
+    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
+      '自定义虚拟按键位置可能跟实际渲染存在误差，请以实际效果为准',
     Theme: '主題',
     'Set the app theme to take effect on the next launch':
       '設置APP主題，下次啟動生效',

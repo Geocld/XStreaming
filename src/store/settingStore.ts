@@ -36,6 +36,7 @@ export type Settings = {
   display_options: DisplayOptions;
   low_latency_mode: boolean;
   ipv6: boolean;
+  check_update: boolean;
   power_on: boolean;
   theme: string;
   debug: boolean;
@@ -63,8 +64,9 @@ const defaultSettings: Settings = {
   custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,
-  low_latency_mode: false,
+  low_latency_mode: true,
   ipv6: false,
+  check_update: true,
   power_on: false,
   display_options: {
     sharpness: 5,

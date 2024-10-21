@@ -65,10 +65,8 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
   let isError = false;
   if (!name.trim()) {
     isError = true;
-    errorText = 'name can not be empty';
+    errorText = t('Name can not be empty');
   }
-
-  console.log('settings:', settings);
 
   return (
     <View style={styles.container}>
@@ -79,11 +77,7 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
           contentContainerStyle={styles.modal}>
           <Card>
             <Card.Content>
-              <TextInput
-                label="name"
-                value={name}
-                onChangeText={onChangeText}
-              />
+              <TextInput label="" value={name} onChangeText={onChangeText} />
               <HelperText type="error" visible={isError}>
                 {errorText}
               </HelperText>
@@ -94,7 +88,9 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
                 onPress={() => {
                   if (!isError) {
                     setShowAddModal(false);
-                    navigation.navigate('CustomGamepad', {name});
+                    setTimeout(() => {
+                      navigation.navigate('CustomGamepad', {name});
+                    }, 300);
                   }
                 }}>
                 {t('Confirm')}
@@ -106,12 +102,12 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.tips}>
-          <Text>test</Text>
+          <Text>{t('Customize buttons of virtual gamepad')}</Text>
         </View>
         <Divider />
 
         <RadioButton.Group onValueChange={val => setValue(val)} value={value}>
-          <RadioButton.Item label={'Default'} value={''} />
+          <RadioButton.Item label={t('Default')} value={''} />
           {settings.map(s => {
             return <RadioButton.Item key={s} label={s} value={s} />;
           })}

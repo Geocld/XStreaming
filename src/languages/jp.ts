@@ -91,6 +91,8 @@ export default {
     'Do you want to logout?': 'ログアウトしますか？',
     'Current user': '現在のユーザー',
     'Powered on': '電源オン',
+    low_latency_mode_description:
+      "Use Android's Wi-Fi performance mode to achieve optimal streaming effects. This may cause Bluetooth latency on some devices. If you encounter Bluetooth latency issues, please choose to disable this mode.",
     Theme: 'テーマ',
     'Set the app theme to take effect on the next launch':
       'アプリのテーマを設定します。次回起動時に反映されます。',

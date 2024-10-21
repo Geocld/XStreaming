@@ -35,6 +35,7 @@ function CustomGamepadScreen({navigation, route}) {
   const [defaultButtons, setDefaultButtons] = React.useState([]);
   const [buttons, setButtons] = React.useState([]);
   const [showActionModal, setActionShowModal] = React.useState(false);
+  const [showWarnModal, setShowWarnShowModal] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [reloader, setReloader] = React.useState(Date.now());
 
@@ -52,11 +53,7 @@ function CustomGamepadScreen({navigation, route}) {
       setTitle(route.params?.name);
     }
 
-    console.log('route.params?.name:', _title);
-    console.log('_settings:', _settings);
-
     // console.log('_settings:', _settings);
-    console.log('CustomGamepadScreen');
     FullScreenManager.immersiveModeOn();
     Orientation.lockToLandscape();
     setTimeout(() => {
@@ -187,6 +184,8 @@ function CustomGamepadScreen({navigation, route}) {
         setButtons(_buttons);
       }
       setDefaultButtons(_buttons);
+
+      setShowWarnShowModal(true);
     }, 500);
 
     navigation.addListener('beforeRemove', e => {
@@ -263,8 +262,36 @@ function CustomGamepadScreen({navigation, route}) {
     navigation.navigate('Settings');
   };
 
+  const renderWarningModal = () => {
+    return (
+      <Portal>
+        <Modal
+          visible={showWarnModal}
+          onDismiss={() => setShowWarnShowModal(false)}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              <Text>
+                TIPS1:{' '}
+                {t(
+                  'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy',
+                )}
+              </Text>
+              <Text>
+                TIPS2: {t('Click on an element to set its size and display')}
+              </Text>
+              <Text>TIPS3: {t('Drag elements to adjust their position')}</Text>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {renderWarningModal()}
+
       <Portal>
         <Modal
           visible={showActionModal}

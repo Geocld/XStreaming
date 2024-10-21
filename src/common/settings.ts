@@ -294,6 +294,16 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     ),
     data: [],
   },
+  {
+    name: 'check_update',
+    type: 'radio',
+    title: t('Auto check update'),
+    description: t('Whether check XStreaming updates automatically'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
+  },
 ];
 
 export default settings;

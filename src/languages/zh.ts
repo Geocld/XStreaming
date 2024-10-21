@@ -114,6 +114,21 @@ export default {
     'Low Latency Mode': 'WIFI低延迟模式',
     low_latency_mode_description:
       '使用Android wifi性能模式，以实现最佳的串流效果。可能导致某些设备蓝牙出现延迟，如果遇到蓝牙延迟问题，请选择停用此模式',
+    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
+      '📢自定义虚拟按键位置可能跟实际渲染存在误差，请以实际效果为准',
+    'Customize virtual buttons': '自定义虚拟按键',
+    'Customize buttons of virtual gamepad': '自定义虚拟手柄按键',
+    'Click on an element to set its size and display':
+      '👆点击元素设置元素大小及显示',
+    'Drag elements to adjust their position': '✋拖动元素调整位置',
+    'Name can not be empty': '名称不能为空',
+    'Auto check update': '自动检查更新',
+    'Whether check XStreaming updates automatically':
+      '是否自动检查XStreaming更新',
+    Custom: '自定义',
+    Size: '大小',
+    Show: '显示',
+    Select: '选择',
     Sharpness: '锐化',
     Saturation: '饱和度',
     Contrast: '对比度',
@@ -125,7 +140,6 @@ export default {
     Friends: '好友',
     Achivements: '成就',
     Auto: '自动',
-    Custom: '自定义',
     bitrate: '码率',
     Language: '语言',
     Display: '画面',
@@ -148,6 +162,7 @@ export default {
     NoData: '这里空空如也~',
     score: '分数',
     Default: '默认',
+    Edit: '编辑',
     Australia: '澳大利亚',
     Brazil: '巴西',
     Europe: '欧洲',
@@ -161,6 +176,7 @@ export default {
     Saved: '保存成功',
     'Save Maping': '保存',
     Reset: '恢复默认值',
+    Delete: '删除',
     Exit: '退出',
   },
 };

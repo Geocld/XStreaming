@@ -85,6 +85,14 @@ function SettingsScreen({navigation}) {
         })}
 
         <SettingItem
+          title={t('Customize virtual buttons')}
+          description={t('Customize buttons of virtual gamepad')}
+          onPress={() => {
+            navigation.navigate('VirtualGamepadSettings');
+          }}
+        />
+
+        <SettingItem
           title={t('Display')}
           description={t(
             'Set parameters such as screen clarity and saturation',
@@ -114,14 +122,6 @@ function SettingsScreen({navigation}) {
           title={'DEBUG'}
           description={'Enter debug.'}
           onPress={() => handleItemPress('debug')}
-        />
-
-        <SettingItem
-          title={'Custom gamepad'}
-          description={'Custom gamepad'}
-          onPress={() => {
-            navigation.navigate('VirtualGamepadSettings');
-          }}
         />
 
         {profile && profile.GameDisplayName ? (
