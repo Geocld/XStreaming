@@ -8,7 +8,7 @@ import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
 import settingsMeta from '../common/settings';
 
-const {UsbRumbleManager} = NativeModules;
+const {UsbRumbleManager, WifiModeManager} = NativeModules;
 
 function SettingDetailScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -108,6 +108,8 @@ function SettingDetailScreen({navigation, route}) {
     } else if (currentMetas.name === 'gamepad_kernal') {
       settings.gamepad_maping = null;
       settings.native_gamepad_maping = null;
+    } else if (currentMetas.name === 'low_latency_mode') {
+      WifiModeManager.setLowLatencyMode(value);
     }
     handleSaveSettings();
     navigation.goBack();

@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, View, TouchableOpacity, Dimensions} from 'react-native';
-import GamepadButton from './GamepadButton';
+import {StyleSheet, View, Dimensions} from 'react-native';
+import GamepadButton from './CustomGamepad/GamepadButton';
 import Dpad from './CustomGamepad/Dpad';
 import {ReactNativeJoystick} from '../components/Joystick';
 import {getSettings} from '../store/gamepadStore';
@@ -126,8 +126,8 @@ const CustomVirtualGamepad: React.FC<Props> = ({
         name: 'Dpad',
         x: 20,
         y: height - 170,
-        width: 100,
-        height: 100,
+        width: 60,
+        height: 60,
         scale: 1,
         show: true,
       },
@@ -164,24 +164,30 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     onStickMove && onStickMove(id, data);
   };
 
-  console.log('buttons:', buttons);
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       {buttons.map((button: any) => {
+        if (!button.show) {
+          return null;
+        }
         if (button.name === 'Dpad') {
           return (
             <Dpad
               key={button.name}
+              scale={button.scale}
               style={{
                 opacity: opacity,
-                left: button.x,
+                left: button.x - 15,
                 top: button.y + 100,
               }}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
             />
           );
         } else if (button.name === 'LeftStick') {
           return (
             <View
+              key={button.name}
               style={[
                 styles.button,
                 {top: button.y, left: button.x},
@@ -199,6 +205,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
         } else if (button.name === 'RightStick') {
           return (
             <View
+              key={button.name}
               style={[
                 styles.button,
                 {top: button.y, left: button.x},
@@ -219,6 +226,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
             <GamepadButton
               key={button.name}
               name={button.name}
+              scale={button.scale}
               style={[
                 styles.button,
                 {opacity},

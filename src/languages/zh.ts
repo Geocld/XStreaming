@@ -111,6 +111,9 @@ export default {
     'Power on when streaming': '开机并开始串流',
     power_on_description:
       '选择主机串流时是否开启，默认主机开启睡眠模式后串流时电源灯不会亮，开启此选项后主机会彻底开机，并可能唤醒显示器',
+    'Low Latency Mode': 'WIFI低延迟模式',
+    low_latency_mode_description:
+      '使用Android wifi性能模式，以实现最佳的串流效果。可能导致某些设备蓝牙出现延迟，如果遇到蓝牙延迟问题，请选择停用此模式',
     Sharpness: '锐化',
     Saturation: '饱和度',
     Contrast: '对比度',

@@ -53,7 +53,7 @@ import SearchScreen from './pages/Search';
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
 
-const {UsbRumbleManager} = NativeModules;
+const {UsbRumbleManager, WifiModeManager} = NativeModules;
 
 const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
@@ -183,6 +183,10 @@ function App() {
   } else if (settings.theme === 'light') {
     paperTheme = paperLightTheme;
     navigationTheme = CombinedDefaultTheme;
+  }
+
+  if (settings.low_latency_mode) {
+    WifiModeManager.setLowLatencyMode(true);
   }
 
   return (

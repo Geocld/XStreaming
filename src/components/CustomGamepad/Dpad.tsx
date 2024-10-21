@@ -3,15 +3,63 @@ import {View, TouchableOpacity, StyleSheet} from 'react-native';
 
 type Props = {
   style: any;
+  scale?: number;
+  onPressIn: any;
+  onPressOut: any;
 };
 
-const GamepadButton: React.FC<Props> = ({style = {}}) => {
+const GamepadButton: React.FC<Props> = ({
+  style = {},
+  scale = 1,
+  onPressIn,
+  onPressOut,
+}) => {
+  const handlePressIn = (name: string) => {
+    onPressIn && onPressIn(name);
+  };
+
+  const handlePressOut = (name: string) => {
+    onPressOut && onPressOut(name);
+  };
+
   return (
-    <View style={[styles.dpad, style]}>
-      <TouchableOpacity style={[styles.button, styles.dpadLeft]} />
-      <TouchableOpacity style={[styles.button, styles.dpadTop]} />
-      <TouchableOpacity style={[styles.button, styles.dpadRight]} />
-      <TouchableOpacity style={[styles.button, styles.dpadBottom]} />
+    <View style={[styles.dpad, {transform: [{scale}]}, style]}>
+      <TouchableOpacity
+        style={[styles.button, styles.dpadLeft]}
+        onPressIn={() => {
+          handlePressIn('DPadLeft');
+        }}
+        onPressOut={() => {
+          handlePressOut('DPadLeft');
+        }}
+      />
+      <TouchableOpacity
+        style={[styles.button, styles.dpadTop]}
+        onPressIn={() => {
+          handlePressIn('DPadUp');
+        }}
+        onPressOut={() => {
+          handlePressOut('DPadUp');
+        }}
+      />
+      <TouchableOpacity
+        style={[styles.button, styles.dpadRight]}
+        onPressIn={() => {
+          handlePressIn('DPadRight');
+        }}
+        onPressOut={() => {
+          handlePressOut('DPadRight');
+        }}
+      />
+      <TouchableOpacity
+        style={[styles.button, styles.dpadBottom]}
+        onPressIn={() => {
+          handlePressIn('DPadDown');
+        }}
+        onPressOut={() => {
+          handlePressOut('DPadDown');
+        }}
+      />
     </View>
   );
 };

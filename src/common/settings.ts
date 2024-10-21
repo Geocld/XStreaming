@@ -257,6 +257,16 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     ],
   },
   {
+    name: 'low_latency_mode',
+    type: 'radio',
+    title: t('Low Latency Mode'),
+    description: t('low_latency_mode_description'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
+  },
+  {
     name: 'ipv6',
     type: 'radio',
     title: t('Ipv6'),

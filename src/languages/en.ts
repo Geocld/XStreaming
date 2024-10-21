@@ -59,6 +59,8 @@ export default {
       "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present(experimental)",
     power_on_description:
       "Choose whether to power on the console when streaming. By default, the console remains in sleep mode, and the power light won't turn on during streaming. Enabling this option will fully power on the host and may wake up the monitor",
+    low_latency_mode_description:
+      "Use Android's Wi-Fi performance mode to achieve optimal streaming effects. This may cause Bluetooth latency on some devices. If you encounter Bluetooth latency issues, please choose to disable this mode.",
     Logout: 'Logout',
     'Do you want to logout?': 'Do you want to logout?',
     'Current user': 'Current user',

@@ -12,16 +12,19 @@ import {
   Modal,
   Card,
   List,
-  Button,
   RadioButton,
   Text,
+  Divider,
 } from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import Draggable from 'react-native-draggable';
 import Slider from '@react-native-community/slider';
 import GamepadButton from '../components/CustomGamepad/Button';
-// import Dpad from '../components/CustomGamepad/Dpad';
 import {getSettings, saveSettings, deleteSetting} from '../store/gamepadStore';
+import {
+  getSettings as getUserSettings,
+  saveSettings as saveUserSettings,
+} from '../store/settingStore';
 
 const {FullScreenManager} = NativeModules;
 
@@ -34,7 +37,10 @@ function CustomGamepadScreen({navigation, route}) {
   const [showActionModal, setActionShowModal] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [reloader, setReloader] = React.useState(Date.now());
-  const [value, setValue] = React.useState('first');
+
+  const [currentButton, setCurrentButton] = React.useState('');
+  const [currentScale, setCurrentScale] = React.useState(1);
+  const [currentShow, setCurrentShow] = React.useState(true);
 
   React.useEffect(() => {
     const _settings = getSettings();
@@ -198,11 +204,34 @@ function CustomGamepadScreen({navigation, route}) {
     };
   }, [navigation, route.params?.name]);
 
+  // Button drag
   const handleDrag = (name, x, y) => {
     buttons.forEach(b => {
       if (b.name === name) {
         b.x = Math.round(x);
         b.y = Math.round(y);
+      }
+    });
+    setButtons([...buttons]);
+  };
+
+  // Button size change
+  const handleChangeSize = scale => {
+    buttons.forEach(b => {
+      if (b.name === currentButton) {
+        b.scale = scale;
+      }
+    });
+    setButtons([...buttons]);
+  };
+
+  // Button show change
+  const handleChangeShow = value => {
+    console.log('handleChangeShow:', value);
+    setCurrentShow(value);
+    buttons.forEach(b => {
+      if (b.name === currentButton) {
+        b.show = value;
       }
     });
     setButtons([...buttons]);
@@ -220,12 +249,20 @@ function CustomGamepadScreen({navigation, route}) {
     navigation.navigate('Settings');
   };
 
+  const handleReset = () => {
+    setButtons([...defaultButtons]);
+  };
+
   const handleDelete = () => {
+    const userSettings = getUserSettings();
+    if (userSettings.custom_virtual_gamepad === title) {
+      userSettings.custom_virtual_gamepad = '';
+      saveUserSettings(userSettings);
+    }
     deleteSetting(title);
     navigation.navigate('Settings');
   };
 
-  // console.log('button:', buttons);
   return (
     <SafeAreaView style={styles.container}>
       <Portal>
@@ -240,6 +277,11 @@ function CustomGamepadScreen({navigation, route}) {
                   title={t('Save')}
                   background={background}
                   onPress={() => handleSave()}
+                />
+                <List.Item
+                  title={t('Reset')}
+                  background={background}
+                  onPress={() => handleReset()}
                 />
                 {settings[title] && (
                   <List.Item
@@ -268,18 +310,39 @@ function CustomGamepadScreen({navigation, route}) {
           contentContainerStyle={styles.modal}>
           <Card>
             <Card.Content>
-              <Slider
-                value={1}
-                minimumValue={1}
-                maximumValue={5}
-                step={0.1}
-                onValueChange={val => {
-                  console.log('slider value:', value);
-                }}
-                lowerLimit={1}
-                minimumTrackTintColor="#107C10"
-                maximumTrackTintColor="grey"
-              />
+              {currentButton !== 'LeftStick' &&
+                currentButton !== 'RightStick' && (
+                  <>
+                    <View style={styles.title}>
+                      <Text>{t('Size')}</Text>
+                      <Divider style={styles.divider} />
+                    </View>
+                    <Slider
+                      value={currentScale}
+                      minimumValue={1}
+                      maximumValue={4}
+                      step={0.1}
+                      onValueChange={val => {
+                        setCurrentScale(val);
+                        handleChangeSize(val);
+                      }}
+                      lowerLimit={1}
+                      minimumTrackTintColor="#107C10"
+                      maximumTrackTintColor="grey"
+                    />
+                  </>
+                )}
+
+              <View style={styles.title}>
+                <Text>{t('Show')}</Text>
+                <Divider style={styles.divider} />
+              </View>
+              <RadioButton.Group
+                onValueChange={val => handleChangeShow(val)}
+                value={currentShow}>
+                <RadioButton.Item label={'Display'} value={true} />
+                <RadioButton.Item label={'Hide'} value={false} />
+              </RadioButton.Group>
             </Card.Content>
           </Card>
         </Modal>
@@ -288,6 +351,9 @@ function CustomGamepadScreen({navigation, route}) {
       <>
         {buttons.map(button => {
           if (button.name === 'LeftStick' || button.name === 'RightStick') {
+            if (!button.show) {
+              return null;
+            }
             return (
               <Draggable
                 x={button.x}
@@ -297,6 +363,9 @@ function CustomGamepadScreen({navigation, route}) {
                 renderColor="white"
                 isCircle
                 onShortPressRelease={() => {
+                  setCurrentButton(button.name);
+                  setCurrentScale(1);
+                  setCurrentShow(button.show || true);
                   setShowModal(true);
                 }}
                 onDragRelease={event => {
@@ -310,12 +379,18 @@ function CustomGamepadScreen({navigation, route}) {
               />
             );
           } else {
+            if (!button.show) {
+              return null;
+            }
             return (
               <Draggable
                 x={button.x}
                 y={button.y}
                 key={button.name + reloader}
                 onShortPressRelease={() => {
+                  setCurrentButton(button.name);
+                  setCurrentScale(button.scale || 1);
+                  setCurrentShow(button.show || true);
                   setShowModal(true);
                 }}
                 onDragRelease={event => {
@@ -330,6 +405,7 @@ function CustomGamepadScreen({navigation, route}) {
                   name={button.name}
                   width={button.width}
                   height={button.height}
+                  scale={button.scale}
                 />
               </Draggable>
             );
@@ -348,6 +424,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     marginLeft: '35%',
     marginRight: '35%',
+  },
+  title: {
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  divider: {
+    marginTop: 10,
   },
 });
 

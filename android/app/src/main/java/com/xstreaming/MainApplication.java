@@ -34,6 +34,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new FullScreenPackage());
             packages.add(new GamepadPackage());
             packages.add(new UsbRumblePackage());
+            packages.add(new WifiModePackage());
           return packages;
         }
 

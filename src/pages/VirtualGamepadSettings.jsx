@@ -13,17 +13,21 @@ import {
   TextInput,
 } from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
+import {
+  getSettings as getUserSettings,
+  saveSettings as saveUserSettings,
+} from '../store/settingStore';
 import {getSettings} from '../store/gamepadStore';
 
 function VirtualGamepadSettingsScreen({navigation, route}) {
   const {t} = useTranslation();
   const [value, setValue] = React.useState('');
   const [name, setName] = React.useState('');
+  const [userSettings, setUserSettings] = React.useState({});
   const [settings, setSettings] = React.useState([]);
   const [showAddModal, setShowAddModal] = React.useState(false);
 
   React.useEffect(() => {
-    console.log('123');
     navigation.setOptions({
       headerRight: () => (
         <IconButton
@@ -38,9 +42,18 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
 
     const _settings = getSettings();
     setSettings(Object.keys(_settings));
+
+    const _userSettings = getUserSettings();
+    setUserSettings(_userSettings);
+    setValue(_userSettings.custom_virtual_gamepad || '');
   }, [navigation]);
 
-  const handleSave = () => {};
+  const handleSave = () => {
+    userSettings.custom_virtual_gamepad = value;
+    setUserSettings(userSettings);
+    saveUserSettings(userSettings);
+    navigation.goBack();
+  };
 
   const handleEdit = () => {
     navigation.navigate('CustomGamepad', {name: value});

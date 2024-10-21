@@ -30,9 +30,11 @@ export type Settings = {
   video_format: string;
   show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
+  custom_virtual_gamepad: string;
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
   display_options: DisplayOptions;
+  low_latency_mode: boolean;
   ipv6: boolean;
   power_on: boolean;
   theme: string;
@@ -58,8 +60,10 @@ const defaultSettings: Settings = {
   video_format: '',
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.6,
+  custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,
+  low_latency_mode: false,
   ipv6: false,
   power_on: false,
   display_options: {

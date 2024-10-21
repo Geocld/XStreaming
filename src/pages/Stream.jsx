@@ -363,10 +363,6 @@ function StreamScreen({navigation, route}) {
         // setFocusable(false);
         webviewRef.current && webviewRef.current.stopLoading();
       }
-
-      setTimeout(() => {
-        setShowVirtualGamepad(true);
-      }, 3000);
     }, 500);
 
     return () => {
@@ -694,24 +690,37 @@ function StreamScreen({navigation, route}) {
     [settings],
   );
 
-  return (
-    <>
-      {showPerformance && <PerfPanel performance={performance} />}
-
-      {showVirtualGamepad && (
-        // <VirtualGamepad
-        //   opacity={settings.virtual_gamepad_opacity}
-        //   onPressIn={handleButtonPressIn}
-        //   onPressOut={handleButtonPressOut}
-        //   onStickMove={handleStickMove}
-        // />
+  const renderVirtualGamepad = () => {
+    if (!showVirtualGamepad) {
+      return null;
+    }
+    const useCustomVirtualGamepad = settings.custom_virtual_gamepad !== '';
+    if (useCustomVirtualGamepad) {
+      return (
         <CustomVirtualGamepad
           opacity={settings.virtual_gamepad_opacity}
           onPressIn={handleButtonPressIn}
           onPressOut={handleButtonPressOut}
           onStickMove={handleStickMove}
         />
-      )}
+      );
+    } else {
+      return (
+        <VirtualGamepad
+          opacity={settings.virtual_gamepad_opacity}
+          onPressIn={handleButtonPressIn}
+          onPressOut={handleButtonPressOut}
+          onStickMove={handleStickMove}
+        />
+      );
+    }
+  };
+
+  return (
+    <>
+      {showPerformance && <PerfPanel performance={performance} />}
+
+      {renderVirtualGamepad()}
 
       <Portal>
         <Modal
@@ -829,7 +838,7 @@ function StreamScreen({navigation, route}) {
         </Modal>
       </Portal>
 
-      {/* <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
+      <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
         <WebView
           ref={instance => {
             webviewRef.current = instance;
@@ -851,7 +860,7 @@ function StreamScreen({navigation, route}) {
             handleWebviewMessage(event);
           }}
         />
-      </View> */}
+      </View>
     </>
   );
 }
