@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Linking, useColorScheme, NativeModules} from 'react-native';
+import {Alert, Linking, useColorScheme, NativeModules, View} from 'react-native';
 import {
   PaperProvider,
   MD3DarkTheme,
@@ -46,6 +46,8 @@ import CustomGamepadScreen from './pages/CustomGamepad';
 import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
+
+import { SystemBars } from 'react-native-edge-to-edge';
 
 import './i18n';
 import SearchScreen from './pages/Search';
@@ -279,6 +281,7 @@ function App() {
           </NavigationContainer>
         </PaperProvider>
       </Provider>
+      <SystemBars style="light" hidden={false} />
     </>
   );
 }
