@@ -64,7 +64,7 @@ const defaultSettings: Settings = {
   custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,
-  low_latency_mode: true,
+  low_latency_mode: false,
   ipv6: false,
   check_update: true,
   power_on: false,
