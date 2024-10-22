@@ -710,6 +710,7 @@ function StreamScreen({navigation, route}) {
     if (useCustomVirtualGamepad) {
       return (
         <CustomVirtualGamepad
+          title={settings.custom_virtual_gamepad}
           opacity={settings.virtual_gamepad_opacity}
           onPressIn={handleButtonPressIn}
           onPressOut={handleButtonPressOut}
