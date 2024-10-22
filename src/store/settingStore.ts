@@ -27,6 +27,7 @@ export type Settings = {
   vibration_intensity: number;
   gamepad_kernal: string;
   dead_zone: number;
+  edge_compensation: number;
   video_format: string;
   show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
@@ -58,6 +59,7 @@ const defaultSettings: Settings = {
   vibration_intensity: 1,
   gamepad_kernal: 'Native',
   dead_zone: 0.1,
+  edge_compensation: 0,
   video_format: '',
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.6,

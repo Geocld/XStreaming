@@ -74,8 +74,11 @@ export default {
       '默认使用webview内核振动，如出现手柄不振动，可以尝试使用native振动模式',
     'Vibration intensity': '振动强度',
     'Config vibration intensity of controller': '调节控制器振动强度',
-    'Joystick dead zone': '摇杆死区',
-    'Config joystick dead zone': '设置摇杆死区',
+    'Joystick dead zone': '摇杆中心死区',
+    'Config joystick dead zone': '设置摇杆中心死区',
+    'Joystick edge compensation': '摇杆边缘补偿',
+    "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation":
+      '如果你的摇杆最大值达不到预期，可以在此处设置最大值补偿',
     'Set region': '地区设置',
     'Changing the region allows you to use XGPU services without a proxy':
       '修改地区可以免代理使用XGPU服务',

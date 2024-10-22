@@ -123,6 +123,18 @@ function StreamScreen({navigation, route}) {
 
         value = value - Math.sign(value) * _settings.dead_zone;
         value /= 1.0 - _settings.dead_zone;
+
+        // Joystick edge compensation
+        const THRESHOLD = 0.8;
+        const MAX_VALUE = 1;
+        const compensation = _settings.edge_compensation / 100 || 0;
+        if (Math.abs(value) > THRESHOLD) {
+          if (value > 0) {
+            value = Math.min(value + compensation, MAX_VALUE);
+          } else {
+            value = Math.max(value - compensation, -MAX_VALUE);
+          }
+        }
         return value;
       } else {
         return value;
@@ -189,10 +201,10 @@ function StreamScreen({navigation, route}) {
           gpState.RightTrigger = rightTrigger;
 
           // Joystick
-          gpState.LeftThumbXAxis = leftStickX;
-          gpState.LeftThumbYAxis = leftStickY;
-          gpState.RightThumbXAxis = rightStickX;
-          gpState.RightThumbYAxis = rightStickY;
+          gpState.LeftThumbXAxis = normaliseAxis(leftStickX);
+          gpState.LeftThumbYAxis = normaliseAxis(leftStickY);
+          gpState.RightThumbXAxis = normaliseAxis(rightStickX);
+          gpState.RightThumbYAxis = normaliseAxis(rightStickY);
         },
       );
 

@@ -210,6 +210,18 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     data: [],
   },
   {
+    name: 'edge_compensation',
+    type: 'slider',
+    min: 0,
+    max: 20,
+    step: 1,
+    title: t('Joystick edge compensation'),
+    description: t(
+      "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation",
+    ),
+    data: [],
+  },
+  {
     name: 'show_virtual_gamead',
     type: 'radio',
     title: t('Virtual gamepad'),
