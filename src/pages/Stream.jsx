@@ -445,6 +445,9 @@ function StreamScreen({navigation, route}) {
   const handleCloseModal = () => {
     setShowModal(false);
     GamepadManager.setCurrentScreen('stream');
+    if (settings.gamepad_kernal === 'Web') {
+      webviewRef.current && webviewRef.current.requestFocus();
+    }
   };
 
   const postData2Webview = (type, value) => {
@@ -605,12 +608,33 @@ function StreamScreen({navigation, route}) {
       }
     }
     if (type === 'performance') {
-      setPerformance(message);
+      const oldPerf = performance;
+      const perf = message;
+
+      if (oldPerf) {
+        if (!perf.br && oldPerf.br) {
+          perf.br = oldPerf.br;
+        }
+        if (!perf.decode && oldPerf.decode) {
+          perf.decode = oldPerf.decode;
+        }
+      }
+      setPerformance(perf);
     }
     if (type === 'connectionstate') {
       setConnectState(message);
+      // Alway show virtual gamepad
       if (message === CONNECTED && settings.show_virtual_gamead) {
         setShowVirtualGamepad(true);
+      }
+
+      // Alway show performance
+      if (message === CONNECTED && settings.show_performance) {
+        setShowPerformance(true);
+
+        if (settings.gamepad_kernal === 'Web') {
+          handleToggleWebviewPerformance();
+        }
       }
     }
     if (type === 'exit') {
@@ -621,6 +645,14 @@ function StreamScreen({navigation, route}) {
          this situation we should refresh all tokens to make new connection.
        */
       handleTimeoutExit();
+    }
+  };
+
+  const handleToggleWebviewPerformance = () => {
+    if (showPerformance) {
+      postData2Webview('showPerformance', {});
+    } else {
+      postData2Webview('hidePerformance', {});
     }
   };
 
@@ -731,7 +763,9 @@ function StreamScreen({navigation, route}) {
 
   return (
     <>
-      {showPerformance && <PerfPanel performance={performance} />}
+      {showPerformance && settings.gamepad_kernal === 'Native' && (
+        <PerfPanel performance={performance} />
+      )}
 
       {renderVirtualGamepad()}
 
@@ -766,7 +800,16 @@ function StreamScreen({navigation, route}) {
                     title={t('Toggle Performance')}
                     background={background}
                     onPress={() => {
-                      setShowPerformance(!showPerformance);
+                      if (settings.gamepad_kernal === 'Web') {
+                        setShowPerformance(!showPerformance);
+                        setTimeout(() => {
+                          handleToggleWebviewPerformance();
+                          webviewRef.current &&
+                            webviewRef.current.requestFocus();
+                        }, 10);
+                      } else {
+                        setShowPerformance(!showPerformance);
+                      }
                       handleCloseModal();
                     }}
                   />

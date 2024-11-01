@@ -21,6 +21,8 @@ export type Settings = {
   preferred_game_language: string;
   force_region_ip: string;
   codec: string;
+  show_performance: boolean;
+  performance_style: boolean;
   vibration: boolean;
   vibration_mode: string;
   bind_usb_device: boolean;
@@ -53,6 +55,8 @@ const defaultSettings: Settings = {
   preferred_game_language: 'en-US',
   force_region_ip: '',
   codec: '',
+  show_performance: false,
+  performance_style: true,
   vibration: true,
   vibration_mode: 'Native',
   bind_usb_device: false,

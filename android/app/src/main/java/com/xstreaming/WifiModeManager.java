@@ -25,7 +25,7 @@ public class WifiModeManager extends ReactContextBaseJavaModule {
 
     public WifiModeManager(ReactApplicationContext reactContext) {
         super(reactContext);
-        wifiManager = (WifiManager) reactContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//        wifiManager = (WifiManager) reactContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     @Override
@@ -38,31 +38,31 @@ public class WifiModeManager extends ReactContextBaseJavaModule {
 
     @ReactMethod
     private void setLowLatencyMode(boolean enabled) {
-        if (wifiManager != null) {
-            if (enabled) {
-                try {
-                    highPerfWifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "XStreaming High Perf Lock");
-                    highPerfWifiLock.setReferenceCounted(false);
-                    highPerfWifiLock.acquire();
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        lowLatencyWifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "XStreaming Low Latency Lock");
-                        lowLatencyWifiLock.setReferenceCounted(false);
-                        lowLatencyWifiLock.acquire();
-                    }
-                } catch (SecurityException e) {
-                    // Some Samsung Galaxy S10+/S10e devices throw a SecurityException from
-                    // WifiLock.acquire() even though we have android.permission.WAKE_LOCK in our manifest.
-                    e.printStackTrace();
-                }
-            } else {
-                if (highPerfWifiLock != null) {
-                    highPerfWifiLock.release();
-                }
-                if (lowLatencyWifiLock != null) {
-                    lowLatencyWifiLock.release();
-                }
-            }
-        }
+//        if (wifiManager != null) {
+//            if (enabled) {
+//                try {
+//                    highPerfWifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "XStreaming High Perf Lock");
+//                    highPerfWifiLock.setReferenceCounted(false);
+//                    highPerfWifiLock.acquire();
+//
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                        lowLatencyWifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "XStreaming Low Latency Lock");
+//                        lowLatencyWifiLock.setReferenceCounted(false);
+//                        lowLatencyWifiLock.acquire();
+//                    }
+//                } catch (SecurityException e) {
+//                    // Some Samsung Galaxy S10+/S10e devices throw a SecurityException from
+//                    // WifiLock.acquire() even though we have android.permission.WAKE_LOCK in our manifest.
+//                    e.printStackTrace();
+//                }
+//            } else {
+//                if (highPerfWifiLock != null) {
+//                    highPerfWifiLock.release();
+//                }
+//                if (lowLatencyWifiLock != null) {
+//                    lowLatencyWifiLock.release();
+//                }
+//            }
+//        }
     }
 }

@@ -37,7 +37,6 @@ function HomeScreen({navigation, route}) {
   const [profile, setProfile] = React.useState(null);
   const [consoles, setConsoles] = React.useState([]);
   const [isConnected, setIsConnected] = React.useState(true);
-  const [showLinkMode, setShowLinkMode] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
   const _authentication = React.useRef(authentication);

@@ -125,6 +125,12 @@ export default {
       '👆点击元素设置元素大小及显示',
     'Drag elements to adjust their position': '✋拖动元素调整位置',
     'Name can not be empty': '名称不能为空',
+    'Show performance': '显示性能面板',
+    'Always display the performance panel': '始终显示性能面板',
+    'Performance show style': '性能展示样式',
+    'Setting performance show style': '设置性能展示(水平/垂直)',
+    Horizon: '水平',
+    Vertical: '垂直',
     'Auto check update': '自动检查更新',
     'Whether check XStreaming updates automatically':
       '是否自动检查XStreaming更新',

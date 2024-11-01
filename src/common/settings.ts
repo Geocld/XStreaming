@@ -136,6 +136,26 @@ const settings = [
     ],
   },
   {
+    name: 'show_performance',
+    type: 'radio',
+    title: t('Show performance'),
+    description: t('Always display the performance panel'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
+  },
+  {
+    name: 'performance_style',
+    type: 'radio',
+    title: t('Performance show style'),
+    description: t('Setting performance show style'),
+    data: [
+      {value: true, text: t('Horizon')},
+      {value: false, text: t('Vertical')},
+    ],
+  },
+  {
     name: 'maping',
     type: '',
     title: t('Key mapping'),
