@@ -179,6 +179,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    public void handleRumbleTriggers(short leftTrigger, short rightTrigger) {
+        for (int i = 0; i < usbDeviceContexts.size(); i++) {
+            UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
+            deviceContext.device.rumbleTriggers(leftTrigger, rightTrigger);
+        }
+    }
+
     public void stop() {
         if (stopped) {
             return;

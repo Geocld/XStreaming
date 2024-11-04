@@ -275,6 +275,10 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     this.controllerHandler.handleRumble(lowFreMotor, highFreMotor);
   }
 
+  public void handleRumbleTrigger(short leftTrigger, short rightTrigger) {
+    this.controllerHandler.handleRumbleTriggers(leftTrigger, rightTrigger);
+  }
+
 
   private boolean connectedToUsbDriverService = false;
   private ControllerHandler controllerHandler;

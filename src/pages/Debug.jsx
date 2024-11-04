@@ -92,7 +92,7 @@ function DebugScreen({navigation, route}) {
         description={'Test gamepad vibration'}
         onPress={() => {
           // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger, int intensity)
-          GamepadManager.vibrate(60000, 100, 100, 0, 0);
+          GamepadManager.vibrate(60000, 100, 100, 100, 1000);
 
           setTimeout(() => {
             GamepadManager.vibrate(0, 0, 0, 0, 0);
@@ -113,6 +113,18 @@ function DebugScreen({navigation, route}) {
           setTimeout(() => {
             UsbRumbleManager.rumble(0, 0);
           }, 2000);
+        }}
+      />
+
+      <SettingItem
+        title={'Trigger Rumble(xbox one controller)'}
+        description={'Test gamepad trigger rumble with x-input mode'}
+        onPress={() => {
+          UsbRumbleManager.rumbleTriggers(32767, 32767);
+
+          setTimeout(() => {
+            UsbRumbleManager.rumbleTriggers(0, 0);
+          }, 1000);
         }}
       />
     </ScrollView>

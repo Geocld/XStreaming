@@ -60,4 +60,15 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
             mainActivity.handleRumble(_lowFreqMotor, _highFreqMotor);
         }
     }
+
+    @ReactMethod
+    private void rumbleTriggers(int leftTrigger, int rightTrigger) {
+        Log.d("UsbRumbleManager", "rumbleTrigger");
+        short _leftTrigger = (short) leftTrigger;
+        short _rightTrigger = (short) rightTrigger;
+        MainActivity mainActivity = (MainActivity) getCurrentActivity();
+        if (mainActivity != null) {
+            mainActivity.handleRumbleTrigger(_leftTrigger, _rightTrigger);
+        }
+    }
 }

@@ -89,6 +89,7 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
+  const isRumbling = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
 
@@ -109,6 +110,7 @@ function StreamScreen({navigation, route}) {
 
     if (isUsbMode) {
       defaultMaping = USB_GAMEPAD_MAPING;
+      console.log('defaultMaping:', defaultMaping);
     }
     let gpMaping = sweap(defaultMaping);
     if (!isUsbMode && _settings.native_gamepad_maping) {
@@ -177,7 +179,7 @@ function StreamScreen({navigation, route}) {
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
         params => {
-          // console.log('onGamepadReport:', params);
+          console.log('onGamepadReport:', params);
           const {
             keyCode,
             leftTrigger,
@@ -188,6 +190,7 @@ function StreamScreen({navigation, route}) {
             rightStickY,
           } = params;
 
+          console.log('gpMaping:', gpMaping);
           // Button
           if (keyCode !== 0) {
             const keyName = gpMaping[keyCode];
@@ -210,7 +213,7 @@ function StreamScreen({navigation, route}) {
 
       timer.current = setInterval(() => {
         postData2Webview('gamepad', gpState);
-      }, 4);
+      }, 16);
     } else if (_settings.gamepad_kernal === 'Native') {
       log.info('Entry native mode');
       const eventEmitter = new NativeEventEmitter();
@@ -575,18 +578,36 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
+      console.log('rumbleData:', rumbleData);
 
       const isUsbMode = route.params?.isUsbMode || false;
       if (isUsbMode) {
+        console.log('isUsbMode:', isUsbMode);
         let weakMagnitude = rumbleData.weakMagnitude * 32767;
         let strongMagnitude = rumbleData.strongMagnitude * 32767;
+        let leftTrigger = rumbleData.leftTrigger * 32767;
+        let rightTrigger = rumbleData.rightTrigger * 32767;
         if (weakMagnitude > 32767) {
           weakMagnitude = 32767;
         }
         if (strongMagnitude > 32767) {
           strongMagnitude = 32767;
         }
-        UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
+        if (leftTrigger > 32767) {
+          leftTrigger = 32767;
+        }
+        if (rightTrigger > 32767) {
+          rightTrigger = 32767;
+        }
+        if (weakMagnitude > 0 || strongMagnitude > 0) {
+          // if (leftTrigger > 0 || rightTrigger > 0) {
+          //   UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
+          // } else {
+          //   UsbRumbleManager.rumbleTriggers(0, 0);
+          // }
+          UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
+        }
+        // UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
       } else {
         let weakMagnitude = rumbleData.weakMagnitude * 100;
         let strongMagnitude = rumbleData.strongMagnitude * 100;
