@@ -190,11 +190,13 @@ function StreamScreen({navigation, route}) {
             rightStickY,
           } = params;
 
-          console.log('gpMaping:', gpMaping);
+          // console.log('gpMaping:', gpMaping);
           // Button
-          if (keyCode !== 0) {
-            const keyName = gpMaping[keyCode];
-            gpState[keyName] = 1;
+          if (keyCode !== 1024 && keyCode !== 0) {
+            if (gpMaping[keyCode]) {
+              const keyName = gpMaping[keyCode];
+              gpState[keyName] = 1;
+            }
           } else {
             resetButtonState();
           }
@@ -600,14 +602,15 @@ function StreamScreen({navigation, route}) {
           rightTrigger = 32767;
         }
         if (weakMagnitude > 0 || strongMagnitude > 0) {
-          // if (leftTrigger > 0 || rightTrigger > 0) {
-          //   UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
-          // } else {
-          //   UsbRumbleManager.rumbleTriggers(0, 0);
-          // }
-          UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
+          if (leftTrigger > 0 || rightTrigger > 0) {
+            UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
+          } else {
+            UsbRumbleManager.rumbleTriggers(0, 0);
+          }
+        } else {
+          UsbRumbleManager.rumbleTriggers(0, 0);
         }
-        // UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
+        UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
       } else {
         let weakMagnitude = rumbleData.weakMagnitude * 100;
         let strongMagnitude = rumbleData.strongMagnitude * 100;
