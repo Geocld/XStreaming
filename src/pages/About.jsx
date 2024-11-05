@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, RefreshControl} from 'react-native';
+import {StyleSheet, View, ScrollView} from 'react-native';
 import {Text} from 'react-native-paper';
 import LinkText from '../components/LinkText';
 
@@ -36,20 +36,13 @@ function AboutScreen({navigation, route}) {
         </View>
 
         <View>
-          <Text variant="titleMedium">XStreaming-webview:</Text>
+          <Text variant="titleMedium">
+            XStreaming-desktop(Windows/MacOS/SteamOS):
+          </Text>
         </View>
         <View>
-          <LinkText url={'https://github.com/Geocld/XStreaming-webview'}>
-            https://github.com/Geocld/XStreaming-webview
-          </LinkText>
-        </View>
-
-        <View>
-          <Text variant="titleMedium">XStreaming-webview:</Text>
-        </View>
-        <View>
-          <LinkText url={'https://github.com/Geocld/XStreaming-player'}>
-            https://github.com/Geocld/XStreaming-player
+          <LinkText url={'https://github.com/Geocld/XStreaming'}>
+            https://github.com/Geocld/XStreaming-desktop
           </LinkText>
         </View>
       </View>

@@ -431,7 +431,10 @@ function StreamScreen({navigation, route}) {
         setIsExiting(false);
         Orientation.unlockAllOrientations();
         FullScreenManager.immersiveModeOff();
-        navigation.navigate('Home');
+        navigation.navigate({
+          name: 'Home',
+          params: {needRefresh: true},
+        });
       }, 500);
     });
   };
@@ -738,6 +741,10 @@ function StreamScreen({navigation, route}) {
     setShowVirtualGamepad(false);
     postData2Webview('disconnect', {});
     setShowModal(false);
+    navigation.navigate({
+      name: 'Home',
+      params: {needRefresh: true},
+    });
   };
 
   const background = {

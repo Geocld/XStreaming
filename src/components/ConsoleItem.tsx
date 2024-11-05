@@ -39,7 +39,7 @@ const ConsoleItem = (props: any) => {
             ) : consoleItem.powerState === 'ConnectedStandby' ? (
               <Text style={styles.yellow}>{t('Standby')}</Text>
             ) : (
-              <Text>{consoleItem.powerState}</Text>
+              <Text style={styles.red}>{consoleItem.powerState}</Text>
             )}
           </View>
         </View>
@@ -84,6 +84,9 @@ const styles = StyleSheet.create({
   },
   yellow: {
     color: '#D1BE02',
+  },
+  red: {
+    color: '#dc2626',
   },
   top: {
     paddingBottom: 10,

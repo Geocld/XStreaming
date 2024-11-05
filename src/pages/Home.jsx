@@ -48,6 +48,7 @@ function HomeScreen({navigation, route}) {
   const _isLogined = React.useRef(isLogined);
 
   const webToken = useSelector(state => state.webToken);
+  const webTokenRef = React.useRef(null);
 
   const dispatch = useDispatch();
 
@@ -81,6 +82,7 @@ function HomeScreen({navigation, route}) {
       log.info('Authentication initial.');
       const authenticationCompleted = async (_streamingTokens, _webToken) => {
         log.info('Authentication completed');
+        webTokenRef.current = _webToken;
         // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
         dispatch({
           type: 'SET_STREAMING_TOKEN',
@@ -140,6 +142,14 @@ function HomeScreen({navigation, route}) {
             route.params.xalUrl,
           );
         }
+      } else if (route.params?.needRefresh && webTokenRef.current) {
+        setLoading(true);
+        setLoadingText(t('Fetching consoles...'));
+        const webApi = new WebApi(webTokenRef.current);
+        webApi.getConsoles().then(_consoles => {
+          setConsoles(_consoles);
+          setLoading(false);
+        });
       } else {
         setLoading(true);
         setLoadingText(t('Checking login status...'));
@@ -190,7 +200,14 @@ function HomeScreen({navigation, route}) {
         unsubscribe();
       };
     }
-  }, [t, route.params?.xalUrl, dispatch, navigation, isConnected]);
+  }, [
+    t,
+    route.params?.xalUrl,
+    route.params?.needRefresh,
+    dispatch,
+    navigation,
+    isConnected,
+  ]);
 
   const handlePoweronAndStream = async sessionId => {
     setLoading(true);
