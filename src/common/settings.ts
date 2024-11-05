@@ -114,6 +114,16 @@ const settings = [
     ],
   },
   {
+    name: 'audio_bitrate_mode',
+    type: 'radio',
+    title: t('Audio bitrate'),
+    description: t('Set the streaming audio bitrate'),
+    data: [
+      {value: 'auto', text: t('Auto')},
+      {value: 'custom', text: t('Custom')},
+    ],
+  },
+  {
     name: 'codec',
     type: 'radio',
     title: t('Codec'),

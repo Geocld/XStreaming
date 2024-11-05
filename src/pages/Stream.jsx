@@ -110,7 +110,7 @@ function StreamScreen({navigation, route}) {
 
     if (isUsbMode) {
       defaultMaping = USB_GAMEPAD_MAPING;
-      console.log('defaultMaping:', defaultMaping);
+      // console.log('defaultMaping:', defaultMaping);
     }
     let gpMaping = sweap(defaultMaping);
     if (!isUsbMode && _settings.native_gamepad_maping) {
@@ -179,7 +179,6 @@ function StreamScreen({navigation, route}) {
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
         params => {
-          console.log('onGamepadReport:', params);
           const {
             keyCode,
             leftTrigger,
@@ -570,13 +569,12 @@ function StreamScreen({navigation, route}) {
       ]);
     }
     if (type === 'deviceVibration') {
-      const {rumbleData, repeat} = message;
+      const {rumbleData} = message;
       if (rumbleData.strongMagnitude === 0 || rumbleData.weakMagnitude === 0) {
         Vibration.cancel();
       } else {
         Vibration.vibrate(rumbleData.duration / 10);
       }
-      // trigger('impactMedium', options);
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
@@ -682,7 +680,7 @@ function StreamScreen({navigation, route}) {
 
   // Virtual gamepad press
   const handleButtonPressIn = name => {
-    console.log('handleButtonPressIn:', name);
+    // console.log('handleButtonPressIn:', name);
     gpState[name] = 1;
     if (settings.vibration) {
       Vibration.vibrate(30);

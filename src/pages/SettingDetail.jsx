@@ -49,6 +49,9 @@ function SettingDetailScreen({navigation, route}) {
       if (name === 'xcloud_bitrate_mode') {
         setValue2(_settings.xcloud_bitrate);
       }
+      if (name === 'audio_bitrate_mode') {
+        setValue2(_settings.audio_bitrate);
+      }
 
       if (name === 'signaling_home' || name === 'signaling_cloud') {
         const rs =
@@ -87,6 +90,9 @@ function SettingDetailScreen({navigation, route}) {
     } else if (current === 'xcloud_bitrate_mode') {
       settings.xcloud_bitrate_mode = value;
       settings.xcloud_bitrate = value2;
+    } else if (current === 'audio_bitrate_mode') {
+      settings.audio_bitrate_mode = value;
+      settings.audio_bitrate = value2;
     } else if (currentMetas.name === 'signaling_home') {
       regions.current.forEach(region => {
         if (region.name === value) {
@@ -127,7 +133,8 @@ function SettingDetailScreen({navigation, route}) {
     }
     if (
       currentMetas.name === 'xhome_bitrate_mode' ||
-      currentMetas.name === 'xcloud_bitrate_mode'
+      currentMetas.name === 'xcloud_bitrate_mode' ||
+      currentMetas.name === 'audio_bitrate_mode'
     ) {
       return (
         <>

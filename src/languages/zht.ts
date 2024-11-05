@@ -46,6 +46,8 @@ export default {
     'Set resolution, support 720P/1080P': '設置串流分辨率，支持720P/1080P切換',
     'Host stream bitrate': '主機串流碼率',
     'Cloud stream bitrate': '雲遊戲碼率',
+    'Audio bitrate': '声音碼率',
+    'Set the streaming audio bitrate': '設置主機串流声音碼率',
     'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
       '設置主機串流碼率（注意：並不是碼率越高越好，最終碼率以串流協商為準）',
     'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':

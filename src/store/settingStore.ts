@@ -18,6 +18,8 @@ export type Settings = {
   xhome_bitrate: number | string;
   xcloud_bitrate_mode: string;
   xcloud_bitrate: number | string;
+  audio_bitrate_mode: string;
+  audio_bitrate: number | string;
   preferred_game_language: string;
   force_region_ip: string;
   codec: string;
@@ -52,6 +54,8 @@ const defaultSettings: Settings = {
   xhome_bitrate: 20,
   xcloud_bitrate_mode: 'auto',
   xcloud_bitrate: 20,
+  audio_bitrate_mode: 'auto',
+  audio_bitrate: 20,
   preferred_game_language: 'en-US',
   force_region_ip: '',
   codec: '',
