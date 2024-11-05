@@ -741,10 +741,6 @@ function StreamScreen({navigation, route}) {
     setShowVirtualGamepad(false);
     postData2Webview('disconnect', {});
     setShowModal(false);
-    navigation.navigate({
-      name: 'Home',
-      params: {needRefresh: true},
-    });
   };
 
   const background = {
