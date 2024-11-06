@@ -57,6 +57,8 @@ export default {
       'Override native Xbox gamepad support',
     bind_usb_device_description:
       "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present(experimental)",
+    bind_usb_device_tips:
+      'This setting only takes effect when a controller supporting the XInput protocol is connected via a wired connection',
     power_on_description:
       "Choose whether to power on the console when streaming. By default, the console remains in sleep mode, and the power light won't turn on during streaming. Enabling this option will fully power on the host and may wake up the monitor",
     low_latency_mode_description:

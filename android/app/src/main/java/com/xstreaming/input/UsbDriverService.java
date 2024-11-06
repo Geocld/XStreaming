@@ -192,14 +192,17 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             if (XboxOneController.canClaimDevice(device)) {
                 Log.d("UsbDriverService", "XboxOneController");
+                UsbRumbleManager.setUsbController("XboxOneController");
                 controller = new XboxOneController(device, connection, nextDeviceId++, this);
             }
             else if (Xbox360Controller.canClaimDevice(device)) {
                 Log.d("UsbDriverService", "Xbox360Controller");
+                UsbRumbleManager.setUsbController("Xbox360Controller");
                 controller = new Xbox360Controller(device, connection, nextDeviceId++, this);
             }
             else if (Xbox360WirelessDongle.canClaimDevice(device)) {
                 Log.d("UsbDriverService", "Xbox360WirelessDongle");
+                UsbRumbleManager.setUsbController("Xbox360WirelessDongle");
                 controller = new Xbox360WirelessDongle(device, connection, nextDeviceId++, this);
             }
             else {

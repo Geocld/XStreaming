@@ -745,9 +745,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
         context.inputMap = buttonFlags;
 
-//        if (buttonFlags != 0) {
-//            Log.d("UsbDriverService reportControllerState", "buttonFlags:" + buttonFlags);
-//        }
+        if (buttonFlags != 0) {
+            Log.d("UsbDriverService reportControllerState", "buttonFlags:" + buttonFlags);
+        }
 //
 //        if (leftTrigger != 0) {
 //            Log.d("UsbDriverService reportControllerState", "leftTrigger:" + leftTrigger);

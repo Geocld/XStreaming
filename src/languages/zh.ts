@@ -113,6 +113,7 @@ export default {
     'Override native Xbox gamepad support': '覆盖安卓手柄支持',
     bind_usb_device_description:
       '强制XStreaming的USB驱动接管所有受支持的Xbox手柄(实验性)',
+    bind_usb_device_tips: '该设置只有支持xinput协议的手柄有线连接才生效',
     'Power on when streaming': '开机并开始串流',
     power_on_description:
       '选择主机串流时是否开启，默认主机开启睡眠模式后串流时电源灯不会亮，开启此选项后主机会彻底开机，并可能唤醒显示器',
@@ -131,6 +132,15 @@ export default {
     'Always display the performance panel': '始终显示性能面板',
     'Performance show style': '性能展示样式',
     'Setting performance show style': '设置性能展示(水平/垂直)',
+    'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
+      '检测到你正在使用覆盖安卓驱动有线连接模式，如果在游戏过程断开USB连接，请退出游戏重新连接手柄，否则手柄按键会失效',
+    'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':
+      '如果你正在使用Xbox one/S/X手柄，进入游戏时遇到按键无效，请先按下手柄home键',
+    'After replacing the Android controller driver, controller button mapping is temporarily not supported':
+      '覆盖安卓手柄驱动后暂不支持手柄按键映射',
+    'Short Trigger': '短扳机',
+    'Modify the linear trigger action to a short trigger':
+      '将线性扳机动作修改为短扳机',
     Horizon: '水平',
     Vertical: '垂直',
     'Auto check update': '自动检查更新',

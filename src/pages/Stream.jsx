@@ -6,6 +6,7 @@ import {
   Vibration,
   NativeEventEmitter,
   StyleSheet,
+  Text,
 } from 'react-native';
 import {Portal, Modal, Card, List} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
@@ -18,7 +19,7 @@ import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
 import WebApi from '../web';
-import {GAMEPAD_MAPING as USB_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
+import {XBOX_360_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
@@ -31,6 +32,7 @@ const CONNECTED = 'connected';
 const {FullScreenManager, GamepadManager, UsbRumbleManager} = NativeModules;
 
 let defaultMaping = GAMEPAD_MAPING;
+let triggerMax = 0.8;
 
 const gpState = {
   A: 0,
@@ -58,8 +60,6 @@ const gpState = {
 };
 
 const keyDownTimestamp = {};
-
-const BUTTON_CLICK_THRESHOLD = 4;
 
 function StreamScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -89,18 +89,17 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
-  const isRumbling = React.useRef(false);
+  // const isRumbling = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
     const isUsbMode = route.params?.isUsbMode || false;
+    const usbController = route.params?.usbController || 'Xbox360Controller';
 
     const _settings = getSettings();
     setSettings(_settings);
-
-    console.log('isUsbMode:', isUsbMode);
 
     const sweap = obj => {
       return Object.fromEntries(
@@ -109,7 +108,7 @@ function StreamScreen({navigation, route}) {
     };
 
     if (isUsbMode) {
-      defaultMaping = USB_GAMEPAD_MAPING;
+      defaultMaping = XBOX_360_GAMEPAD_MAPING;
       // console.log('defaultMaping:', defaultMaping);
     }
     let gpMaping = sweap(defaultMaping);
@@ -172,9 +171,48 @@ function StreamScreen({navigation, route}) {
       });
     };
 
+    const getPressedButtons = combinedValue => {
+      const pressedButtons = [];
+      for (const [button, value] of Object.entries(XBOX_360_GAMEPAD_MAPING)) {
+        // eslint-disable-next-line no-bitwise
+        if ((combinedValue & value) === value) {
+          pressedButtons.push(button);
+        }
+      }
+      return pressedButtons;
+    };
+
+    const setGpState = combinedKeys => {
+      const keys = [
+        'A',
+        'B',
+        'X',
+        'Y',
+        'LeftShoulder',
+        'RightShoulder',
+        'View',
+        'Menu',
+        'LeftThumb',
+        'RightThumb',
+        'DPadUp',
+        'DPadDown',
+        'DPadLeft',
+        'DPadRight',
+        'Nexus',
+      ];
+      keys.forEach(k => {
+        if (combinedKeys.includes(k)) {
+          gpState[k] = 1;
+        } else {
+          gpState[k] = 0;
+        }
+      });
+    };
+
     // USB Mode
     if (isUsbMode) {
       log.info('Entry usb mode');
+      log.info('Usb controller: ' + usbController);
       const eventEmitter = new NativeEventEmitter();
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
@@ -190,12 +228,11 @@ function StreamScreen({navigation, route}) {
           } = params;
 
           // console.log('gpMaping:', gpMaping);
+          // console.log('usb keyCode:', keyCode);
           // Button
-          if (keyCode !== 1024 && keyCode !== 0) {
-            if (gpMaping[keyCode]) {
-              const keyName = gpMaping[keyCode];
-              gpState[keyName] = 1;
-            }
+          if (keyCode !== 0) {
+            const keys = getPressedButtons(keyCode);
+            setGpState(keys);
           } else {
             resetButtonState();
           }
@@ -214,7 +251,7 @@ function StreamScreen({navigation, route}) {
 
       timer.current = setInterval(() => {
         postData2Webview('gamepad', gpState);
-      }, 16);
+      }, 4);
     } else if (_settings.gamepad_kernal === 'Native') {
       log.info('Entry native mode');
       const eventEmitter = new NativeEventEmitter();
@@ -305,7 +342,10 @@ function StreamScreen({navigation, route}) {
         'onTrigger',
         event => {
           if (!isLeftTriggerCanClick.current) {
-            if (event.leftTrigger >= 0.5) {
+            if (_settings.short_trigger) {
+              triggerMax = 0;
+            }
+            if (event.leftTrigger >= triggerMax) {
               gpState.LeftTrigger = 1;
             } else {
               setTimeout(() => {
@@ -315,7 +355,10 @@ function StreamScreen({navigation, route}) {
           }
 
           if (!isRightTriggerCanClick.current) {
-            if (event.rightTrigger >= 0.5) {
+            if (_settings.short_trigger) {
+              triggerMax = 0;
+            }
+            if (event.rightTrigger > triggerMax) {
               gpState.RightTrigger = 1;
             } else {
               setTimeout(() => {
@@ -401,6 +444,7 @@ function StreamScreen({navigation, route}) {
     route.params?.sessionId,
     route.params?.streamType,
     route.params?.isUsbMode,
+    route.params?.usbController,
     streamingTokens,
     navigation,
     authentication,
@@ -637,10 +681,18 @@ function StreamScreen({navigation, route}) {
       const perf = message;
 
       if (oldPerf) {
-        if (!perf.br && oldPerf.br) {
+        if (
+          (!perf.br || perf.br === '--') &&
+          oldPerf.br &&
+          oldPerf.br !== '--'
+        ) {
           perf.br = oldPerf.br;
         }
-        if (!perf.decode && oldPerf.decode) {
+        if (
+          (!perf.decode || perf.decode === '--') &&
+          oldPerf.decode &&
+          oldPerf.decode !== '--'
+        ) {
           perf.decode = oldPerf.decode;
         }
       }

@@ -112,7 +112,7 @@ function DebugScreen({navigation, route}) {
 
           setTimeout(() => {
             UsbRumbleManager.rumble(0, 0);
-          }, 2000);
+          }, 500);
         }}
       />
 

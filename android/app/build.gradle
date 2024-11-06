@@ -82,7 +82,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
 //        applicationId "com.gamepass"
 //        versionCode 1999999999
-        versionName "1.3.0-beta"
+        versionName "1.2.1-beta"
     }
     signingConfigs {
         debug {

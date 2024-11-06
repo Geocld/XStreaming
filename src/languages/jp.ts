@@ -109,6 +109,10 @@ export default {
       'Override native Xbox gamepad support',
     bind_usb_device_description:
       "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present",
+    bind_usb_device_tips:
+      'この設定は、XInput プロトコルをサポートするコントローラーが有線接続されている場合にのみ有効です',
+    'After replacing the Android controller driver, controller button mapping is temporarily not supported':
+      'Androidコントローラードライバーを上書きした後、コントローラーボタンのマッピングは一時的にサポートされていません',
     Sharpness: 'シャープネス',
     Saturation: '彩度',
     Contrast: 'コントラスト',

@@ -243,6 +243,13 @@ function SettingDetailScreen({navigation, route}) {
         <View style={styles.tips}>
           <Text>{currentMetas && currentMetas.description}</Text>
         </View>
+
+        {currentMetas && currentMetas.tips && (
+          <View style={styles.tips}>
+            <Text>Tips: {currentMetas && currentMetas.tips}</Text>
+          </View>
+        )}
+
         <Divider />
 
         {renderOptions()}

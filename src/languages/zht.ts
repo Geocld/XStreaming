@@ -115,6 +115,9 @@ export default {
     'Override native Xbox gamepad support': '覆寫原生 Xbox 手把支援',
     bind_usb_device_description:
       '強制 XStreaming 的 USB 驅動程式接管所有受支援的原生 Xbox 控制器',
+    bind_usb_device_tips: '該設定只有在支援 XInput 協議的手柄有線連接時才生效',
+    'After replacing the Android controller driver, controller button mapping is temporarily not supported':
+      '覆蓋安卓手柄驅動後暫不支持手柄按鍵映射',
     'Show performance': '显示性能面板',
     'Always display the performance panel': '始终显示性能面板',
     Sharpness: '銳化',

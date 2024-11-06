@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, ScrollView, Alert, View} from 'react-native';
+import {StyleSheet, ScrollView, Alert, View, NativeModules} from 'react-native';
 import {Text} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings} from '../store/settingStore';
@@ -10,6 +10,8 @@ import CookieManager from '@react-native-cookies/cookies';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import settingsMeta from '../common/settings';
+
+const {UsbRumbleManager} = NativeModules;
 
 const log = debugFactory('SettingsScreen');
 
@@ -27,8 +29,7 @@ function SettingsScreen({navigation}) {
     log.info('settings page show');
   }, [navigation]);
 
-  const handleItemPress = id => {
-    console.log('id:', id);
+  const handleItemPress = async id => {
     if (id === 'logout') {
       Alert.alert(t('Warning'), t('Do you want to logout?'), [
         {
@@ -50,6 +51,16 @@ function SettingsScreen({navigation}) {
       ]);
     } else if (id === 'maping') {
       const settings = getSettings();
+      const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
+      const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
+      if (isUsbMode) {
+        Alert.alert(
+          t(
+            'After replacing the Android controller driver, controller button mapping is temporarily not supported',
+          ),
+        );
+        return;
+      }
       if (settings.gamepad_kernal === 'Web') {
         navigation.navigate('GameMap');
       } else {

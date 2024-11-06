@@ -19,6 +19,7 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
 
     private static boolean bindUsbDevice = false;
     private static boolean hasValidUsbDevice = false;
+    private static String usbController = "";
 
     public UsbRumbleManager(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -47,6 +48,15 @@ public class UsbRumbleManager extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getHasValidUsbDevice(Promise promise) {
         promise.resolve(hasValidUsbDevice);
+    }
+
+    public static void setUsbController(String value) {
+        usbController = value;
+    }
+
+    @ReactMethod
+    public void getUsbController(Promise promise) {
+        promise.resolve(usbController);
     }
 
 
