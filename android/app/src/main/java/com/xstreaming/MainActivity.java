@@ -205,8 +205,22 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     sendEvent("onRightStickMove", rightParams);
   }
 
+  private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
+    InputDevice.MotionRange range;
+
+    // First get the axis for SOURCE_JOYSTICK
+    range = dev.getMotionRange(axis, InputDevice.SOURCE_JOYSTICK);
+    if (range == null) {
+      // Now try the axis for SOURCE_GAMEPAD
+      range = dev.getMotionRange(axis, InputDevice.SOURCE_GAMEPAD);
+    }
+
+    return range;
+  }
+
   @Override
   public boolean onGenericMotionEvent(MotionEvent event) {
+    InputDevice inputDevice = event.getDevice();
 
     String currentScreen = GamepadManager.getCurrentScreen();
 
@@ -237,13 +251,68 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       // Process all historical movement samples in the batch
       final int historySize = event.getHistorySize();
 
-      // 检测左侧扳机
-      float lTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-      // 检测右侧扳机
-      float rTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+      InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_LTRIGGER);
+      InputDevice.MotionRange rightTriggerRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RTRIGGER);
+      InputDevice.MotionRange brakeRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_BRAKE);
+      InputDevice.MotionRange gasRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_GAS);
+      InputDevice.MotionRange throttleRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_THROTTLE);
 
-      Log.d("MainActivity1", "L2:" + lTrigger);
-      Log.d("MainActivity1", "R2:" + rTrigger);
+      // Left Trigger
+      float lTrigger = 0;
+      // Right Trigger
+      float rTrigger = 0;
+      if (leftTriggerRange != null && rightTriggerRange != null)
+      {
+        // Some controllers use LTRIGGER and RTRIGGER (like Ouya)
+        lTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+        rTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+      }
+      else if (brakeRange != null && gasRange != null)
+      {
+        // Others use GAS and BRAKE (like Moga)
+        lTrigger = event.getAxisValue(MotionEvent.AXIS_BRAKE);
+        rTrigger = event.getAxisValue(MotionEvent.AXIS_GAS);
+      }
+      else if (brakeRange != null && throttleRange != null)
+      {
+        // Others use THROTTLE and BRAKE (like Xiaomi)
+        lTrigger = event.getAxisValue(MotionEvent.AXIS_BRAKE);
+        rTrigger = event.getAxisValue(MotionEvent.AXIS_THROTTLE);
+      }
+      else
+      {
+        InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RX);
+        InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RY);
+        String devName = inputDevice.getName();
+        if (rxRange != null && ryRange != null && devName != null) {
+          boolean isNonStandardDualShock4 = false;
+          if (inputDevice.getVendorId() == 0x054c) { // Sony
+            if (inputDevice.hasKeys(KeyEvent.KEYCODE_BUTTON_C)[0]) {
+              Log.d("MainActivity1", "Detected non-standard DualShock 4 mapping");
+              isNonStandardDualShock4 = true;
+            }
+          }
+
+          if (isNonStandardDualShock4) {
+            // The old DS4 driver uses RX and RY for triggers
+            lTrigger = event.getAxisValue(MotionEvent.AXIS_RX);
+            rTrigger = event.getAxisValue(MotionEvent.AXIS_RY);
+          }
+          else {
+            // While it's likely that Z and RZ are triggers, we may have digital trigger buttons
+            // instead. We must check that we actually have Z and RZ axes before assigning them.
+            if (getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_Z) != null &&
+                    getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RZ) != null) {
+              lTrigger = event.getAxisValue(MotionEvent.AXIS_Z);
+              rTrigger = event.getAxisValue(MotionEvent.AXIS_RZ);
+            }
+          }
+        }
+      }
+
+      Log.d("MainActivity1", "Left Trigger:" + lTrigger);
+      Log.d("MainActivity1", "Right Trigger:" + rTrigger);
+
       WritableMap triggerParams = Arguments.createMap();
       triggerParams.putDouble("leftTrigger", lTrigger);
       triggerParams.putDouble("rightTrigger", rTrigger);

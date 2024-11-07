@@ -38,16 +38,6 @@ function GameMap({navigation, route}) {
 
   React.useEffect(() => {
     log.info('Gamemap screen show');
-
-    setTimeout(() => {
-      gpState.A = 1;
-      gpState.B = 1;
-      console.log('postMessage');
-      webViewRef.current.postMessage(
-        JSON.stringify({type: 'updateGlobalVariable', value: gpState}),
-      );
-    }, 10 * 1000);
-
     const _settings = getSettings();
     log.info('Get localSettings:', _settings);
     setSettings(_settings);

@@ -355,6 +355,7 @@ const styles = StyleSheet.create({
   },
   spinnerTextStyle: {
     color: '#107C10',
+    textAlign: 'center',
   },
   menuWrap: {
     width: 250,

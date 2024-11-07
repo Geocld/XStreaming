@@ -12,13 +12,15 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
   const {t} = useTranslation();
   const settings = getSettings();
 
-  const isHorizon = settings.performance_style || true;
+  const isHorizon = settings.performance_style;
 
   return (
     <View style={isHorizon ? styles.containerH : styles.containerV}>
       <View style={isHorizon ? styles.wrapperH : styles.wrapperV}>
         <View>
-          <Text style={styles.text}>{performance.resolution || '-1'} | </Text>
+          <Text style={styles.text}>
+            {performance.resolution || '-1'} {isHorizon ? '| ' : ''}{' '}
+          </Text>
         </View>
         <View>
           <Text style={styles.text}>
@@ -78,6 +80,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     zIndex: 5,
+    padding: 5,
   },
   wrapperV: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

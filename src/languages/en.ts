@@ -7,7 +7,7 @@ export default {
     'Fetching user info...': 'Fetching user info...',
     'Fetching consoles...': 'Fetching consoles...',
     'Login successful, refreshing login credentials...':
-      'Login successful, refreshing login credentials...',
+      'The login was successful, refreshing login credentials...',
     'Checking login status...': 'Checking login status...',
     Warning: 'Warning',
     WaitingForServerToRegister:

@@ -89,7 +89,7 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
-  // const isRumbling = React.useRef(false);
+  const isRumbling = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
 
@@ -343,7 +343,7 @@ function StreamScreen({navigation, route}) {
         event => {
           if (!isLeftTriggerCanClick.current) {
             if (_settings.short_trigger) {
-              triggerMax = 0;
+              triggerMax = _settings.dead_zone + 0.1;
             }
             if (event.leftTrigger >= triggerMax) {
               gpState.LeftTrigger = 1;
@@ -356,7 +356,7 @@ function StreamScreen({navigation, route}) {
 
           if (!isRightTriggerCanClick.current) {
             if (_settings.short_trigger) {
-              triggerMax = 0;
+              triggerMax = _settings.dead_zone + 0.1;
             }
             if (event.rightTrigger > triggerMax) {
               gpState.RightTrigger = 1;
@@ -625,7 +625,6 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
-      console.log('rumbleData:', rumbleData);
 
       const isUsbMode = route.params?.isUsbMode || false;
       if (isUsbMode) {
@@ -668,7 +667,7 @@ function StreamScreen({navigation, route}) {
           strongMagnitude = 100;
         }
         GamepadManager.vibrate(
-          60000,
+          10000,
           weakMagnitude,
           strongMagnitude,
           leftTrigger,
