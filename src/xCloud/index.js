@@ -19,6 +19,16 @@ export default class XcloudApi {
   startSession(consoleId, resolution) {
     log.info('[startSession] consoleId:', consoleId);
     this.isStoped = false;
+    let osName = 'android';
+
+    if (resolution === 1080) {
+      osName = 'windows';
+    } else if (resolution === 1081) {
+      // 1080p-HQ, only work in xcloud game
+      osName = this.type === 'home' ? 'windows' : 'tizen';
+    } else {
+      osName = 'android';
+    }
     return new Promise((resolve, reject) => {
       const _settings = getSettings();
       const deviceInfo = JSON.stringify({
@@ -32,8 +42,8 @@ export default class XcloudApi {
             // sdkInstallId: '',
             clientAppId: 'www.xbox.com',
             clientAppType: 'browser',
-            clientAppVersion: '21.1.98',
-            clientSdkVersion: '8.5.3',
+            clientAppVersion: '24.17.36',
+            clientSdkVersion: '10.1.14',
             httpEnvironment: 'prod',
             sdkInstallId: '',
           },
@@ -49,8 +59,9 @@ export default class XcloudApi {
           os: {
             // name: 'android', // 720P
             // name: 'windows', // 1080P
+            // name: 'tizen', // 1080 hq ?
             // For console streaming
-            name: resolution === 720 ? 'android' : 'windows',
+            name: osName,
             ver: '22631.2715',
             platform: 'desktop',
           },
@@ -60,13 +71,13 @@ export default class XcloudApi {
               heightInPixels: 1080,
             },
             pixelDensity: {
-              dpiX: 2,
-              dpiY: 2,
+              dpiX: 1,
+              dpiY: 1,
             },
           },
           browser: {
             browserName: 'chrome',
-            browserVersion: '119.0',
+            browserVersion: '125.0',
           },
         },
       });
@@ -86,7 +97,8 @@ export default class XcloudApi {
           timezoneOffsetMinutes: 120,
           sdkType: 'web',
           // For xCloud streaming
-          osName: resolution === 720 ? 'android' : 'windows',
+          // osName: resolution === 720 ? 'android' : 'windows',
+          osName,
         },
         serverId: this.type === 'home' ? consoleId : '',
         fallbackRegionNames: [],

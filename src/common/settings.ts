@@ -66,10 +66,11 @@ const settings = [
     name: 'resolution',
     type: 'radio',
     title: t('Resolution'),
-    description: t('Set resolution, support 720P/1080P'),
+    description: t('Set resolution, support 720P/1080P/1080P(HQ)'),
     data: [
       {value: 720, text: '720P'},
       {value: 1080, text: '1080P'},
+      {value: 1081, text: '1080P(HQ)'},
     ],
   },
   {

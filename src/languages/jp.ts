@@ -40,7 +40,7 @@ export default {
     'App language': 'アプリ言語',
     'Set language of XStreaming': 'XStreamingの言語設定',
     Resolution: '解像度',
-    'Set resolution, support 720P/1080P': '720P/1080Pの解像度設定',
+    'Set resolution, support 720P/1080P/1080P(HQ)': '720P/1080Pの解像度設定',
     'Host stream bitrate': 'ホストストリームビットレート',
     'Cloud stream bitrate': 'クラウドストリームビットレート',
     'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':

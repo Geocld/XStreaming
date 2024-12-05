@@ -27,8 +27,8 @@ export default {
     'All Games': 'All Games',
     'Set language of XStreaming': 'Set language of XStreaming',
     Resolution: 'Resolution',
-    'Set resolution, support 720P/1080P.':
-      'Set resolution, support 720P/1080P.',
+    'Set resolution, support 720P/1080P/1080P(HQ).':
+      'Set resolution, support 720P/1080P/1080P(HQ).',
     'Host stream bitrate': 'Host stream bitrate',
     'Cloud stream bitrate': 'Cloud stream bitrate',
     'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':

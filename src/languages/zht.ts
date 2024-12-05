@@ -43,7 +43,8 @@ export default {
     'App language': '應用語言',
     'Set language of XStreaming': '設置XStreaming應用語言',
     Resolution: '分辨率',
-    'Set resolution, support 720P/1080P': '設置串流分辨率，支持720P/1080P切換',
+    'Set resolution, support 720P/1080P/1080P(HQ)':
+      '設置串流分辨率，支持720P/1080P切換',
     'Host stream bitrate': '主機串流碼率',
     'Cloud stream bitrate': '雲遊戲碼率',
     'Audio bitrate': '声音碼率',
