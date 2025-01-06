@@ -55,6 +55,8 @@ export default {
     'Mapping key of gamepad': 'Mapping key of gamepad',
     'Override native Xbox gamepad support':
       'Override native Xbox gamepad support',
+    noAllow:
+      'Permission denied for streaming or cloud gaming. Please verify your login status and try logging in again. For cloud gaming, ensure you have an active XGPU subscription. For non-XGPU games, verify that you own the game',
     bind_usb_device_description:
       "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present(experimental)",
     bind_usb_device_tips:

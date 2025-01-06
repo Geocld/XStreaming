@@ -123,8 +123,8 @@ function SettingsScreen({navigation}) {
         />
         {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
           <SettingItem
-            title={'反馈及支持'}
-            description={'如果你遇到使用问题或希望支持XStreaming，请从此进'}
+            title={'支持及交流'}
+            description={'支持开发或交流更多串流技术'}
             onPress={() => navigation.navigate('Feedback')}
           />
         )}

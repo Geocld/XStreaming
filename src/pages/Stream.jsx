@@ -6,7 +6,7 @@ import {
   Vibration,
   NativeEventEmitter,
   StyleSheet,
-  Text,
+  ToastAndroid,
 } from 'react-native';
 import {Portal, Modal, Card, List} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
@@ -145,7 +145,7 @@ function StreamScreen({navigation, route}) {
     FullScreenManager.immersiveModeOn();
 
     const stopVibrate = () => {
-      GamepadManager.vibrate(10, 0, 0, 0, 0);
+      GamepadManager.vibrate(10, 0, 0, 0, 0, 3);
     };
 
     const resetButtonState = () => {
@@ -530,7 +530,12 @@ function StreamScreen({navigation, route}) {
                   '[StartSession] Fail:' + t('WaitingForServerToRegister') + e;
               }
             } else {
-              msg = '[StartSession] Fail:' + e;
+              if (e.message?.indexOf('400') > -1) {
+                const error = t('noAllow');
+                msg = '[StartSession] Fail:' + error;
+              } else {
+                msg = '[StartSession] Fail:' + e;
+              }
             }
             Alert.alert(t('Warning'), msg, [
               {
@@ -672,6 +677,7 @@ function StreamScreen({navigation, route}) {
           strongMagnitude,
           leftTrigger,
           rightTrigger,
+          settings.rumble_intensity || 3,
         );
       }
     }
@@ -699,6 +705,9 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'connectionstate') {
       setConnectState(message);
+      if (message === CONNECTED) {
+        ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
+      }
       // Alway show virtual gamepad
       if (message === CONNECTED && settings.show_virtual_gamead) {
         setShowVirtualGamepad(true);

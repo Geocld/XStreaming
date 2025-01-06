@@ -41,7 +41,7 @@ function AboutScreen({navigation, route}) {
           </Text>
         </View>
         <View>
-          <LinkText url={'https://github.com/Geocld/XStreaming'}>
+          <LinkText url={'https://github.com/Geocld/XStreaming-desktop'}>
             https://github.com/Geocld/XStreaming-desktop
           </LinkText>
         </View>

@@ -1,5 +1,11 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, NativeModules} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  NativeModules,
+  ToastAndroid,
+} from 'react-native';
 import {Button, RadioButton, Text, Divider} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import RNRestart from 'react-native-restart';
@@ -118,6 +124,7 @@ function SettingDetailScreen({navigation, route}) {
       WifiModeManager.setLowLatencyMode(value);
     }
     handleSaveSettings();
+    ToastAndroid.show(t('Saved'), ToastAndroid.SHORT);
     navigation.goBack();
   };
 

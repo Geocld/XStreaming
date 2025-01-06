@@ -27,6 +27,7 @@ function SearchScreen({navigation, route}) {
         autoFocus
         placeholder={t('Search')}
         style={{
+          marginTop: 30,
           height: 40,
         }}
         inputStyle={{

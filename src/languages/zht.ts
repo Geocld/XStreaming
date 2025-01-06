@@ -92,6 +92,8 @@ export default {
     'Mapping key of gamepad': '映射手柄按鍵',
     'Currently no network connection, please connect and try again':
       '當前無網絡連接，請連接後再使用',
+    noAllow:
+      'Permission denied for streaming or cloud gaming. Please verify your login status and try logging in again. For cloud gaming, ensure you have an active XGPU subscription. For non-XGPU games, verify that you own the game',
     Logout: '登出',
     'Do you want to logout?': '要登出嗎？',
     'Current user': '當前用戶',

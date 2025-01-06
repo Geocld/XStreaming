@@ -113,6 +113,8 @@ export default {
       'この設定は、XInput プロトコルをサポートするコントローラーが有線接続されている場合にのみ有効です',
     'After replacing the Android controller driver, controller button mapping is temporarily not supported':
       'Androidコントローラードライバーを上書きした後、コントローラーボタンのマッピングは一時的にサポートされていません',
+    noAllow:
+      'Permission denied for streaming or cloud gaming. Please verify your login status and try logging in again. For cloud gaming, ensure you have an active XGPU subscription. For non-XGPU games, verify that you own the game',
     Sharpness: 'シャープネス',
     Saturation: '彩度',
     Contrast: 'コントラスト',

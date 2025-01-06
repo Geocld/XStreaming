@@ -8,17 +8,13 @@ function FeedbackScreen({navigation, route}) {
     <ScrollView style={styles.container}>
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">反馈</Text>
+          <Text variant="titleLarge">交流</Text>
         </View>
         <View>
           <Text variant="titleMedium">
-            如果你使用过程遇到任何问题或有更好的建议及想法，都可以加入XStreaming使用群进行交流。
+            喜欢折腾、主机串流、云游戏及串流技术开发，欢迎加入群聊
           </Text>
-          <Text variant="titleMedium">二维码失效请加群号：958931336</Text>
-          <Image
-            source={require('../assets/feedback/QQ.jpg')}
-            style={styles.image}
-          />
+          <Text variant="titleMedium">群号：964721224</Text>
         </View>
       </View>
 
@@ -29,11 +25,11 @@ function FeedbackScreen({navigation, route}) {
 
         <View>
           <Text variant="titleMedium">
-            XStreaming始终坚持开源免费，旨在为Xbox玩家串流玩家提供多一个串流选择，后续还会继续推出其他平台客户端，作者平时也喜欢玩游戏，也是使用业余时间开发软件，如果觉得XStreaming好用，不妨请作者喝杯咖啡，大家的支持就是持续开发维护的动力~
+            请作者喝杯咖啡，大家的支持就是持续开发维护的动力
           </Text>
         </View>
         <View style={{paddingBottom: 50}}>
-          <Text variant="titleMedium">微信</Text>
+          <Text variant="titleMedium">Wechat</Text>
           <Image
             source={require('../assets/feedback/wechat.jpg')}
             style={{width: 200, height: 200}}
@@ -41,7 +37,7 @@ function FeedbackScreen({navigation, route}) {
         </View>
 
         <View style={{paddingBottom: 50}}>
-          <Text variant="titleMedium">支付宝</Text>
+          <Text variant="titleMedium">Alipay</Text>
           <Image
             source={require('../assets/feedback/alipay.jpg')}
             style={{width: 200, height: 200}}

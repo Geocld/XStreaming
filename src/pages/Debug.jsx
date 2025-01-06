@@ -66,7 +66,7 @@ function DebugScreen({navigation, route}) {
           setShowDebug(true);
         }}
       />
-      <SettingItem
+      {/* <SettingItem
         title={'Show tokens'}
         description={'Show auth token'}
         onPress={() => {
@@ -81,7 +81,7 @@ function DebugScreen({navigation, route}) {
       `;
           Alert.alert('Token', result);
         }}
-      />
+      /> */}
       {/* <SettingItem
         title={'Gamepad debug'}
         description={`Test OTG Gamepad.`}
@@ -92,10 +92,10 @@ function DebugScreen({navigation, route}) {
         description={'Test gamepad vibration'}
         onPress={() => {
           // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger, int intensity)
-          GamepadManager.vibrate(60000, 100, 100, 100, 1000);
+          GamepadManager.vibrate(60000, 100, 100, 100, 1000, 5);
 
           setTimeout(() => {
-            GamepadManager.vibrate(0, 0, 0, 0, 0);
+            GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
           }, 500);
 
           // setTimeout(() => {
@@ -105,8 +105,8 @@ function DebugScreen({navigation, route}) {
       />
 
       <SettingItem
-        title={'Vibration(xInput)'}
-        description={'Test gamepad vibration with x-input mode'}
+        title={'Vibration(usb)'}
+        description={'Test gamepad rumble in override mode'}
         onPress={() => {
           UsbRumbleManager.rumble(32767, 32767);
 
@@ -118,7 +118,7 @@ function DebugScreen({navigation, route}) {
 
       <SettingItem
         title={'Trigger Rumble(xbox one controller)'}
-        description={'Test gamepad trigger rumble with x-input mode'}
+        description={'Test gamepad trigger rumble with override mode'}
         onPress={() => {
           UsbRumbleManager.rumbleTriggers(32767, 32767);
 

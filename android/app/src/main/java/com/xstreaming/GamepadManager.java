@@ -30,9 +30,14 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class GamepadManager extends ReactContextBaseJavaModule {
 
     private boolean hasGameController;
+
+    private final ExecutorService executorService;
 
     private static String currentScreen = "";
 
@@ -40,6 +45,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
     public GamepadManager(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     @Override
@@ -50,10 +56,24 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         return "GamepadManager";
     }
 
-    private void rumbleSingleVibrator(Vibrator vibrator, int duration, short lowFreqMotor, short highFreqMotor) {
+    private void rumbleSingleVibrator(Vibrator vibrator, int duration, short lowFreqMotor, short highFreqMotor, int intensity) {
         Log.d("GamepadManager", "rumbleSingleVibrator");
 
-        int simulatedAmplitude = Math.min(255, (int)((lowFreqMotor * 0.9) + (highFreqMotor * 0.5)));
+
+        int simulatedAmplitude = Math.min(255, (int)((lowFreqMotor) + (highFreqMotor)));
+
+        if (intensity == 1) { // very weak
+            simulatedAmplitude = Math.min(255, (int)((lowFreqMotor * 0.5) + (highFreqMotor * 0.4)));
+        }
+        if (intensity == 2) { // weak
+            simulatedAmplitude = Math.min(255, (int)((lowFreqMotor * 0.9) + (highFreqMotor * 0.8)));
+        }
+        if (intensity == 4) { // strong
+            simulatedAmplitude = Math.min(255, (int)((lowFreqMotor * 1.5) + (highFreqMotor * 2)));
+        }
+        if (intensity == 5) { // very strong
+            simulatedAmplitude = Math.min(255, (int)((lowFreqMotor * 2) + (highFreqMotor * 2.5)));
+        }
 
         Log.d("GamepadManager", "simulatedAmplitude:" + simulatedAmplitude);
 
@@ -171,8 +191,12 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         return currentScreen;
     }
 
+    private int clampVibration(int value) {
+        return Math.max(0, Math.min(255, value));
+    }
+
     @ReactMethod
-    public void vibrate(int duration, int lowFreqMotor, int highFreqMotor, int leftTrigger, int rightTrigger) {
+    public void vibrate(int duration, int lowFreqMotor, int highFreqMotor, int leftTrigger, int rightTrigger, int intensity) {
         short _lowFreqMotor = (short) lowFreqMotor;
         short _highFreqMotor = (short) highFreqMotor;
         short _leftTrigger = (short) leftTrigger;
@@ -244,6 +268,24 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
                 Log.d("GamepadManager", "vibrator:" + vibrator);
 
+                float intensityFactor = 1f;
+                switch (intensity) {
+                    case 1: // very weak
+                        intensityFactor = 0.2f;
+                        break;
+                    case 2: // weak
+                        intensityFactor = 0.5f;
+                        break;
+                    case 4: // strong
+                        intensityFactor = 2f;
+                        break;
+                    case 5: // very strong
+                        intensityFactor = 3f;
+                        break;
+                    default:
+                        break;
+                }
+
                 // Prefer the documented Android 12 rumble API which can handle dual vibrators on PS/Xbox controllers
                 if (vibratorManager != null) {
 
@@ -258,7 +300,13 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                         // This is a guess based upon the behavior of FF_RUMBLE, but untested due to lack of Linux
                         // support for trigger rumble!
                         int[] quadVibratorIds = vibratorManager.getVibratorIds();
-                        int[] vibratorAmplitudes = new int[] { _highFreqMotor, _lowFreqMotor, _leftTrigger, _rightTrigger };
+
+                        int[] vibratorAmplitudes = new int[] {
+                                clampVibration((int)(_highFreqMotor * intensityFactor)),
+                                clampVibration((int)(_lowFreqMotor * intensityFactor)),
+                                clampVibration((int)(_leftTrigger * intensityFactor)),
+                                clampVibration((int)(_rightTrigger * intensityFactor))
+                        };
 
                         CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
 
@@ -290,7 +338,10 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                         // always be enumerated in this order, but it seems consistent between Xbox Series X (USB),
                         // PS3 (USB), and PS4 (USB+BT) controllers on Android 12 Beta 3.
                         int[] qualVibratorIds = vibratorManager.getVibratorIds();
-                        int[] vibratorAmplitudes = new int[] { highFreqMotor, lowFreqMotor };
+                        int[] vibratorAmplitudes = new int[] {
+                                clampVibration((int)(_highFreqMotor * intensityFactor)),
+                                clampVibration((int)(_lowFreqMotor * intensityFactor)),
+                        };
 
                         CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
 
@@ -315,12 +366,12 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 // If all else fails, we have to try the old Vibrator API
                 else if (vibrator != null) {
                     Log.d("GamepadManager", "rumbleSingleVibrator123:");
-                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor);
+                    rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
                 }
                 // Force device rumble
                 else {
                     Log.d("GamepadManager", "Force device rumble");
-                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor);
+                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
                 }
             }
 
@@ -352,9 +403,9 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 if (vibrator != null) {
                     Log.d("GamepadManager", "Old sdk rumbleSingleVibrator:");
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R) { // Android 11
-                        rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor);
+                        rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
                     } else {
-                        rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor);
+                        rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
                     }
 
                     break;
@@ -362,7 +413,16 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 // Force device rumble
                 else {
                     Log.d("GamepadManager", "Old sdk device rumble:");
-                    rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor);
+                    executorService.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
+                            } catch (Exception e) {
+                                Log.e("GamepadManager", "Error during vibration", e);
+                            }
+                        }
+                    });
                 }
             }
         }
