@@ -20,27 +20,13 @@ function FeedbackScreen({navigation, route}) {
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">支持</Text>
-        </View>
-
-        <View>
-          <Text variant="titleMedium">
-            请作者喝杯咖啡，大家的支持就是持续开发维护的动力
-          </Text>
-        </View>
-        <View style={{paddingBottom: 50}}>
-          <Text variant="titleMedium">Wechat</Text>
-          <Image
-            source={require('../assets/feedback/wechat.jpg')}
-            style={{width: 200, height: 200}}
-          />
+          <Text variant="titleLarge">赞赏</Text>
         </View>
 
         <View style={{paddingBottom: 50}}>
-          <Text variant="titleMedium">Alipay</Text>
           <Image
-            source={require('../assets/feedback/alipay.jpg')}
-            style={{width: 200, height: 200}}
+            source={require('../assets/feedback/wx_sponsor.png')}
+            style={{width: '100%', height: 400}}
           />
         </View>
       </View>

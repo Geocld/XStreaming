@@ -1,8 +1,10 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, NativeModules} from 'react-native';
 import {Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {getSettings} from '../store/settingStore';
+
+const {BatteryModule} = NativeModules;
 
 type Props = {
   performance: any;
@@ -11,8 +13,42 @@ type Props = {
 const PerfPanel: React.FC<Props> = ({performance = {}}) => {
   const {t} = useTranslation();
   const settings = getSettings();
+  const [battery, setBattery] = React.useState(100);
+  const batteryInterval = React.useRef<any>(null);
 
   const isHorizon = settings.performance_style;
+
+  React.useEffect(() => {
+    const getBattery = () => {
+      BatteryModule.getBatteryLevel()
+        .then((level: any) => {
+          if (level) {
+            setBattery(Number(level));
+          } else {
+            setBattery(-1);
+          }
+        })
+        .catch((e: any) => {
+          console.log(e);
+        });
+    };
+    getBattery();
+
+    // Catch battery every 2 mins
+    batteryInterval.current = setInterval(getBattery, 2 * 60 * 1000);
+
+    return () => {
+      batteryInterval.current && clearInterval(batteryInterval.current);
+    };
+  }, []);
+
+  const renderBattery = (level: number) => {
+    if (level < 20) {
+      return `🪫: ${level}%`;
+    } else {
+      return `🔋: ${level}%`;
+    }
+  };
 
   return (
     <View style={isHorizon ? styles.containerH : styles.containerV}>
@@ -50,7 +86,11 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
         <View>
           <Text style={styles.text}>
             {t('DT')}: {performance.decode || '-1'}
+            {isHorizon ? ' | ' : ''}
           </Text>
+        </View>
+        <View>
+          <Text style={styles.text}>{renderBattery(battery)}</Text>
         </View>
       </View>
     </View>

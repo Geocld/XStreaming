@@ -142,7 +142,7 @@ function TitleDetail({navigation, route}) {
               mode="contained"
               style={styles.button}
               onPress={handleStartGame}>
-              {t('Start game')}
+              &nbsp;{t('Start game')} &nbsp;
             </Button>
             <Button
               mode="outlined"

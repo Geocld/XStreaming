@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class WifiModePackage implements ReactPackage {
+public class BatteryPackage implements ReactPackage {
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         return Collections.emptyList();
@@ -20,7 +20,7 @@ public class WifiModePackage implements ReactPackage {
             ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
 
-        modules.add(new WifiModeManager(reactContext));
+        modules.add(new BatteryModule(reactContext));
 
         return modules;
     }

@@ -192,7 +192,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
     }
 
     private int clampVibration(int value) {
-        return Math.max(0, Math.min(255, value));
+        return Math.max(1, Math.min(255, value));
     }
 
     @ReactMethod
@@ -212,6 +212,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
             VibratorManager vibratorManager = null;
             boolean quadVibrators = false;
             boolean isGamepad = false;
+            boolean hasRealGamepad = false;
 
             for (int id : ids) {
                 InputDevice dev = InputDevice.getDevice(id);
@@ -232,6 +233,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 if (!isRealGamepad) {
                     continue;
                 }
+                hasRealGamepad = true;
 
                 Log.d("GamepadManager", "isGameControllerDevice:" + dev.getName());
 
@@ -308,23 +310,33 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                                 clampVibration((int)(_rightTrigger * intensityFactor))
                         };
 
-                        CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
-
-                        for (int i = 0; i < quadVibratorIds.length; i++) {
-                            // It's illegal to create a VibrationEffect with an amplitude of 0.
-                            // Simply excluding that vibrator from our ParallelCombination will turn it off.
-                            if (vibratorAmplitudes[i] != 0) {
-                                combo.addVibrator(quadVibratorIds[i], VibrationEffect.createOneShot(duration, vibratorAmplitudes[i]));
+                        boolean hasNonZeroAmplitude = false;
+                        for (int amplitude : vibratorAmplitudes) {
+                            if (amplitude != 0) {
+                                hasNonZeroAmplitude = true;
+                                break;
                             }
                         }
 
-                        VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder();
+                        if (hasNonZeroAmplitude) {
+                            CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
+                            for (int i = 0; i < quadVibratorIds.length; i++) {
+                                // It's illegal to create a VibrationEffect with an amplitude of 0.
+                                // Simply excluding that vibrator from our ParallelCombination will turn it off.
+                                if (vibratorAmplitudes[i] != 0) {
+                                    combo.addVibrator(quadVibratorIds[i], VibrationEffect.createOneShot(duration, vibratorAmplitudes[i]));
+                                }
+                            }
+
+                            VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder();
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
+                            }
+
+                            vibratorManager.vibrate(combo.combine(), vibrationAttributes.build());
                         }
-
-                        vibratorManager.vibrate(combo.combine(), vibrationAttributes.build());
                     }
                     // rumbleDualVibrators
                     else {
@@ -343,29 +355,39 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                                 clampVibration((int)(_lowFreqMotor * intensityFactor)),
                         };
 
-                        CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
-
-                        for (int i = 0; i < qualVibratorIds.length; i++) {
-                            // It's illegal to create a VibrationEffect with an amplitude of 0.
-                            // Simply excluding that vibrator from our ParallelCombination will turn it off.
-                            if (vibratorAmplitudes[i] != 0) {
-                                combo.addVibrator(qualVibratorIds[i], VibrationEffect.createOneShot(duration, vibratorAmplitudes[i]));
+                        boolean hasNonZeroAmplitude = false;
+                        for (int amplitude : vibratorAmplitudes) {
+                            if (amplitude != 0) {
+                                hasNonZeroAmplitude = true;
+                                break;
                             }
                         }
 
-                        VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder();
+                        if (hasNonZeroAmplitude) {
+                            CombinedVibration.ParallelCombination combo = CombinedVibration.startParallel();
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
+                            for (int i = 0; i < qualVibratorIds.length; i++) {
+                                // It's illegal to create a VibrationEffect with an amplitude of 0.
+                                // Simply excluding that vibrator from our ParallelCombination will turn it off.
+                                if (vibratorAmplitudes[i] != 0) {
+                                    combo.addVibrator(qualVibratorIds[i], VibrationEffect.createOneShot(duration, vibratorAmplitudes[i]));
+                                }
+                            }
+
+                            VibrationAttributes.Builder vibrationAttributes = new VibrationAttributes.Builder();
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                vibrationAttributes.setUsage(VibrationAttributes.USAGE_MEDIA);
+                            }
+
+                            Log.d("GamepadManager", "rumbleDualVibrators:" + vibrator);
+                            vibratorManager.vibrate(combo.combine(), vibrationAttributes.build());
                         }
-
-                        Log.d("GamepadManager", "rumbleDualVibrators:" + vibrator);
-                        vibratorManager.vibrate(combo.combine(), vibrationAttributes.build());
                     }
                 }
                 // If all else fails, we have to try the old Vibrator API
                 else if (vibrator != null) {
-                    Log.d("GamepadManager", "rumbleSingleVibrator123:");
+                    Log.d("GamepadManager", "rumbleSingleVibrator:");
                     rumbleSingleVibrator(vibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
                 }
                 // Force device rumble
@@ -375,6 +397,16 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 }
             }
 
+            if (!hasRealGamepad) {
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            rumbleSingleVibrator(deviceVibrator, duration, _lowFreqMotor, _highFreqMotor, intensity);
+                        } catch (Exception e) {}
+                    }
+                });
+            }
 
         } else {
             boolean isGamepad = false;

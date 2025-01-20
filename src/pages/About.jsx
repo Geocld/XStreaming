@@ -23,7 +23,7 @@ function AboutScreen({navigation, route}) {
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">Want to contribute to XStreaming?</Text>
+          <Text variant="titleLarge">Want111 to contribute to XStreaming?</Text>
         </View>
 
         <View>
@@ -43,6 +43,23 @@ function AboutScreen({navigation, route}) {
         <View>
           <LinkText url={'https://github.com/Geocld/XStreaming-desktop'}>
             https://github.com/Geocld/XStreaming-desktop
+          </LinkText>
+        </View>
+      </View>
+
+      <View style={styles.block}>
+        <View style={styles.title}>
+          <Text variant="titleLarge">
+            Are you looking for an Playstation streaming client?
+          </Text>
+        </View>
+
+        <View>
+          <Text variant="titleMedium">PeaSyo:</Text>
+        </View>
+        <View>
+          <LinkText url={'https://github.com/Geocld/PeaSyo'}>
+            https://github.com/Geocld/PeaSyo
           </LinkText>
         </View>
       </View>

@@ -47,7 +47,7 @@ import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
 
-import { SystemBars } from 'react-native-edge-to-edge';
+import {SystemBars} from 'react-native-edge-to-edge';
 
 import './i18n';
 import SearchScreen from './pages/Search';
@@ -55,7 +55,7 @@ import SearchScreen from './pages/Search';
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
 
-const {UsbRumbleManager, WifiModeManager} = NativeModules;
+const {UsbRumbleManager} = NativeModules;
 
 const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
@@ -187,10 +187,6 @@ function App() {
   } else if (settings.theme === 'light') {
     paperTheme = paperLightTheme;
     navigationTheme = CombinedDefaultTheme;
-  }
-
-  if (settings.low_latency_mode) {
-    WifiModeManager.setLowLatencyMode(true);
   }
 
   return (
