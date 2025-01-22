@@ -20,7 +20,7 @@ public class SensorModule extends ReactContextBaseJavaModule  implements SensorE
     private final ReactApplicationContext reactContext;
     private final SensorManager sensorManager;
     private final Sensor gyroscope;
-    private static final float SENSITIVITY = 0.1f;
+    private int customSensitivity = 10000;
 
     static float lastX = 0, lastY = 0;
 
@@ -39,10 +39,11 @@ public class SensorModule extends ReactContextBaseJavaModule  implements SensorE
     }
 
     @ReactMethod
-    public void startSensor() {
+    public void startSensor(int sensitivity) {
         Log.d("SensorModule", "startSensor");
+        this.customSensitivity = sensitivity;
         if (gyroscope != null) {
-            sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_GAME);
+            sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_FASTEST);
         }
     }
 
@@ -56,7 +57,7 @@ public class SensorModule extends ReactContextBaseJavaModule  implements SensorE
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 
-            float sensitivity = (1 << 8) * 12000 / 100f;
+            float sensitivity = (1 << 8) * this.customSensitivity / 100f;
 
             float x = -event.values[0];
             float y = event.values[1];

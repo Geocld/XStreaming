@@ -39,8 +39,9 @@ export type Settings = {
   custom_virtual_gamepad: string;
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
+  gyroscope: boolean;
+  gyroscope_sensitivity: number;
   display_options: DisplayOptions;
-  low_latency_mode: boolean;
   ipv6: boolean;
   check_update: boolean;
   power_on: boolean;
@@ -76,7 +77,8 @@ const defaultSettings: Settings = {
   custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,
-  low_latency_mode: false,
+  gyroscope: false,
+  gyroscope_sensitivity: 10000,
   ipv6: false,
   check_update: true,
   power_on: false,

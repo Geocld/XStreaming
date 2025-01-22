@@ -99,5 +99,12 @@ export default {
     Saved: 'Saved',
     Reset: 'Reset',
     Exit: 'Exit',
+    gyroTitle: 'Enable Gyroscope',
+    gyroDesc:
+      'Whether to force the use of the device’s gyroscope. When the LT button is pressed, the gyroscope simulates the right stick, commonly used in FPS games.',
+    gyroTips:
+      "Currently, only the device's gyroscope is supported; gamepad gyroscope is not supported",
+    gyroSenTitle: 'Gyroscope Sensitivity',
+    gyroSenDesc: 'Adjust gyroscope sensitivity',
   },
 };

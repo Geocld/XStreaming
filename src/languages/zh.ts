@@ -214,5 +214,11 @@ export default {
     Exit: '退出',
     Connected: '连接成功',
     'Update Warning': '新版本提示',
+    gyroTitle: '启用陀螺仪',
+    gyroDesc:
+      '是否强制使用设备陀螺仪，当按下LT键时陀螺仪模拟右摇杆，常用于FPS游戏',
+    gyroTips: '当前只支持设备陀螺仪，手柄陀螺仪暂不支持',
+    gyroSenTitle: '陀螺仪灵敏度',
+    gyroSenDesc: '调节陀螺仪灵敏度',
   },
 };

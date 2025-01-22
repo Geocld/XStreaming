@@ -181,5 +181,11 @@ export default {
     'Save Maping': '儲存',
     Reset: '恢復預設值',
     Exit: '退出',
+    gyroTitle: '啟用陀螺儀',
+    gyroDesc:
+      '是否強制使用設備陀螺儀，當按下LT鍵時陀螺儀模擬右搖杆，常用於FPS遊戲',
+    gyroTips: '當前只支持設備陀螺儀，手把陀螺儀暫不支持',
+    gyroSenTitle: '陀螺儀靈敏度',
+    gyroSenDesc: '調節陀螺儀靈敏度',
   },
 };

@@ -92,6 +92,9 @@ function StreamScreen({navigation, route}) {
   const isRightTriggerCanClick = React.useRef(false);
   const isRumbling = React.useRef(false);
 
+  const isLtPressing = React.useRef(false);
+  const isRightstickMoving = React.useRef(false);
+
   const usbGpEventListener = React.useRef(undefined);
   const sensorEventListener = React.useRef(undefined);
 
@@ -336,6 +339,12 @@ function StreamScreen({navigation, route}) {
       rightStickEventListener.current = eventEmitter.addListener(
         'onRightStickMove',
         event => {
+          if (event.axisX > 0 || event.axisY > 0) {
+            isRightstickMoving.current = true;
+          } else {
+            isRightstickMoving.current = false;
+          }
+
           gpState.RightThumbXAxis = normaliseAxis(event.axisX);
           gpState.RightThumbYAxis = normaliseAxis(event.axisY);
         },
@@ -377,26 +386,30 @@ function StreamScreen({navigation, route}) {
       }, 4);
     }
 
-    // SensorModule.startSensor();
-    // sensorEventListener.current = eventEmitter.addListener(
-    //   'SensorData',
-    //   params => {
-    //     const {x, y} = params;
+    if (_settings.gyroscope) {
+      SensorModule.startSensor(_settings.gyroscope_sensitivity);
+      sensorEventListener.current = eventEmitter.addListener(
+        'SensorData',
+        params => {
+          const {x, y} = params;
 
-    //     const stickX = x / 32767;
-    //     const stickY = y / 32767;
+          const stickX = x / 32767;
+          const stickY = y / 32767;
 
-    //     if (
-    //       Math.abs(stickX) >= _settings.dead_zone ||
-    //       Math.abs(stickY) >= _settings.dead_zone
-    //     ) {
-    //       // gpState.RightThumbXAxis = normaliseAxis(event.axisX);
-    //       // gpState.RightThumbYAxis = normaliseAxis(event.axisY);
-    //       gpState.RightThumbXAxis = stickX.toFixed(3);
-    //       gpState.RightThumbYAxis = stickY.toFixed(3);
-    //     }
-    //   },
-    // );
+          // gyroscope only work when Rightstick not moving
+          if (!isRightstickMoving.current) {
+            // gyroscope only work when LT button press
+            if (gpState.LeftTrigger >= _settings.dead_zone) {
+              gpState.RightThumbXAxis = stickX.toFixed(3);
+              gpState.RightThumbYAxis = stickY.toFixed(3);
+            } else {
+              gpState.RightThumbXAxis = 0;
+              gpState.RightThumbYAxis = 0;
+            }
+          }
+        },
+      );
+    }
 
     navigation.addListener('beforeRemove', e => {
       stopVibrate();
@@ -463,6 +476,7 @@ function StreamScreen({navigation, route}) {
       triggerEventListener.current && triggerEventListener.current.remove();
       timer.current && clearInterval(timer.current);
       GamepadManager.setCurrentScreen('');
+      SensorModule.stopSensor();
     };
   }, [
     route.params?.sessionId,
@@ -795,6 +809,11 @@ function StreamScreen({navigation, route}) {
     }
 
     if (id === 'right') {
+      if (leveledX > 0 || leveledY > 0) {
+        isRightstickMoving.current = true;
+      } else {
+        isRightstickMoving.current = false;
+      }
       gpState.RightThumbXAxis = Number(leveledX);
       gpState.RightThumbYAxis = Number(-leveledY);
     } else {
@@ -825,6 +844,9 @@ function StreamScreen({navigation, route}) {
     setShowVirtualGamepad(false);
     postData2Webview('disconnect', {});
     setShowModal(false);
+    if (settings.gyroscope) {
+      SensorModule.stopSensor();
+    }
   };
 
   const background = {
