@@ -137,7 +137,7 @@ export default {
     Saturation: '飽和度',
     Contrast: '對比度',
     Brightness: '亮度',
-    'About XStreaming': '關於SXtreaming',
+    'About XStreaming': '關於XStreaming',
     Light: '明亮',
     Dark: '暗黑',
     Standby: '待機',

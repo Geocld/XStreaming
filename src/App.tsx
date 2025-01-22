@@ -102,7 +102,7 @@ function HomeTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{tabBarLabel: t('Consoles'), title: t('Consoles')}}
+        options={{headerShown: false, tabBarLabel: t('Consoles'), title: t('Consoles')}}
       />
       <Tab.Screen
         name="Cloud"

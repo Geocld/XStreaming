@@ -339,7 +339,7 @@ function StreamScreen({navigation, route}) {
       rightStickEventListener.current = eventEmitter.addListener(
         'onRightStickMove',
         event => {
-          if (event.axisX > 0 || event.axisY > 0) {
+          if (Math.abs(event.axisX) > 0 || Math.abs(event.axisY) > 0) {
             isRightstickMoving.current = true;
           } else {
             isRightstickMoving.current = false;
@@ -813,7 +813,7 @@ function StreamScreen({navigation, route}) {
     }
 
     if (id === 'right') {
-      if (leveledX > 0 || leveledY > 0) {
+      if (Math.abs(leveledX) > 0 || Math.abs(leveledY) > 0) {
         isRightstickMoving.current = true;
       } else {
         isRightstickMoving.current = false;

@@ -364,7 +364,6 @@ function HomeScreen({navigation, route}) {
 
     return (
       <FAB.Group
-        style={styles.fab}
         open={fabOpen}
         visible
         icon={fabOpen ? 'account-circle' : 'account-circle-outline'}
@@ -450,7 +449,12 @@ const styles = StyleSheet.create({
   noConsoles: {
     padding: 20,
   },
-  consoleList: {},
+  consoleList: {
+    paddingTop: 20,
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingBottom: 10,
+  },
   listContainer: {},
   consoleItem: {
     padding: 10,
@@ -462,13 +466,6 @@ const styles = StyleSheet.create({
   listItemV: {
     width: '50%',
     justifyContent: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    padding: 20,
-    right: 0,
-    bottom: -20,
-    zIndex: 999,
   },
 });
 
