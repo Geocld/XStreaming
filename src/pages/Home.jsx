@@ -3,12 +3,12 @@ import {
   StyleSheet,
   View,
   Alert,
+  FlatList,
+  Dimensions,
   SafeAreaView,
-  ScrollView,
-  RefreshControl,
   NativeModules,
 } from 'react-native';
-import {Button, Text, Divider, Portal, Modal, Card} from 'react-native-paper';
+import {Button, Text, FAB, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
 import ConsoleItem from '../components/ConsoleItem';
@@ -39,6 +39,8 @@ function HomeScreen({navigation, route}) {
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
+  const [numColumns, setNumColumns] = React.useState(2);
+  const [showProfile, setShowProfile] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
   const _authentication = React.useRef(authentication);
@@ -57,9 +59,19 @@ function HomeScreen({navigation, route}) {
   const isFocused = useIsFocused();
   const _isFocused = React.useRef(isFocused);
 
+  const [fabOpen, setFabOpen] = React.useState(false);
+
   React.useEffect(() => {
     log.info('Page loaded.');
     SplashScreen.hide();
+
+    const updateLayout = () => {
+      const {width, height} = Dimensions.get('window');
+      setNumColumns(width > height ? 4 : 2);
+    };
+
+    updateLayout();
+    const subscription = Dimensions.addEventListener('change', updateLayout);
 
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected);
@@ -202,6 +214,10 @@ function HomeScreen({navigation, route}) {
         unsubscribe();
       };
     }
+
+    return () => {
+      subscription?.remove();
+    };
   }, [
     t,
     route.params?.xalUrl,
@@ -256,14 +272,6 @@ function HomeScreen({navigation, route}) {
     });
   };
 
-  const onRefresh = React.useCallback(async () => {
-    setRefreshing(true);
-    const webApi = new WebApi(webToken);
-    const _consoles = await webApi.getConsoles();
-    setConsoles(_consoles);
-    setRefreshing(false);
-  }, [webToken]);
-
   // Warn: xboxOne controller must press Nexus button first to active button
   const renderUsbWarningModal = () => {
     if (!showUsbWarnModal) {
@@ -306,12 +314,110 @@ function HomeScreen({navigation, route}) {
     );
   };
 
+  const renderProfile = () => {
+    if (!showProfile || !profile) {
+      return null;
+    }
+    return (
+      <Portal>
+        <Modal
+          visible={showProfile}
+          onDismiss={() => {
+            setShowProfile(false);
+          }}
+          contentContainerStyle={{marginLeft: '10%', marginRight: '10%'}}>
+          <Card>
+            <Card.Content>
+              <Profile profile={profile} />
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+    );
+  };
+
+  const renderFab = () => {
+    const fabActions = [
+      {
+        icon: 'information',
+        label: t('Profile'),
+        onPress: () => {
+          setFabOpen(false);
+          setShowProfile(true);
+        },
+      },
+      {
+        icon: 'account-supervisor',
+        label: t('Friends'),
+        onPress: () => navigation.navigate('Friends'),
+      },
+      {
+        icon: 'trophy',
+        label: t('Achivements'),
+        onPress: () => navigation.navigate('Achivements'),
+      },
+    ];
+
+    if (!isLogined) {
+      return null;
+    }
+
+    return (
+      <FAB.Group
+        style={styles.fab}
+        open={fabOpen}
+        visible
+        icon={fabOpen ? 'account-circle' : 'account-circle-outline'}
+        actions={fabActions}
+        onStateChange={({open}) => setFabOpen(open)}
+      />
+    );
+  };
+
+  const renderContent = () => {
+    if (!isLogined || loading) {
+      return null;
+    }
+    if (consoles.length) {
+      return (
+        <View>
+          <View style={styles.consoleList}>
+            <FlatList
+              data={consoles}
+              numColumns={numColumns}
+              key={numColumns}
+              contentContainerStyle={styles.listContainer}
+              renderItem={({item}) => {
+                return (
+                  <View
+                    style={[
+                      styles.consoleItem,
+                      numColumns === 4 ? styles.listItemH : styles.listItemV,
+                    ]}>
+                    <ConsoleItem
+                      consoleItem={item}
+                      onPress={() => handleStartStream(item.id)}
+                      onPoweronStream={() => handlePoweronAndStream(item.id)}
+                    />
+                  </View>
+                );
+              }}
+            />
+          </View>
+        </View>
+      );
+    } else {
+      return (
+        <View style={styles.noConsoles}>
+          <Text variant="titleMedium">{t('NoConsoles')}</Text>
+        </View>
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} renderToHardwareTextureAndroid>
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
+      <View>
         <Spinner
           visible={loading}
           color={'#107C10'}
@@ -321,29 +427,11 @@ function HomeScreen({navigation, route}) {
 
         {renderUsbWarningModal()}
 
-        {profile && <Profile profile={profile} />}
+        {renderProfile()}
 
-        {consoles.length > 0 ? (
-          <View>
-            <Text style={styles.title} variant="titleMedium">
-              {t('Consoles')}
-            </Text>
-            <Divider />
-            <View style={styles.consoleList}>
-              {consoles.map(console => {
-                return (
-                  <ConsoleItem
-                    consoleItem={console}
-                    key={console.id}
-                    onPress={() => handleStartStream(console.id)}
-                    onPoweronStream={() => handlePoweronAndStream(console.id)}
-                  />
-                );
-              })}
-            </View>
-          </View>
-        ) : null}
-      </ScrollView>
+        {renderContent()}
+      </View>
+      {renderFab()}
     </SafeAreaView>
   );
 }
@@ -351,7 +439,6 @@ function HomeScreen({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
   },
   spinnerTextStyle: {
     color: '#107C10',
@@ -360,11 +447,28 @@ const styles = StyleSheet.create({
   menuWrap: {
     width: 250,
   },
-  title: {
-    paddingBottom: 10,
+  noConsoles: {
+    padding: 20,
   },
-  consoleList: {
-    marginTop: 20,
+  consoleList: {},
+  listContainer: {},
+  consoleItem: {
+    padding: 10,
+  },
+  listItemH: {
+    width: '25%',
+    justifyContent: 'center',
+  },
+  listItemV: {
+    width: '50%',
+    justifyContent: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    padding: 20,
+    right: 0,
+    bottom: -20,
+    zIndex: 999,
   },
 });
 

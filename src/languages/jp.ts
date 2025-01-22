@@ -29,6 +29,8 @@ export default {
     'Press Nexus': 'Nexusボタンを押す',
     'Long press Nexus': 'Nexusボタンを長押し',
     Disconnect: '接続解除',
+    NoConsoles:
+      'No consoles found on your account. If you do have an Xbox console then make sure that remote playing is enabled and that the console is visible in the official Xbox App.',
     NoXGP:
       'XGPUが未契約または地域制限があります。アカウント権限を確認するか、設定で地域を変更して再試行してください。',
     Recently: '最近プレイ',

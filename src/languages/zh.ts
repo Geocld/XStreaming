@@ -6,6 +6,7 @@ export default {
     Settings: '设置',
     Login: '登录',
     About: '关于',
+    Profile: '个人信息',
     Feedback: '交流及赞赏',
     Close: '关闭',
     GameMap: '手柄映射',
@@ -14,6 +15,8 @@ export default {
     'Login successful, refreshing login credentials...':
       '登录成功，正在刷新登录凭证...',
     'Checking login status...': '正在检查登录...',
+    NoConsoles:
+      '账号下没有找到主机，如果你有xbox主机，请确保主机开启了远程游玩功能，并且使用官方xbox App可以查看到该主机。',
     Warning: '提示',
     WaitingForServerToRegister:
       '无法在主机上建立串流，原因是主机没有连接到Xbox服务器，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试手动重启主机并重试',
@@ -21,7 +24,7 @@ export default {
       '登录已失效或未登录，请重新登录',
     'Loading...': '加载中...',
     'Start stream': '开始串流',
-    'Power on and start stream': '开机并开始串流',
+    'Power on and start stream': '开机并串流',
     'Start game': '开始云游戏',
     'Local connect': '本地连接',
     'Remote connect': '远程连接',
@@ -203,5 +206,6 @@ export default {
     Delete: '删除',
     Exit: '退出',
     Connected: '连接成功',
+    'Update Warning': '新版本提示',
   },
 };

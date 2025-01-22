@@ -9,6 +9,7 @@ export default {
     Feedback: '反馈及支持',
     Close: '關閉',
     GameMap: '手柄映射',
+    Profile: '个人信息',
     'Fetching user info...': '正在獲取用戶信息...',
     'Fetching consoles...': '正在獲取終端信息...',
     'Login successful, refreshing login credentials...':
@@ -21,7 +22,7 @@ export default {
       '登錄已失效或未登錄，請重新登錄',
     'Loading...': '加載中...',
     'Start stream': '開始串流',
-    'Power on and start stream': '開機並開始串流',
+    'Power on and start stream': '開機並串流',
     'Start game': '開始雲遊戲',
     'Local connect': '本地連接',
     'Remote connect': '遠程連接',
@@ -34,6 +35,8 @@ export default {
     'Disconnect and power off': '斷開連接并關機',
     NoXGP:
       '你沒有開通XGPU或所在地區沒有XGPU權限，請檢查賬號權限或到設置中修改地區重試。',
+    NoConsoles:
+      '账号下没有找到主机，如果你有xbox主机，请确保主机开启了远程游玩功能，并且使用官方xbox App可以查看到该主机。',
     Recently: '最近遊玩',
     Newest: '新入庫',
     All: '全部',

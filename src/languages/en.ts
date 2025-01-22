@@ -20,6 +20,8 @@ export default {
     'Local connect': 'Local connect',
     'Remote connect': 'Remote connect',
     'Disconnect and power off': 'Disconnect and power off',
+    NoConsoles:
+      'No consoles found on your account. If you do have an Xbox console then make sure that remote playing is enabled and that the console is visible in the official Xbox App.',
     NoXGP:
       'You have not activated XGPU or do not have XGPU permission in your region. Please check your account permissions or change the region in settings and try again.',
     'Recent Games': 'Recent Games',

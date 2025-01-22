@@ -84,10 +84,6 @@ const TabIcon = (route: any, params: any) => {
     iconName = focused ? 'settings' : 'settings-outline';
   } else if (route.name === 'Cloud') {
     iconName = 'logo-xbox';
-  } else if (route.name === 'Friends') {
-    iconName = 'people-outline';
-  } else if (route.name === 'Achivements') {
-    iconName = 'ribbon-outline';
   }
   return <Ionicons name={iconName} size={size} color={color} />;
 };
@@ -118,22 +114,6 @@ function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name="Friends"
-        component={FriendsScreen}
-        options={{
-          tabBarLabel: t('Friends'),
-          title: t('Friends'),
-        }}
-      />
-      <Tab.Screen
-        name="Achivements"
-        component={AchivementScreen}
-        options={{
-          tabBarLabel: t('Achivements'),
-          title: t('Achivements'),
-        }}
-      />
-      <Tab.Screen
         name="Settings"
         component={SettingsScreen}
         options={{tabBarLabel: t('Settings'), title: t('Settings')}}
@@ -154,10 +134,12 @@ function App() {
   if (settings.check_update) {
     updater().then((infos: any) => {
       if (infos) {
-        const {latestVer, version, url} = infos;
+        const {latestVer, version, updateText, url} = infos;
         Alert.alert(
-          t('Warning'),
-          t(`Check new version ${latestVer}, current version is ${version}`),
+          t('Update Warning'),
+          t(
+            `Check new version ${latestVer}, current version is ${version}. \n\n Update: \n\n ${updateText}`,
+          ),
           [
             {
               text: t('Cancel'),
@@ -231,6 +213,16 @@ function App() {
                   name="Search"
                   component={SearchScreen}
                   options={{title: t('Search'), headerShown: false}}
+                />
+                <RootStack.Screen
+                  name="Friends"
+                  component={FriendsScreen}
+                  options={{title: t('Friends')}}
+                />
+                <RootStack.Screen
+                  name="Achivements"
+                  component={AchivementScreen}
+                  options={{title: t('Achivements')}}
                 />
                 <RootStack.Screen
                   name="About"

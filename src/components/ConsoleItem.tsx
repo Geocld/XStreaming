@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, View, useColorScheme} from 'react-native';
-import {Card, Text, Button} from 'react-native-paper';
+import {StyleSheet, View} from 'react-native';
+import {Card, Text, Button, Divider} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {SvgXml} from 'react-native-svg';
 import icons from '../common/svg';
@@ -8,38 +8,37 @@ import {getSettings} from '../store/settingStore';
 
 const ConsoleItem = (props: any) => {
   const {t} = useTranslation();
-  const colorScheme = useColorScheme();
   const settings = getSettings();
 
   const consoleItem = props.consoleItem;
 
-  let theme = settings.theme ?? 'dark';
-  if (settings.theme === 'auto') {
-    theme = colorScheme || 'dark';
-  }
-
   return (
     <Card>
       <Card.Content>
-        <Text variant="titleLarge" style={styles.top}>
-          {consoleItem.name}
-        </Text>
         <View style={styles.consoleInfos}>
-          <View style={styles.infoLeft}>
-            <SvgXml
-              xml={theme === 'dark' ? icons.ConsoleDark : icons.ConsoleLight}
-              width={60}
-              height={60}
-            />
+          <Text variant="titleLarge" style={styles.textCenter}>
+            {consoleItem.name}
+          </Text>
+          {/* <Divider /> */}
+          <View style={styles.image}>
+            <SvgXml xml={icons.ConsoleIcon} width={'100%'} height={80} />
           </View>
-          <View style={styles.infoRight}>
-            <Text variant="titleMedium">{consoleItem.consoleType}</Text>
+          <View>
+            <Text variant="titleMedium" style={styles.textCenter}>
+              {consoleItem.consoleType}
+            </Text>
             {consoleItem.powerState === 'On' ? (
-              <Text style={styles.green}>{t('Powered on')}</Text>
+              <Text style={[styles.green, styles.textCenter]}>
+                {t('Powered on')}
+              </Text>
             ) : consoleItem.powerState === 'ConnectedStandby' ? (
-              <Text style={styles.yellow}>{t('Standby')}</Text>
+              <Text style={[styles.yellow, styles.textCenter]}>
+                {t('Standby')}
+              </Text>
             ) : (
-              <Text style={styles.red}>{consoleItem.powerState}</Text>
+              <Text style={[styles.red, styles.textCenter]}>
+                {consoleItem.powerState}
+              </Text>
             )}
           </View>
         </View>
@@ -75,10 +74,6 @@ const ConsoleItem = (props: any) => {
 };
 
 const styles = StyleSheet.create({
-  xboxImg: {
-    width: '100%',
-    height: 50,
-  },
   green: {
     color: '#36B728',
   },
@@ -88,21 +83,15 @@ const styles = StyleSheet.create({
   red: {
     color: '#dc2626',
   },
-  top: {
-    paddingBottom: 10,
+  image: {
+    paddingTop: 5,
+    paddingBottom: 5,
   },
-  consoleInfos: {
-    display: 'flex',
-    flexDirection: 'row',
+  textCenter: {
+    textAlign: 'center',
+    marginBottom: 5,
   },
-  infoLeft: {
-    width: 70,
-  },
-  infoRight: {
-    flex: 1,
-    display: 'flex',
-    justifyContent: 'center',
-  },
+  consoleInfos: {},
   footer: {
     paddingTop: 10,
   },
