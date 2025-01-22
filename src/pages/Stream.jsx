@@ -29,7 +29,8 @@ const log = debugFactory('StreamScreen');
 
 const CONNECTED = 'connected';
 
-const {FullScreenManager, GamepadManager, UsbRumbleManager} = NativeModules;
+const {FullScreenManager, GamepadManager, UsbRumbleManager, SensorModule} =
+  NativeModules;
 
 let defaultMaping = GAMEPAD_MAPING;
 let triggerMax = 0.8;
@@ -92,6 +93,7 @@ function StreamScreen({navigation, route}) {
   const isRumbling = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
+  const sensorEventListener = React.useRef(undefined);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
@@ -209,11 +211,12 @@ function StreamScreen({navigation, route}) {
       });
     };
 
+    const eventEmitter = new NativeEventEmitter();
+
     // USB Mode
     if (isUsbMode) {
       log.info('Entry usb mode');
       log.info('Usb controller: ' + usbController);
-      const eventEmitter = new NativeEventEmitter();
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
         params => {
@@ -373,6 +376,27 @@ function StreamScreen({navigation, route}) {
         postData2Webview('gamepad', gpState);
       }, 4);
     }
+
+    // SensorModule.startSensor();
+    // sensorEventListener.current = eventEmitter.addListener(
+    //   'SensorData',
+    //   params => {
+    //     const {x, y} = params;
+
+    //     const stickX = x / 32767;
+    //     const stickY = y / 32767;
+
+    //     if (
+    //       Math.abs(stickX) >= _settings.dead_zone ||
+    //       Math.abs(stickY) >= _settings.dead_zone
+    //     ) {
+    //       // gpState.RightThumbXAxis = normaliseAxis(event.axisX);
+    //       // gpState.RightThumbYAxis = normaliseAxis(event.axisY);
+    //       gpState.RightThumbXAxis = stickX.toFixed(3);
+    //       gpState.RightThumbYAxis = stickY.toFixed(3);
+    //     }
+    //   },
+    // );
 
     navigation.addListener('beforeRemove', e => {
       stopVibrate();

@@ -35,6 +35,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new GamepadPackage());
             packages.add(new UsbRumblePackage());
             packages.add(new BatteryPackage());
+            packages.add(new SensorPackage());
           return packages;
         }
 
