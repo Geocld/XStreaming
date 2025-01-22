@@ -9,7 +9,15 @@ import RNRestart from 'react-native-restart';
 import CookieManager from '@react-native-cookies/cookies';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
-import settingsMeta from '../common/settings';
+
+import bases from '../common/settings/bases';
+import display from '../common/settings/display';
+import gamepad from '../common/settings/gamepad';
+import audio from '../common/settings/audio';
+import xcloud from '../common/settings/xcloud';
+import xhome from '../common/settings/xhome';
+import sensor from '../common/settings/sensor';
+import others from '../common/settings/others';
 
 const {UsbRumbleManager} = NativeModules;
 
@@ -80,70 +88,207 @@ function SettingsScreen({navigation}) {
       <Spinner
         visible={loading}
         textContent={t('Loading...')}
+        color={'#107C10'}
         textStyle={styles.spinnerTextStyle}
       />
 
       <ScrollView>
-        {settingsMeta.map((meta, idx) => {
-          return (
-            <SettingItem
-              key={meta.name || idx}
-              title={meta.title}
-              description={meta.description}
-              onPress={() => handleItemPress(meta.name)}
-            />
-          );
-        })}
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('BasesSettings')}
+            </Text>
+          </View>
 
-        <SettingItem
-          title={t('Customize virtual buttons')}
-          description={t('Customize buttons of virtual gamepad')}
-          onPress={() => {
-            navigation.navigate('VirtualGamepadSettings');
-          }}
-        />
-
-        <SettingItem
-          title={t('Display')}
-          description={t(
-            'Set parameters such as screen clarity and saturation',
-          )}
-          onPress={() => navigation.navigate('Display')}
-        />
-
-        <View style={styles.contentTitle}>
-          <Text variant="titleLarge" style={styles.titleText}>
-            {t('Others')}
-          </Text>
+          {bases.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
         </View>
-        <SettingItem
-          title={t('About')}
-          description={t('About XStreaming')}
-          onPress={() => navigation.navigate('About')}
-        />
-        {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
-          <SettingItem
-            title={'支持及交流'}
-            description={'支持开发或交流更多串流技术'}
-            onPress={() => navigation.navigate('Feedback')}
-          />
-        )}
 
-        <SettingItem
-          title={'DEBUG'}
-          description={'Enter debug.'}
-          onPress={() => handleItemPress('debug')}
-        />
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('DisplaySettings')}
+            </Text>
+          </View>
 
-        {profile && profile.GameDisplayName ? (
+          {display.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+
           <SettingItem
-            title={t('Logout')}
-            description={`${t('Current user')}: ${
-              profile ? profile.GameDisplayName : ''
-            }`}
-            onPress={() => handleItemPress('logout')}
+            title={t('Display')}
+            description={t(
+              'Set parameters such as screen clarity and saturation',
+            )}
+            onPress={() => navigation.navigate('Display')}
           />
-        ) : null}
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('GamepadSettings')}
+            </Text>
+          </View>
+
+          {gamepad.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+
+          <SettingItem
+            title={t('Customize virtual buttons')}
+            description={t('Customize buttons of virtual gamepad')}
+            onPress={() => {
+              navigation.navigate('VirtualGamepadSettings');
+            }}
+          />
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('AudioSettings')}
+            </Text>
+          </View>
+
+          {audio.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('XcloudSettings')}
+            </Text>
+          </View>
+
+          {xcloud.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('XchomeSettings')}
+            </Text>
+          </View>
+
+          {xhome.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('SensorSettings')}
+            </Text>
+          </View>
+
+          {sensor.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('Others')}
+            </Text>
+          </View>
+
+          {others.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+
+          <SettingItem
+            title={t('About')}
+            description={t('About XStreaming')}
+            onPress={() => navigation.navigate('About')}
+          />
+          {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
+            <SettingItem
+              title={'支持及交流'}
+              description={'支持开发或交流更多串流技术'}
+              onPress={() => navigation.navigate('Feedback')}
+            />
+          )}
+
+          <SettingItem
+            title={'DEBUG'}
+            description={'Enter debug'}
+            onPress={() => handleItemPress('debug')}
+          />
+
+          {profile && profile.GameDisplayName ? (
+            <SettingItem
+              title={t('Logout')}
+              description={`${t('Current user')}: ${
+                profile ? profile.GameDisplayName : ''
+              }`}
+              onPress={() => handleItemPress('logout')}
+            />
+          ) : null}
+        </View>
       </ScrollView>
     </View>
   );
@@ -162,6 +307,9 @@ const styles = StyleSheet.create({
   contentTitle: {
     padding: 15,
     paddingBottom: 0,
+  },
+  titleText: {
+    color: '#107C10',
   },
 });
 

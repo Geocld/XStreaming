@@ -12,7 +12,15 @@ import RNRestart from 'react-native-restart';
 import Slider from '@react-native-community/slider';
 import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
-import settingsMeta from '../common/settings';
+
+import bases from '../common/settings/bases';
+import display from '../common/settings/display';
+import gamepad from '../common/settings/gamepad';
+import audio from '../common/settings/audio';
+import xcloud from '../common/settings/xcloud';
+import xhome from '../common/settings/xhome';
+import sensor from '../common/settings/sensor';
+import others from '../common/settings/others';
 
 const {UsbRumbleManager} = NativeModules;
 
@@ -42,6 +50,16 @@ function SettingDetailScreen({navigation, route}) {
     if (route.params?.id) {
       const name = route.params.id;
       let currentVal = _settings[name];
+      const settingsMeta = [
+        ...bases,
+        ...display,
+        ...gamepad,
+        ...audio,
+        ...xcloud,
+        ...xhome,
+        ...sensor,
+        ...others,
+      ];
       let metas = {};
       settingsMeta.forEach(item => {
         if (item.name === name) {

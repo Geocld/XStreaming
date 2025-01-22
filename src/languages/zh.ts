@@ -152,6 +152,13 @@ export default {
     'Auto check update': '自动检查更新',
     'Whether check XStreaming updates automatically':
       '是否自动检查XStreaming更新',
+    BasesSettings: '基础',
+    DisplaySettings: '显示',
+    GamepadSettings: '手柄及振动',
+    AudioSettings: '声音',
+    XcloudSettings: '云游戏',
+    XchomeSettings: '主机串流',
+    SensorSettings: '传感器',
     Custom: '自定义',
     Size: '大小',
     Show: '显示',
