@@ -18,7 +18,7 @@ const sensor = [
     name: 'gyroscope_sensitivity',
     type: 'slider',
     min: 100,
-    max: 20000,
+    max: 30000,
     step: 1,
     title: t('gyroSenTitle'),
     description: t('gyroSenDesc'),

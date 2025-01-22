@@ -398,10 +398,14 @@ function StreamScreen({navigation, route}) {
 
           // gyroscope only work when Rightstick not moving
           if (!isRightstickMoving.current) {
+            const scale =
+              _settings.gyroscope_sensitivity > 10000
+                ? _settings.gyroscope_sensitivity / 10000
+                : 1;
             // gyroscope only work when LT button press
             if (gpState.LeftTrigger >= _settings.dead_zone) {
-              gpState.RightThumbXAxis = stickX.toFixed(3);
-              gpState.RightThumbYAxis = stickY.toFixed(3);
+              gpState.RightThumbXAxis = stickX.toFixed(3) * scale;
+              gpState.RightThumbYAxis = stickY.toFixed(3) * scale;
             } else {
               gpState.RightThumbXAxis = 0;
               gpState.RightThumbYAxis = 0;

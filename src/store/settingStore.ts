@@ -78,7 +78,7 @@ const defaultSettings: Settings = {
   gamepad_maping: null,
   native_gamepad_maping: null,
   gyroscope: false,
-  gyroscope_sensitivity: 10000,
+  gyroscope_sensitivity: 15000,
   ipv6: false,
   check_update: true,
   power_on: false,
