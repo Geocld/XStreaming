@@ -478,6 +478,7 @@ function StreamScreen({navigation, route}) {
       rightStickEventListener.current &&
         rightStickEventListener.current.remove();
       triggerEventListener.current && triggerEventListener.current.remove();
+      sensorEventListener.current && sensorEventListener.current.remove();
       timer.current && clearInterval(timer.current);
       GamepadManager.setCurrentScreen('');
       SensorModule.stopSensor();
