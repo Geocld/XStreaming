@@ -19,7 +19,7 @@ const sensor = [
     type: 'slider',
     min: 100,
     max: 30000,
-    step: 1,
+    step: 100,
     title: t('gyroSenTitle'),
     description: t('gyroSenDesc'),
     data: [],

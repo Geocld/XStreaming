@@ -19,6 +19,8 @@ import xhome from '../common/settings/xhome';
 import sensor from '../common/settings/sensor';
 import others from '../common/settings/others';
 
+import pkg from '../../package.json';
+
 const {UsbRumbleManager} = NativeModules;
 
 const log = debugFactory('SettingsScreen');
@@ -262,7 +264,7 @@ function SettingsScreen({navigation}) {
 
           <SettingItem
             title={t('About')}
-            description={t('About XStreaming')}
+            description={`${t('About XStreaming')}\nv${pkg.version}`}
             onPress={() => navigation.navigate('About')}
           />
           {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
