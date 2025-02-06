@@ -15,12 +15,12 @@ import com.facebook.react.bridge.Arguments;
 
 import android.util.Log;
 
-public class SensorModule extends ReactContextBaseJavaModule  implements SensorEventListener{
+public class SensorModule extends ReactContextBaseJavaModule  implements SensorEventListener {
 
     private final ReactApplicationContext reactContext;
     private final SensorManager sensorManager;
     private final Sensor gyroscope;
-    private int customSensitivity = 10000;
+    private int customSensitivity = 15000;
 
     static float lastX = 0, lastY = 0;
 
@@ -50,7 +50,9 @@ public class SensorModule extends ReactContextBaseJavaModule  implements SensorE
     @ReactMethod
     public void stopSensor() {
         Log.d("SensorModule", "stopSensor");
-        sensorManager.unregisterListener(this);
+        if(sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
     }
 
     @Override

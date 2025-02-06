@@ -4,18 +4,19 @@ const {t} = i18next;
 
 const sensor = [
   {
-    name: 'gyroscope',
+    name: 'sensor',
     type: 'radio',
     title: t('gyroTitle'),
     description: t('gyroDesc'),
     tips: t('gyroTips'),
     data: [
-      {value: true, text: t('Enable')},
-      {value: false, text: t('Disable')},
+      {value: 0, text: t('Disable')},
+      {value: 1, text: t('Device')},
+      {value: 2, text: t('Controller')},
     ],
   },
   {
-    name: 'gyroscope_sensitivity',
+    name: 'sensor_sensitivity',
     type: 'slider',
     min: 100,
     max: 30000,

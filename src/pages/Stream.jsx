@@ -29,8 +29,13 @@ const log = debugFactory('StreamScreen');
 
 const CONNECTED = 'connected';
 
-const {FullScreenManager, GamepadManager, UsbRumbleManager, SensorModule} =
-  NativeModules;
+const {
+  FullScreenManager,
+  GamepadManager,
+  UsbRumbleManager,
+  SensorModule,
+  GamepadSensorModule,
+} = NativeModules;
 
 let defaultMaping = GAMEPAD_MAPING;
 let triggerMax = 0.8;
@@ -339,7 +344,7 @@ function StreamScreen({navigation, route}) {
       rightStickEventListener.current = eventEmitter.addListener(
         'onRightStickMove',
         event => {
-          if (Math.abs(event.axisX) > 0 || Math.abs(event.axisY) > 0) {
+          if (Math.abs(event.axisX) > 0.1 || Math.abs(event.axisY) > 0.1) {
             isRightstickMoving.current = true;
           } else {
             isRightstickMoving.current = false;
@@ -386,8 +391,12 @@ function StreamScreen({navigation, route}) {
       }, 4);
     }
 
-    if (_settings.gyroscope) {
-      SensorModule.startSensor(_settings.gyroscope_sensitivity);
+    if (_settings.sensor) {
+      const sensorManager =
+        _settings.sensor === 2 ? GamepadSensorModule : SensorModule;
+
+      sensorManager.startSensor(_settings.sensor_sensitivity);
+
       sensorEventListener.current = eventEmitter.addListener(
         'SensorData',
         params => {
@@ -399,8 +408,8 @@ function StreamScreen({navigation, route}) {
           // gyroscope only work when Rightstick not moving
           if (!isRightstickMoving.current) {
             const scale =
-              _settings.gyroscope_sensitivity > 10000
-                ? _settings.gyroscope_sensitivity / 10000
+              _settings.sensor_sensitivity > 10000
+                ? _settings.sensor_sensitivity / 10000
                 : 1;
             // gyroscope only work when LT button press
             if (gpState.LeftTrigger >= _settings.dead_zone) {
@@ -482,6 +491,7 @@ function StreamScreen({navigation, route}) {
       timer.current && clearInterval(timer.current);
       GamepadManager.setCurrentScreen('');
       SensorModule.stopSensor();
+      GamepadSensorModule.stopSensor();
     };
   }, [
     route.params?.sessionId,
@@ -849,8 +859,9 @@ function StreamScreen({navigation, route}) {
     setShowVirtualGamepad(false);
     postData2Webview('disconnect', {});
     setShowModal(false);
-    if (settings.gyroscope) {
+    if (settings.sensor) {
       SensorModule.stopSensor();
+      GamepadSensorModule.stopSensor();
     }
   };
 
