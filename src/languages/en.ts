@@ -108,5 +108,8 @@ export default {
     gyroSenDesc: 'Adjust gyroscope sensitivity',
     byorg:
       'This game is a self-purchased game, not part of the XGPU library. Please ensure that you have purchased this game to play.',
+    show_menu_title: 'Display Quick Menu',
+    show_menu_desc:
+      'The quick menu is always displayed in the lower right corner of the streaming page.',
   },
 };

@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import android.util.Log;
+import android.view.View;
 
 public class UsbRumbleManager extends ReactContextBaseJavaModule {
 

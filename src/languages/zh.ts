@@ -224,5 +224,7 @@ export default {
     byorg: '该游戏属于自购游戏，非XGPU库游戏，如需游玩，请保证已购买此游戏。',
     Device: '设备',
     Controller: '控制器',
+    show_menu_title: '显示快捷菜单',
+    show_menu_desc: '串流界面右下角始终显示快捷菜单。',
   },
 };

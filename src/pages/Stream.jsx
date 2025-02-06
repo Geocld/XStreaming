@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ToastAndroid,
 } from 'react-native';
-import {Portal, Modal, Card, List} from 'react-native-paper';
+import {Portal, Modal, Card, List, IconButton} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
@@ -1041,6 +1041,18 @@ function StreamScreen({navigation, route}) {
         </Modal>
       </Portal>
 
+      {settings.show_menu && (
+        <View style={styles.quickMenu}>
+          <IconButton
+            icon="menu"
+            size={28}
+            onPress={() => {
+              setShowModal(true);
+            }}
+          />
+        </View>
+      )}
+
       <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
         <WebView
           ref={instance => {
@@ -1087,12 +1099,11 @@ const styles = StyleSheet.create({
   content: {
     paddingTop: 10,
   },
-  phantom: {
+  quickMenu: {
     position: 'absolute',
-    left: 0,
-    top: 0,
-    opacity: 0,
-    zIndex: -1,
+    right: 5,
+    bottom: 5,
+    zIndex: 10,
   },
 });
 

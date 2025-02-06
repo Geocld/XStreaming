@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Linking, useColorScheme, NativeModules, View} from 'react-native';
+import {Alert, Linking, useColorScheme, NativeModules} from 'react-native';
 import {
   PaperProvider,
   MD3DarkTheme,
@@ -102,7 +102,11 @@ function HomeTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{headerShown: false, tabBarLabel: t('Consoles'), title: t('Consoles')}}
+        options={{
+          headerShown: false,
+          tabBarLabel: t('Consoles'),
+          title: t('Consoles'),
+        }}
       />
       <Tab.Screen
         name="Cloud"

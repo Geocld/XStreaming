@@ -189,5 +189,7 @@ export default {
     gyroSenTitle: '陀螺儀靈敏度',
     gyroSenDesc: '調節陀螺儀靈敏度',
     byorg: '該遊戲屬於自購遊戲，非XGPU庫遊戲，如需遊玩，請保證已購買此遊戲。',
+    show_menu_title: '顯示快捷菜單',
+    show_menu_desc: '串流介面右下角始終顯示快捷菜單。',
   },
 };
