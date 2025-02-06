@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   consoleList: {
-    paddingTop: 20,
+    paddingTop: 40,
     paddingLeft: 10,
     paddingRight: 10,
     paddingBottom: 10,

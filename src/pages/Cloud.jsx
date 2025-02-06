@@ -35,6 +35,7 @@ function CloudScreen({navigation, route}) {
   const [newTitles, setNewTitles] = React.useState([]);
   const [titlesMap, setTitlesMap] = React.useState({});
   const [RecentTitles, setRecentNewTitles] = React.useState([]);
+  const [orgTitles, setOrgTitles] = React.useState([]);
   const [keyword, setKeyword] = React.useState('');
   const flatListRef = React.useRef(null);
   const isFetchGame = React.useRef(false);
@@ -64,11 +65,23 @@ function CloudScreen({navigation, route}) {
               setTitles(_titles);
 
               const _titleMap = {};
+              const _orgTitles = [];
               _titles.forEach(item => {
                 _titleMap[item.productId] = item;
+
+                // Get org games
+                if (
+                  !item.XCloudTitleId &&
+                  item.details &&
+                  item.details.programs &&
+                  item.details.programs.indexOf('BYOG') > -1
+                ) {
+                  _orgTitles.push(item);
+                }
               });
 
               setTitlesMap(_titleMap);
+              setOrgTitles(_orgTitles);
 
               // Get new games
               _xCloudApi.getNewTitles().then(newTitleRes => {
@@ -169,7 +182,8 @@ function CloudScreen({navigation, route}) {
   /**
    * 0 - recent
    * 1 - new
-   * 2 - all
+   * 2 - own
+   * 3 - all
    */
   switch (current) {
     case 0:
@@ -179,6 +193,9 @@ function CloudScreen({navigation, route}) {
       currentTitles.current = newTitles;
       break;
     case 2:
+      currentTitles.current = orgTitles;
+      break;
+    case 3:
       currentTitles.current = titles;
       break;
     default:
@@ -229,7 +246,11 @@ function CloudScreen({navigation, route}) {
                         value: 1,
                         label: t('Newest'),
                       },
-                      {value: 2, label: t('All')},
+                      {
+                        value: 2,
+                        label: t('Own'),
+                      },
+                      {value: 3, label: t('All')},
                     ]}
                   />
                 }

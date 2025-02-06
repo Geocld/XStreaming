@@ -106,5 +106,7 @@ export default {
       "Currently, only the device's gyroscope is supported; gamepad gyroscope is not supported",
     gyroSenTitle: 'Gyroscope Sensitivity',
     gyroSenDesc: 'Adjust gyroscope sensitivity',
+    byorg:
+      'This game is a self-purchased game, not part of the XGPU library. Please ensure that you have purchased this game to play.',
   },
 };

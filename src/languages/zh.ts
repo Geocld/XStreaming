@@ -39,6 +39,7 @@ export default {
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
     Recently: '最近游玩',
     Newest: '新入库',
+    Own: '自有库',
     All: '全部',
     Search: '搜索',
     Unlocked: '已解锁',
@@ -220,5 +221,6 @@ export default {
     gyroTips: '当前只支持设备陀螺仪，手柄陀螺仪暂不支持',
     gyroSenTitle: '陀螺仪灵敏度',
     gyroSenDesc: '调节陀螺仪灵敏度',
+    byorg: '该游戏属于自购游戏，非XGPU库游戏，如需游玩，请保证已购买此游戏。',
   },
 };

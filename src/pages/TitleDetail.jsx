@@ -1,6 +1,13 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView, Image, NativeModules} from 'react-native';
-import {Text, Button, Portal, Modal, Card} from 'react-native-paper';
+import {
+  Text,
+  Button,
+  Portal,
+  Modal,
+  Card,
+  HelperText,
+} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
@@ -99,6 +106,18 @@ function TitleDetail({navigation, route}) {
     );
   };
 
+  let isByorg = false;
+  if (
+    titleItem &&
+    !titleItem.XCloudTitleId &&
+    titleItem.details &&
+    titleItem.details.programs
+  ) {
+    if (titleItem.details.programs.indexOf('BYOG') > -1) {
+      isByorg = true;
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Spinner
@@ -127,6 +146,11 @@ function TitleDetail({navigation, route}) {
             </View>
 
             <View style={styles.tagsWrap}>
+              {isByorg && (
+                <HelperText type="error" visible={true}>
+                  {t('byorg')}
+                </HelperText>
+              )}
               {titleItem.Categories.map(item => {
                 return (
                   <View style={styles.tagContainer} key={item}>
@@ -170,7 +194,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 960 / 4,
+    height: 960 / 3,
   },
   textWrap: {
     padding: 10,

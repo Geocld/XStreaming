@@ -39,6 +39,7 @@ export default {
       '账号下没有找到主机，如果你有xbox主机，请确保主机开启了远程游玩功能，并且使用官方xbox App可以查看到该主机。',
     Recently: '最近遊玩',
     Newest: '新入庫',
+    Own: '自有庫',
     All: '全部',
     Search: '搜索',
     Unlocked: '已解鎖',
@@ -187,5 +188,6 @@ export default {
     gyroTips: '當前只支持設備陀螺儀，手把陀螺儀暫不支持',
     gyroSenTitle: '陀螺儀靈敏度',
     gyroSenDesc: '調節陀螺儀靈敏度',
+    byorg: '該遊戲屬於自購遊戲，非XGPU庫遊戲，如需遊玩，請保證已購買此遊戲。',
   },
 };
