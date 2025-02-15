@@ -1,0 +1,735 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		034ED8DCC09A8C5E2B705088 /* libPods-XStreaming-XStreamingTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */; };
+		0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		60AD39D32D609080001A6D5D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 60AD39AF2D60907F001A6D5D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 60AD39B62D60907F001A6D5D;
+			remoteInfo = XStreaming;
+		};
+		60AD39DD2D609080001A6D5D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 60AD39AF2D60907F001A6D5D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 60AD39B62D60907F001A6D5D;
+			remoteInfo = XStreaming;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		60AD39B72D60907F001A6D5D /* XStreaming.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XStreaming.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		60AD39D22D609080001A6D5D /* XStreamingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XStreamingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		60AD39DC2D609080001A6D5D /* XStreamingUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XStreamingUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		63463584DBBA215A9252C704 /* Pods-XStreaming-XStreamingTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming-XStreamingTests.release.xcconfig"; path = "Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests.release.xcconfig"; sourceTree = "<group>"; };
+		78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-XStreaming-XStreamingTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B872FCFF23369DFA5D93FFC7 /* Pods-XStreaming.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming.release.xcconfig"; path = "Target Support Files/Pods-XStreaming/Pods-XStreaming.release.xcconfig"; sourceTree = "<group>"; };
+		DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-XStreaming.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7039D18F0EB94856C77DC90 /* Pods-XStreaming.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming.debug.xcconfig"; path = "Target Support Files/Pods-XStreaming/Pods-XStreaming.debug.xcconfig"; sourceTree = "<group>"; };
+		F936448FB2E3E5B01D76E3D3 /* Pods-XStreaming-XStreamingTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming-XStreamingTests.debug.xcconfig"; path = "Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		60AD39E42D609080001A6D5D /* Exceptions for "XStreaming" folder in "XStreaming" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 60AD39B62D60907F001A6D5D /* XStreaming */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		60AD39B92D60907F001A6D5D /* XStreaming */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				60AD39E42D609080001A6D5D /* Exceptions for "XStreaming" folder in "XStreaming" target */,
+			);
+			path = XStreaming;
+			sourceTree = "<group>";
+		};
+		60AD39D52D609080001A6D5D /* XStreamingTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = XStreamingTests;
+			sourceTree = "<group>";
+		};
+		60AD39DF2D609080001A6D5D /* XStreamingUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = XStreamingUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		60AD39B42D60907F001A6D5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60AD39CF2D609080001A6D5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				034ED8DCC09A8C5E2B705088 /* libPods-XStreaming-XStreamingTests.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60AD39D92D609080001A6D5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		448020B0BDC6D40035A3BEE4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */,
+				78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		60AD39AE2D60907F001A6D5D = {
+			isa = PBXGroup;
+			children = (
+				60AD39B92D60907F001A6D5D /* XStreaming */,
+				60AD39D52D609080001A6D5D /* XStreamingTests */,
+				60AD39DF2D609080001A6D5D /* XStreamingUITests */,
+				60AD39B82D60907F001A6D5D /* Products */,
+				762CB9C56CDCA44709A40598 /* Pods */,
+				448020B0BDC6D40035A3BEE4 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		60AD39B82D60907F001A6D5D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				60AD39B72D60907F001A6D5D /* XStreaming.app */,
+				60AD39D22D609080001A6D5D /* XStreamingTests.xctest */,
+				60AD39DC2D609080001A6D5D /* XStreamingUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		762CB9C56CDCA44709A40598 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E7039D18F0EB94856C77DC90 /* Pods-XStreaming.debug.xcconfig */,
+				B872FCFF23369DFA5D93FFC7 /* Pods-XStreaming.release.xcconfig */,
+				F936448FB2E3E5B01D76E3D3 /* Pods-XStreaming-XStreamingTests.debug.xcconfig */,
+				63463584DBBA215A9252C704 /* Pods-XStreaming-XStreamingTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		60AD39B62D60907F001A6D5D /* XStreaming */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60AD39E52D609080001A6D5D /* Build configuration list for PBXNativeTarget "XStreaming" */;
+			buildPhases = (
+				8E8851F81E5464C4B700CA4B /* [CP] Check Pods Manifest.lock */,
+				60AD39B32D60907F001A6D5D /* Sources */,
+				60AD39B42D60907F001A6D5D /* Frameworks */,
+				60AD39B52D60907F001A6D5D /* Resources */,
+				8B3860C04A5CD58113D88260 /* [CP] Embed Pods Frameworks */,
+				DB210FE149BF1803DF7DB664 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				60AD39B92D60907F001A6D5D /* XStreaming */,
+			);
+			name = XStreaming;
+			productName = XStreaming;
+			productReference = 60AD39B72D60907F001A6D5D /* XStreaming.app */;
+			productType = "com.apple.product-type.application";
+		};
+		60AD39D12D609080001A6D5D /* XStreamingTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60AD39EA2D609080001A6D5D /* Build configuration list for PBXNativeTarget "XStreamingTests" */;
+			buildPhases = (
+				4B3BDFFD468A45B36B752187 /* [CP] Check Pods Manifest.lock */,
+				60AD39CE2D609080001A6D5D /* Sources */,
+				60AD39CF2D609080001A6D5D /* Frameworks */,
+				60AD39D02D609080001A6D5D /* Resources */,
+				B5F79C50A590E78EC457F585 /* [CP] Embed Pods Frameworks */,
+				0286786053E7EA6C303006F8 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				60AD39D42D609080001A6D5D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				60AD39D52D609080001A6D5D /* XStreamingTests */,
+			);
+			name = XStreamingTests;
+			productName = XStreamingTests;
+			productReference = 60AD39D22D609080001A6D5D /* XStreamingTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		60AD39DB2D609080001A6D5D /* XStreamingUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60AD39ED2D609080001A6D5D /* Build configuration list for PBXNativeTarget "XStreamingUITests" */;
+			buildPhases = (
+				60AD39D82D609080001A6D5D /* Sources */,
+				60AD39D92D609080001A6D5D /* Frameworks */,
+				60AD39DA2D609080001A6D5D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				60AD39DE2D609080001A6D5D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				60AD39DF2D609080001A6D5D /* XStreamingUITests */,
+			);
+			name = XStreamingUITests;
+			productName = XStreamingUITests;
+			productReference = 60AD39DC2D609080001A6D5D /* XStreamingUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		60AD39AF2D60907F001A6D5D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					60AD39B62D60907F001A6D5D = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					60AD39D12D609080001A6D5D = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 60AD39B62D60907F001A6D5D;
+					};
+					60AD39DB2D609080001A6D5D = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 60AD39B62D60907F001A6D5D;
+					};
+				};
+			};
+			buildConfigurationList = 60AD39B22D60907F001A6D5D /* Build configuration list for PBXProject "XStreaming" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 60AD39AE2D60907F001A6D5D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 60AD39B82D60907F001A6D5D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				60AD39B62D60907F001A6D5D /* XStreaming */,
+				60AD39D12D609080001A6D5D /* XStreamingTests */,
+				60AD39DB2D609080001A6D5D /* XStreamingUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		60AD39B52D60907F001A6D5D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60AD39D02D609080001A6D5D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60AD39DA2D609080001A6D5D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0286786053E7EA6C303006F8 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4B3BDFFD468A45B36B752187 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-XStreaming-XStreamingTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8B3860C04A5CD58113D88260 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming/Pods-XStreaming-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming/Pods-XStreaming-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-XStreaming/Pods-XStreaming-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8E8851F81E5464C4B700CA4B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-XStreaming-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B5F79C50A590E78EC457F585 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DB210FE149BF1803DF7DB664 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming/Pods-XStreaming-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-XStreaming/Pods-XStreaming-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-XStreaming/Pods-XStreaming-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		60AD39B32D60907F001A6D5D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60AD39CE2D609080001A6D5D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60AD39D82D609080001A6D5D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		60AD39D42D609080001A6D5D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 60AD39B62D60907F001A6D5D /* XStreaming */;
+			targetProxy = 60AD39D32D609080001A6D5D /* PBXContainerItemProxy */;
+		};
+		60AD39DE2D609080001A6D5D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 60AD39B62D60907F001A6D5D /* XStreaming */;
+			targetProxy = 60AD39DD2D609080001A6D5D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		60AD39E62D609080001A6D5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E7039D18F0EB94856C77DC90 /* Pods-XStreaming.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9E8EMWM566;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = XStreaming/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreaming;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		60AD39E72D609080001A6D5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B872FCFF23369DFA5D93FFC7 /* Pods-XStreaming.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9E8EMWM566;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = XStreaming/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreaming;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		60AD39E82D609080001A6D5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+					_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)  ";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		60AD39E92D609080001A6D5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)  ";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		60AD39EB2D609080001A6D5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F936448FB2E3E5B01D76E3D3 /* Pods-XStreaming-XStreamingTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9E8EMWM566;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreamingTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/XStreaming.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/XStreaming";
+			};
+			name = Debug;
+		};
+		60AD39EC2D609080001A6D5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 63463584DBBA215A9252C704 /* Pods-XStreaming-XStreamingTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9E8EMWM566;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreamingTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/XStreaming.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/XStreaming";
+			};
+			name = Release;
+		};
+		60AD39EE2D609080001A6D5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9E8EMWM566;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreamingUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = XStreaming;
+			};
+			name = Debug;
+		};
+		60AD39EF2D609080001A6D5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9E8EMWM566;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreamingUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = XStreaming;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		60AD39B22D60907F001A6D5D /* Build configuration list for PBXProject "XStreaming" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60AD39E82D609080001A6D5D /* Debug */,
+				60AD39E92D609080001A6D5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		60AD39E52D609080001A6D5D /* Build configuration list for PBXNativeTarget "XStreaming" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60AD39E62D609080001A6D5D /* Debug */,
+				60AD39E72D609080001A6D5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		60AD39EA2D609080001A6D5D /* Build configuration list for PBXNativeTarget "XStreamingTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60AD39EB2D609080001A6D5D /* Debug */,
+				60AD39EC2D609080001A6D5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		60AD39ED2D609080001A6D5D /* Build configuration list for PBXNativeTarget "XStreamingUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60AD39EE2D609080001A6D5D /* Debug */,
+				60AD39EF2D609080001A6D5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 60AD39AF2D60907F001A6D5D /* Project object */;
+}
