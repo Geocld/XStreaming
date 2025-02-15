@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Linking, useColorScheme, NativeModules} from 'react-native';
+import {Alert, Linking, useColorScheme, NativeModules, Platform} from 'react-native';
 import {
   PaperProvider,
   MD3DarkTheme,
@@ -131,9 +131,12 @@ function App() {
   const colorScheme = useColorScheme();
   const settings = getSettings();
 
-  if (settings.bind_usb_device !== undefined) {
-    UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
-  }
+  // if (Platform.OS === 'android') {
+    // ... Android 特定逻辑
+    if (settings.bind_usb_device !== undefined) {
+      UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
+    }
+  // }
 
   if (settings.check_update) {
     updater().then((infos: any) => {
