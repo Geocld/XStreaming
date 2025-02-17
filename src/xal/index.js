@@ -87,15 +87,16 @@ export default class Xal {
         },
         Signature: signature,
       };
-
-      // log.info('headers:', headers);
-      // log.info('body:', body);
+      
+      log.info('headers:', headers);
+      log.info('body:', body);
 
       axios
         .post('https://device.auth.xboxlive.com/device/authenticate', body, {
           headers,
         })
         .then(res => {
+          log.info('getDeviceToken res:', res.data);
           resolve(new DeviceToken(res.data));
         })
         .catch(e => {
