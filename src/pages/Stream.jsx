@@ -7,6 +7,7 @@ import {
   NativeEventEmitter,
   StyleSheet,
   ToastAndroid,
+  Platform,
 } from 'react-native';
 import {Portal, Modal, Card, List, IconButton} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
@@ -219,8 +220,7 @@ function StreamScreen({navigation, route}) {
       });
     };
 
-    log.info('StreamScreen before eventEmitter');
-    const eventEmitter = new NativeEventEmitter();
+    const eventEmitter = new NativeEventEmitter(GamepadManager);
 
     // USB Mode
     if (isUsbMode) {
@@ -266,7 +266,7 @@ function StreamScreen({navigation, route}) {
       }, 4);
     } else if (_settings.gamepad_kernal === 'Native') {
       log.info('Entry native mode');
-      const eventEmitter = new NativeEventEmitter();
+      // const eventEmitter = new NativeEventEmitter();
 
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
@@ -506,7 +506,11 @@ function StreamScreen({navigation, route}) {
 
   const streamApi = route.params?.streamType === 'cloud' ? xCloudApi : xHomeApi;
 
-  const uri = 'file:///android_asset/stream/index.html';
+  // const uri = 'file:///android_asset/stream/index.html';
+  const uri = Platform.select({
+    android: 'file:///android_asset/stream/index.html',
+    ios: 'index.html', // iOS 会自动从 bundle 中查找
+  });
 
   const webviewRef = React.useRef(null);
 
@@ -1074,6 +1078,10 @@ function StreamScreen({navigation, route}) {
           }}
           onMessage={event => {
             handleWebviewMessage(event);
+          }}
+          onError={syntheticEvent => {
+            const {nativeEvent} = syntheticEvent;
+            console.warn('WebView error: ', nativeEvent);
           }}
         />
       </View>

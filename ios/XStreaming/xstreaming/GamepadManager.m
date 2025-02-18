@@ -1,246 +1,201 @@
 #import "GamepadManager.h"
+#import <GameController/GameController.h>
+#import <React/RCTLog.h>
 
 @implementation GamepadManager {
+    NSMutableArray *_connectedControllers;
     bool hasListeners;
+    NSString *_currentScreen; //  添加成员变量记录当前屏幕
 }
 
-RCT_EXPORT_MODULE()
+RCT_EXPORT_MODULE();
 
-+ (BOOL)requiresMainQueueSetup
-{
-    return YES;
-}
-
-- (NSArray<NSString *> *)supportedEvents
-{
-    return @[@"GamepadConnected", @"GamepadDisconnected", @"GamepadInput"];
-}
-
-- (instancetype)init
-{
+- (instancetype)init {
     self = [super init];
     if (self) {
-        _currentScreen = @"";
-        _hasGameController = NO;
-        hasListeners = NO;
-        [self setupGameController];
+        _connectedControllers = [NSMutableArray array];
+        [self startObservingGamepads];
+        _currentScreen = @"unknown"; //  初始化 currentScreen
     }
     return self;
 }
 
-- (void)startObserving
+RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
 {
+    _currentScreen = screenName;
+}
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[@"onGamepadReport", @"onGamepadKeyDown", @"onGamepadKeyUp", @"onDpadKeyDown", @"onDpadKeyUp", @"onLeftStickMove", @"onRightStickMove", @"onTrigger"];
+}
+
+// 添加这个方法来确保在主线程上初始化
++ (BOOL)requiresMainQueueSetup {
+    return YES;
+}
+
+- (void)startObservingEvents {
     hasListeners = YES;
 }
 
-- (void)stopObserving
-{
+- (void)stopObservingEvents {
     hasListeners = NO;
 }
 
-- (void)setupGameController
-{
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(handleControllerDidConnect:)
-                                               name:GCControllerDidConnectNotification
-                                             object:nil];
+// 修改 sendEventWithName 的调用方式
+- (void)updateGamepadListEvent {
+    if (!hasListeners) return;  // 如果没有监听器，不发送事件
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(handleControllerDidDisconnect:)
-                                               name:GCControllerDidDisconnectNotification
-                                             object:nil];
+    NSMutableArray *gamepads = [NSMutableArray array];
+    [_connectedControllers removeAllObjects];
+
+    for (GCController *controller in [GCController controllers]) {
+        NSMutableDictionary *gamepadInfo = [NSMutableDictionary dictionary];
+        gamepadInfo[@"name"] = controller.vendorName ?: @"Unknown Gamepad";
+        gamepadInfo[@"identifier"] = controller.productCategory ?: @"Unknown Category";
+        [gamepads addObject:gamepadInfo];
+        [_connectedControllers addObject:controller];
+    }
     
-    // Check for already connected controllers
-    if (GCController.controllers.count > 0) {
-        [self handleControllerDidConnect:nil];
+    if (self.bridge) {
+        [super sendEventWithName:@"onGamepadReport" body:@{@"gamepads": gamepads}];
     }
 }
 
-- (void)handleControllerDidConnect:(NSNotification *)notification
-{
-    _hasGameController = YES;
-    _currentController = GCController.controllers.firstObject;
-    
+// 同样修改其他发送事件的方法
+- (void)sendButtonEvent:(NSString *)buttonName pressed:(BOOL)isPressed {
     if (!hasListeners) return;
     
-    [self sendEventWithName:@"GamepadConnected" body:@{
-        @"name": _currentController.vendorName ?: @"Unknown Controller"
-    }];
-    
-    __weak typeof(self) weakSelf = self;
-    
-    // 设置按钮输入回调
-    _currentController.extendedGamepad.buttonA.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"A" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.buttonB.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"B" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.buttonX.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"X" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.buttonY.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"Y" value:value pressed:pressed];
-    };
-    
-    // 设置方向键输入回调
-    _currentController.extendedGamepad.dpad.up.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"DpadUp" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.dpad.down.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"DpadDown" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.dpad.left.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"DpadLeft" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.dpad.right.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"DpadRight" value:value pressed:pressed];
-    };
-    
-    // 设置肩部按钮输入回调
-    _currentController.extendedGamepad.leftShoulder.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"L1" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.rightShoulder.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"R1" value:value pressed:pressed];
-    };
-    
-    // 设置扳机键输入回调
-    _currentController.extendedGamepad.leftTrigger.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"L2" value:value pressed:pressed];
-    };
-    
-    _currentController.extendedGamepad.rightTrigger.valueChangedHandler = ^(GCControllerButtonInput *button, float value, BOOL pressed) {
-        [weakSelf handleButtonInput:@"R2" value:value pressed:pressed];
-    };
-    
-    // 设置摇杆输入回调
-    _currentController.extendedGamepad.leftThumbstick.valueChangedHandler = ^(GCControllerDirectionPad *dpad, float xValue, float yValue) {
-        [weakSelf handleThumbstickInput:@"LeftStick" xValue:xValue yValue:yValue];
-    };
-    
-    _currentController.extendedGamepad.rightThumbstick.valueChangedHandler = ^(GCControllerDirectionPad *dpad, float xValue, float yValue) {
-        [weakSelf handleThumbstickInput:@"RightStick" xValue:xValue yValue:yValue];
-    };
-}
-
-- (void)handleControllerDidDisconnect:(NSNotification *)notification
-{
-    _hasGameController = NO;
-    _currentController = nil;
-    
-    if (!hasListeners) return;
-    
-    [self sendEventWithName:@"GamepadDisconnected" body:@{}];
-}
-
-- (void)handleButtonInput:(NSString *)button value:(float)value pressed:(BOOL)pressed
-{
-    if (!hasListeners) return;
-    
-    [self sendEventWithName:@"GamepadInput" body:@{
-        @"type": @"button",
-        @"button": button,
-        @"value": @(value),
-        @"pressed": @(pressed)
-    }];
-}
-
-- (void)handleThumbstickInput:(NSString *)stick xValue:(float)xValue yValue:(float)yValue
-{
-    if (!hasListeners) return;
-    
-    [self sendEventWithName:@"GamepadInput" body:@{
-        @"type": @"thumbstick",
-        @"stick": stick,
-        @"x": @(xValue),
-        @"y": @(yValue)
-    }];
-}
-
-RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)value)
-{
-    _currentScreen = value;
-}
-
-RCT_EXPORT_METHOD(vibrate:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor leftTrigger:(int)leftTrigger rightTrigger:(int)rightTrigger intensity:(int)intensity)
-{
-    if (@available(iOS 14.0, *)) {
-        GCController *controller = GCController.controllers.firstObject;
-        if (controller && [controller respondsToSelector:@selector(hapticEngine)]) {
-            // 将输入值转换为 0-1 范围
-            float normalizedLowFreq = (float)lowFreqMotor / 255.0;
-            float normalizedHighFreq = (float)highFreqMotor / 255.0;
-            float normalizedLeftTrigger = (float)leftTrigger / 255.0;
-            float normalizedRightTrigger = (float)rightTrigger / 255.0;
-            
-            // 根据 intensity 调整震动强度
-            float intensityMultiplier = 1.0;
-            switch (intensity) {
-                case 1: // very weak
-                    intensityMultiplier = 0.4;
-                    break;
-                case 2: // weak
-                    intensityMultiplier = 0.8;
-                    break;
-                case 4: // strong
-                    intensityMultiplier = 1.5;
-                    break;
-                case 5: // very strong
-                    intensityMultiplier = 2.0;
-                    break;
-            }
-            
-            normalizedLowFreq *= intensityMultiplier;
-            normalizedHighFreq *= intensityMultiplier;
-            normalizedLeftTrigger *= intensityMultiplier;
-            normalizedRightTrigger *= intensityMultiplier;
-            
-            // 确保值在 0-1 范围内
-            normalizedLowFreq = MIN(1.0, MAX(0.0, normalizedLowFreq));
-            normalizedHighFreq = MIN(1.0, MAX(0.0, normalizedHighFreq));
-            normalizedLeftTrigger = MIN(1.0, MAX(0.0, normalizedLeftTrigger));
-            normalizedRightTrigger = MIN(1.0, MAX(0.0, normalizedRightTrigger));
-            
-            // 主体震动
-            if (normalizedLowFreq > 0) {
-                UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
-                [generator prepare];
-                [generator impactOccurred];
-            }
-            
-            if (normalizedHighFreq > 0) {
-                UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
-                [generator prepare];
-                [generator impactOccurred];
-            }
-            
-            // 扳机震动
-            if (normalizedLeftTrigger > 0) {
-                UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
-                [generator prepare];
-                [generator impactOccurred];
-            }
-            
-            if (normalizedRightTrigger > 0) {
-                UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
-                [generator prepare];
-                [generator impactOccurred];
-            }
+    if (self.bridge) {
+        if (isPressed) {
+            [super sendEventWithName:@"onGamepadKeyDown" body:@{@"keyCode": buttonName}];
+        } else {
+            [super sendEventWithName:@"onGamepadKeyUp" body:@{@"keyCode": buttonName}];
         }
     }
 }
 
-- (void)dealloc
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+- (void)sendDpadEvent:(GCControllerDirectionPad *)dpad {
+    if (dpad.up.isPressed) {
+        [self sendEventWithName:@"onDpadKeyDown" body:@{@"dpadIdx": @"DPadUp"}];
+    } else if (dpad.down.isPressed) {
+        [self sendEventWithName:@"onDpadKeyDown" body:@{@"dpadIdx": @"DPadDown"}];
+    } else if (dpad.left.isPressed) {
+        [self sendEventWithName:@"onDpadKeyDown" body:@{@"dpadIdx": @"DPadLeft"}];
+    } else if (dpad.right.isPressed) {
+        [self sendEventWithName:@"onDpadKeyDown" body:@{@"dpadIdx": @"DPadRight"}];
+    } else {
+        // 发送 DpadUp 事件
+        [self sendEventWithName:@"onDpadKeyUp" body:@{@"dpadIdx": @"DPadUp"}]; //  这里需要仔细考虑 DpadUp/Down/Left/Right 的 Up 事件如何处理，可能需要更精细的状态管理
+        [self sendEventWithName:@"onDpadKeyUp" body:@{@"dpadIdx": @"DPadDown"}];
+        [self sendEventWithName:@"onDpadKeyUp" body:@{@"dpadIdx": @"DPadLeft"}];
+        [self sendEventWithName:@"onDpadKeyUp" body:@{@"dpadIdx": @"DPadRight"}];
+    }
 }
 
-@end 
+
+- (void)sendLeftStickEvent:(GCControllerDirectionPad *)thumbstick {
+    [self sendEventWithName:@"onLeftStickMove" body:@{
+        @"axisX": @(thumbstick.xAxis.value),
+        @"axisY": @(thumbstick.yAxis.value)
+    }];
+}
+
+- (void)sendRightStickEvent:(GCControllerDirectionPad *)thumbstick {
+    [self sendEventWithName:@"onRightStickMove" body:@{
+        @"axisX": @(thumbstick.xAxis.value),
+        @"axisY": @(thumbstick.yAxis.value)
+    }];
+}
+
+- (void)sendLeftTriggerEvent:(GCControllerButtonInput *)trigger {
+     [self sendEventWithName:@"onTrigger" body:@{@"leftTrigger": @(trigger.value)}];
+}
+
+- (void)sendRightTriggerEvent:(GCControllerButtonInput *)trigger {
+    [self sendEventWithName:@"onTrigger" body:@{@"rightTrigger": @(trigger.value)}];
+}
+
+
+- (void)dealloc {
+    [self stopObservingGamepads];
+}
+
+- (void)startObservingGamepads {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(controllerDidConnect:)
+                                                 name:GCControllerDidConnectNotification
+                                               object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(controllerDidDisconnect:)
+                                                 name:GCControllerDidDisconnectNotification
+                                               object:nil];
+
+    // 初始连接时也发送一次 gamepad 列表
+    [self updateGamepadListEvent];
+}
+
+- (void)stopObservingGamepads {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:GCControllerDidConnectNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:GCControllerDidDisconnectNotification object:nil];
+}
+
+- (void)controllerDidConnect:(NSNotification *)notification {
+    GCController *controller = notification.object;
+    if (controller) {
+        [self setupController:controller];
+        [self updateGamepadListEvent];
+    }
+}
+
+- (void)controllerDidDisconnect:(NSNotification *)notification {
+    [self updateGamepadListEvent];
+}
+
+- (void)setupController:(GCController *)controller {
+    if (controller.extendedGamepad) {
+        GCExtendedGamepad *extendedGamepad = controller.extendedGamepad;
+        __weak typeof(self) weakSelf = self;
+
+        extendedGamepad.valueChangedHandler = ^(GCExtendedGamepad *gamepad, GCControllerElement *element) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+
+            // 直接检查是否是对应的按钮
+            if (element == gamepad.buttonA) {
+                [strongSelf sendButtonEvent:@"A" pressed:gamepad.buttonA.pressed];
+            } else if (element == gamepad.buttonB) {
+                [strongSelf sendButtonEvent:@"B" pressed:gamepad.buttonB.pressed];
+            } else if (element == gamepad.buttonX) {
+                [strongSelf sendButtonEvent:@"X" pressed:gamepad.buttonX.pressed];
+            } else if (element == gamepad.buttonY) {
+                [strongSelf sendButtonEvent:@"Y" pressed:gamepad.buttonY.pressed];
+            } else if (element == gamepad.leftShoulder) {
+                [strongSelf sendButtonEvent:@"LeftShoulder" pressed:gamepad.leftShoulder.pressed];
+            } else if (element == gamepad.rightShoulder) {
+                [strongSelf sendButtonEvent:@"RightShoulder" pressed:gamepad.rightShoulder.pressed];
+            } else if (element == gamepad.buttonMenu) {
+                [strongSelf sendButtonEvent:@"Menu" pressed:gamepad.buttonMenu.pressed];
+            } else if (element == gamepad.buttonOptions) {
+                [strongSelf sendButtonEvent:@"View" pressed:gamepad.buttonOptions.pressed];
+            } else if (element == gamepad.leftThumbstickButton) {
+                [strongSelf sendButtonEvent:@"LeftThumb" pressed:gamepad.leftThumbstickButton.pressed];
+            } else if (element == gamepad.rightThumbstickButton) {
+                [strongSelf sendButtonEvent:@"RightThumb" pressed:gamepad.rightThumbstickButton.pressed];
+            } else if (element == gamepad.dpad) {
+                [strongSelf sendDpadEvent:gamepad.dpad];
+            } else if (element == gamepad.leftThumbstick) {
+                [strongSelf sendLeftStickEvent:gamepad.leftThumbstick];
+            } else if (element == gamepad.rightThumbstick) {
+                [strongSelf sendRightStickEvent:gamepad.rightThumbstick];
+            } else if (element == gamepad.leftTrigger) {
+                [strongSelf sendLeftTriggerEvent:gamepad.leftTrigger];
+            } else if (element == gamepad.rightTrigger) {
+                [strongSelf sendRightTriggerEvent:gamepad.rightTrigger];
+            }
+        };
+    }
+}
+
+@end
