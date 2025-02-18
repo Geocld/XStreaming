@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		034ED8DCC09A8C5E2B705088 /* libPods-XStreaming-XStreamingTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */; };
 		0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */; };
+		60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */; };
+		60DAB0522D64A6DB00ABFF73 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04F2D64A6DB00ABFF73 /* main.jsbundle */; };
+		60DAB0532D64A6DB00ABFF73 /* back-icon-mask.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03E2D64A6DB00ABFF73 /* back-icon-mask.png */; };
+		60DAB0542D64A6DB00ABFF73 /* back-chevron.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB0452D64A6DB00ABFF73 /* back-chevron.png */; };
+		60DAB0552D64A6DB00ABFF73 /* back-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03F2D64A6DB00ABFF73 /* back-icon@2x.png */; };
+		60DAB0562D64A6DB00ABFF73 /* back-icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB0402D64A6DB00ABFF73 /* back-icon@3x.png */; };
+		60DAB0572D64A6DB00ABFF73 /* back-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03D2D64A6DB00ABFF73 /* back-icon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +39,13 @@
 		60AD39B72D60907F001A6D5D /* XStreaming.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XStreaming.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		60AD39D22D609080001A6D5D /* XStreamingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XStreamingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		60AD39DC2D609080001A6D5D /* XStreamingUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XStreamingUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		60DAB03D2D64A6DB00ABFF73 /* back-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon.png"; sourceTree = "<group>"; };
+		60DAB03E2D64A6DB00ABFF73 /* back-icon-mask.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon-mask.png"; sourceTree = "<group>"; };
+		60DAB03F2D64A6DB00ABFF73 /* back-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon@2x.png"; sourceTree = "<group>"; };
+		60DAB0402D64A6DB00ABFF73 /* back-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon@3x.png"; sourceTree = "<group>"; };
+		60DAB0452D64A6DB00ABFF73 /* back-chevron.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-chevron.png"; sourceTree = "<group>"; };
+		60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wx_sponsor.png; sourceTree = "<group>"; };
+		60DAB04F2D64A6DB00ABFF73 /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		63463584DBBA215A9252C704 /* Pods-XStreaming-XStreamingTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming-XStreamingTests.release.xcconfig"; path = "Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests.release.xcconfig"; sourceTree = "<group>"; };
 		78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-XStreaming-XStreamingTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B872FCFF23369DFA5D93FFC7 /* Pods-XStreaming.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming.release.xcconfig"; path = "Target Support Files/Pods-XStreaming/Pods-XStreaming.release.xcconfig"; sourceTree = "<group>"; };
@@ -110,6 +124,7 @@
 		60AD39AE2D60907F001A6D5D = {
 			isa = PBXGroup;
 			children = (
+				60DAB0502D64A6DB00ABFF73 /* bundle */,
 				60AD39B92D60907F001A6D5D /* XStreaming */,
 				60AD39D52D609080001A6D5D /* XStreamingTests */,
 				60AD39DF2D609080001A6D5D /* XStreamingUITests */,
@@ -127,6 +142,116 @@
 				60AD39DC2D609080001A6D5D /* XStreamingUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		60DAB0412D64A6DB00ABFF73 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB03D2D64A6DB00ABFF73 /* back-icon.png */,
+				60DAB03E2D64A6DB00ABFF73 /* back-icon-mask.png */,
+				60DAB03F2D64A6DB00ABFF73 /* back-icon@2x.png */,
+				60DAB0402D64A6DB00ABFF73 /* back-icon@3x.png */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		60DAB0422D64A6DB00ABFF73 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0412D64A6DB00ABFF73 /* assets */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		60DAB0432D64A6DB00ABFF73 /* elements */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0422D64A6DB00ABFF73 /* src */,
+			);
+			path = elements;
+			sourceTree = "<group>";
+		};
+		60DAB0442D64A6DB00ABFF73 /* @react-navigation */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0432D64A6DB00ABFF73 /* elements */,
+			);
+			path = "@react-navigation";
+			sourceTree = "<group>";
+		};
+		60DAB0462D64A6DB00ABFF73 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0452D64A6DB00ABFF73 /* back-chevron.png */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		60DAB0472D64A6DB00ABFF73 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0462D64A6DB00ABFF73 /* assets */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		60DAB0482D64A6DB00ABFF73 /* react-native-paper */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0472D64A6DB00ABFF73 /* src */,
+			);
+			path = "react-native-paper";
+			sourceTree = "<group>";
+		};
+		60DAB0492D64A6DB00ABFF73 /* node_modules */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0442D64A6DB00ABFF73 /* @react-navigation */,
+				60DAB0482D64A6DB00ABFF73 /* react-native-paper */,
+			);
+			path = node_modules;
+			sourceTree = "<group>";
+		};
+		60DAB04B2D64A6DB00ABFF73 /* feedback */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */,
+			);
+			path = feedback;
+			sourceTree = "<group>";
+		};
+		60DAB04C2D64A6DB00ABFF73 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB04B2D64A6DB00ABFF73 /* feedback */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		60DAB04D2D64A6DB00ABFF73 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB04C2D64A6DB00ABFF73 /* assets */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		60DAB04E2D64A6DB00ABFF73 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB0492D64A6DB00ABFF73 /* node_modules */,
+				60DAB04D2D64A6DB00ABFF73 /* src */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		60DAB0502D64A6DB00ABFF73 /* bundle */ = {
+			isa = PBXGroup;
+			children = (
+				60DAB04E2D64A6DB00ABFF73 /* assets */,
+				60DAB04F2D64A6DB00ABFF73 /* main.jsbundle */,
+			);
+			path = bundle;
 			sourceTree = "<group>";
 		};
 		762CB9C56CDCA44709A40598 /* Pods */ = {
@@ -259,6 +384,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */,
+				60DAB0522D64A6DB00ABFF73 /* main.jsbundle in Resources */,
+				60DAB0532D64A6DB00ABFF73 /* back-icon-mask.png in Resources */,
+				60DAB0542D64A6DB00ABFF73 /* back-chevron.png in Resources */,
+				60DAB0552D64A6DB00ABFF73 /* back-icon@2x.png in Resources */,
+				60DAB0562D64A6DB00ABFF73 /* back-icon@3x.png in Resources */,
+				60DAB0572D64A6DB00ABFF73 /* back-icon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

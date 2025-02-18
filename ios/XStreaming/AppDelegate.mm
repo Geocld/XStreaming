@@ -23,11 +23,11 @@
 {
 #if DEBUG
   // 添加这些代码来设置开发服务器地址
-  NSString *localhost = @"172.25.148.34"; // 比如 @"192.168.1.100"
-  NSString *urlString = [NSString stringWithFormat:@"http://%@:8081/index.bundle?platform=ios", localhost];
-  return [NSURL URLWithString:urlString];
+//  NSString *localhost = @"172.25.148.34"; // 比如 @"192.168.1.100"
+//  NSString *urlString = [NSString stringWithFormat:@"http://%@:8081/index.bundle?platform=ios", localhost];
+//  return [NSURL URLWithString:urlString];
   // 或者使用原来的代码
-//  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];g
+  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
