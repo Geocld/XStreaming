@@ -219,6 +219,7 @@ function StreamScreen({navigation, route}) {
       });
     };
 
+    log.info('StreamScreen before eventEmitter');
     const eventEmitter = new NativeEventEmitter();
 
     // USB Mode

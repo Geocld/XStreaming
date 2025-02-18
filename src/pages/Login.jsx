@@ -23,6 +23,11 @@ function DetailScreen({navigation, route}) {
         onShouldStartLoadWithRequest={request => {
           // log.info('onShouldStartLoadWithRequest:', request);
           if (request.url.startsWith('ms-xal-000000004c20a908:')) {
+            navigation.navigate({
+              name: 'Home',
+              params: {xalUrl: request.url},
+              merge: true,
+            });
             return false;
           }
           return true;
@@ -31,8 +36,8 @@ function DetailScreen({navigation, route}) {
           // Keep track of going back navigation within component
           // log.info('onNavigationStateChange:', navState);
           const {url} = navState;
+          // log.info('Navigation URL:', url); // 添加这行日志
           if (url.startsWith('ms-xal-000000004c20a908:')) {
-            // Save url，return to home
             navigation.navigate({
               name: 'Home',
               params: {xalUrl: url},

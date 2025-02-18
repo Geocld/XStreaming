@@ -80,7 +80,6 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(init)
         
         _privateKey = privateKey;
         _publicKey = publicKey;
-        
     }
     return self;
 }
