@@ -231,15 +231,21 @@ function HomeScreen({navigation, route}) {
     setLoading(true);
     setLoadingText(t('Loading...'));
     const webApi = new WebApi(webToken);
-    const powerOnRes = await webApi.powerOn(sessionId);
-    log.info('powerOn:', powerOnRes);
+    try {
+      const powerOnRes = await webApi.powerOn(sessionId);
+      log.info('powerOn:', powerOnRes);
 
-    const _consoles = await webApi.getConsoles();
-    setConsoles(_consoles);
+      const _consoles = await webApi.getConsoles();
+      setConsoles(_consoles);
 
-    setLoading(false);
+      setLoading(false);
 
-    handleStartStream(sessionId);
+      handleStartStream(sessionId);
+    } catch (e) {
+      setLoading(false);
+
+      handleStartStream(sessionId);
+    }
   };
 
   const handleStartStream = async sessionId => {

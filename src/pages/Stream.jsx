@@ -395,26 +395,49 @@ function StreamScreen({navigation, route}) {
       const sensorManager =
         _settings.sensor === 2 ? GamepadSensorModule : SensorModule;
 
-      sensorManager.startSensor(_settings.sensor_sensitivity);
+      sensorManager.startSensor(
+        _settings.sensor_sensitivity_x,
+        _settings.sensor_sensitivity_y,
+      );
 
       sensorEventListener.current = eventEmitter.addListener(
         'SensorData',
         params => {
           const {x, y} = params;
 
-          const stickX = x / 32767;
-          const stickY = y / 32767;
+          let stickX = x / 32767;
+          let stickY = y / 32767;
 
           // gyroscope only work when Rightstick not moving
           if (!isRightstickMoving.current) {
-            const scale =
-              _settings.sensor_sensitivity > 10000
-                ? _settings.sensor_sensitivity / 10000
+            const scaleX =
+              _settings.sensor_sensitivity_x > 10000
+                ? _settings.sensor_sensitivity_x / 10000
                 : 1;
+
+            const scaleY =
+              _settings.sensor_sensitivity_y > 10000
+                ? _settings.sensor_sensitivity_y / 10000
+                : 1;
+
+            switch (_settings.sensor_invert) {
+              case 1: // x
+                stickX = -stickX;
+                break;
+              case 2: // y
+                stickY = -stickY;
+                break;
+              case 3: // All
+                stickX = -stickX;
+                stickY = -stickY;
+                break;
+              default:
+                break;
+            }
             // gyroscope only work when LT button press
             if (gpState.LeftTrigger >= _settings.dead_zone) {
-              gpState.RightThumbXAxis = stickX.toFixed(3) * scale;
-              gpState.RightThumbYAxis = stickY.toFixed(3) * scale;
+              gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
+              gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
             } else {
               gpState.RightThumbXAxis = 0;
               gpState.RightThumbYAxis = 0;
