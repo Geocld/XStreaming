@@ -230,4 +230,7 @@ public class XboxOneController extends AbstractXboxController {
             this.data = data;
         }
     }
+
+    @Override
+    public void sendCommand(byte[] data) {}
 }

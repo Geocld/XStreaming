@@ -186,6 +186,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
     }
 
+    public void handleSendCommand(byte[] data) {
+        for (int i = 0; i < usbDeviceContexts.size(); i++) {
+            UsbDeviceContext deviceContext = usbDeviceContexts.valueAt(i);
+            deviceContext.device.sendCommand(data);
+        }
+    }
+
     public void stop() {
         if (stopped) {
             return;
@@ -774,7 +781,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 //            Log.d("UsbDriverService reportControllerState", "leftStickY:" + _leftStickY);
 //        }
 
-        // TODO: send data to RN there
+        // Send data to RN there
         WritableMap params = Arguments.createMap();
         params.putInt("keyCode", buttonFlags);
         params.putDouble("leftTrigger", leftTrigger);

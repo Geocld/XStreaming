@@ -107,12 +107,51 @@ function DebugScreen({navigation, route}) {
       <SettingItem
         title={'Vibration(usb)'}
         description={'Test gamepad rumble in override mode'}
-        onPress={() => {
-          UsbRumbleManager.rumble(32767, 32767);
+        onPress={async () => {
+          const hasValidUsbDevice =
+            await UsbRumbleManager.getHasValidUsbDevice();
+          const usbController = await UsbRumbleManager.getUsbController();
+          if (hasValidUsbDevice) {
+            if (usbController === 'DualSenseController') {
+              UsbRumbleManager.setDsController(
+                16,
+                124,
+                16,
+                0,
+                0,
+                0,
+                100,
+                100,
+                0,
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                6,
+                [20, 255, 10, 0, 0, 0, 0, 0, 0, 0],
+              );
 
-          setTimeout(() => {
-            UsbRumbleManager.rumble(0, 0);
-          }, 500);
+              setTimeout(() => {
+                UsbRumbleManager.setDsController(
+                  16,
+                  124,
+                  16,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                  6,
+                  [20, 255, 10, 0, 0, 0, 0, 0, 0, 0],
+                );
+              }, 50);
+            } else {
+              UsbRumbleManager.rumble(32767, 32767);
+
+              setTimeout(() => {
+                UsbRumbleManager.rumble(0, 0);
+              }, 500);
+            }
+          }
         }}
       />
 

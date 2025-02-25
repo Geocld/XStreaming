@@ -247,6 +247,40 @@ function SettingsScreen({navigation}) {
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
+              {t('DualSense')}
+            </Text>
+          </View>
+
+          <SettingItem
+            title={t('DualSense_adaptive_trigger_left')}
+            description={`${t('DualSense_adaptive_trigger_left_desc')}`}
+            onPress={() =>
+              navigation.navigate({
+                name: 'Ds5',
+                params: {
+                  type: 'left',
+                },
+              })
+            }
+          />
+
+          <SettingItem
+            title={t('DualSense_adaptive_trigger_right')}
+            description={`${t('DualSense_adaptive_trigger_right_desc')}`}
+            onPress={() =>
+              navigation.navigate({
+                name: 'Ds5',
+                params: {
+                  type: 'right',
+                },
+              })
+            }
+          />
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
               {t('Others')}
             </Text>
           </View>

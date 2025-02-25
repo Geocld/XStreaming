@@ -117,9 +117,10 @@ export default {
       '设置画面清晰度、饱和度等参数',
     'Override native Xbox gamepad support': '覆盖安卓手柄支持',
     bind_usb_device_description:
-      '强制XStreaming的USB驱动接管所有受支持的Xbox手柄(实验性)',
-    bind_usb_device_tips: '该设置只有支持xinput协议的手柄有线连接才生效',
-    'Power on when streaming': '开机并开始串流',
+      '强制XStreaming的USB驱动接管所有受支持的Xbox/DualSense手柄(实验性)',
+    bind_usb_device_tips:
+      '该设置只有支持xinput或dualsense协议的手柄有线连接(OTG)才生效',
+    'Power on when streaming': '开机并串流',
     power_on_description:
       '选择主机串流时是否开启，默认主机开启睡眠模式后串流时电源灯不会亮，开启此选项后主机会彻底开机，并可能唤醒显示器',
     'Low Latency Mode': 'WIFI低延迟模式',
@@ -233,5 +234,14 @@ export default {
     x_axies: 'X轴',
     y_axies: 'Y轴',
     all_axies: '全部',
+    DualSense_adaptive_trigger_left: '设置DualSense左扳机',
+    DualSense_adaptive_trigger_left_desc:
+      '可以将DualSense左扳机设置为阻尼/扳机/自动步枪扳机(开启此功能需打开安卓覆盖驱动(设置-覆盖安卓手柄支持-开启)，并将DualSense控制器有线连接)',
+    DualSense_adaptive_trigger_right: '设置DualSense右扳机',
+    DualSense_adaptive_trigger_right_desc:
+      '可以将DualSense右扳机设置为阻尼/扳机/自动步枪扳机(开启此功能需打开安卓覆盖驱动(设置-覆盖安卓手柄支持-开启)，并将DualSense控制器有线连接)',
+    Resistance: '阻尼',
+    Trigger: '扳机',
+    'Automatic Trigger': '自动步枪',
   },
 };

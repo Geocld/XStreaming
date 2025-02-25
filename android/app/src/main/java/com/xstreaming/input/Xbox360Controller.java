@@ -164,4 +164,7 @@ public class Xbox360Controller extends AbstractXboxController {
     public void rumbleTriggers(short leftTrigger, short rightTrigger) {
         // Trigger motors not present on Xbox 360 controllers
     }
+
+    @Override
+    public void sendCommand(byte[] data) {}
 }

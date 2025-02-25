@@ -55,14 +55,13 @@ export default {
     'Set language of cloud game': 'Set language of cloud game',
     'Key mapping': 'Key mapping',
     'Mapping key of gamepad': 'Mapping key of gamepad',
-    'Override native Xbox gamepad support':
-      'Override native Xbox gamepad support',
+    'Override native Xbox gamepad support': 'Override native gamepad support',
     noAllow:
       'Permission denied for streaming or cloud gaming. Please verify your login status and try logging in again. For cloud gaming, ensure you have an active XGPU subscription. For non-XGPU games, verify that you own the game',
     bind_usb_device_description:
-      "Use XStreaming's USB driver for all supported gamepads, even if native Xbox controller support is present(experimental)",
+      'Force Peasyo’s USB driver to take over all supported /DualSense controllers (experimental)',
     bind_usb_device_tips:
-      'This setting only takes effect when a controller supporting the XInput protocol is connected via a wired connection',
+      'This setting only takes effect for controllers that support XInput or DualSense protocol when connected via wired (OTG).',
     power_on_description:
       "Choose whether to power on the console when streaming. By default, the console remains in sleep mode, and the power light won't turn on during streaming. Enabling this option will fully power on the host and may wake up the monitor",
     low_latency_mode_description:
@@ -119,5 +118,11 @@ export default {
     x_axies: 'X Axis',
     y_axies: 'Y Axis',
     all_axies: 'All Axes',
+    DualSense_adaptive_trigger_left: 'Set DualSense Left Trigger',
+    DualSense_adaptive_trigger_left_desc:
+      'You can set the DualSense left trigger to resistance/trigger/automatic trigger (to enable this feature, you need to turn on Android overlay driver (Settings - Overlay Android Controller Support - Enable), and connect the DualSense controller via cable)',
+    DualSense_adaptive_trigger_right: 'Set DualSense Right Trigger',
+    DualSense_adaptive_trigger_right_desc:
+      'You can set the DualSense right trigger to resistance/trigger/automatic trigger (to enable this feature, you need to turn on Android overlay driver (Settings - Overlay Android Controller Support - Enable), and connect the DualSense controller via cable)',
   },
 };

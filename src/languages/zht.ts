@@ -121,8 +121,9 @@ export default {
       '設置畫面清晰度、飽和度等參數',
     'Override native Xbox gamepad support': '覆寫原生 Xbox 手把支援',
     bind_usb_device_description:
-      '強制 XStreaming 的 USB 驅動程式接管所有受支援的原生 Xbox 控制器',
-    bind_usb_device_tips: '該設定只有在支援 XInput 協議的手柄有線連接時才生效',
+      '強制Peasyo的USB驅動接管所有受支持的Xbox/DualSense手柄(實驗性)',
+    bind_usb_device_tips:
+      '該設置只有支持Xinput或DualSense協議的手柄有線連接（OTG）才生效。',
     'After replacing the Android controller driver, controller button mapping is temporarily not supported':
       '覆蓋安卓手柄驅動後暫不支持手柄按鍵映射',
     'Show performance': '显示性能面板',
@@ -198,5 +199,14 @@ export default {
     x_axies: 'X軸',
     y_axies: 'Y軸',
     all_axies: '全部軸',
+    DualSense_adaptive_trigger_left: '設定DualSense左扳機',
+    DualSense_adaptive_trigger_left_desc:
+      '可以將DualSense左扳機設定為阻尼/扳機/自動步槍扳機(開啟此功能需打開安卓覆蓋驅動(設定-覆蓋安卓手柄支持-開啟)，並將DualSense控制器有線連接)',
+    DualSense_adaptive_trigger_right: '設定DualSense右扳機',
+    DualSense_adaptive_trigger_right_desc:
+      '可以將DualSense右扳機設定為阻尼/扳機/自動步槍扳機(開啟此功能需打開安卓覆蓋驅動(設定-覆蓋安卓手柄支持-開啟)，並將DualSense控制器有線連接)',
+    Resistance: '阻尼',
+    Trigger: '扳機',
+    'Automatic Trigger': '自動步槍扳機',
   },
 };

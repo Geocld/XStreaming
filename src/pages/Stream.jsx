@@ -28,6 +28,7 @@ import Display from '../components/Display';
 const log = debugFactory('StreamScreen');
 
 const CONNECTED = 'connected';
+const DUALSENSE = 'DualSenseController';
 
 const {
   FullScreenManager,
@@ -95,9 +96,6 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
-  const isRumbling = React.useRef(false);
-
-  const isLtPressing = React.useRef(false);
   const isRightstickMoving = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
@@ -225,6 +223,22 @@ function StreamScreen({navigation, route}) {
     if (isUsbMode) {
       log.info('Entry usb mode');
       log.info('Usb controller: ' + usbController);
+      if (usbController === DUALSENSE) {
+        UsbRumbleManager.setDsController(
+          16,
+          124,
+          16,
+          0,
+          0,
+          0,
+          0,
+          0,
+          _settings.left_trigger_type || 0,
+          _settings.left_trigger_effects || [],
+          _settings.right_trigger_type || 0,
+          _settings.right_trigger_effects || [],
+        );
+      }
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
         params => {
@@ -265,8 +279,6 @@ function StreamScreen({navigation, route}) {
       }, 4);
     } else if (_settings.gamepad_kernal === 'Native') {
       log.info('Entry native mode');
-      const eventEmitter = new NativeEventEmitter();
-
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
@@ -709,34 +721,60 @@ function StreamScreen({navigation, route}) {
 
       const isUsbMode = route.params?.isUsbMode || false;
       if (isUsbMode) {
-        console.log('isUsbMode:', isUsbMode);
-        let weakMagnitude = rumbleData.weakMagnitude * 32767;
-        let strongMagnitude = rumbleData.strongMagnitude * 32767;
-        let leftTrigger = rumbleData.leftTrigger * 32767;
-        let rightTrigger = rumbleData.rightTrigger * 32767;
-        if (weakMagnitude > 32767) {
-          weakMagnitude = 32767;
-        }
-        if (strongMagnitude > 32767) {
-          strongMagnitude = 32767;
-        }
-        if (leftTrigger > 32767) {
-          leftTrigger = 32767;
-        }
-        if (rightTrigger > 32767) {
-          rightTrigger = 32767;
-        }
-        if (weakMagnitude > 0 || strongMagnitude > 0) {
-          if (leftTrigger > 0 || rightTrigger > 0) {
-            UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
+        // console.log('isUsbMode:', isUsbMode);
+        if (route.params?.usbController === DUALSENSE) {
+          let weakMagnitude = rumbleData.weakMagnitude * 255;
+          let strongMagnitude = rumbleData.strongMagnitude * 255;
+          if (weakMagnitude > 255) {
+            weakMagnitude = 255;
+          }
+          if (strongMagnitude > 255) {
+            strongMagnitude = 255;
+          }
+          UsbRumbleManager.setDsController(
+            16,
+            124,
+            16,
+            0,
+            0,
+            0,
+            strongMagnitude, // left motor
+            weakMagnitude, // right motor
+            settings.left_trigger_type || 0,
+            settings.left_trigger_effects || [],
+            settings.right_trigger_type || 0,
+            settings.right_trigger_effects || [],
+          );
+        } else {
+          let weakMagnitude = rumbleData.weakMagnitude * 32767;
+          let strongMagnitude = rumbleData.strongMagnitude * 32767;
+          let leftTrigger = rumbleData.leftTrigger * 32767;
+          let rightTrigger = rumbleData.rightTrigger * 32767;
+          if (weakMagnitude > 32767) {
+            weakMagnitude = 32767;
+          }
+          if (strongMagnitude > 32767) {
+            strongMagnitude = 32767;
+          }
+          if (leftTrigger > 32767) {
+            leftTrigger = 32767;
+          }
+          if (rightTrigger > 32767) {
+            rightTrigger = 32767;
+          }
+          if (weakMagnitude > 0 || strongMagnitude > 0) {
+            if (leftTrigger > 0 || rightTrigger > 0) {
+              UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
+            } else {
+              UsbRumbleManager.rumbleTriggers(0, 0);
+            }
           } else {
             UsbRumbleManager.rumbleTriggers(0, 0);
           }
-        } else {
-          UsbRumbleManager.rumbleTriggers(0, 0);
+          UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
         }
-        UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
       } else {
+        // Native android rumble
         let weakMagnitude = rumbleData.weakMagnitude * 100;
         let strongMagnitude = rumbleData.strongMagnitude * 100;
         let leftTrigger = rumbleData.leftTrigger * 100;

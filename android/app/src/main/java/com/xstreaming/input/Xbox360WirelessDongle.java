@@ -141,4 +141,7 @@ public class Xbox360WirelessDongle extends AbstractController {
     public void rumbleTriggers(short leftTrigger, short rightTrigger) {
         // Unreachable.
     }
+
+    @Override
+    public void sendCommand(byte[] data) {}
 }
