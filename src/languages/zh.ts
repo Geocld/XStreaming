@@ -39,7 +39,7 @@ export default {
       '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
     Recently: '最近游玩',
     Newest: '新入库',
-    Own: '自有库',
+    Own: '自购库',
     All: '全部',
     Search: '搜索',
     Unlocked: '已解锁',

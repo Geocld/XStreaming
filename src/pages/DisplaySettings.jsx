@@ -50,7 +50,7 @@ function DisplaySettings({navigation, route}) {
       </ScrollView>
 
       <View style={styles.buttonWrap}>
-        <Button mode="contained" style={styles.button} onPress={handleSave}>
+        <Button mode="contained" onPress={handleSave}>
           {t('Save')}
         </Button>
         <Button mode="outlined" style={styles.button} onPress={handleReset}>
@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingLeft: 10,
     paddingRight: 10,
+    marginBottom: 230,
   },
   buttonWrap: {
     position: 'absolute',
