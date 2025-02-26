@@ -208,5 +208,9 @@ export default {
     Resistance: '阻尼',
     Trigger: '扳機',
     'Automatic Trigger': '自動步槍扳機',
+    Send: '发送',
+    Sended: '已发送',
+    Text: '文字',
+    'Send text': '发送文字',
   },
 };
