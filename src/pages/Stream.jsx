@@ -509,7 +509,8 @@ function StreamScreen({navigation, route}) {
   // const uri = 'file:///android_asset/stream/index.html';
   const uri = Platform.select({
     android: 'file:///android_asset/stream/index.html',
-    ios: 'index.html', // iOS 会自动从 bundle 中查找
+    // ios: 'index.html', // iOS 会自动从 bundle 中查找
+    ios: 'http://172.25.176.27:5173/'
   });
 
   const webviewRef = React.useRef(null);
@@ -567,6 +568,8 @@ function StreamScreen({navigation, route}) {
   const handleWebviewMessage = event => {
     const data = JSON.parse(event.nativeEvent.data);
     const {type, message} = data;
+    console.log('handleWebviewMessage type:', type);
+    console.log('handleWebviewMessage message:', message);
     if (type === 'other') {
       Alert.alert(message);
     }

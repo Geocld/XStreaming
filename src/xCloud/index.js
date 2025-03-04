@@ -183,6 +183,7 @@ export default class XcloudApi {
                   // Continue
                   this.waitState()
                     .then(state => {
+                      console.log('inner waitState state:', state);
                       resolve(state);
                     })
                     .catch(error => {

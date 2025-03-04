@@ -156,8 +156,13 @@ function HomeScreen({navigation, route}) {
           log.info('Current authentication state:', _authentication.current); // 添加这行
           setXalUrl(route.params.xalUrl);
           setLoading(true);
-          setLoadingText(t('Login successful, refreshing login credentials...'));
-          _authentication.current.startAuthflow(_redirect.current, route.params.xalUrl);
+          setLoadingText(
+            t('Login successful, refreshing login credentials...'),
+          );
+          _authentication.current.startAuthflow(
+            _redirect.current,
+            route.params.xalUrl,
+          );
         }
       } else if (route.params?.needRefresh && webTokenRef.current) {
         setLoading(true);

@@ -10,7 +10,7 @@
 		034ED8DCC09A8C5E2B705088 /* libPods-XStreaming-XStreamingTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */; };
 		0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */; };
 		60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */; };
-		60DAB0522D64A6DB00ABFF73 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04F2D64A6DB00ABFF73 /* main.jsbundle */; };
+		60DAB0522D64A6DB00ABFF73 /* main1.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04F2D64A6DB00ABFF73 /* main1.jsbundle */; };
 		60DAB0532D64A6DB00ABFF73 /* back-icon-mask.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03E2D64A6DB00ABFF73 /* back-icon-mask.png */; };
 		60DAB0542D64A6DB00ABFF73 /* back-chevron.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB0452D64A6DB00ABFF73 /* back-chevron.png */; };
 		60DAB0552D64A6DB00ABFF73 /* back-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03F2D64A6DB00ABFF73 /* back-icon@2x.png */; };
@@ -45,7 +45,7 @@
 		60DAB0402D64A6DB00ABFF73 /* back-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon@3x.png"; sourceTree = "<group>"; };
 		60DAB0452D64A6DB00ABFF73 /* back-chevron.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-chevron.png"; sourceTree = "<group>"; };
 		60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wx_sponsor.png; sourceTree = "<group>"; };
-		60DAB04F2D64A6DB00ABFF73 /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
+		60DAB04F2D64A6DB00ABFF73 /* main1.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main1.jsbundle; sourceTree = "<group>"; };
 		63463584DBBA215A9252C704 /* Pods-XStreaming-XStreamingTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming-XStreamingTests.release.xcconfig"; path = "Target Support Files/Pods-XStreaming-XStreamingTests/Pods-XStreaming-XStreamingTests.release.xcconfig"; sourceTree = "<group>"; };
 		78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-XStreaming-XStreamingTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B872FCFF23369DFA5D93FFC7 /* Pods-XStreaming.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-XStreaming.release.xcconfig"; path = "Target Support Files/Pods-XStreaming/Pods-XStreaming.release.xcconfig"; sourceTree = "<group>"; };
@@ -249,7 +249,7 @@
 			isa = PBXGroup;
 			children = (
 				60DAB04E2D64A6DB00ABFF73 /* assets */,
-				60DAB04F2D64A6DB00ABFF73 /* main.jsbundle */,
+				60DAB04F2D64A6DB00ABFF73 /* main1.jsbundle */,
 			);
 			path = bundle;
 			sourceTree = "<group>";
@@ -385,7 +385,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */,
-				60DAB0522D64A6DB00ABFF73 /* main.jsbundle in Resources */,
+				60DAB0522D64A6DB00ABFF73 /* main1.jsbundle in Resources */,
 				60DAB0532D64A6DB00ABFF73 /* back-icon-mask.png in Resources */,
 				60DAB0542D64A6DB00ABFF73 /* back-chevron.png in Resources */,
 				60DAB0552D64A6DB00ABFF73 /* back-icon@2x.png in Resources */,
