@@ -20,7 +20,9 @@ public class SensorModule extends ReactContextBaseJavaModule  implements SensorE
     private final ReactApplicationContext reactContext;
     private final SensorManager sensorManager;
     private final Sensor gyroscope;
-    private int customSensitivity = 15000;
+    private int customSensitivityX = 15000;
+    private int customSensitivityY = 15000;
+
 
     static float lastX = 0, lastY = 0;
 
@@ -39,9 +41,10 @@ public class SensorModule extends ReactContextBaseJavaModule  implements SensorE
     }
 
     @ReactMethod
-    public void startSensor(int sensitivity) {
+    public void startSensor(int sensitivity_x, int sensitivity_y) {
         Log.d("SensorModule", "startSensor");
-        this.customSensitivity = sensitivity;
+        this.customSensitivityX = sensitivity_x;
+        this.customSensitivityY = sensitivity_y;
         if (gyroscope != null) {
             sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_FASTEST);
         }
@@ -59,13 +62,14 @@ public class SensorModule extends ReactContextBaseJavaModule  implements SensorE
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 
-            float sensitivity = (1 << 8) * this.customSensitivity / 100f;
+            float sensitivity_x = (1 << 8) * this.customSensitivityX / 100f;
+            float sensitivity_y = (1 << 8) * this.customSensitivityY / 100f;
 
             float x = -event.values[0];
             float y = event.values[1];
 
-            final float nowX = sensitivity * x + lastX;
-            final float nowY = sensitivity * y + lastY;
+            final float nowX = sensitivity_x * x + lastX;
+            final float nowY = sensitivity_y * y + lastY;
             int roundX = Math.round(nowX);
             int roundY = Math.round(nowY);
 

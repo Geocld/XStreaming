@@ -28,6 +28,8 @@ export default class WebApi {
       params = [];
     }
 
+    console.log('params:', params);
+
     const postParams = {
       destination: 'Xbox',
       type: commandType,
@@ -67,6 +69,7 @@ export default class WebApi {
           }
         })
         .catch(e => {
+          console.log('error:', e);
           reject(e);
         });
     });
@@ -78,6 +81,14 @@ export default class WebApi {
 
   powerOff(consoleId: string) {
     return this.sendCommand(consoleId, 'Power', 'TurnOff');
+  }
+
+  sendText(consoleId: string, text: string) {
+    return this.sendCommand(consoleId, 'Shell', 'InjectString', [
+      {
+        replacementString: text,
+      },
+    ]);
   }
 
   getConsoleStatus(consoleId: string) {

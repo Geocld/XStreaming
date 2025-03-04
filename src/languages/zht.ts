@@ -121,8 +121,9 @@ export default {
       '設置畫面清晰度、飽和度等參數',
     'Override native Xbox gamepad support': '覆寫原生 Xbox 手把支援',
     bind_usb_device_description:
-      '強制 XStreaming 的 USB 驅動程式接管所有受支援的原生 Xbox 控制器',
-    bind_usb_device_tips: '該設定只有在支援 XInput 協議的手柄有線連接時才生效',
+      '強制Peasyo的USB驅動接管所有受支持的Xbox/DualSense手柄(實驗性)',
+    bind_usb_device_tips:
+      '該設置只有支持Xinput或DualSense協議的手柄有線連接（OTG）才生效。',
     'After replacing the Android controller driver, controller button mapping is temporarily not supported':
       '覆蓋安卓手柄驅動後暫不支持手柄按鍵映射',
     'Show performance': '显示性能面板',
@@ -186,10 +187,30 @@ export default {
     gyroDesc:
       '是否強制使用設備陀螺儀，當按下LT鍵時陀螺儀模擬右搖杆，常用於FPS遊戲',
     gyroTips: '當前只支持設備陀螺儀，手把陀螺儀暫不支持',
-    gyroSenTitle: '陀螺儀靈敏度',
-    gyroSenDesc: '調節陀螺儀靈敏度',
+    gyroSenTitleX: '陀螺儀X軸靈敏度',
+    gyroSenDescX: '調節陀螺儀X軸靈敏度',
+    gyroSenTitleY: '陀螺儀Y軸靈敏度',
+    gyroSenDescY: '調節陀螺儀X軸靈敏度',
     byorg: '該遊戲屬於自購遊戲，非XGPU庫遊戲，如需遊玩，請保證已購買此遊戲。',
     show_menu_title: '顯示快捷菜單',
     show_menu_desc: '串流介面右下角始終顯示快捷菜單。',
+    sensorInvertTitle: '反轉陀螺儀模擬搖桿',
+    sensorInvertDesc: '某些設備陀螺儀方向跟實際方向相反，可以在這裡反轉方向。',
+    x_axies: 'X軸',
+    y_axies: 'Y軸',
+    all_axies: '全部軸',
+    DualSense_adaptive_trigger_left: '設定DualSense左扳機',
+    DualSense_adaptive_trigger_left_desc:
+      '可以將DualSense左扳機設定為阻尼/扳機/自動步槍扳機(開啟此功能需打開安卓覆蓋驅動(設定-覆蓋安卓手柄支持-開啟)，並將DualSense控制器有線連接)',
+    DualSense_adaptive_trigger_right: '設定DualSense右扳機',
+    DualSense_adaptive_trigger_right_desc:
+      '可以將DualSense右扳機設定為阻尼/扳機/自動步槍扳機(開啟此功能需打開安卓覆蓋驅動(設定-覆蓋安卓手柄支持-開啟)，並將DualSense控制器有線連接)',
+    Resistance: '阻尼',
+    Trigger: '扳機',
+    'Automatic Trigger': '自動步槍扳機',
+    Send: '发送',
+    Sended: '已发送',
+    Text: '文字',
+    'Send text': '发送文字',
   },
 };

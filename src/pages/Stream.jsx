@@ -6,10 +6,20 @@ import {
   Vibration,
   NativeEventEmitter,
   StyleSheet,
+  ScrollView,
+  Dimensions,
   ToastAndroid,
   Platform,
 } from 'react-native';
-import {Portal, Modal, Card, List, IconButton} from 'react-native-paper';
+import {
+  Portal,
+  Modal,
+  Card,
+  List,
+  Button,
+  IconButton,
+  TextInput,
+} from 'react-native-paper';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
@@ -29,6 +39,7 @@ import Display from '../components/Display';
 const log = debugFactory('StreamScreen');
 
 const CONNECTED = 'connected';
+const DUALSENSE = 'DualSenseController';
 
 const {
   FullScreenManager,
@@ -80,11 +91,15 @@ function StreamScreen({navigation, route}) {
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [showDisplayModal, setShowDisplayModal] = React.useState(false);
+  const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [connectState, setConnectState] = React.useState('');
   const [performance, setPerformance] = React.useState({});
   const [showPerformance, setShowPerformance] = React.useState(false);
   const [needPoweroff, setNeedPoweroff] = React.useState(false);
+  const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
+  const [message, setMessage] = React.useState('');
+  const [messageSending, setMessageSending] = React.useState(false);
 
   const gpDownEventListener = React.useRef(undefined);
   const gpUpEventListener = React.useRef(undefined);
@@ -96,9 +111,6 @@ function StreamScreen({navigation, route}) {
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
   const isRightTriggerCanClick = React.useRef(false);
-  const isRumbling = React.useRef(false);
-
-  const isLtPressing = React.useRef(false);
   const isRightstickMoving = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
@@ -226,6 +238,22 @@ function StreamScreen({navigation, route}) {
     if (isUsbMode) {
       log.info('Entry usb mode');
       log.info('Usb controller: ' + usbController);
+      if (usbController === DUALSENSE) {
+        UsbRumbleManager.setDsController(
+          16,
+          124,
+          16,
+          0,
+          0,
+          0,
+          0,
+          0,
+          _settings.left_trigger_type || 0,
+          _settings.left_trigger_effects || [],
+          _settings.right_trigger_type || 0,
+          _settings.right_trigger_effects || [],
+        );
+      }
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
         params => {
@@ -266,8 +294,6 @@ function StreamScreen({navigation, route}) {
       }, 4);
     } else if (_settings.gamepad_kernal === 'Native') {
       log.info('Entry native mode');
-      // const eventEmitter = new NativeEventEmitter();
-
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
@@ -396,26 +422,49 @@ function StreamScreen({navigation, route}) {
       const sensorManager =
         _settings.sensor === 2 ? GamepadSensorModule : SensorModule;
 
-      sensorManager.startSensor(_settings.sensor_sensitivity);
+      sensorManager.startSensor(
+        _settings.sensor_sensitivity_x,
+        _settings.sensor_sensitivity_y,
+      );
 
       sensorEventListener.current = eventEmitter.addListener(
         'SensorData',
         params => {
           const {x, y} = params;
 
-          const stickX = x / 32767;
-          const stickY = y / 32767;
+          let stickX = x / 32767;
+          let stickY = y / 32767;
 
           // gyroscope only work when Rightstick not moving
           if (!isRightstickMoving.current) {
-            const scale =
-              _settings.sensor_sensitivity > 10000
-                ? _settings.sensor_sensitivity / 10000
+            const scaleX =
+              _settings.sensor_sensitivity_x > 10000
+                ? _settings.sensor_sensitivity_x / 10000
                 : 1;
+
+            const scaleY =
+              _settings.sensor_sensitivity_y > 10000
+                ? _settings.sensor_sensitivity_y / 10000
+                : 1;
+
+            switch (_settings.sensor_invert) {
+              case 1: // x
+                stickX = -stickX;
+                break;
+              case 2: // y
+                stickY = -stickY;
+                break;
+              case 3: // All
+                stickX = -stickX;
+                stickY = -stickY;
+                break;
+              default:
+                break;
+            }
             // gyroscope only work when LT button press
             if (gpState.LeftTrigger >= _settings.dead_zone) {
-              gpState.RightThumbXAxis = stickX.toFixed(3) * scale;
-              gpState.RightThumbYAxis = stickY.toFixed(3) * scale;
+              gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
+              gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
             } else {
               gpState.RightThumbXAxis = 0;
               gpState.RightThumbYAxis = 0;
@@ -465,7 +514,12 @@ function StreamScreen({navigation, route}) {
     setTimeout(() => {
       Orientation.lockToLandscape();
 
-      console.log('gamepad_kernal:', _settings.gamepad_kernal);
+      setTimeout(() => {
+        const {height: dHeight} = Dimensions.get('window');
+        setModalMaxHeight(dHeight - 50);
+      }, 100);
+
+      // console.log('gamepad_kernal:', _settings.gamepad_kernal);
       if (_settings.gamepad_kernal === 'Web') {
         webviewRef.current && webviewRef.current.requestFocus();
       }
@@ -519,6 +573,21 @@ function StreamScreen({navigation, route}) {
     const webApi = new WebApi(webToken);
     const powerOffRes = await webApi.powerOff(route.params?.sessionId);
     console.log('powerOff:', powerOffRes);
+  };
+
+  const handleSendMessage = async () => {
+    const webApi = new WebApi(webToken);
+    setMessageSending(true);
+    let text = message.trim();
+    if (message > 100) {
+      text = text.substring(0, 100);
+    }
+    try {
+      await webApi.sendText(route.params?.sessionId, text);
+      setMessage('');
+      ToastAndroid.show(t('Sended'), ToastAndroid.SHORT);
+    } catch (e) {}
+    setMessageSending(false);
   };
 
   const handleExit = () => {
@@ -694,34 +763,60 @@ function StreamScreen({navigation, route}) {
 
       const isUsbMode = route.params?.isUsbMode || false;
       if (isUsbMode) {
-        console.log('isUsbMode:', isUsbMode);
-        let weakMagnitude = rumbleData.weakMagnitude * 32767;
-        let strongMagnitude = rumbleData.strongMagnitude * 32767;
-        let leftTrigger = rumbleData.leftTrigger * 32767;
-        let rightTrigger = rumbleData.rightTrigger * 32767;
-        if (weakMagnitude > 32767) {
-          weakMagnitude = 32767;
-        }
-        if (strongMagnitude > 32767) {
-          strongMagnitude = 32767;
-        }
-        if (leftTrigger > 32767) {
-          leftTrigger = 32767;
-        }
-        if (rightTrigger > 32767) {
-          rightTrigger = 32767;
-        }
-        if (weakMagnitude > 0 || strongMagnitude > 0) {
-          if (leftTrigger > 0 || rightTrigger > 0) {
-            UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
+        // console.log('isUsbMode:', isUsbMode);
+        if (route.params?.usbController === DUALSENSE) {
+          let weakMagnitude = rumbleData.weakMagnitude * 255;
+          let strongMagnitude = rumbleData.strongMagnitude * 255;
+          if (weakMagnitude > 255) {
+            weakMagnitude = 255;
+          }
+          if (strongMagnitude > 255) {
+            strongMagnitude = 255;
+          }
+          UsbRumbleManager.setDsController(
+            16,
+            124,
+            16,
+            0,
+            0,
+            0,
+            strongMagnitude, // left motor
+            weakMagnitude, // right motor
+            settings.left_trigger_type || 0,
+            settings.left_trigger_effects || [],
+            settings.right_trigger_type || 0,
+            settings.right_trigger_effects || [],
+          );
+        } else {
+          let weakMagnitude = rumbleData.weakMagnitude * 32767;
+          let strongMagnitude = rumbleData.strongMagnitude * 32767;
+          let leftTrigger = rumbleData.leftTrigger * 32767;
+          let rightTrigger = rumbleData.rightTrigger * 32767;
+          if (weakMagnitude > 32767) {
+            weakMagnitude = 32767;
+          }
+          if (strongMagnitude > 32767) {
+            strongMagnitude = 32767;
+          }
+          if (leftTrigger > 32767) {
+            leftTrigger = 32767;
+          }
+          if (rightTrigger > 32767) {
+            rightTrigger = 32767;
+          }
+          if (weakMagnitude > 0 || strongMagnitude > 0) {
+            if (leftTrigger > 0 || rightTrigger > 0) {
+              UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
+            } else {
+              UsbRumbleManager.rumbleTriggers(0, 0);
+            }
           } else {
             UsbRumbleManager.rumbleTriggers(0, 0);
           }
-        } else {
-          UsbRumbleManager.rumbleTriggers(0, 0);
+          UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
         }
-        UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
       } else {
+        // Native android rumble
         let weakMagnitude = rumbleData.weakMagnitude * 100;
         let strongMagnitude = rumbleData.strongMagnitude * 100;
         let leftTrigger = rumbleData.leftTrigger * 100;
@@ -944,106 +1039,147 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
+          visible={showMessageModal}
+          onDismiss={() => {
+            setShowMessageModal(false);
+          }}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              <TextInput
+                label={t('Text')}
+                value={message}
+                onChangeText={text => setMessage(text)}
+              />
+              <Button
+                mode="contained"
+                loading={messageSending}
+                style={{marginTop: 10}}
+                onPress={handleSendMessage}>
+                {t('Send')}
+              </Button>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+
+      <Portal>
+        <Modal
           visible={showModal}
           onDismiss={() => handleCloseModal()}
           contentContainerStyle={styles.modal}>
           <Card>
             <Card.Content>
-              <List.Section>
-                {connectState === CONNECTED && (
-                  <List.Item
-                    title={t('Toggle Performance')}
-                    background={background}
-                    onPress={() => {
-                      if (settings.gamepad_kernal === 'Web') {
-                        setShowPerformance(!showPerformance);
-                        setTimeout(() => {
-                          handleToggleWebviewPerformance();
-                          webviewRef.current &&
-                            webviewRef.current.requestFocus();
-                        }, 10);
-                      } else {
-                        setShowPerformance(!showPerformance);
-                      }
-                      handleCloseModal();
-                    }}
-                  />
-                )}
-
-                {connectState === CONNECTED &&
-                  settings.gamepad_kernal === 'Native' && (
+              <ScrollView style={{maxHeight: modalMaxHeight}}>
+                <List.Section>
+                  {connectState === CONNECTED && (
                     <List.Item
-                      title={t('Toggle Virtual Gamepad')}
+                      title={t('Toggle Performance')}
                       background={background}
                       onPress={() => {
-                        requestVirtualGamepad();
+                        if (settings.gamepad_kernal === 'Web') {
+                          setShowPerformance(!showPerformance);
+                          setTimeout(() => {
+                            handleToggleWebviewPerformance();
+                            webviewRef.current &&
+                              webviewRef.current.requestFocus();
+                          }, 10);
+                        } else {
+                          setShowPerformance(!showPerformance);
+                        }
                         handleCloseModal();
                       }}
                     />
                   )}
 
-                {connectState === CONNECTED && (
-                  <List.Item
-                    title={t('Display settings')}
-                    background={background}
-                    onPress={() => {
-                      setShowDisplayModal(true);
-                      handleCloseModal();
-                    }}
-                  />
-                )}
+                  {connectState === CONNECTED &&
+                    settings.gamepad_kernal === 'Native' && (
+                      <List.Item
+                        title={t('Toggle Virtual Gamepad')}
+                        background={background}
+                        onPress={() => {
+                          requestVirtualGamepad();
+                          handleCloseModal();
+                        }}
+                      />
+                    )}
 
-                {connectState === CONNECTED && (
-                  <List.Item
-                    title={t('Press Nexus')}
-                    background={background}
-                    onPress={() => {
-                      gpState.Nexus = 1;
-                      setTimeout(() => {
-                        gpState.Nexus = 0;
-                      }, 120);
-                      handleCloseModal();
-                    }}
-                  />
-                )}
-                {connectState === CONNECTED &&
-                  route.params?.streamType !== 'cloud' && (
+                  {connectState === CONNECTED && (
                     <List.Item
-                      title={t('Long press Nexus')}
+                      title={t('Display settings')}
+                      background={background}
+                      onPress={() => {
+                        setShowDisplayModal(true);
+                        handleCloseModal();
+                      }}
+                    />
+                  )}
+
+                  {connectState === CONNECTED && (
+                    <List.Item
+                      title={t('Press Nexus')}
                       background={background}
                       onPress={() => {
                         gpState.Nexus = 1;
                         setTimeout(() => {
                           gpState.Nexus = 0;
-                        }, 1000);
+                        }, 120);
                         handleCloseModal();
                       }}
                     />
                   )}
-                {connectState === CONNECTED &&
-                  settings.power_on &&
-                  route.params?.streamType !== 'cloud' && (
-                    <List.Item
-                      title={t('Disconnect and power off')}
-                      background={background}
-                      onPress={() => {
-                        setNeedPoweroff(true);
-                        requestExit();
-                      }}
-                    />
-                  )}
+                  {connectState === CONNECTED &&
+                    route.params?.streamType !== 'cloud' && (
+                      <List.Item
+                        title={t('Long press Nexus')}
+                        background={background}
+                        onPress={() => {
+                          gpState.Nexus = 1;
+                          setTimeout(() => {
+                            gpState.Nexus = 0;
+                          }, 1000);
+                          handleCloseModal();
+                        }}
+                      />
+                    )}
 
-                <List.Item
-                  title={t('Disconnect')}
-                  background={background}
-                  onPress={requestExit}
-                />
-                <List.Item
-                  title={t('Cancel')}
-                  background={background}
-                  onPress={() => handleCloseModal()}
-                />
-              </List.Section>
+                  {connectState === CONNECTED &&
+                    route.params?.streamType !== 'cloud' && (
+                      <List.Item
+                        title={t('Send text')}
+                        background={background}
+                        onPress={() => {
+                          setShowMessageModal(true);
+                          handleCloseModal();
+                        }}
+                      />
+                    )}
+
+                  {connectState === CONNECTED &&
+                    settings.power_on &&
+                    route.params?.streamType !== 'cloud' && (
+                      <List.Item
+                        title={t('Disconnect and power off')}
+                        background={background}
+                        onPress={() => {
+                          setNeedPoweroff(true);
+                          requestExit();
+                        }}
+                      />
+                    )}
+
+                  <List.Item
+                    title={t('Disconnect')}
+                    background={background}
+                    onPress={requestExit}
+                  />
+                  <List.Item
+                    title={t('Cancel')}
+                    background={background}
+                    onPress={() => handleCloseModal()}
+                  />
+                </List.Section>
+              </ScrollView>
             </Card.Content>
           </Card>
         </Modal>

@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Card, Text, Button, Divider} from 'react-native-paper';
+import {Card, Text, Button} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {SvgXml} from 'react-native-svg';
 import icons from '../common/svg';
@@ -47,6 +47,7 @@ const ConsoleItem = (props: any) => {
           consoleItem.powerState === 'ConnectedStandby' ? (
             <Button
               mode="outlined"
+              labelStyle={{marginHorizontal: 0}}
               background={{
                 borderless: false,
                 color: 'rgba(255, 255, 255, 0.2)',
@@ -58,6 +59,7 @@ const ConsoleItem = (props: any) => {
           ) : (
             <Button
               mode="outlined"
+              labelStyle={{marginHorizontal: 0}}
               background={{
                 borderless: false,
                 color: 'rgba(255, 255, 255, 0.2)',

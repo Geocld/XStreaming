@@ -50,12 +50,20 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
     }
   };
 
+  let resolutionText = '';
+  if (performance.resolution) {
+    resolutionText = performance.resolution;
+    if (settings.resolution === 1081) {
+      resolutionText = resolutionText + '(HQ)';
+    }
+  }
+
   return (
     <View style={isHorizon ? styles.containerH : styles.containerV}>
       <View style={isHorizon ? styles.wrapperH : styles.wrapperV}>
         <View>
           <Text style={styles.text}>
-            {performance.resolution || '-1'} {isHorizon ? '| ' : ''}{' '}
+            {resolutionText || '-1'} {isHorizon ? '| ' : ''}{' '}
           </Text>
         </View>
         <View>

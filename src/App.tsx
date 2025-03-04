@@ -43,6 +43,7 @@ import AboutScreen from './pages/About';
 import FeedbackScreen from './pages/Feedback';
 import VirtualGamepadSettingsScreen from './pages/VirtualGamepadSettings';
 import CustomGamepadScreen from './pages/CustomGamepad';
+import Ds5SettingsScreen from './pages/Ds5Settings';
 import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
@@ -254,6 +255,11 @@ function App() {
                   name="NativeGameMap"
                   component={NativeGameMapScreen}
                   options={{title: t('GameMap')}}
+                />
+                <RootStack.Screen
+                  name="Ds5"
+                  component={Ds5SettingsScreen}
+                  options={{title: t('DualSense')}}
                 />
               </RootStack.Group>
 

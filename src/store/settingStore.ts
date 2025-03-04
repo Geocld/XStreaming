@@ -40,7 +40,13 @@ export type Settings = {
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
   sensor: number;
-  sensor_sensitivity: number;
+  sensor_sensitivity_x: number;
+  sensor_sensitivity_y: number;
+  sensor_invert: number;
+  left_trigger_type: number;
+  left_trigger_effects: [];
+  right_trigger_type: number;
+  right_trigger_effects: [];
   display_options: DisplayOptions;
   ipv6: boolean;
   check_update: boolean;
@@ -79,7 +85,13 @@ const defaultSettings: Settings = {
   gamepad_maping: null,
   native_gamepad_maping: null,
   sensor: 0,
-  sensor_sensitivity: 15000,
+  sensor_sensitivity_x: 15000,
+  sensor_sensitivity_y: 15000,
+  sensor_invert: 0,
+  left_trigger_type: 0,
+  left_trigger_effects: [],
+  right_trigger_type: 0,
+  right_trigger_effects: [],
   ipv6: false,
   check_update: true,
   power_on: false,

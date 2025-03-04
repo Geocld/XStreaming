@@ -48,6 +48,14 @@ public abstract class AbstractController {
         }
     }
 
+    protected void setDsButtonFlag(int buttonFlag, boolean isPressed) {
+        if (isPressed) {
+            buttonFlags |= buttonFlag;
+        } else {
+            buttonFlags &= ~buttonFlag;
+        }
+    }
+
     protected void reportInput() {
         listener.reportControllerState(deviceId, buttonFlags, leftStickX, leftStickY,
                 rightStickX, rightStickY, leftTrigger, rightTrigger);
@@ -66,6 +74,8 @@ public abstract class AbstractController {
     public abstract void rumble(short lowFreqMotor, short highFreqMotor);
 
     public abstract void rumbleTriggers(short leftTrigger, short rightTrigger);
+
+    public abstract void sendCommand(byte[] data);
 
     protected void notifyDeviceRemoved() {
         listener.deviceRemoved(this);

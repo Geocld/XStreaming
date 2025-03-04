@@ -15,7 +15,6 @@ export default class XcloudApi {
     this.isStoped = false;
   }
 
-  // FIXME: Sometime connectstate change failed, nextTime should refresh sessionId to make a new connect.
   startSession(consoleId, resolution) {
     log.info('[startSession] consoleId:', consoleId);
     this.isStoped = false;
@@ -24,8 +23,8 @@ export default class XcloudApi {
     if (resolution === 1080) {
       osName = 'windows';
     } else if (resolution === 1081) {
-      // 1080p-HQ, only work in xcloud game
-      osName = this.type === 'home' ? 'windows' : 'tizen';
+      // 1080p-HQ
+      osName = 'tizen';
     } else {
       osName = 'android';
     }
@@ -42,8 +41,8 @@ export default class XcloudApi {
             // sdkInstallId: '',
             clientAppId: 'www.xbox.com',
             clientAppType: 'browser',
-            clientAppVersion: '24.17.36',
-            clientSdkVersion: '10.1.14',
+            clientAppVersion: '26.1.97',
+            clientSdkVersion: '10.3.7',
             httpEnvironment: 'prod',
             sdkInstallId: '',
           },
@@ -77,7 +76,7 @@ export default class XcloudApi {
           },
           browser: {
             browserName: 'chrome',
-            browserVersion: '125.0',
+            browserVersion: '130.0',
           },
         },
       });
@@ -386,7 +385,7 @@ export default class XcloudApi {
             }
 
             const pattern = new RegExp(
-              /a=candidate:(?<foundation>\d+) (?<component>\d+) UDP (?<priority>\d+) (?<ip>[^\s]+) (?<port>\d+) (?<the_rest>.*)/,
+              /^(?:a=)?candidate:(?<foundation>\d+) (?<component>\d+) (?<protocol>\w+) (?<priority>\d+) (?<ip>[^\s]+) (?<port>\d+) (?<the_rest>.*)/
             );
 
             const lst = [];
