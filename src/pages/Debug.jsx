@@ -28,7 +28,7 @@ function DebugScreen({navigation, route}) {
 
     setDebug(_settings.debug);
 
-    const eventEmitter = new NativeEventEmitter();
+    // const eventEmitter = new NativeEventEmitter();
 
     // eventEmitter.addListener('onDeviceConnect', event => {
     //   Alert.alert('onDeviceConnect', JSON.stringify(event));

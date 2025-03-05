@@ -22,7 +22,7 @@ function GameMapDetail({navigation, route}) {
   React.useEffect(() => {
     log.info('TitleDetail button:', route.params?.button);
     GamepadManager.setCurrentScreen('stream');
-    const eventEmitter = new NativeEventEmitter();
+    const eventEmitter = new NativeEventEmitter(GamepadManager);
     const gpDownEventListener = eventEmitter.addListener(
       'onGamepadKeyDown',
       event => {

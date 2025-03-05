@@ -1,6 +1,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 #import <GameController/GameController.h>
+#import <UIKit/UIKit.h>
 
 @interface GamepadManager : RCTEventEmitter <RCTBridgeModule>
 
@@ -9,7 +10,6 @@
 @property (nonatomic, assign) BOOL hasGameController;
 
 - (void)setupGameController;
-- (void)handleControllerDidConnect:(NSNotification *)notification;
-- (void)handleControllerDidDisconnect:(NSNotification *)notification;
+- (void)updateGamepadListEvent;
 
-@end 
+@end

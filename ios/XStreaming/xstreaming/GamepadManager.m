@@ -115,7 +115,48 @@ RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
 - (void)sendRightTriggerEvent:(GCControllerButtonInput *)trigger {
     [self sendEventWithName:@"onTrigger" body:@{@"rightTrigger": @(trigger.value)}];
 }
-
+    
+// 添加振动方法
+RCT_EXPORT_METHOD(vibrate:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor leftTrigger:(int)leftTrigger rightTrigger:(int)rightTrigger intensity:(int)intensity) {
+    // iOS 设备振动
+    UIImpactFeedbackGenerator *generator;
+    UIImpactFeedbackStyle style = UIImpactFeedbackStyleMedium;
+    
+    // 根据强度选择振动样式
+    switch (intensity) {
+        case 1:
+            style = UIImpactFeedbackStyleLight;
+            break;
+        case 2:
+            style = UIImpactFeedbackStyleMedium;
+            break;
+        case 4:
+        case 5:
+            style = UIImpactFeedbackStyleHeavy;
+            break;
+        default:
+            style = UIImpactFeedbackStyleMedium;
+            break;
+    }
+    
+    // 如果强度都为 0，则不振动
+    if (lowFreqMotor == 0 && highFreqMotor == 0) {
+        return;
+    }
+    
+    generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:style];
+    [generator prepare];
+    [generator impactOccurred];
+    
+    // 对于长时间振动，可以考虑重复触发
+    if (duration > 500) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            UIImpactFeedbackGenerator *repeatGenerator = [[UIImpactFeedbackGenerator alloc] initWithStyle:style];
+            [repeatGenerator prepare];
+            [repeatGenerator impactOccurred];
+        });
+    }
+}
 
 - (void)dealloc {
     [self stopObservingGamepads];
