@@ -75,7 +75,7 @@ RCT_EXPORT_METHOD(rumble:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor)
 {
     if (@available(iOS 14.0, *)) {
         GCController *controller = GCController.controllers.firstObject;
-        if (controller && [controller respondsToSelector:@selector(hapticEngine)]) {
+        if (controller && controller.haptics) {
             // 将输入值转换为 0-1 范围
             float normalizedLowFreq = (float)lowFreqMotor / 255.0;
             float normalizedHighFreq = (float)highFreqMotor / 255.0;
@@ -84,12 +84,23 @@ RCT_EXPORT_METHOD(rumble:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor)
             normalizedLowFreq = MIN(1.0, MAX(0.0, normalizedLowFreq));
             normalizedHighFreq = MIN(1.0, MAX(0.0, normalizedHighFreq));
             
-            // 使用系统震动
+            // 使用系统震动代替，因为控制器震动API可能不可用
             UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
             [generator prepare];
             [generator impactOccurred];
             
             if (normalizedHighFreq > 0) {
+                generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+                [generator prepare];
+                [generator impactOccurred];
+            }
+        } else {
+            // 使用系统震动
+            UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
+            [generator prepare];
+            [generator impactOccurred];
+            
+            if (highFreqMotor > 0) {
                 generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
                 [generator prepare];
                 [generator impactOccurred];
@@ -102,7 +113,7 @@ RCT_EXPORT_METHOD(rumbleTriggers:(int)leftTrigger rightTrigger:(int)rightTrigger
 {
     if (@available(iOS 14.0, *)) {
         GCController *controller = GCController.controllers.firstObject;
-        if (controller && [controller respondsToSelector:@selector(hapticEngine)]) {
+        if (controller && controller.haptics) {
             // 将输入值转换为 0-1 范围
             float normalizedLeft = (float)leftTrigger / 255.0;
             float normalizedRight = (float)rightTrigger / 255.0;
@@ -123,6 +134,19 @@ RCT_EXPORT_METHOD(rumbleTriggers:(int)leftTrigger rightTrigger:(int)rightTrigger
                 [generator prepare];
                 [generator impactOccurred];
             }
+        } else {
+            // 使用系统震动
+            if (leftTrigger > 0) {
+                UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+                [generator prepare];
+                [generator impactOccurred];
+            }
+            
+            if (rightTrigger > 0) {
+                UIImpactFeedbackGenerator *generator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+                [generator prepare];
+                [generator impactOccurred];
+            }
         }
     }
 }
@@ -132,4 +156,4 @@ RCT_EXPORT_METHOD(rumbleTriggers:(int)leftTrigger rightTrigger:(int)rightTrigger
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-@end 
+@end

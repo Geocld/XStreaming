@@ -3,9 +3,9 @@
 
 @implementation SensorModule {
     CMMotionManager *_motionManager;
-    bool hasListeners;
-    double lastX;
-    double lastY;
+    bool _hasListeners;
+    double _lastX;
+    double _lastY;
 }
 
 RCT_EXPORT_MODULE();
@@ -26,21 +26,21 @@ RCT_EXPORT_MODULE();
     if (self) {
         _motionManager = [[CMMotionManager alloc] init];
         _customSensitivity = 15000;
-        lastX = 0;
-        lastY = 0;
-        hasListeners = NO;
+        _lastX = 0;
+        _lastY = 0;
+        _hasListeners = NO;
     }
     return self;
 }
 
 - (void)startObserving
 {
-    hasListeners = YES;
+    _hasListeners = YES;
 }
 
 - (void)stopObserving
 {
-    hasListeners = NO;
+    _hasListeners = NO;
 }
 
 RCT_EXPORT_METHOD(startSensor:(nonnull NSNumber *)sensitivity)
@@ -50,29 +50,32 @@ RCT_EXPORT_METHOD(startSensor:(nonnull NSNumber *)sensitivity)
     if (self.motionManager.gyroAvailable) {
         self.motionManager.gyroUpdateInterval = 1.0 / 100.0;  // 100 Hz
         
+        __weak typeof(self) weakSelf = self;
         [self.motionManager startGyroUpdatesToQueue:[NSOperationQueue mainQueue]
                                       withHandler:^(CMGyroData *gyroData, NSError *error) {
             if (error) {
                 return;
             }
             
-            if (!hasListeners) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            
+            if (!strongSelf->_hasListeners) {
                 return;
             }
             
-            double sensitivity = (1 << 8) * self.customSensitivity / 100.0;
+            double sensitivity = (1 << 8) * strongSelf.customSensitivity / 100.0;
             
             double x = -gyroData.rotationRate.x;
             double y = gyroData.rotationRate.y;
             
-            double nowX = sensitivity * x + lastX;
-            double nowY = sensitivity * y + lastY;
+            double nowX = sensitivity * x + strongSelf->_lastX;
+            double nowY = sensitivity * y + strongSelf->_lastY;
             
             int roundX = round(nowX);
             int roundY = round(nowY);
             
-            lastX = nowX - roundX;
-            lastY = nowY - roundY;
+            strongSelf->_lastX = nowX - roundX;
+            strongSelf->_lastY = nowY - roundY;
             
             if (roundX > 32767) {
                 roundX = 32767;
@@ -86,7 +89,7 @@ RCT_EXPORT_METHOD(startSensor:(nonnull NSNumber *)sensitivity)
                 roundY = -32767;
             }
             
-            [self sendEventWithName:@"SensorData" body:@{
+            [strongSelf sendEventWithName:@"SensorData" body:@{
                 @"x": @(roundX),
                 @"y": @(roundY)
             }];

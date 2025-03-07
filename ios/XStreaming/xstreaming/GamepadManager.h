@@ -9,7 +9,6 @@
 @property (nonatomic, strong) GCController *currentController;
 @property (nonatomic, assign) BOOL hasGameController;
 
-- (void)setupGameController;
 - (void)updateGamepadListEvent;
 
 @end
