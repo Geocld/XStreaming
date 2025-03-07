@@ -9,6 +9,7 @@ import {
   ScrollView,
   Dimensions,
   ToastAndroid,
+  Platform,
 } from 'react-native';
 import {
   Portal,
@@ -231,7 +232,7 @@ function StreamScreen({navigation, route}) {
       });
     };
 
-    const eventEmitter = new NativeEventEmitter();
+    const eventEmitter = new NativeEventEmitter(GamepadManager);
 
     // USB Mode
     if (isUsbMode) {
@@ -559,7 +560,12 @@ function StreamScreen({navigation, route}) {
 
   const streamApi = route.params?.streamType === 'cloud' ? xCloudApi : xHomeApi;
 
-  const uri = 'file:///android_asset/stream/index.html';
+  // const uri = 'file:///android_asset/stream/index.html';
+  const uri = Platform.select({
+    android: 'file:///android_asset/stream/index.html',
+    ios: 'index.html', // iOS 会自动从 bundle 中查找
+    // ios: 'http://172.25.176.27:5173/',
+  });
 
   const webviewRef = React.useRef(null);
 
@@ -631,6 +637,8 @@ function StreamScreen({navigation, route}) {
   const handleWebviewMessage = event => {
     const data = JSON.parse(event.nativeEvent.data);
     const {type, message} = data;
+    console.log('handleWebviewMessage type:', type);
+    console.log('handleWebviewMessage message:', message);
     if (type === 'other') {
       Alert.alert(message);
     }
@@ -641,6 +649,7 @@ function StreamScreen({navigation, route}) {
       streamApi
         .startSession(route.params?.sessionId, _settings.resolution)
         .then(configuration => {
+          console.log('*****startSessionEnd:', configuration);
           postData2Webview('startSessionEnd', configuration);
         })
         .catch(e => {
@@ -1209,6 +1218,10 @@ function StreamScreen({navigation, route}) {
           }}
           onMessage={event => {
             handleWebviewMessage(event);
+          }}
+          onError={syntheticEvent => {
+            const {nativeEvent} = syntheticEvent;
+            console.warn('WebView error: ', nativeEvent);
           }}
         />
       </View>

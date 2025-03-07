@@ -34,7 +34,6 @@ export default class Xal {
   }
 
   getDeviceTokenHack() {
-    console.log('getDeviceTokenHack...');
     return new Promise((resolve, reject) => {
       this.getDeviceToken()
         .then(deviceToken => {
@@ -96,6 +95,7 @@ export default class Xal {
           headers,
         })
         .then(res => {
+          log.info('getDeviceToken res:', res.data);
           resolve(new DeviceToken(res.data));
         })
         .catch(e => {
@@ -173,14 +173,17 @@ export default class Xal {
 
   async getRedirectUri() {
     const deviceToken = await this.getDeviceTokenHack();
+    // log.info('1. [getRedirectUri] deviceToken:', deviceToken);
     const codeChallange = await this.getCodeChallange();
+    // log.info('2. [getRedirectUri] codeChallange:', codeChallange);
     const state = this.getRandomState();
+    // log.info('3. [getRedirectUri] state:', state);
     const sisuAuth = await this.doSisuAuthentication(
       deviceToken,
       codeChallange,
       state,
     );
-
+    // log.info('4. [getRedirectUri] sisuAuth:', sisuAuth);
     return {
       sisuAuth,
       state,
@@ -396,8 +399,8 @@ export default class Xal {
   // Token retrieval helpers
   async refreshTokens(tokenStore) {
     const curUserToken = tokenStore.getUserToken();
-    // log.info('tokenStore:', tokenStore);
-    // log.info('[refreshTokens] curUserToken:', curUserToken);
+    log.info('tokenStore:', tokenStore);
+    log.info('[refreshTokens] curUserToken:', curUserToken);
     if (curUserToken === undefined)
       throw new Error('User token is missing. Please authenticate first');
 

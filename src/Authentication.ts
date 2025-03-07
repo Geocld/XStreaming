@@ -80,12 +80,16 @@ export default class Authentication {
   }
 
   startAuthflow(redirect: any, redirectUri: any) {
-    log.info('startAuthflow');
+    log.info('startAuthflow with redirect:', redirect); // 添加这行
     this._xal
       .authenticateUser(this._tokenStore, redirect, redirectUri)
       .then(result => {
         log.info('[startAuthFlow()] Authenticated user:', result);
         this.startSilentFlow();
+      })
+      .catch(error => {  // 添加错误处理
+        log.error('[startAuthFlow()] Authentication failed:', error);
+        this._tokenStore.clear(); // 清除可能的无效 token
       });
   }
 }

@@ -26,7 +26,14 @@ import {debugFactory} from '../utils/debug';
 
 const log = debugFactory('HomeScreen');
 
-const {UsbRumbleManager} = NativeModules;
+// const {UsbRumbleManager} = NativeModules;
+const {
+  FullScreenManager,
+  GamepadManager,
+  UsbRumbleManager,
+  SensorModule,
+  GamepadSensorModule,
+} = NativeModules;
 
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -146,6 +153,7 @@ function HomeScreen({navigation, route}) {
       if (route.params?.xalUrl) {
         if (!_isLogined.current) {
           log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
+          log.info('Current authentication state:', _authentication.current); // 添加这行
           setXalUrl(route.params.xalUrl);
           setLoading(true);
           setLoadingText(
