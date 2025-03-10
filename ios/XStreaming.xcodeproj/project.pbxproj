@@ -9,13 +9,8 @@
 /* Begin PBXBuildFile section */
 		034ED8DCC09A8C5E2B705088 /* libPods-XStreaming-XStreamingTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */; };
 		0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */; };
-		6010BCE32D784AF6008B27E1 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 6010BCE22D784AF6008B27E1 /* main.jsbundle */; };
+		5458E7762D7EE74400890EB0 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 6010BCE22D784AF6008B27E1 /* main.jsbundle */; };
 		60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */; };
-		60DAB0532D64A6DB00ABFF73 /* back-icon-mask.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03E2D64A6DB00ABFF73 /* back-icon-mask.png */; };
-		60DAB0542D64A6DB00ABFF73 /* back-chevron.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB0452D64A6DB00ABFF73 /* back-chevron.png */; };
-		60DAB0552D64A6DB00ABFF73 /* back-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03F2D64A6DB00ABFF73 /* back-icon@2x.png */; };
-		60DAB0562D64A6DB00ABFF73 /* back-icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB0402D64A6DB00ABFF73 /* back-icon@3x.png */; };
-		60DAB0572D64A6DB00ABFF73 /* back-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB03D2D64A6DB00ABFF73 /* back-icon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -384,13 +379,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5458E7762D7EE74400890EB0 /* main.jsbundle in Resources */,
 				60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */,
-				60DAB0532D64A6DB00ABFF73 /* back-icon-mask.png in Resources */,
-				60DAB0542D64A6DB00ABFF73 /* back-chevron.png in Resources */,
-				60DAB0552D64A6DB00ABFF73 /* back-icon@2x.png in Resources */,
-				6010BCE32D784AF6008B27E1 /* main.jsbundle in Resources */,
-				60DAB0562D64A6DB00ABFF73 /* back-icon@3x.png in Resources */,
-				60DAB0572D64A6DB00ABFF73 /* back-icon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -571,7 +561,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9E8EMWM566;
+				DEVELOPMENT_TEAM = C4UJRY28NT;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = XStreaming/Info.plist;
@@ -583,12 +573,13 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreaming;
+				PRODUCT_BUNDLE_IDENTIFIER = com.geocld.XStreaming;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -603,7 +594,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9E8EMWM566;
+				DEVELOPMENT_TEAM = C4UJRY28NT;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = XStreaming/Info.plist;
@@ -615,12 +606,13 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreaming;
+				PRODUCT_BUNDLE_IDENTIFIER = com.geocld.XStreaming;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -681,7 +673,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -745,7 +737,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -767,7 +759,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9E8EMWM566;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreamingTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -786,7 +778,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9E8EMWM566;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.wtlucky.XStreamingTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

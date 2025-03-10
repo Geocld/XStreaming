@@ -24,6 +24,8 @@ import {useTranslation} from 'react-i18next';
 import NetInfo from '@react-native-community/netinfo';
 import {debugFactory} from '../utils/debug';
 
+import Orientation from 'react-native-orientation-locker';
+
 const log = debugFactory('HomeScreen');
 
 // const {UsbRumbleManager} = NativeModules;
@@ -67,6 +69,11 @@ function HomeScreen({navigation, route}) {
   const _isFocused = React.useRef(isFocused);
 
   const [fabOpen, setFabOpen] = React.useState(false);
+
+  // React.useEffect(() => {
+  //   log.info('Page loaded.');
+  //   SplashScreen.hide();
+  // });
 
   React.useEffect(() => {
     log.info('Page loaded.');
