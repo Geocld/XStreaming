@@ -24,8 +24,6 @@ import {useTranslation} from 'react-i18next';
 import NetInfo from '@react-native-community/netinfo';
 import {debugFactory} from '../utils/debug';
 
-import Orientation from 'react-native-orientation-locker';
-
 const log = debugFactory('HomeScreen');
 
 // const {UsbRumbleManager} = NativeModules;

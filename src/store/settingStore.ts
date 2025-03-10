@@ -74,7 +74,7 @@ const defaultSettings: Settings = {
   vibration_mode: 'Native',
   bind_usb_device: false,
   rumble_intensity: 3,
-  gamepad_kernal: 'Native',
+  gamepad_kernal: 'Web',
   dead_zone: 0.1,
   edge_compensation: 0,
   short_trigger: false,
