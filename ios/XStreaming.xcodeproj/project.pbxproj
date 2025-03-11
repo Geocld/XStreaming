@@ -10,6 +10,8 @@
 		034ED8DCC09A8C5E2B705088 /* libPods-XStreaming-XStreamingTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */; };
 		0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */; };
 		5458E7762D7EE74400890EB0 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 6010BCE22D784AF6008B27E1 /* main.jsbundle */; };
+		5458E84D2D80346000890EB0 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5458E84C2D80346000890EB0 /* CoreBluetooth.framework */; };
+		5458E84F2D8034A600890EB0 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5458E84E2D8034A600890EB0 /* CoreHaptics.framework */; };
 		60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +33,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5458E84C2D80346000890EB0 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		5458E84E2D8034A600890EB0 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		6010BCE22D784AF6008B27E1 /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		60AD39B72D60907F001A6D5D /* XStreaming.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XStreaming.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		60AD39D22D609080001A6D5D /* XStreamingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XStreamingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,6 +89,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5458E84F2D8034A600890EB0 /* CoreHaptics.framework in Frameworks */,
+				5458E84D2D80346000890EB0 /* CoreBluetooth.framework in Frameworks */,
 				0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -110,6 +116,8 @@
 		448020B0BDC6D40035A3BEE4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5458E84E2D8034A600890EB0 /* CoreHaptics.framework */,
+				5458E84C2D80346000890EB0 /* CoreBluetooth.framework */,
 				DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */,
 				78D313E8DF8BF2A2DB2A6393 /* libPods-XStreaming-XStreamingTests.a */,
 			);
@@ -578,6 +586,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/XStreaming/libs/SDL2/lib/iOS",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.geocld.XStreaming;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -610,6 +622,10 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/XStreaming/libs/SDL2/lib/iOS",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.geocld.XStreaming;
@@ -673,6 +689,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -737,6 +754,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
