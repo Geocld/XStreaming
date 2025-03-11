@@ -19,6 +19,7 @@ import {
   Button,
   IconButton,
   TextInput,
+  Text,
 } from 'react-native-paper';
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
@@ -74,6 +75,8 @@ function StreamScreen({navigation, route}) {
   const [settings, setSettings] = React.useState({});
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
+  const [showTipsModal, setShowTipsModal] = React.useState(false);
+  const [showWebview, setShowWebview] = React.useState(false);
   const [showDisplayModal, setShowDisplayModal] = React.useState(false);
   const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
@@ -133,10 +136,11 @@ function StreamScreen({navigation, route}) {
       setTimeout(() => {
         const {height: dHeight} = Dimensions.get('window');
         setModalMaxHeight(dHeight - 50);
-      }, 100);
-
-      // console.log('gamepad_kernal:', _settings.gamepad_kernal);
-      webviewRef.current && webviewRef.current.requestFocus();
+        setShowWebview(true);
+        setTimeout(() => {
+          webviewRef.current && webviewRef.current.requestFocus();
+        }, 100);
+      }, 800);
     }, 500);
 
     return () => {
@@ -382,6 +386,7 @@ function StreamScreen({navigation, route}) {
       setConnectState(message);
       if (message === CONNECTED) {
         ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
+        setShowTipsModal(true);
       }
       // Alway show virtual gamepad
       if (message === CONNECTED && settings.show_virtual_gamead) {
@@ -554,6 +559,20 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
+          visible={showTipsModal}
+          onDismiss={() => setShowTipsModal(false)}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              <Text>为了获得更好的游戏体验，建议配合手柄游玩</Text>
+              <Button onPress={() => setShowTipsModal(false)}>确定</Button>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+
+      <Portal>
+        <Modal
           visible={showMessageModal}
           onDismiss={() => {
             setShowMessageModal(false);
@@ -711,32 +730,34 @@ function StreamScreen({navigation, route}) {
         </View>
       )}
 
-      <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
-        <WebView
-          ref={instance => {
-            webviewRef.current = instance;
-          }}
-          source={{uri}}
-          originWhitelist={['*']}
-          javaScriptEnabled={true}
-          cacheEnabled={false}
-          setSupportMultipleWindows={false}
-          mediaPlaybackRequiresUserAction={false}
-          allowsFullscreenVideo={true}
-          allowsInlineMediaPlayback={true}
-          androidLayerType={'hardware'}
-          injectedJavaScriptObject={{
-            settings,
-            streamType: route.params?.streamType,
-          }}
-          onMessage={event => {
-            handleWebviewMessage(event);
-          }}
-          onError={syntheticEvent => {
-            const {nativeEvent} = syntheticEvent;
-            console.warn('WebView error: ', nativeEvent);
-          }}
-        />
+      <View style={{flex: 1}}>
+        {showWebview && (
+          <WebView
+            ref={instance => {
+              webviewRef.current = instance;
+            }}
+            source={{uri}}
+            originWhitelist={['*']}
+            javaScriptEnabled={true}
+            cacheEnabled={false}
+            setSupportMultipleWindows={false}
+            mediaPlaybackRequiresUserAction={false}
+            allowsFullscreenVideo={true}
+            allowsInlineMediaPlayback={true}
+            androidLayerType={'hardware'}
+            injectedJavaScriptObject={{
+              settings,
+              streamType: route.params?.streamType,
+            }}
+            onMessage={event => {
+              handleWebviewMessage(event);
+            }}
+            onError={syntheticEvent => {
+              const {nativeEvent} = syntheticEvent;
+              console.warn('WebView error: ', nativeEvent);
+            }}
+          />
+        )}
       </View>
     </>
   );
