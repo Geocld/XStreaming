@@ -3,9 +3,6 @@
 #import <React/RCTLog.h>
 #import "Controller.h"
 
-#define SDL_MAIN_HANDLED
-#import "SDL.h"
-
 @implementation GamepadManager {
     NSMutableArray *_connectedControllers;
     bool hasListeners;
