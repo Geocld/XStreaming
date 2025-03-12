@@ -218,6 +218,9 @@ RCT_EXPORT_METHOD(rumble:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMo
             NSLog(@"Controller lowFreqMotor: %d", lowFreqMotor);
             [controller.lowFreqMotor setMotorAmplitude: lowFreqMotor];
             [controller.highFreqMotor setMotorAmplitude: highFreqMotor];
+            
+            [controller.leftTriggerMotor setMotorAmplitude:leftTrigger];
+            [controller.rightTriggerMotor setMotorAmplitude:rightTrigger];
         }
         
     }
