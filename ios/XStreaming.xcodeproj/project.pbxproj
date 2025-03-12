@@ -12,6 +12,7 @@
 		5458E7762D7EE74400890EB0 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 6010BCE22D784AF6008B27E1 /* main.jsbundle */; };
 		5458E84D2D80346000890EB0 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5458E84C2D80346000890EB0 /* CoreBluetooth.framework */; };
 		5458E84F2D8034A600890EB0 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5458E84E2D8034A600890EB0 /* CoreHaptics.framework */; };
+		5458E8512D812B6C00890EB0 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5458E8502D812B6C00890EB0 /* GameController.framework */; };
 		60DAB0512D64A6DB00ABFF73 /* wx_sponsor.png in Resources */ = {isa = PBXBuildFile; fileRef = 60DAB04A2D64A6DB00ABFF73 /* wx_sponsor.png */; };
 /* End PBXBuildFile section */
 
@@ -35,6 +36,7 @@
 /* Begin PBXFileReference section */
 		5458E84C2D80346000890EB0 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		5458E84E2D8034A600890EB0 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
+		5458E8502D812B6C00890EB0 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		6010BCE22D784AF6008B27E1 /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		60AD39B72D60907F001A6D5D /* XStreaming.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XStreaming.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		60AD39D22D609080001A6D5D /* XStreamingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XStreamingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -90,6 +92,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5458E84F2D8034A600890EB0 /* CoreHaptics.framework in Frameworks */,
+				5458E8512D812B6C00890EB0 /* GameController.framework in Frameworks */,
 				5458E84D2D80346000890EB0 /* CoreBluetooth.framework in Frameworks */,
 				0A2D0BCDFA987F1292A8BC0F /* libPods-XStreaming.a in Frameworks */,
 			);
@@ -116,6 +119,7 @@
 		448020B0BDC6D40035A3BEE4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5458E8502D812B6C00890EB0 /* GameController.framework */,
 				5458E84E2D8034A600890EB0 /* CoreHaptics.framework */,
 				5458E84C2D80346000890EB0 /* CoreBluetooth.framework */,
 				DAE73AA76DC7BFDB1CCC9A34 /* libPods-XStreaming.a */,
@@ -350,6 +354,7 @@
 				TargetAttributes = {
 					60AD39B62D60907F001A6D5D = {
 						CreatedOnToolsVersion = 16.2;
+						LastSwiftMigration = 1620;
 					};
 					60AD39D12D609080001A6D5D = {
 						CreatedOnToolsVersion = 16.2;
@@ -567,6 +572,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C4UJRY28NT;
@@ -594,6 +600,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.geocld.XStreaming;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "XStreaming/xstreaming/input/XStreaming-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -604,6 +613,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = C4UJRY28NT;
@@ -631,6 +641,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.geocld.XStreaming;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "XStreaming/xstreaming/input/XStreaming-Bridging-Header.h";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

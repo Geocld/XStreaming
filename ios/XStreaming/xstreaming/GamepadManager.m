@@ -1,6 +1,7 @@
 #import "GamepadManager.h"
 #import <GameController/GameController.h>
 #import <React/RCTLog.h>
+#import "Controller.h"
 
 #define SDL_MAIN_HANDLED
 #import "SDL.h"
@@ -8,7 +9,15 @@
 @implementation GamepadManager {
     NSMutableArray *_connectedControllers;
     bool hasListeners;
-    NSString *_currentScreen; //  添加成员变量记录当前屏幕
+    NSString *_currentScreen;
+    
+    Controller *_oscController;
+#define EMULATING_SELECT     0x1
+#define EMULATING_SPECIAL    0x2
+    
+    bool _oscEnabled;
+    NSMutableDictionary *_controllers;
+    char _controllerNumbers;
 }
 
 RCT_EXPORT_MODULE();
@@ -51,7 +60,7 @@ RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
     
     NSMutableArray *gamepads = [NSMutableArray array];
     [_connectedControllers removeAllObjects];
-
+    
     for (GCController *controller in [GCController controllers]) {
         NSMutableDictionary *gamepadInfo = [NSMutableDictionary dictionary];
         gamepadInfo[@"name"] = controller.vendorName ?: @"Unknown Gamepad";
@@ -112,21 +121,109 @@ RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
 }
 
 - (void)sendLeftTriggerEvent:(GCControllerButtonInput *)trigger {
-     [self sendEventWithName:@"onTrigger" body:@{@"leftTrigger": @(trigger.value)}];
+    [self sendEventWithName:@"onTrigger" body:@{@"leftTrigger": @(trigger.value)}];
 }
 
 - (void)sendRightTriggerEvent:(GCControllerButtonInput *)trigger {
     [self sendEventWithName:@"onTrigger" body:@{@"rightTrigger": @(trigger.value)}];
 }
-    
-// 添加振动方法
-RCT_EXPORT_METHOD(vibrate:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor leftTrigger:(int)leftTrigger rightTrigger:(int)rightTrigger intensity:(int)intensity) {
-    // TODO Rumble
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        printf("SDL_Init Error: %s\n", SDL_GetError());
+
+- (BOOL)isSupportedGamepad:(GCController *)controller {
+    if (controller.extendedGamepad) {
+        return YES;
     }
     
-    NSLog(@"SDL_Init success");
+    if (@available(iOS 14.0, tvOS 14.0, *)) {
+        if (controller.extendedGamepad) {
+            return YES;
+        }
+    }
+    
+    return NO;
+}
+
+-(Controller*) assignController:(GCController*)controller {
+    for (int i = 0; i < 4; i++) {
+        if (!(_controllerNumbers & (1 << i))) {
+            _controllerNumbers |= (1 << i);
+            controller.playerIndex = i;
+            
+            Controller* limeController = [[Controller alloc] init];
+            limeController.playerIndex = i;
+            limeController.supportedEmulationFlags = EMULATING_SPECIAL | EMULATING_SELECT;
+            limeController.gamepad = controller;
+            
+            NSLog(@"vendor: %@", controller.vendorName);
+            
+            // If this is player 0, it shares state with the OSC
+            limeController.mergedWithController = _oscController;
+            _oscController.mergedWithController = limeController;
+            
+            if (@available(iOS 13.0, tvOS 13.0, *)) {
+                if (controller.extendedGamepad != nil &&
+                    controller.extendedGamepad.buttonOptions != nil) {
+                    // Disable select button emulation since we have a physical select button
+                    limeController.supportedEmulationFlags &= ~EMULATING_SELECT;
+                }
+            }
+            
+            if (@available(iOS 14.0, tvOS 14.0, *)) {
+                if (controller.extendedGamepad != nil &&
+                    controller.extendedGamepad.buttonHome != nil) {
+                    // Disable special button emulation since we have a physical special button
+                    limeController.supportedEmulationFlags &= ~EMULATING_SPECIAL;
+                }
+            }
+            
+            // Prepare controller haptics for use
+            [self initializeControllerHaptics:limeController];
+            
+            NSLog(@"playerIndex: %ld", controller.playerIndex);
+            
+            [_controllers setObject:limeController forKey:[NSNumber numberWithInteger:controller.playerIndex]];
+            
+            NSLog(@"Assigning controller index: %d", i);
+            return limeController;
+        }
+    }
+    
+    return nil;
+}
+
+-(void) initializeControllerHaptics:(Controller*) controller
+{
+    controller.lowFreqMotor = [HapticContext createContextForLowFreqMotor:controller.gamepad];
+    controller.highFreqMotor = [HapticContext createContextForHighFreqMotor:controller.gamepad];
+    controller.leftTriggerMotor = [HapticContext createContextForLeftTrigger:controller.gamepad];
+    controller.rightTriggerMotor = [HapticContext createContextForRightTrigger:controller.gamepad];
+}
+
+// 添加振动方法
+RCT_EXPORT_METHOD(initRumble) {
+    _oscEnabled = false;
+    _controllers = [[NSMutableDictionary alloc] init];
+    
+    NSLog(@"已连接的支持控制器数量: %lu", (unsigned long)[GCController controllers].count);
+    
+    for (GCController* controller in [GCController controllers]) {
+      if ([self isSupportedGamepad:controller]) {
+          [self assignController:controller];
+      }
+    }
+    
+    NSLog(@"_controllers: %@", _controllers);
+}
+
+RCT_EXPORT_METHOD(rumble:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor leftTrigger:(int)leftTrigger rightTrigger:(int)rightTrigger intensity:(int)intensity) {
+    for (Controller* controller in [_controllers allValues]) {
+        if(controller != nil) {
+            NSLog(@"Controller vendor: %@", controller.gamepad.vendorName);
+            NSLog(@"Controller lowFreqMotor: %d", lowFreqMotor);
+            [controller.lowFreqMotor setMotorAmplitude: lowFreqMotor];
+            [controller.highFreqMotor setMotorAmplitude: highFreqMotor];
+        }
+        
+    }
 }
 
 - (void)dealloc {

@@ -68,177 +68,177 @@ function HomeScreen({navigation, route}) {
 
   const [fabOpen, setFabOpen] = React.useState(false);
 
-  // React.useEffect(() => {
-  //   log.info('Page loaded.');
-  //   SplashScreen.hide();
-  // });
-
   React.useEffect(() => {
     log.info('Page loaded.');
     SplashScreen.hide();
+  });
 
-    const updateLayout = () => {
-      const {width, height} = Dimensions.get('window');
-      setNumColumns(width > height ? 4 : 2);
-    };
+  // React.useEffect(() => {
+  //   log.info('Page loaded.');
+  //   SplashScreen.hide();
 
-    updateLayout();
-    const subscription = Dimensions.addEventListener('change', updateLayout);
+  //   const updateLayout = () => {
+  //     const {width, height} = Dimensions.get('window');
+  //     setNumColumns(width > height ? 4 : 2);
+  //   };
 
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setIsConnected(state.isConnected);
-    });
+  //   updateLayout();
+  //   const subscription = Dimensions.addEventListener('change', updateLayout);
 
-    if (!isConnected) {
-      Alert.alert(
-        t('Warning'),
-        t('Currently no network connection, please connect and try again'),
-        [
-          {
-            text: t('Confirm'),
-            style: 'default',
-            onPress: () => {},
-          },
-        ],
-      );
-      return;
-    }
+  //   const unsubscribe = NetInfo.addEventListener(state => {
+  //     setIsConnected(state.isConnected);
+  //   });
 
-    if (!_authentication.current) {
-      log.info('Authentication initial.');
-      const authenticationCompleted = async (_streamingTokens, _webToken) => {
-        log.info('Authentication completed');
-        webTokenRef.current = _webToken;
-        // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
-        dispatch({
-          type: 'SET_STREAMING_TOKEN',
-          payload: _streamingTokens,
-        });
-        dispatch({
-          type: 'SET_WEB_TOKEN',
-          payload: _webToken,
-        });
-        dispatch({
-          type: 'SET_LOGIN',
-          payload: true,
-        });
-        _isLogined.current = true;
+  //   if (!isConnected) {
+  //     Alert.alert(
+  //       t('Warning'),
+  //       t('Currently no network connection, please connect and try again'),
+  //       [
+  //         {
+  //           text: t('Confirm'),
+  //           style: 'default',
+  //           onPress: () => {},
+  //         },
+  //       ],
+  //     );
+  //     return;
+  //   }
 
-        setLoading(true);
-        const webApi = new WebApi(_webToken);
+  //   if (!_authentication.current) {
+  //     log.info('Authentication initial.');
+  //     const authenticationCompleted = async (_streamingTokens, _webToken) => {
+  //       log.info('Authentication completed');
+  //       webTokenRef.current = _webToken;
+  //       // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
+  //       dispatch({
+  //         type: 'SET_STREAMING_TOKEN',
+  //         payload: _streamingTokens,
+  //       });
+  //       dispatch({
+  //         type: 'SET_WEB_TOKEN',
+  //         payload: _webToken,
+  //       });
+  //       dispatch({
+  //         type: 'SET_LOGIN',
+  //         payload: true,
+  //       });
+  //       _isLogined.current = true;
 
-        setLoadingText(t('Fetching user info...'));
-        try {
-          const _profile = await webApi.getUserProfile();
-          setProfile(_profile);
-          dispatch({
-            type: 'SET_PROFILE',
-            payload: _profile,
-          });
-          setLoadingText(t('Fetching consoles...'));
-          const _consoles = await webApi.getConsoles();
-          setConsoles(_consoles);
-        } catch (e) {
-          Alert.alert(t('Error'), e);
-        }
-        setLoading(false);
-      };
+  //       setLoading(true);
+  //       const webApi = new WebApi(_webToken);
 
-      _authentication.current = new Authentication(authenticationCompleted);
-      dispatch({
-        type: 'SET_AUTHENTICATION',
-        payload: _authentication.current,
-      });
-    }
+  //       setLoadingText(t('Fetching user info...'));
+  //       try {
+  //         const _profile = await webApi.getUserProfile();
+  //         setProfile(_profile);
+  //         dispatch({
+  //           type: 'SET_PROFILE',
+  //           payload: _profile,
+  //         });
+  //         setLoadingText(t('Fetching consoles...'));
+  //         const _consoles = await webApi.getConsoles();
+  //         setConsoles(_consoles);
+  //       } catch (e) {
+  //         Alert.alert(t('Error'), e);
+  //       }
+  //       setLoading(false);
+  //     };
 
-    if (_isFocused.current) {
-      log.info('HomeScreen isFocused:', _isFocused.current);
+  //     _authentication.current = new Authentication(authenticationCompleted);
+  //     dispatch({
+  //       type: 'SET_AUTHENTICATION',
+  //       payload: _authentication.current,
+  //     });
+  //   }
 
-      // Return from Login screen
-      if (route.params?.xalUrl) {
-        if (!_isLogined.current) {
-          log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
-          log.info('Current authentication state:', _authentication.current); // 添加这行
-          setXalUrl(route.params.xalUrl);
-          setLoading(true);
-          setLoadingText(
-            t('Login successful, refreshing login credentials...'),
-          );
-          _authentication.current.startAuthflow(
-            _redirect.current,
-            route.params.xalUrl,
-          );
-        }
-      } else if (route.params?.needRefresh && webTokenRef.current) {
-        setLoading(true);
-        setLoadingText(t('Fetching consoles...'));
-        const webApi = new WebApi(webTokenRef.current);
-        webApi.getConsoles().then(_consoles => {
-          setConsoles(_consoles);
-          setLoading(false);
-        });
-      } else {
-        setLoading(true);
-        setLoadingText(t('Checking login status...'));
-        _authentication.current
-          .checkAuthentication()
-          .then(isAuth => {
-            dispatch({
-              type: 'SET_AUTHENTICATION',
-              payload: _authentication.current,
-            });
-            if (!isAuth) {
-              _authentication.current._xal
-                .getRedirectUri()
-                .then(redirectObj => {
-                  setLoading(false);
-                  log.info('Redirect:', redirectObj);
-                  _redirect.current = redirectObj;
-                  dispatch({
-                    type: 'SET_REDIRECT',
-                    payload: redirectObj,
-                  });
-                  Alert.alert(
-                    t('Warning'),
-                    t(
-                      'Login has expired or not logged in, please log in again',
-                    ),
-                    [
-                      {
-                        text: t('Confirm'),
-                        style: 'default',
-                        onPress: () => {
-                          navigation.navigate('Login', {
-                            authUrl: redirectObj.sisuAuth.MsaOauthRedirect,
-                          });
-                        },
-                      },
-                    ],
-                  );
-                });
-            }
-          })
-          .catch(e => {
-            Alert.alert(t('Error'), e);
-          });
-      }
+  //   if (_isFocused.current) {
+  //     log.info('HomeScreen isFocused:', _isFocused.current);
 
-      return () => {
-        unsubscribe();
-      };
-    }
+  //     // Return from Login screen
+  //     if (route.params?.xalUrl) {
+  //       if (!_isLogined.current) {
+  //         log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
+  //         log.info('Current authentication state:', _authentication.current); // 添加这行
+  //         setXalUrl(route.params.xalUrl);
+  //         setLoading(true);
+  //         setLoadingText(
+  //           t('Login successful, refreshing login credentials...'),
+  //         );
+  //         _authentication.current.startAuthflow(
+  //           _redirect.current,
+  //           route.params.xalUrl,
+  //         );
+  //       }
+  //     } else if (route.params?.needRefresh && webTokenRef.current) {
+  //       setLoading(true);
+  //       setLoadingText(t('Fetching consoles...'));
+  //       const webApi = new WebApi(webTokenRef.current);
+  //       webApi.getConsoles().then(_consoles => {
+  //         setConsoles(_consoles);
+  //         setLoading(false);
+  //       });
+  //     } else {
+  //       setLoading(true);
+  //       setLoadingText(t('Checking login status...'));
+  //       _authentication.current
+  //         .checkAuthentication()
+  //         .then(isAuth => {
+  //           dispatch({
+  //             type: 'SET_AUTHENTICATION',
+  //             payload: _authentication.current,
+  //           });
+  //           if (!isAuth) {
+  //             _authentication.current._xal
+  //               .getRedirectUri()
+  //               .then(redirectObj => {
+  //                 setLoading(false);
+  //                 log.info('Redirect:', redirectObj);
+  //                 _redirect.current = redirectObj;
+  //                 dispatch({
+  //                   type: 'SET_REDIRECT',
+  //                   payload: redirectObj,
+  //                 });
+  //                 Alert.alert(
+  //                   t('Warning'),
+  //                   t(
+  //                     'Login has expired or not logged in, please log in again',
+  //                   ),
+  //                   [
+  //                     {
+  //                       text: t('Confirm'),
+  //                       style: 'default',
+  //                       onPress: () => {
+  //                         navigation.navigate('Login', {
+  //                           authUrl: redirectObj.sisuAuth.MsaOauthRedirect,
+  //                         });
+  //                       },
+  //                     },
+  //                   ],
+  //                 );
+  //               });
+  //           }
+  //         })
+  //         .catch(e => {
+  //           Alert.alert(t('Error'), e);
+  //         });
+  //     }
 
-    return () => {
-      subscription?.remove();
-    };
-  }, [
-    t,
-    route.params?.xalUrl,
-    route.params?.needRefresh,
-    dispatch,
-    navigation,
-    isConnected,
-  ]);
+  //     return () => {
+  //       unsubscribe();
+  //     };
+  //   }
+
+  //   return () => {
+  //     subscription?.remove();
+  //   };
+  // }, [
+  //   t,
+  //   route.params?.xalUrl,
+  //   route.params?.needRefresh,
+  //   dispatch,
+  //   navigation,
+  //   isConnected,
+  // ]);
 
   const handlePoweronAndStream = async sessionId => {
     setLoading(true);
