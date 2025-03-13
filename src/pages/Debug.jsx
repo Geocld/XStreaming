@@ -88,13 +88,6 @@ function DebugScreen({navigation, route}) {
         onPress={() => navigation.navigate('GamepadDebug')}
       /> */}
       <SettingItem
-        title={'Init rumble'}
-        description={''}
-        onPress={() => {
-          GamepadManager.initRumble();
-        }}
-      />
-      <SettingItem
         title={'Vibration(Native)'}
         description={'Test gamepad rumble'}
         onPress={() => {

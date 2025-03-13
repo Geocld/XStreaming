@@ -39,23 +39,10 @@ const gamepad = [
     type: 'radio',
     title: t('Vibration mode'),
     description: `${t('Native: Use native gamepad kernal to vibrate')}
-${t("Device: Use Phone/Pad's vibrate")}
-${t('Webview: Use Chromium kernal to vibrate')}`,
+${t("Device: Use Phone/Pad's vibrate")}`,
     data: [
       {value: 'Native', text: t('Native')},
       {value: 'Device', text: t('Device')},
-      {value: 'Webview', text: t('Webview')},
-    ],
-  },
-  {
-    name: 'bind_usb_device',
-    type: 'radio',
-    title: t('Override native Xbox gamepad support'),
-    description: t('bind_usb_device_description'),
-    tips: t('bind_usb_device_tips'),
-    data: [
-      {value: true, text: t('Enable')},
-      {value: false, text: t('Disable')},
     ],
   },
   {

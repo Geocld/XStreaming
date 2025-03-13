@@ -225,7 +225,7 @@ function SettingsScreen({navigation}) {
           })}
         </View>
 
-        <View>
+        {/* <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
               {t('SensorSettings')}
@@ -242,9 +242,9 @@ function SettingsScreen({navigation}) {
               />
             );
           })}
-        </View>
+        </View> */}
 
-        <View>
+        {/* <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
               {t('DualSense')}
@@ -276,7 +276,7 @@ function SettingsScreen({navigation}) {
               })
             }
           />
-        </View>
+        </View> */}
 
         <View>
           <View style={styles.contentTitle}>
@@ -301,13 +301,6 @@ function SettingsScreen({navigation}) {
             description={`${t('About XStreaming')}\nv${pkg.version}`}
             onPress={() => navigation.navigate('About')}
           />
-          {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
-            <SettingItem
-              title={'支持及交流'}
-              description={'支持开发或交流更多串流技术'}
-              onPress={() => navigation.navigate('Feedback')}
-            />
-          )}
 
           <SettingItem
             title={'DEBUG'}

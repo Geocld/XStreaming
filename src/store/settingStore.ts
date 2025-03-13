@@ -52,7 +52,6 @@ export type Settings = {
   check_update: boolean;
   power_on: boolean;
   theme: string;
-  show_menu: boolean;
   debug: boolean;
 };
 
@@ -102,7 +101,6 @@ const defaultSettings: Settings = {
     brightness: 100,
   },
   theme: 'dark',
-  show_menu: false,
   debug: false,
 };
 

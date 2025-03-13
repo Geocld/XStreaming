@@ -34,6 +34,7 @@ import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
 import Display from '../components/Display';
+import {GAMEPAD_MAPING} from '../common';
 
 const log = debugFactory('StreamScreen');
 
@@ -64,6 +65,71 @@ const gpState = {
   RightThumbYAxis: 0.0,
 };
 
+const {GamepadManager} = NativeModules;
+
+const eventEmitter = new NativeEventEmitter(GamepadManager);
+
+const getPressedButtons = combinedValue => {
+  const pressedButtons = [];
+  for (const [button, value] of Object.entries(GAMEPAD_MAPING)) {
+    // eslint-disable-next-line no-bitwise
+    if ((combinedValue & value) === value) {
+      pressedButtons.push(button);
+    }
+  }
+  return pressedButtons;
+};
+
+const setGpState = combinedKeys => {
+  const keys = [
+    'A',
+    'B',
+    'X',
+    'Y',
+    'LeftShoulder',
+    'RightShoulder',
+    'View',
+    'Menu',
+    'LeftThumb',
+    'RightThumb',
+    'DPadUp',
+    'DPadDown',
+    'DPadLeft',
+    'DPadRight',
+    'Nexus',
+  ];
+  keys.forEach(k => {
+    if (combinedKeys.includes(k)) {
+      gpState[k] = 1;
+    } else {
+      gpState[k] = 0;
+    }
+  });
+};
+
+const resetButtonState = () => {
+  const keys = [
+    'A',
+    'B',
+    'X',
+    'Y',
+    'LeftShoulder',
+    'RightShoulder',
+    'View',
+    'Menu',
+    'LeftThumb',
+    'RightThumb',
+    'DPadUp',
+    'DPadDown',
+    'DPadLeft',
+    'DPadRight',
+    'Nexus',
+  ];
+  keys.forEach(k => {
+    gpState[k] = 0;
+  });
+};
+
 function StreamScreen({navigation, route}) {
   const {t} = useTranslation();
   const authentication = useSelector(state => state.authentication);
@@ -88,6 +154,7 @@ function StreamScreen({navigation, route}) {
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
 
+  const controllerEventListener = React.useRef(undefined);
   const timer = React.useRef(undefined);
   const isRightstickMoving = React.useRef(false);
 
@@ -95,16 +162,73 @@ function StreamScreen({navigation, route}) {
     const _settings = getSettings();
     setSettings(_settings);
 
-    navigation.addListener('beforeRemove', e => {
-      if (e.data.action.type !== 'GO_BACK') {
-        navigation.dispatch(e.data.action);
-      } else {
-        e.preventDefault();
+    const normaliseAxis = value => {
+      if (_settings.dead_zone) {
+        if (Math.abs(value) < _settings.dead_zone) {
+          return 0;
+        }
 
-        // Show confirm modal
-        setShowModal(true);
+        value = value - Math.sign(value) * _settings.dead_zone;
+        value /= 1.0 - _settings.dead_zone;
+
+        // Joystick edge compensation
+        const THRESHOLD = 0.8;
+        const MAX_VALUE = 1;
+        const compensation = _settings.edge_compensation / 100 || 0;
+        if (Math.abs(value) > THRESHOLD) {
+          if (value > 0) {
+            value = Math.min(value + compensation, MAX_VALUE);
+          } else {
+            value = Math.max(value - compensation, -MAX_VALUE);
+          }
+        }
+        return value;
+      } else {
+        return value;
       }
-    });
+    };
+
+    // Controller
+    if (_settings.gamepad_kernal === 'Native') {
+      log.info('Entry native mode');
+      controllerEventListener.current = eventEmitter.addListener(
+        'onController',
+        params => {
+          console.log('native controller:', params);
+          const {
+            buttonFlags,
+            leftTrigger,
+            rightTrigger,
+            leftStickX,
+            leftStickY,
+            rightStickX,
+            rightStickY,
+          } = params;
+
+          if (buttonFlags !== 0) {
+            const keys = getPressedButtons(buttonFlags);
+            setGpState(keys);
+          } else {
+            resetButtonState();
+          }
+
+          // Trigger
+          gpState.LeftTrigger = leftTrigger;
+          gpState.RightTrigger = rightTrigger;
+
+          // Joystick
+          gpState.LeftThumbXAxis = normaliseAxis(leftStickX);
+          gpState.LeftThumbYAxis = normaliseAxis(-leftStickY);
+          gpState.RightThumbXAxis = normaliseAxis(rightStickX);
+          gpState.RightThumbYAxis = normaliseAxis(-rightStickY);
+        },
+      );
+
+      timer.current = setInterval(() => {
+        postData2Webview('gamepad', gpState);
+      }, 4);
+    }
+
     if (route.params?.sessionId) {
       log.info('Stream screen receive sessionId:', route.params?.sessionId);
     }
@@ -146,12 +270,12 @@ function StreamScreen({navigation, route}) {
     return () => {
       Orientation.unlockAllOrientations();
       timer.current && clearInterval(timer.current);
+      controllerEventListener.current &&
+        controllerEventListener.current.remove();
     };
   }, [
     route.params?.sessionId,
     route.params?.streamType,
-    route.params?.isUsbMode,
-    route.params?.usbController,
     streamingTokens,
     navigation,
     authentication,
@@ -358,7 +482,31 @@ function StreamScreen({navigation, route}) {
     }
     if (type === 'nativeVibration') {
       const {rumbleData} = message;
-      // TODO
+      let weakMagnitude = rumbleData.weakMagnitude * 65535;
+      let strongMagnitude = rumbleData.strongMagnitude * 65535;
+      let leftTrigger = rumbleData.leftTrigger * 65535;
+      let rightTrigger = rumbleData.rightTrigger * 65535;
+
+      if (weakMagnitude > 65535) {
+        weakMagnitude = 65535;
+      }
+      if (strongMagnitude > 65535) {
+        strongMagnitude = 65535;
+      }
+      if (leftTrigger > 65535) {
+        leftTrigger = 65535;
+      }
+      if (rightTrigger > 65535) {
+        rightTrigger = 65535;
+      }
+      GamepadManager.rumble(
+        rumbleData.duration,
+        weakMagnitude,
+        strongMagnitude,
+        leftTrigger,
+        rightTrigger,
+        3,
+      );
     }
     if (type === 'performance') {
       const oldPerf = performance;
@@ -426,7 +574,7 @@ function StreamScreen({navigation, route}) {
     // console.log('handleButtonPressIn:', name);
     gpState[name] = 1;
     if (settings.vibration) {
-      Vibration.vibrate(30);
+      Vibration.vibrate(3);
     }
   };
 
@@ -564,8 +712,12 @@ function StreamScreen({navigation, route}) {
           contentContainerStyle={styles.modal}>
           <Card>
             <Card.Content>
-              <Text>为了获得更好的游戏体验，建议配合手柄游玩</Text>
-              <Button onPress={() => setShowTipsModal(false)}>确定</Button>
+              <Text style={{textAlign: 'center'}}>{t('stream_warn_text')}</Text>
+              <Button
+                style={{marginTop: 10}}
+                onPress={() => setShowTipsModal(false)}>
+                {t('Confirm')}
+              </Button>
             </Card.Content>
           </Card>
         </Modal>
@@ -626,16 +778,17 @@ function StreamScreen({navigation, route}) {
                     />
                   )}
 
-                  {/* {connectState === CONNECTED && (
-                    <List.Item
-                      title={t('Toggle Virtual Gamepad')}
-                      background={background}
-                      onPress={() => {
-                        requestVirtualGamepad();
-                        handleCloseModal();
-                      }}
-                    />
-                  )} */}
+                  {connectState === CONNECTED &&
+                    settings.gamepad_kernal === 'Native' && (
+                      <List.Item
+                        title={t('Toggle Virtual Gamepad')}
+                        background={background}
+                        onPress={() => {
+                          requestVirtualGamepad();
+                          handleCloseModal();
+                        }}
+                      />
+                    )}
 
                   {connectState === CONNECTED && (
                     <List.Item
@@ -718,17 +871,15 @@ function StreamScreen({navigation, route}) {
         </Modal>
       </Portal>
 
-      {settings.show_menu && (
-        <View style={styles.quickMenu}>
-          <IconButton
-            icon="menu"
-            size={28}
-            onPress={() => {
-              setShowModal(true);
-            }}
-          />
-        </View>
-      )}
+      <View style={styles.quickMenu}>
+        <IconButton
+          icon="menu"
+          size={28}
+          onPress={() => {
+            setShowModal(true);
+          }}
+        />
+      </View>
 
       <View style={{flex: 1}}>
         {showWebview && (

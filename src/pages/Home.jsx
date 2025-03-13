@@ -6,9 +6,8 @@ import {
   FlatList,
   Dimensions,
   SafeAreaView,
-  NativeModules,
 } from 'react-native';
-import {Button, Text, FAB, Portal, Modal, Card} from 'react-native-paper';
+import {Text, FAB, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
 import ConsoleItem from '../components/ConsoleItem';
@@ -26,18 +25,8 @@ import {debugFactory} from '../utils/debug';
 
 const log = debugFactory('HomeScreen');
 
-// const {UsbRumbleManager} = NativeModules;
-const {
-  FullScreenManager,
-  GamepadManager,
-  UsbRumbleManager,
-  SensorModule,
-  GamepadSensorModule,
-} = NativeModules;
-
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
-  const [refreshing, setRefreshing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
   const [xalUrl, setXalUrl] = React.useState('');
@@ -45,7 +34,6 @@ function HomeScreen({navigation, route}) {
   const [consoles, setConsoles] = React.useState([]);
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
-  const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
   const [showProfile, setShowProfile] = React.useState(false);
 
@@ -68,177 +56,177 @@ function HomeScreen({navigation, route}) {
 
   const [fabOpen, setFabOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    log.info('Page loaded.');
-    SplashScreen.hide();
-  });
-
   // React.useEffect(() => {
   //   log.info('Page loaded.');
   //   SplashScreen.hide();
+  // });
 
-  //   const updateLayout = () => {
-  //     const {width, height} = Dimensions.get('window');
-  //     setNumColumns(width > height ? 4 : 2);
-  //   };
+  React.useEffect(() => {
+    log.info('Page loaded.');
+    SplashScreen.hide();
 
-  //   updateLayout();
-  //   const subscription = Dimensions.addEventListener('change', updateLayout);
+    const updateLayout = () => {
+      const {width, height} = Dimensions.get('window');
+      setNumColumns(width > height ? 4 : 2);
+    };
 
-  //   const unsubscribe = NetInfo.addEventListener(state => {
-  //     setIsConnected(state.isConnected);
-  //   });
+    updateLayout();
+    const subscription = Dimensions.addEventListener('change', updateLayout);
 
-  //   if (!isConnected) {
-  //     Alert.alert(
-  //       t('Warning'),
-  //       t('Currently no network connection, please connect and try again'),
-  //       [
-  //         {
-  //           text: t('Confirm'),
-  //           style: 'default',
-  //           onPress: () => {},
-  //         },
-  //       ],
-  //     );
-  //     return;
-  //   }
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
 
-  //   if (!_authentication.current) {
-  //     log.info('Authentication initial.');
-  //     const authenticationCompleted = async (_streamingTokens, _webToken) => {
-  //       log.info('Authentication completed');
-  //       webTokenRef.current = _webToken;
-  //       // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
-  //       dispatch({
-  //         type: 'SET_STREAMING_TOKEN',
-  //         payload: _streamingTokens,
-  //       });
-  //       dispatch({
-  //         type: 'SET_WEB_TOKEN',
-  //         payload: _webToken,
-  //       });
-  //       dispatch({
-  //         type: 'SET_LOGIN',
-  //         payload: true,
-  //       });
-  //       _isLogined.current = true;
+    if (!isConnected) {
+      Alert.alert(
+        t('Warning'),
+        t('Currently no network connection, please connect and try again'),
+        [
+          {
+            text: t('Confirm'),
+            style: 'default',
+            onPress: () => {},
+          },
+        ],
+      );
+      return;
+    }
 
-  //       setLoading(true);
-  //       const webApi = new WebApi(_webToken);
+    if (!_authentication.current) {
+      log.info('Authentication initial.');
+      const authenticationCompleted = async (_streamingTokens, _webToken) => {
+        log.info('Authentication completed');
+        webTokenRef.current = _webToken;
+        // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
+        dispatch({
+          type: 'SET_STREAMING_TOKEN',
+          payload: _streamingTokens,
+        });
+        dispatch({
+          type: 'SET_WEB_TOKEN',
+          payload: _webToken,
+        });
+        dispatch({
+          type: 'SET_LOGIN',
+          payload: true,
+        });
+        _isLogined.current = true;
 
-  //       setLoadingText(t('Fetching user info...'));
-  //       try {
-  //         const _profile = await webApi.getUserProfile();
-  //         setProfile(_profile);
-  //         dispatch({
-  //           type: 'SET_PROFILE',
-  //           payload: _profile,
-  //         });
-  //         setLoadingText(t('Fetching consoles...'));
-  //         const _consoles = await webApi.getConsoles();
-  //         setConsoles(_consoles);
-  //       } catch (e) {
-  //         Alert.alert(t('Error'), e);
-  //       }
-  //       setLoading(false);
-  //     };
+        setLoading(true);
+        const webApi = new WebApi(_webToken);
 
-  //     _authentication.current = new Authentication(authenticationCompleted);
-  //     dispatch({
-  //       type: 'SET_AUTHENTICATION',
-  //       payload: _authentication.current,
-  //     });
-  //   }
+        setLoadingText(t('Fetching user info...'));
+        try {
+          const _profile = await webApi.getUserProfile();
+          setProfile(_profile);
+          dispatch({
+            type: 'SET_PROFILE',
+            payload: _profile,
+          });
+          setLoadingText(t('Fetching consoles...'));
+          const _consoles = await webApi.getConsoles();
+          setConsoles(_consoles);
+        } catch (e) {
+          Alert.alert(t('Error'), e);
+        }
+        setLoading(false);
+      };
 
-  //   if (_isFocused.current) {
-  //     log.info('HomeScreen isFocused:', _isFocused.current);
+      _authentication.current = new Authentication(authenticationCompleted);
+      dispatch({
+        type: 'SET_AUTHENTICATION',
+        payload: _authentication.current,
+      });
+    }
 
-  //     // Return from Login screen
-  //     if (route.params?.xalUrl) {
-  //       if (!_isLogined.current) {
-  //         log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
-  //         log.info('Current authentication state:', _authentication.current); // 添加这行
-  //         setXalUrl(route.params.xalUrl);
-  //         setLoading(true);
-  //         setLoadingText(
-  //           t('Login successful, refreshing login credentials...'),
-  //         );
-  //         _authentication.current.startAuthflow(
-  //           _redirect.current,
-  //           route.params.xalUrl,
-  //         );
-  //       }
-  //     } else if (route.params?.needRefresh && webTokenRef.current) {
-  //       setLoading(true);
-  //       setLoadingText(t('Fetching consoles...'));
-  //       const webApi = new WebApi(webTokenRef.current);
-  //       webApi.getConsoles().then(_consoles => {
-  //         setConsoles(_consoles);
-  //         setLoading(false);
-  //       });
-  //     } else {
-  //       setLoading(true);
-  //       setLoadingText(t('Checking login status...'));
-  //       _authentication.current
-  //         .checkAuthentication()
-  //         .then(isAuth => {
-  //           dispatch({
-  //             type: 'SET_AUTHENTICATION',
-  //             payload: _authentication.current,
-  //           });
-  //           if (!isAuth) {
-  //             _authentication.current._xal
-  //               .getRedirectUri()
-  //               .then(redirectObj => {
-  //                 setLoading(false);
-  //                 log.info('Redirect:', redirectObj);
-  //                 _redirect.current = redirectObj;
-  //                 dispatch({
-  //                   type: 'SET_REDIRECT',
-  //                   payload: redirectObj,
-  //                 });
-  //                 Alert.alert(
-  //                   t('Warning'),
-  //                   t(
-  //                     'Login has expired or not logged in, please log in again',
-  //                   ),
-  //                   [
-  //                     {
-  //                       text: t('Confirm'),
-  //                       style: 'default',
-  //                       onPress: () => {
-  //                         navigation.navigate('Login', {
-  //                           authUrl: redirectObj.sisuAuth.MsaOauthRedirect,
-  //                         });
-  //                       },
-  //                     },
-  //                   ],
-  //                 );
-  //               });
-  //           }
-  //         })
-  //         .catch(e => {
-  //           Alert.alert(t('Error'), e);
-  //         });
-  //     }
+    if (_isFocused.current) {
+      log.info('HomeScreen isFocused:', _isFocused.current);
 
-  //     return () => {
-  //       unsubscribe();
-  //     };
-  //   }
+      // Return from Login screen
+      if (route.params?.xalUrl) {
+        if (!_isLogined.current) {
+          log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
+          log.info('Current authentication state:', _authentication.current); // 添加这行
+          setXalUrl(route.params.xalUrl);
+          setLoading(true);
+          setLoadingText(
+            t('Login successful, refreshing login credentials...'),
+          );
+          _authentication.current.startAuthflow(
+            _redirect.current,
+            route.params.xalUrl,
+          );
+        }
+      } else if (route.params?.needRefresh && webTokenRef.current) {
+        setLoading(true);
+        setLoadingText(t('Fetching consoles...'));
+        const webApi = new WebApi(webTokenRef.current);
+        webApi.getConsoles().then(_consoles => {
+          setConsoles(_consoles);
+          setLoading(false);
+        });
+      } else {
+        setLoading(true);
+        setLoadingText(t('Checking login status...'));
+        _authentication.current
+          .checkAuthentication()
+          .then(isAuth => {
+            dispatch({
+              type: 'SET_AUTHENTICATION',
+              payload: _authentication.current,
+            });
+            if (!isAuth) {
+              _authentication.current._xal
+                .getRedirectUri()
+                .then(redirectObj => {
+                  setLoading(false);
+                  log.info('Redirect:', redirectObj);
+                  _redirect.current = redirectObj;
+                  dispatch({
+                    type: 'SET_REDIRECT',
+                    payload: redirectObj,
+                  });
+                  Alert.alert(
+                    t('Warning'),
+                    t(
+                      'Login has expired or not logged in, please log in again',
+                    ),
+                    [
+                      {
+                        text: t('Confirm'),
+                        style: 'default',
+                        onPress: () => {
+                          navigation.navigate('Login', {
+                            authUrl: redirectObj.sisuAuth.MsaOauthRedirect,
+                          });
+                        },
+                      },
+                    ],
+                  );
+                });
+            }
+          })
+          .catch(e => {
+            Alert.alert(t('Error'), e);
+          });
+      }
 
-  //   return () => {
-  //     subscription?.remove();
-  //   };
-  // }, [
-  //   t,
-  //   route.params?.xalUrl,
-  //   route.params?.needRefresh,
-  //   dispatch,
-  //   navigation,
-  //   isConnected,
-  // ]);
+      return () => {
+        unsubscribe();
+      };
+    }
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [
+    t,
+    route.params?.xalUrl,
+    route.params?.needRefresh,
+    dispatch,
+    navigation,
+    isConnected,
+  ]);
 
   const handlePoweronAndStream = async sessionId => {
     setLoading(true);
@@ -262,75 +250,20 @@ function HomeScreen({navigation, route}) {
   };
 
   const handleStartStream = async sessionId => {
-    const settings = getSettings();
-    const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
-    const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
-
     setCurrentConsoleId(sessionId);
-    if (isUsbMode) {
-      setShowUsbWarnShowModal(true);
-    } else {
-      handleNavigateStream(sessionId);
-    }
+    handleNavigateStream(sessionId);
   };
 
   const handleNavigateStream = async sessionId => {
     const settings = getSettings();
-    const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
-    const usbController = await UsbRumbleManager.getUsbController();
-    const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
     navigation.navigate({
       name: 'Stream',
       params: {
         sessionId,
         settings,
-        isUsbMode,
-        usbController,
       },
     });
-  };
-
-  // Warn: xboxOne controller must press Nexus button first to active button
-  const renderUsbWarningModal = () => {
-    if (!showUsbWarnModal) {
-      return null;
-    }
-    return (
-      <Portal>
-        <Modal
-          visible={showUsbWarnModal}
-          onDismiss={() => {
-            setShowUsbWarnShowModal(false);
-          }}
-          contentContainerStyle={{marginLeft: '4%', marginRight: '4%'}}>
-          <Card>
-            <Card.Content>
-              <Text>
-                TIPS1:{' '}
-                {t(
-                  'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive',
-                )}
-              </Text>
-              <Text>
-                TIPS2:{' '}
-                {t(
-                  'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first',
-                )}
-              </Text>
-
-              <Button
-                onPress={() => {
-                  setShowUsbWarnShowModal(false);
-                  handleNavigateStream(currentConsoleId);
-                }}>
-                {t('Confirm')}
-              </Button>
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
-    );
   };
 
   const renderProfile = () => {
@@ -442,8 +375,6 @@ function HomeScreen({navigation, route}) {
           textContent={loadingText}
           textStyle={styles.spinnerTextStyle}
         />
-
-        {renderUsbWarningModal()}
 
         {renderProfile()}
 

@@ -60,27 +60,27 @@ export default {
     Codec: '编码器',
     'If your device supports newer codecs, it can reduce the video bandwidth requirements':
       '如果您的设备支持较新的编解码器，则可以降低视频带宽要求。',
-    Vibration: '振动',
+    Vibration: '震动',
     'Video stream format': '画面比例',
     'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
       '选择视频流格式，如果你需要画面全屏,请选择拉伸或缩放，如果你的物理显示器不是16:9，会导致画面不协调或展示不全',
     'Aspect ratio': '保持长宽比(16:9)',
     'Native: Use native gamepad kernal to vibrate':
-      'Native: 使用安卓原生手柄内核振动',
+      'Native: 使用安卓原生手柄内核震动',
     "Device: Use Phone/Pad's vibrate":
-      'Device: 使用手机或平板机身振动，如需手柄振动，请配合振动重定向使用',
+      'Device: 使用手机或平板机身震动，如需手柄震动，请配合震动重定向使用',
     'Webview: Use Chromium kernal to vibrate':
-      'Webview: 使用内置Chromium内核振动',
+      'Webview: 使用内置Chromium内核震动',
     Stretch: '拉伸',
     Zoom: '缩放',
     'Gamepad kernal': '手柄内核',
     'If your controller supports vibration, you can set whether it vibrates during the game':
-      '如果手柄支持振动，可以设置游戏中是否振动。',
-    'Vibration mode': '振动模式',
+      '如果手柄支持震动，可以设置游戏中是否震动。',
+    'Vibration mode': '震动模式',
     'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode':
-      '默认使用webview内核振动，如出现手柄不振动，可以尝试使用native振动模式',
-    'Vibration intensity': '振动强度',
-    'Config vibration intensity of controller': '调节控制器振动强度',
+      '默认使用webview内核震动，如出现手柄不震动，可以尝试使用native震动模式',
+    'Vibration intensity': '震动强度',
+    'Config vibration intensity of controller': '调节控制器震动强度',
     'Joystick dead zone': '摇杆中心死区',
     'Config joystick dead zone': '设置摇杆中心死区',
     'Joystick edge compensation': '摇杆边缘补偿',
@@ -156,7 +156,7 @@ export default {
       '是否自动检查XStreaming更新',
     BasesSettings: '基础',
     DisplaySettings: '显示',
-    GamepadSettings: '手柄及振动',
+    GamepadSettings: '手柄及震动',
     AudioSettings: '声音',
     XcloudSettings: '云游戏',
     XchomeSettings: '主机串流',
@@ -225,6 +225,7 @@ export default {
     gyroSenTitleY: '陀螺仪Y轴灵敏度',
     gyroSenDescY: '调节陀螺仪Y轴灵敏度',
     byorg: '该游戏属于自购游戏，非XGPU库游戏，如需游玩，请保证已购买此游戏。',
+    Native: '原生',
     Device: '设备',
     Controller: '控制器',
     show_menu_title: '显示快捷菜单',
@@ -247,5 +248,7 @@ export default {
     Sended: '已发送',
     Text: '文字',
     'Send text': '发送文字',
+    stream_warn_text:
+      '为了获得更好的游戏体验，建议使用手柄控制器游玩，手柄震动、扳机震动仅在iOS 14及以上生效',
   },
 };
