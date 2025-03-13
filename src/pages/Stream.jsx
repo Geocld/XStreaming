@@ -487,6 +487,25 @@ function StreamScreen({navigation, route}) {
       let leftTrigger = rumbleData.leftTrigger * 65535;
       let rightTrigger = rumbleData.rightTrigger * 65535;
 
+      switch (settings.rumble_intensity) {
+        case 1:
+          weakMagnitude = weakMagnitude * 0.5;
+          strongMagnitude = strongMagnitude * 0.4;
+          break;
+        case 2:
+          weakMagnitude = weakMagnitude * 0.8;
+          strongMagnitude = strongMagnitude * 0.9;
+          break;
+        case 4:
+          weakMagnitude = weakMagnitude * 1.5;
+          strongMagnitude = strongMagnitude * 2;
+          break;
+        case 5:
+          weakMagnitude = weakMagnitude * 2;
+          strongMagnitude = strongMagnitude * 2.5;
+          break;
+      }
+
       if (weakMagnitude > 65535) {
         weakMagnitude = 65535;
       }
@@ -505,7 +524,6 @@ function StreamScreen({navigation, route}) {
         strongMagnitude,
         leftTrigger,
         rightTrigger,
-        3,
       );
     }
     if (type === 'performance') {

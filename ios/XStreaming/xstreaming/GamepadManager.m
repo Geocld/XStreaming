@@ -542,7 +542,7 @@ RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
     }
 }
 
-RCT_EXPORT_METHOD(rumble:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor leftTrigger:(int)leftTrigger rightTrigger:(int)rightTrigger intensity:(int)intensity) {
+RCT_EXPORT_METHOD(rumble:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor leftTrigger:(int)leftTrigger rightTrigger:(int)rightTrigger) {
     for (Controller* controller in [_controllers allValues]) {
         if(controller != nil) {
             [controller.lowFreqMotor setMotorAmplitude: lowFreqMotor];
