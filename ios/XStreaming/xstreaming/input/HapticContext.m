@@ -56,9 +56,7 @@
             NSLog(@"Controller %ld: Haptic pattern creation failed: %@", _playerIndex, error);
             return;
         }
-        
-        NSLog(@"_hapticPlayer");
-        
+                
         _hapticPlayer = [_hapticEngine createPlayerWithPattern:hapticPattern error:&error];
         if (error != nil) {
             NSLog(@"Controller %ld: Haptic player creation failed: %@", _playerIndex, error);

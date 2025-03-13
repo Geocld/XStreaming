@@ -12,7 +12,6 @@
 #define EMULATING_SELECT     0x1
 #define EMULATING_SPECIAL    0x2
     
-    bool _oscEnabled;
     NSMutableDictionary *_controllers;
     char _controllerNumbers;
 }
@@ -20,11 +19,14 @@
 RCT_EXPORT_MODULE();
 
 - (instancetype)init {
+    NSLog(@"Gamepad manager init");
     self = [super init];
     if (self) {
         _connectedControllers = [NSMutableArray array];
         [self startObservingGamepads];
-        _currentScreen = @"unknown"; //  初始化 currentScreen
+        _currentScreen = @"unknown";
+        
+        [self initRumble];
     }
     return self;
 }
@@ -196,15 +198,20 @@ RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
 }
 
 // 添加振动方法
-RCT_EXPORT_METHOD(initRumble) {
-    _oscEnabled = false;
-    _controllers = [[NSMutableDictionary alloc] init];
+-(void) initRumble {
+    if (_controllers == nil) {
+        _controllers = [[NSMutableDictionary alloc] init];
+    }
     
+    NSLog(@"initRumble: 初始化震动功能");
     NSLog(@"已连接的支持控制器数量: %lu", (unsigned long)[GCController controllers].count);
     
     for (GCController* controller in [GCController controllers]) {
       if ([self isSupportedGamepad:controller]) {
-          [self assignController:controller];
+          NSNumber *playerIndexKey = [NSNumber numberWithInteger:controller.playerIndex];
+          if ([_controllers objectForKey:playerIndexKey] == nil) {
+              [self assignController:controller];
+          }
       }
     }
     
@@ -214,8 +221,6 @@ RCT_EXPORT_METHOD(initRumble) {
 RCT_EXPORT_METHOD(rumble:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMotor:(int)highFreqMotor leftTrigger:(int)leftTrigger rightTrigger:(int)rightTrigger intensity:(int)intensity) {
     for (Controller* controller in [_controllers allValues]) {
         if(controller != nil) {
-            NSLog(@"Controller vendor: %@", controller.gamepad.vendorName);
-            NSLog(@"Controller lowFreqMotor: %d", lowFreqMotor);
             [controller.lowFreqMotor setMotorAmplitude: lowFreqMotor];
             [controller.highFreqMotor setMotorAmplitude: highFreqMotor];
             
@@ -231,6 +236,7 @@ RCT_EXPORT_METHOD(rumble:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMo
 }
 
 - (void)startObservingGamepads {
+    NSLog(@"startObservingGamepads....");
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(controllerDidConnect:)
                                                  name:GCControllerDidConnectNotification
@@ -250,16 +256,48 @@ RCT_EXPORT_METHOD(rumble:(int)duration lowFreqMotor:(int)lowFreqMotor highFreqMo
     [[NSNotificationCenter defaultCenter] removeObserver:self name:GCControllerDidDisconnectNotification object:nil];
 }
 
+// 控制器连接
 - (void)controllerDidConnect:(NSNotification *)notification {
     GCController *controller = notification.object;
     if (controller) {
         [self setupController:controller];
         [self updateGamepadListEvent];
+        
+        [self initRumble];
     }
 }
 
+// 控制器断开连接
 - (void)controllerDidDisconnect:(NSNotification *)notification {
+    GCController *controller = notification.object;
+    if (controller) {
+        // 从_controllers字典中移除断开连接的控制器
+        NSNumber *playerIndexKey = [NSNumber numberWithInteger:controller.playerIndex];
+        Controller *limeController = [_controllers objectForKey:playerIndexKey];
+        
+        if (limeController != nil) {
+            if (limeController.lowFreqMotor != nil) {
+                [limeController.lowFreqMotor cleanup];
+            }
+            if (limeController.highFreqMotor != nil) {
+                [limeController.highFreqMotor cleanup];
+            }
+            if (limeController.leftTriggerMotor != nil) {
+                [limeController.leftTriggerMotor cleanup];
+            }
+            if (limeController.rightTriggerMotor != nil) {
+                [limeController.rightTriggerMotor cleanup];
+            }
+            
+            _controllerNumbers &= ~(1 << limeController.playerIndex);
+            
+            [_controllers removeObjectForKey:playerIndexKey];
+            
+            NSLog(@"控制器已断开连接并从_controllers中移除: %@", controller.vendorName);
+        }
+    }
     [self updateGamepadListEvent];
+    [self initRumble];
 }
 
 - (void)setupController:(GCController *)controller {
