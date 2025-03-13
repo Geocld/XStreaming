@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   consoleList: {
-    paddingTop: 40,
+    paddingTop: 20,
     paddingLeft: 10,
     paddingRight: 10,
     paddingBottom: 10,

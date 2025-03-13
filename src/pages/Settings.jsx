@@ -302,11 +302,11 @@ function SettingsScreen({navigation}) {
             onPress={() => navigation.navigate('About')}
           />
 
-          <SettingItem
+          {/* <SettingItem
             title={'DEBUG'}
             description={'Enter debug'}
             onPress={() => handleItemPress('debug')}
-          />
+          /> */}
 
           {profile && profile.GameDisplayName ? (
             <SettingItem

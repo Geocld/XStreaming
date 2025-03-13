@@ -591,9 +591,9 @@ function StreamScreen({navigation, route}) {
   const handleButtonPressIn = name => {
     // console.log('handleButtonPressIn:', name);
     gpState[name] = 1;
-    if (settings.vibration) {
-      Vibration.vibrate(3);
-    }
+    // if (settings.vibration) {
+    //   Vibration.vibrate(3);
+    // }
   };
 
   const handleButtonPressOut = name => {

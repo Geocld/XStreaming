@@ -3,13 +3,13 @@ import i18next from '../../i18n';
 const {t} = i18next;
 
 const gamepad = [
-  {
-    name: 'maping',
-    type: '',
-    title: t('Key mapping'),
-    description: t('Mapping key of gamepad'),
-    data: [],
-  },
+  // {
+  //   name: 'maping',
+  //   type: '',
+  //   title: t('Key mapping'),
+  //   description: t('Mapping key of gamepad'),
+  //   data: [],
+  // },
   {
     name: 'gamepad_kernal',
     type: 'radio',
