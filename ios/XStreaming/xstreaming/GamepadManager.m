@@ -4,7 +4,6 @@
 
 @implementation GamepadManager {
     NSMutableArray *_connectedControllers;
-    bool hasListeners;
     NSString *_currentScreen; //  添加成员变量记录当前屏幕
 }
 
@@ -34,17 +33,8 @@ RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
     return YES;
 }
 
-- (void)startObservingEvents {
-    hasListeners = YES;
-}
-
-- (void)stopObservingEvents {
-    hasListeners = NO;
-}
-
 // 修改 sendEventWithName 的调用方式
 - (void)updateGamepadListEvent {
-    if (!hasListeners) return;  // 如果没有监听器，不发送事件
     
     NSMutableArray *gamepads = [NSMutableArray array];
     [_connectedControllers removeAllObjects];
@@ -63,9 +53,7 @@ RCT_EXPORT_METHOD(setCurrentScreen:(NSString *)screenName)
 }
 
 // 同样修改其他发送事件的方法
-- (void)sendButtonEvent:(NSString *)buttonName pressed:(BOOL)isPressed {
-    if (!hasListeners) return;
-    
+- (void)sendButtonEvent:(NSString *)buttonName pressed:(BOOL)isPressed {    
     if (self.bridge) {
         if (isPressed) {
             [super sendEventWithName:@"onGamepadKeyDown" body:@{@"keyCode": buttonName}];
