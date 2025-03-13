@@ -8,7 +8,7 @@ import {
   NativeEventEmitter,
 } from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
-import {Portal, Dialog, Switch} from 'react-native-paper';
+import {Portal, Dialog, Switch, IconButton} from 'react-native-paper';
 import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 
@@ -33,11 +33,6 @@ function DebugScreen({navigation, route}) {
     // eventEmitter.addListener('onDeviceConnect', event => {
     //   Alert.alert('onDeviceConnect', JSON.stringify(event));
     // });
-
-    navigation.addListener('beforeRemove', e => {
-      console.log('beforeRemove:', e.data.action.type);
-      // e.preventDefault();
-    });
   }, [navigation]);
 
   const handleToggleDebug = value => {

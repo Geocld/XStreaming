@@ -1,0 +1,45 @@
+diff --git a/node_modules/@react-navigation/elements/.DS_Store b/node_modules/@react-navigation/elements/.DS_Store
+new file mode 100644
+index 0000000..c10dbb7
+Binary files /dev/null and b/node_modules/@react-navigation/elements/.DS_Store differ
+diff --git a/node_modules/@react-navigation/elements/src/.DS_Store b/node_modules/@react-navigation/elements/src/.DS_Store
+new file mode 100644
+index 0000000..7333ad3
+Binary files /dev/null and b/node_modules/@react-navigation/elements/src/.DS_Store differ
+diff --git a/node_modules/@react-navigation/elements/src/Header/HeaderBackButton.tsx b/node_modules/@react-navigation/elements/src/Header/HeaderBackButton.tsx
+index 7c2a541..e68f1e3 100644
+--- a/node_modules/@react-navigation/elements/src/Header/HeaderBackButton.tsx
++++ b/node_modules/@react-navigation/elements/src/Header/HeaderBackButton.tsx
+@@ -20,7 +20,7 @@ export default function HeaderBackButton({
+   backImage,
+   label,
+   labelStyle,
+-  labelVisible = Platform.OS === 'ios',
++  labelVisible = false,
+   onLabelLayout,
+   onPress,
+   pressColor,
+@@ -72,9 +72,12 @@ export default function HeaderBackButton({
+           style={[
+             styles.icon,
+             Boolean(labelVisible) && styles.iconWithLabel,
+-            Boolean(tintColor) && { tintColor },
++            { tintColor: '#107C10' },
+           ]}
+-          source={require('../assets/back-icon.png')}
++          // source={require('../assets/back-icon.png')}
++          source={{
++            uri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAA/CAYAAACIEWrAAAACwElEQVR4AcTZA4wdYRQF4Je6W9tubNe2bdv2vNpGVEa1bdu2FaO2bk9u7XeSnOmf3PXO+eb+/05u9kX+y4pancggO4R6grocCWx8ZJjFhe5AaDyEzwPCfqnALoSLWmbxEbrgG+K3qIlhYhZ56N9BV8LYpgQIW4qyGOpRGJjlsWG8Q3t1mFmWECErURZzDbGyOkxgayhMYCNV25QIF19HYaI2SoOZYYmB2UBiRqg6kwSYzeQ2DVFitjIYVKDBTLGkwGwnOzNA1Zk4XHwniemnwUy0ZLj4bvIA91Z1JjkC9pGd6aHBjLcUCDhAdqarqjMpEXCIwHxAZzppMOMsFQKOkJgOqs6kRsAxChO1thrMWEuDOz1BHN73eN9K1Zm0CDhJYlpoMGMsHQJOMxhUU1Vn0iPkLHFm3gHTWIXJiIDzFGawNdBgRlsmBFwktuktMPVUncmMgEsMBlVbYkFAFlz8CrFNb/DzNXVnJrBrRGdeo6pHVAshiylM1KrwIRzoEQHyM6MGXSXOzjYfWaULzxByON+h/7dJYH3I6W+3j7DSFbWeJGqvHhVYNxK13+drcac6I+wDgTroc7a4Ux1I1GGft8WodiTqqM/d4u1rTaKO+8irXD6SYhokUCd99BWjmpGo0z4CK5ePqJgOicfCWR+FxaiGFCqwc+hUBqnJR1ZMiwTqgo/G8hdPONQlH5GVy0dYjLIE6oqPymJUddRr4qBfxc9nU6Oqkqjr2L7s6jNVCUGvCNRN3EQONaoCQl4SZ+oWKpcaVY5E3cH25VajyiDsBbF9d4HKq0UNsZK4++cE6j5Q+dVP9OIIekagbsuHPKCKolNPCdQMPoRHFUbQk5ifUb70qILo1OMY/uoe6jHfUB9nTmgcATyRQ1dQ+98UFAp4BtrtQMro7Shd9NFdSHQSHk6m6RQ6tFQvAuJwcANusAIAL2Fof2rIXSEAAAAASUVORK5CYII=',
++          }}
+           fadeDuration={0}
+         />
+       );
+@@ -162,7 +165,7 @@ export default function HeaderBackButton({
+     >
+       <React.Fragment>
+         {renderBackImage()}
+-        {renderLabel()}
++        {/* {renderLabel()} */}
+       </React.Fragment>
+     </PlatformPressable>
+   );
