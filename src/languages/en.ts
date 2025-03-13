@@ -124,5 +124,7 @@ export default {
     DualSense_adaptive_trigger_right: 'Set DualSense Right Trigger',
     DualSense_adaptive_trigger_right_desc:
       'You can set the DualSense right trigger to resistance/trigger/automatic trigger (to enable this feature, you need to turn on Android overlay driver (Settings - Overlay Android Controller Support - Enable), and connect the DualSense controller via cable)',
+    stream_warn_text:
+      'For a better gaming experience, we recommend using a controller to play. Controller vibration and trigger effects are only available on iOS 14 and above.',
   },
 };

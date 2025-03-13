@@ -52,7 +52,6 @@ export type Settings = {
   check_update: boolean;
   power_on: boolean;
   theme: string;
-  show_menu: boolean;
   debug: boolean;
 };
 
@@ -74,7 +73,7 @@ const defaultSettings: Settings = {
   vibration_mode: 'Native',
   bind_usb_device: false,
   rumble_intensity: 3,
-  gamepad_kernal: 'Native',
+  gamepad_kernal: 'Web',
   dead_zone: 0.1,
   edge_compensation: 0,
   short_trigger: false,
@@ -102,7 +101,6 @@ const defaultSettings: Settings = {
     brightness: 100,
   },
   theme: 'dark',
-  show_menu: false,
   debug: false,
 };
 

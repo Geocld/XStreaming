@@ -8,7 +8,7 @@ import {
   NativeEventEmitter,
 } from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
-import {Portal, Dialog, Switch} from 'react-native-paper';
+import {Portal, Dialog, Switch, IconButton} from 'react-native-paper';
 import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 
@@ -33,11 +33,6 @@ function DebugScreen({navigation, route}) {
     // eventEmitter.addListener('onDeviceConnect', event => {
     //   Alert.alert('onDeviceConnect', JSON.stringify(event));
     // });
-
-    navigation.addListener('beforeRemove', e => {
-      console.log('beforeRemove:', e.data.action.type);
-      // e.preventDefault();
-    });
   }, [navigation]);
 
   const handleToggleDebug = value => {
@@ -89,81 +84,14 @@ function DebugScreen({navigation, route}) {
       /> */}
       <SettingItem
         title={'Vibration(Native)'}
-        description={'Test gamepad vibration'}
+        description={'Test gamepad rumble'}
         onPress={() => {
           // handleRumble(int duration, short lowFreqMotor, short highFreqMotor, short leftTrigger, short rightTrigger, int intensity)
-          GamepadManager.vibrate(60000, 100, 100, 100, 1000, 5);
+          GamepadManager.rumble(60000, 20000, 40000, 30000, 30000);
 
           setTimeout(() => {
-            GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
+            GamepadManager.rumble(60000, 0, 0, 0, 0);
           }, 500);
-
-          // setTimeout(() => {
-          //   GamepadManager.vibrate(0, 0, 0, 0, 0);
-          // }, 1000);
-        }}
-      />
-
-      <SettingItem
-        title={'Vibration(usb)'}
-        description={'Test gamepad rumble in override mode'}
-        onPress={async () => {
-          const hasValidUsbDevice =
-            await UsbRumbleManager.getHasValidUsbDevice();
-          const usbController = await UsbRumbleManager.getUsbController();
-          if (hasValidUsbDevice) {
-            if (usbController === 'DualSenseController') {
-              UsbRumbleManager.setDsController(
-                16,
-                124,
-                16,
-                0,
-                0,
-                0,
-                100,
-                100,
-                0,
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                6,
-                [20, 255, 10, 0, 0, 0, 0, 0, 0, 0],
-              );
-
-              setTimeout(() => {
-                UsbRumbleManager.setDsController(
-                  16,
-                  124,
-                  16,
-                  0,
-                  0,
-                  0,
-                  0,
-                  0,
-                  0,
-                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                  6,
-                  [20, 255, 10, 0, 0, 0, 0, 0, 0, 0],
-                );
-              }, 50);
-            } else {
-              UsbRumbleManager.rumble(32767, 32767);
-
-              setTimeout(() => {
-                UsbRumbleManager.rumble(0, 0);
-              }, 500);
-            }
-          }
-        }}
-      />
-
-      <SettingItem
-        title={'Trigger Rumble(xbox one controller)'}
-        description={'Test gamepad trigger rumble with override mode'}
-        onPress={() => {
-          UsbRumbleManager.rumbleTriggers(32767, 32767);
-
-          setTimeout(() => {
-            UsbRumbleManager.rumbleTriggers(0, 0);
-          }, 1000);
         }}
       />
     </ScrollView>

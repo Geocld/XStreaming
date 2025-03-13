@@ -212,5 +212,7 @@ export default {
     Sended: '已发送',
     Text: '文字',
     'Send text': '发送文字',
+    stream_warn_text:
+      '為了獲得更好的遊戲體驗，建議使用手柄控制器遊玩，手柄震動、扳機震動僅在iOS 14及以上生效',
   },
 };

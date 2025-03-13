@@ -6,9 +6,8 @@ import {
   FlatList,
   Dimensions,
   SafeAreaView,
-  NativeModules,
 } from 'react-native';
-import {Button, Text, FAB, Portal, Modal, Card} from 'react-native-paper';
+import {Text, FAB, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
 import ConsoleItem from '../components/ConsoleItem';
@@ -26,18 +25,8 @@ import {debugFactory} from '../utils/debug';
 
 const log = debugFactory('HomeScreen');
 
-// const {UsbRumbleManager} = NativeModules;
-const {
-  FullScreenManager,
-  GamepadManager,
-  UsbRumbleManager,
-  SensorModule,
-  GamepadSensorModule,
-} = NativeModules;
-
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
-  const [refreshing, setRefreshing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
   const [xalUrl, setXalUrl] = React.useState('');
@@ -45,7 +34,6 @@ function HomeScreen({navigation, route}) {
   const [consoles, setConsoles] = React.useState([]);
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
-  const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
   const [showProfile, setShowProfile] = React.useState(false);
 
@@ -67,6 +55,11 @@ function HomeScreen({navigation, route}) {
   const _isFocused = React.useRef(isFocused);
 
   const [fabOpen, setFabOpen] = React.useState(false);
+
+  // React.useEffect(() => {
+  //   log.info('Page loaded.');
+  //   SplashScreen.hide();
+  // });
 
   React.useEffect(() => {
     log.info('Page loaded.');
@@ -257,75 +250,20 @@ function HomeScreen({navigation, route}) {
   };
 
   const handleStartStream = async sessionId => {
-    const settings = getSettings();
-    const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
-    const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
-
     setCurrentConsoleId(sessionId);
-    if (isUsbMode) {
-      setShowUsbWarnShowModal(true);
-    } else {
-      handleNavigateStream(sessionId);
-    }
+    handleNavigateStream(sessionId);
   };
 
   const handleNavigateStream = async sessionId => {
     const settings = getSettings();
-    const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
-    const usbController = await UsbRumbleManager.getUsbController();
-    const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
     navigation.navigate({
       name: 'Stream',
       params: {
         sessionId,
         settings,
-        isUsbMode,
-        usbController,
       },
     });
-  };
-
-  // Warn: xboxOne controller must press Nexus button first to active button
-  const renderUsbWarningModal = () => {
-    if (!showUsbWarnModal) {
-      return null;
-    }
-    return (
-      <Portal>
-        <Modal
-          visible={showUsbWarnModal}
-          onDismiss={() => {
-            setShowUsbWarnShowModal(false);
-          }}
-          contentContainerStyle={{marginLeft: '4%', marginRight: '4%'}}>
-          <Card>
-            <Card.Content>
-              <Text>
-                TIPS1:{' '}
-                {t(
-                  'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive',
-                )}
-              </Text>
-              <Text>
-                TIPS2:{' '}
-                {t(
-                  'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first',
-                )}
-              </Text>
-
-              <Button
-                onPress={() => {
-                  setShowUsbWarnShowModal(false);
-                  handleNavigateStream(currentConsoleId);
-                }}>
-                {t('Confirm')}
-              </Button>
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
-    );
   };
 
   const renderProfile = () => {
@@ -438,8 +376,6 @@ function HomeScreen({navigation, route}) {
           textStyle={styles.spinnerTextStyle}
         />
 
-        {renderUsbWarningModal()}
-
         {renderProfile()}
 
         {renderContent()}
@@ -464,7 +400,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   consoleList: {
-    paddingTop: 40,
+    paddingTop: 20,
     paddingLeft: 10,
     paddingRight: 10,
     paddingBottom: 10,

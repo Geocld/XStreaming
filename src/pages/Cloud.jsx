@@ -6,13 +6,12 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import {Text, SegmentedButtons, Appbar, Chip} from 'react-native-paper';
+import {Text, Appbar, Chip, FAB} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useSelector} from 'react-redux';
 import TitleItem from '../components/TitleItem';
 import XcloudApi from '../xCloud';
 import Empty from '../components/Empty';
-// import mockData from '../mock/data';
 import {debugFactory} from '../utils/debug';
 import {useTranslation} from 'react-i18next';
 
@@ -39,6 +38,7 @@ function CloudScreen({navigation, route}) {
   const [keyword, setKeyword] = React.useState('');
   const flatListRef = React.useRef(null);
   const isFetchGame = React.useRef(false);
+  const [fabOpen, setFabOpen] = React.useState(false);
 
   const currentTitles = React.useRef([]);
   const totalPage = React.useRef(0);
@@ -185,21 +185,28 @@ function CloudScreen({navigation, route}) {
    * 2 - own
    * 3 - all
    */
+  let currentTitleText = '';
+
   switch (current) {
     case 0:
       currentTitles.current = RecentTitles;
+      currentTitleText = t('Recently');
       break;
     case 1:
       currentTitles.current = newTitles;
+      currentTitleText = t('Newest');
       break;
     case 2:
       currentTitles.current = orgTitles;
+      currentTitleText = t('Own');
       break;
     case 3:
       currentTitles.current = titles;
+      currentTitleText = t('All');
       break;
     default:
       currentTitles.current = [];
+      currentTitleText = 'xCloud';
       break;
   }
 
@@ -232,37 +239,7 @@ function CloudScreen({navigation, route}) {
         <>
           <View style={styles.gameContainer}>
             <Appbar.Header>
-              <Appbar.Content
-                title={
-                  <SegmentedButtons
-                    value={current}
-                    onValueChange={handleSelectCategories}
-                    buttons={[
-                      {
-                        value: 0,
-                        label: t('Recently'),
-                      },
-                      {
-                        value: 1,
-                        label: t('Newest'),
-                      },
-                      {
-                        value: 2,
-                        label: t('Own'),
-                      },
-                      {value: 3, label: t('All')},
-                    ]}
-                  />
-                }
-              />
-              <Appbar.Action
-                icon="magnify"
-                onPress={() => {
-                  navigation.navigate('Search', {
-                    keyword,
-                  });
-                }}
-              />
+              <Appbar.Content title={currentTitleText} />
             </Appbar.Header>
 
             {keyword && (
@@ -305,6 +282,43 @@ function CloudScreen({navigation, route}) {
               </>
             )}
           </View>
+
+          <FAB.Group
+            open={fabOpen}
+            visible
+            icon={fabOpen ? 'filter' : 'filter-outline'}
+            actions={[
+              {
+                icon: 'gamepad-variant',
+                label: t('Recently'),
+                onPress: () => handleSelectCategories(0),
+              },
+              {
+                icon: 'new-box',
+                label: t('Newest'),
+                onPress: () => handleSelectCategories(1),
+              },
+              {
+                icon: 'account-arrow-down',
+                label: t('Own'),
+                onPress: () => handleSelectCategories(2),
+              },
+              {
+                icon: 'apps-box',
+                label: t('All'),
+                onPress: () => handleSelectCategories(3),
+              },
+              {
+                icon: 'magnify',
+                onPress: () => {
+                  navigation.navigate('Search', {
+                    keyword,
+                  });
+                },
+              },
+            ]}
+            onStateChange={({open}) => setFabOpen(open)}
+          />
         </>
       )}
 
