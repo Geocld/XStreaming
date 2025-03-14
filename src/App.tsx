@@ -1,5 +1,5 @@
 import React from 'react';
-import {Alert, Linking, useColorScheme, NativeModules, Platform} from 'react-native';
+import {useColorScheme} from 'react-native';
 import {
   PaperProvider,
   MD3DarkTheme,
@@ -44,7 +44,6 @@ import FeedbackScreen from './pages/Feedback';
 import VirtualGamepadSettingsScreen from './pages/VirtualGamepadSettings';
 import CustomGamepadScreen from './pages/CustomGamepad';
 import Ds5SettingsScreen from './pages/Ds5Settings';
-import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
 
@@ -55,8 +54,6 @@ import SearchScreen from './pages/Search';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
-
-const {UsbRumbleManager} = NativeModules;
 
 const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
@@ -131,41 +128,6 @@ function App() {
   const {t} = useTranslation();
   const colorScheme = useColorScheme();
   const settings = getSettings();
-
-  // if (Platform.OS === 'android') {
-    // ... Android 特定逻辑
-    if (settings.bind_usb_device !== undefined) {
-      UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
-    }
-  // }
-
-  if (settings.check_update) {
-    updater().then((infos: any) => {
-      if (infos) {
-        const {latestVer, version, updateText, url} = infos;
-        Alert.alert(
-          t('Update Warning'),
-          t(
-            `Check new version ${latestVer}, current version is ${version}. \n\n Update: \n\n ${updateText}`,
-          ),
-          [
-            {
-              text: t('Cancel'),
-              style: 'default',
-              onPress: () => {},
-            },
-            {
-              text: t('Download'),
-              style: 'default',
-              onPress: () => {
-                Linking.openURL(url).catch(_ => {});
-              },
-            },
-          ],
-        );
-      }
-    });
-  }
 
   let paperTheme = paperDarkTheme;
   let navigationTheme = CombinedDarkTheme;
