@@ -810,17 +810,6 @@ function StreamScreen({navigation, route}) {
 
                   {connectState === CONNECTED && (
                     <List.Item
-                      title={t('Display settings')}
-                      background={background}
-                      onPress={() => {
-                        setShowDisplayModal(true);
-                        handleCloseModal();
-                      }}
-                    />
-                  )}
-
-                  {connectState === CONNECTED && (
-                    <List.Item
                       title={t('Press Nexus')}
                       background={background}
                       onPress={() => {

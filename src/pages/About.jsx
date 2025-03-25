@@ -23,7 +23,7 @@ function AboutScreen({navigation, route}) {
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">Want111 to contribute to XStreaming?</Text>
+          <Text variant="titleLarge">Want to contribute to XStreaming?</Text>
         </View>
 
         <View>
@@ -77,6 +77,32 @@ function AboutScreen({navigation, route}) {
               https://github.com/Geocld
             </LinkText>
           </View>
+        </View>
+      </View>
+
+      <View style={styles.block}>
+        <View style={styles.title}>
+          <Text variant="titleLarge">
+            Support XStreaming to Make the Project Better!
+          </Text>
+        </View>
+
+        <View>
+          <Text variant="titleMedium">
+            You can contribute through GitHub Sponsors or via the XStreaming
+            online donation platform.
+          </Text>
+        </View>
+        <View>
+          <LinkText url={'https://github.com/sponsors/Geocld'}>
+            https://github.com/sponsors/Geocld
+          </LinkText>
+        </View>
+
+        <View>
+          <LinkText url={'https://xstreaming-website.pages.dev/'}>
+            https://xstreaming-website.pages.dev
+          </LinkText>
         </View>
       </View>
     </ScrollView>
