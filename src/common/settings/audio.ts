@@ -13,6 +13,16 @@ const audio = [
       {value: 'custom', text: t('Custom')},
     ],
   },
+  {
+    name: 'audio_volume',
+    type: 'slider',
+    title: t('Audio_volume_title'),
+    description: t('Audio_volume_desc'),
+    min: 1,
+    max: 10,
+    step: 1,
+    data: [],
+  },
 ];
 
 export default audio;

@@ -81,35 +81,35 @@ XStreaming's development can not be without these Hackers. They contributed a lo
 <tr>
     <td align="center">
         <a href="https://github.com/Geocld">
-            <img src="https://avatars.githubusercontent.com/u/13679095?s=64&v=4" width="90;" alt="Geocld"/>
+            <img src="https://avatars.githubusercontent.com/u/13679095?v=4" width="90;" alt="Geocld"/>
             <br />
             <sub><b>Geocld</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/wtlucky">
-            <img src="https://avatars.githubusercontent.com/u/2265430?s=60&v=4" width="90;" alt="wtlucky"/>
+            <img src="https://avatars.githubusercontent.com/u/2265430?v=4" width="90;" alt="wtlucky"/>
             <br />
             <sub><b>wtlucky</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/TigerBeanst">
-            <img src="https://avatars.githubusercontent.com/u/3889846?s=64&v=4" width="90;" alt="TigerBeanst"/>
+            <img src="https://avatars.githubusercontent.com/u/3889846?v=4" width="90;" alt="TigerBeanst"/>
             <br />
             <sub><b>TigerBeanst</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/Sirherobrine23">
-            <img src="https://avatars.githubusercontent.com/u/50121801?s=64&v=4" width="90;" alt="Sirherobrine23"/>
+            <img src="https://avatars.githubusercontent.com/u/50121801?v=4" width="90;" alt="Sirherobrine23"/>
             <br />
             <sub><b>Sirherobrine23</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/rabin-HE">
-            <img src="https://avatars.githubusercontent.com/u/96038890?s=64&v=4" width="90;" alt="rabin-HE"/>
+            <img src="https://avatars.githubusercontent.com/u/96038890?v=4" width="90;" alt="rabin-HE"/>
             <br />
             <sub><b>rabin-HE</b></sub>
         </a>

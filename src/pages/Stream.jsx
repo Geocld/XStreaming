@@ -34,6 +34,7 @@ import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
 import Display from '../components/Display';
+import Audio from '../components/Audio';
 
 const log = debugFactory('StreamScreen');
 
@@ -90,6 +91,7 @@ function StreamScreen({navigation, route}) {
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [showDisplayModal, setShowDisplayModal] = React.useState(false);
+  const [showAudioModal, setShowAudioModal] = React.useState(false);
   const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [connectState, setConnectState] = React.useState('');
@@ -99,6 +101,7 @@ function StreamScreen({navigation, route}) {
   const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
+  const [volume, setVolume] = React.useState(1);
 
   const gpDownEventListener = React.useRef(undefined);
   const gpUpEventListener = React.useRef(undefined);
@@ -976,6 +979,11 @@ function StreamScreen({navigation, route}) {
     [settings],
   );
 
+  const handleAudioChange = React.useCallback(value => {
+    postData2Webview('adjustVolume', value);
+    setVolume(value);
+  }, []);
+
   const renderVirtualGamepad = () => {
     if (!showVirtualGamepad) {
       return null;
@@ -1024,6 +1032,21 @@ function StreamScreen({navigation, route}) {
                 options={settings.display_options}
                 onChange={handleDisplayOptionsChange}
               />
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+
+      <Portal>
+        <Modal
+          visible={showAudioModal}
+          onDismiss={() => {
+            setShowAudioModal(false);
+          }}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              <Audio value={volume} onChange={handleAudioChange} />
             </Card.Content>
           </Card>
         </Modal>
@@ -1106,6 +1129,17 @@ function StreamScreen({navigation, route}) {
                       }}
                     />
                   )}
+
+                  {/* {connectState === CONNECTED && (
+                    <List.Item
+                      title={t('Volume adjustment')}
+                      background={background}
+                      onPress={() => {
+                        setShowAudioModal(true);
+                        handleCloseModal();
+                      }}
+                    />
+                  )} */}
 
                   {connectState === CONNECTED && (
                     <List.Item

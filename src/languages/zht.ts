@@ -212,5 +212,8 @@ export default {
     Sended: '已发送',
     Text: '文字',
     'Send text': '发送文字',
+    Audio_volume_title: '音量控制',
+    Audio_volume_desc:
+      '如果預設音量最大值達不到預期，可以在此處選擇放大音源（注意過大的音量會影響聽力！）',
   },
 };

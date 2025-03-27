@@ -124,5 +124,8 @@ export default {
     DualSense_adaptive_trigger_right: 'Set DualSense Right Trigger',
     DualSense_adaptive_trigger_right_desc:
       'You can set the DualSense right trigger to resistance/trigger/automatic trigger (to enable this feature, you need to turn on Android overlay driver (Settings - Overlay Android Controller Support - Enable), and connect the DualSense controller via cable)',
+    Audio_volume_title: 'Volume Control',
+    Audio_volume_desc:
+      'If the default maximum volume does not meet your expectations, you can choose to amplify the audio source here (Note: excessive volume may affect your hearing!)',
   },
 };
