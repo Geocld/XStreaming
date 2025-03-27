@@ -14,6 +14,10 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 
 > 声明: XStreaming与Microsoft、Xbox没有关联。所有权和商标属于其各自所有者。
 
+## iOS
+
+XStreaming iOS版本目前已经在TestFlight上开放测试，你可以加入[TestFlight](https://testflight.apple.com/join/d5hGJrV6)并免费使用！
+
 ## Windows/MacOS/Linux(steamOS)
 
 如果你在找 Windows/MacOS/Linux(steamOS) 平台的xbox串流应用, 请使用 [XStreaming-desktop](https://github.com/Geocld/XStreaming-desktop) 或 [Greenlight](https://github.com/unknownskl/greenlight).
@@ -67,6 +71,52 @@ npm run android
 1. [登录认证，获得串流凭据](./docs/1.Auth_zh.md)
 2. [Web API](./docs/2.Web_zh.md)
 3. [串流](./docs/3.Stream_zh.md)
+
+## 开发者
+
+XStreaming 的发展离不开这些 Hacker 们，他们贡献了大量能力，也欢迎关注他们 ❤️
+
+<!-- readme: contributors -start -->
+<table>
+<tr>
+    <td align="center">
+        <a href="https://github.com/Geocld">
+            <img src="https://avatars.githubusercontent.com/u/13679095?s=64&v=4" width="90;" alt="Geocld"/>
+            <br />
+            <sub><b>Geocld</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/wtlucky">
+            <img src="https://avatars.githubusercontent.com/u/2265430?s=60&v=4" width="90;" alt="wtlucky"/>
+            <br />
+            <sub><b>wtlucky</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/TigerBeanst">
+            <img src="https://avatars.githubusercontent.com/u/3889846?s=64&v=4" width="90;" alt="TigerBeanst"/>
+            <br />
+            <sub><b>TigerBeanst</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/Sirherobrine23">
+            <img src="https://avatars.githubusercontent.com/u/50121801?s=64&v=4" width="90;" alt="Sirherobrine23"/>
+            <br />
+            <sub><b>Sirherobrine23</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/rabin-HE">
+            <img src="https://avatars.githubusercontent.com/u/96038890?s=64&v=4" width="90;" alt="rabin-HE"/>
+            <br />
+            <sub><b>rabin-HE</b></sub>
+        </a>
+    </td>
+  </tr>
+</table>
+<!-- readme: contributors -end -->
 
 ### 开源协议
 

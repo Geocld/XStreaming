@@ -16,6 +16,10 @@ XStreaming is an open-source mobile client for xCloud and Xbox home streaming, g
 
 > DISCLAIMER: XStreaming is not affiliated with Microsoft, Xbox. All rights and trademarks are property of their respective owners.
 
+## iOS
+
+The iOS version of XStreaming is now available for testing on TestFlight. You can join [TestFlight](https://testflight.apple.com/join/d5hGJrV6) and use it for free!
+
 ## Windows/MacOS/Linux(steamOS)
 
 If you are looking for Windows/MacOS/Linux(steamOS) Xbox streaming application, you can use [XStreaming-desktop](https://github.com/Geocld/XStreaming-desktop) or [Greenlight](https://github.com/unknownskl/greenlight).
@@ -67,6 +71,52 @@ npm run android
 1. [Auth](/docs/1.Auth.md)
 2. [Web API](./docs/2.Web.md)
 3. [Stream](./docs/3.Stream.md)
+
+## Developers
+
+XStreaming's development can not be without these Hackers. They contributed a lot of capabilities for XStreaming. Also, welcome to follow them! ❤️
+
+<!-- readme: contributors -start -->
+<table>
+<tr>
+    <td align="center">
+        <a href="https://github.com/Geocld">
+            <img src="https://avatars.githubusercontent.com/u/13679095?s=64&v=4" width="90;" alt="Geocld"/>
+            <br />
+            <sub><b>Geocld</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/wtlucky">
+            <img src="https://avatars.githubusercontent.com/u/2265430?s=60&v=4" width="90;" alt="wtlucky"/>
+            <br />
+            <sub><b>wtlucky</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/TigerBeanst">
+            <img src="https://avatars.githubusercontent.com/u/3889846?s=64&v=4" width="90;" alt="TigerBeanst"/>
+            <br />
+            <sub><b>TigerBeanst</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/Sirherobrine23">
+            <img src="https://avatars.githubusercontent.com/u/50121801?s=64&v=4" width="90;" alt="Sirherobrine23"/>
+            <br />
+            <sub><b>Sirherobrine23</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/rabin-HE">
+            <img src="https://avatars.githubusercontent.com/u/96038890?s=64&v=4" width="90;" alt="rabin-HE"/>
+            <br />
+            <sub><b>rabin-HE</b></sub>
+        </a>
+    </td>
+  </tr>
+</table>
+<!-- readme: contributors -end -->
 
 ### License
 
