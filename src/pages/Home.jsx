@@ -209,14 +209,11 @@ function HomeScreen({navigation, route}) {
             Alert.alert(t('Error'), e);
           });
       }
-
-      return () => {
-        unsubscribe();
-      };
     }
 
     return () => {
       subscription?.remove();
+      unsubscribe();
     };
   }, [
     t,

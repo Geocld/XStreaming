@@ -21,7 +21,8 @@ public class GamepadSensorModule extends ReactContextBaseJavaModule implements S
     private final ReactApplicationContext reactContext;
     private SensorManager sensorManager;
     private Sensor gyroscope;
-    private int customSensitivity = 15000;
+    private int customSensitivityX = 15000;
+    private int customSensitivityY = 15000;
 
     static float lastX = 0, lastY = 0;
 
@@ -51,9 +52,10 @@ public class GamepadSensorModule extends ReactContextBaseJavaModule implements S
     }
 
     @ReactMethod
-    public void startSensor(int sensitivity) {
+    public void startSensor(int sensitivity_x, int sensitivity_y) {
         Log.d("GamepadSensorModule", "startSensor");
-        this.customSensitivity = sensitivity;
+        this.customSensitivityX = sensitivity_x;
+        this.customSensitivityY = sensitivity_y;
 
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ||
                 (Build.VERSION.SDK_INT == Build.VERSION_CODES.S))) {
@@ -93,13 +95,14 @@ public class GamepadSensorModule extends ReactContextBaseJavaModule implements S
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 
-            float sensitivity = (1 << 8) * this.customSensitivity / 100f;
+            float sensitivity_x = (1 << 8) * this.customSensitivityX / 100f;
+            float sensitivity_y = (1 << 8) * this.customSensitivityY / 100f;
 
             float x = -event.values[1];
             float y = -event.values[0];
 
-            final float nowX = sensitivity * x + lastX;
-            final float nowY = sensitivity * y + lastY;
+            final float nowX = sensitivity_x * x + lastX;
+            final float nowY = sensitivity_y * y + lastY;
             int roundX = Math.round(nowX);
             int roundY = Math.round(nowY);
 
@@ -117,7 +120,6 @@ public class GamepadSensorModule extends ReactContextBaseJavaModule implements S
             } else if (roundY < -32767) {
                 roundY = -32767;
             }
-
 
             WritableMap params = Arguments.createMap();
 
