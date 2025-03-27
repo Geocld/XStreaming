@@ -164,7 +164,7 @@ function HomeScreen({navigation, route}) {
           setConsoles(_consoles);
           setLoading(false);
         });
-      } else {
+      } else if (!_isLogined.current) {
         setLoading(true);
         setLoadingText(t('Checking login status...'));
         _authentication.current
