@@ -1130,16 +1130,17 @@ function StreamScreen({navigation, route}) {
                     />
                   )}
 
-                  {/* {connectState === CONNECTED && (
-                    <List.Item
-                      title={t('Volume adjustment')}
-                      background={background}
-                      onPress={() => {
-                        setShowAudioModal(true);
-                        handleCloseModal();
-                      }}
-                    />
-                  )} */}
+                  {connectState === CONNECTED &&
+                    settings.enable_audio_control && (
+                      <List.Item
+                        title={t('Audio_volume_title')}
+                        background={background}
+                        onPress={() => {
+                          setShowAudioModal(true);
+                          handleCloseModal();
+                        }}
+                      />
+                    )}
 
                   {connectState === CONNECTED && (
                     <List.Item

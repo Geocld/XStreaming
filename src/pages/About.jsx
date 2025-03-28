@@ -3,7 +3,7 @@ import {StyleSheet, View, ScrollView} from 'react-native';
 import {Text} from 'react-native-paper';
 import LinkText from '../components/LinkText';
 
-function AboutScreen({navigation, route}) {
+function AboutScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.block}>
@@ -23,7 +23,7 @@ function AboutScreen({navigation, route}) {
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">Want111 to contribute to XStreaming?</Text>
+          <Text variant="titleLarge">Want to contribute to XStreaming?</Text>
         </View>
 
         <View>

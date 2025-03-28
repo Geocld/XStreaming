@@ -14,14 +14,14 @@ const audio = [
     ],
   },
   {
-    name: 'audio_volume',
-    type: 'slider',
+    name: 'enable_audio_control',
+    type: 'radio',
     title: t('Audio_volume_title'),
     description: t('Audio_volume_desc'),
-    min: 1,
-    max: 10,
-    step: 1,
-    data: [],
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
   },
 ];
 
