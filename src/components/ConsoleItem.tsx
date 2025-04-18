@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, Image} from 'react-native';
 import {Card, Text, Button} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {SvgXml} from 'react-native-svg';
@@ -12,6 +12,27 @@ const ConsoleItem = (props: any) => {
 
   const consoleItem = props.consoleItem;
 
+  const renderImage = () => {
+    const type = consoleItem.consoleType;
+    if (type === 'XboxSeriesX') {
+      return (
+        <Image
+          source={require('../assets/console/series-x.png')}
+          style={{width: '100%', height: 100}}
+        />
+      );
+    } else if (type === 'XboxSeriesS') {
+      return (
+        <Image
+          source={require('../assets/console/series-s.png')}
+          style={{width: '100%', height: 50}}
+        />
+      );
+    } else {
+      return <SvgXml xml={icons.ConsoleIcon} width={'100%'} height={80} />;
+    }
+  };
+
   return (
     <Card>
       <Card.Content>
@@ -20,9 +41,7 @@ const ConsoleItem = (props: any) => {
             {consoleItem.name}
           </Text>
           {/* <Divider /> */}
-          <View style={styles.image}>
-            <SvgXml xml={icons.ConsoleIcon} width={'100%'} height={80} />
-          </View>
+          <View style={styles.image}>{renderImage()}</View>
           <View>
             <Text variant="titleMedium" style={styles.textCenter}>
               {consoleItem.consoleType}
