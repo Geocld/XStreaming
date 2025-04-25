@@ -10,6 +10,7 @@ export default {
     Feedback: '交流及赞赏',
     Close: '关闭',
     GameMap: '手柄映射',
+    NoLogin: '尚未登录，请登录',
     'Fetching user info...': '正在获取用户信息...',
     'Fetching consoles...': '正在获取终端信息...',
     'Login successful, refreshing login credentials...':

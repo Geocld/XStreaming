@@ -10,6 +10,7 @@ export default {
     Close: '關閉',
     GameMap: '手柄映射',
     Profile: '个人信息',
+    NoLogin: '尚未登錄，請登錄',
     'Fetching user info...': '正在獲取用戶信息...',
     'Fetching consoles...': '正在獲取終端信息...',
     'Login successful, refreshing login credentials...':

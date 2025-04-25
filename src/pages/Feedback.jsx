@@ -26,7 +26,7 @@ function FeedbackScreen({navigation, route}) {
         <View style={{paddingBottom: 50}}>
           <Image
             source={require('../assets/feedback/wx_sponsor.png')}
-            style={{width: '100%', height: 400}}
+            style={{width: 375, height: 400}}
           />
         </View>
       </View>

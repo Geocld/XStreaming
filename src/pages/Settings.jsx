@@ -298,7 +298,7 @@ function SettingsScreen({navigation}) {
 
           <SettingItem
             title={t('About')}
-            description={`${t('About XStreaming')}\nv${pkg.version}`}
+            description={`${t('About XStreaming')}`}
             onPress={() => navigation.navigate('About')}
           />
           {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
@@ -325,6 +325,15 @@ function SettingsScreen({navigation}) {
             />
           ) : null}
         </View>
+
+        <View style={styles.version}>
+          <Text style={styles.versionText} variant="titleMedium">
+            Version: v{pkg.version}
+          </Text>
+          <Text style={styles.versionText} variant="titleSmall">
+            © 2025 Geocld
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -335,7 +344,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   spinnerTextStyle: {
-    color: '#FFF',
+    color: '#107C10',
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -346,6 +355,15 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: '#107C10',
+  },
+  version: {
+    paddingTop: 20,
+    paddingBottom: 50,
+    textAlign: 'center',
+  },
+  versionText: {
+    textAlign: 'center',
+    paddingTop: 10,
   },
 });
 

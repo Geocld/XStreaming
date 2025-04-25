@@ -574,7 +574,7 @@ export default class XcloudApi {
       let officialTitles = [];
       axios
         .get('https://cdn.jsdelivr.net/gh/Geocld/XStreaming@main/titles.json', {
-          timeout: 30,
+          timeout: 30 * 1000,
         })
         .then(res => {
           if (res.status === 200) {

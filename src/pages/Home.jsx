@@ -30,7 +30,6 @@ const {UsbRumbleManager} = NativeModules;
 
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
-  const [refreshing, setRefreshing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
   const [xalUrl, setXalUrl] = React.useState('');
@@ -40,6 +39,7 @@ function HomeScreen({navigation, route}) {
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
+  const [showLogin, setShowLogin] = React.useState(false);
   const [showProfile, setShowProfile] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
@@ -90,124 +90,109 @@ function HomeScreen({navigation, route}) {
         ],
       );
       return;
-    }
-
-    if (!_authentication.current) {
-      log.info('Authentication initial.');
-      const authenticationCompleted = async (_streamingTokens, _webToken) => {
-        log.info('Authentication completed');
-        webTokenRef.current = _webToken;
-        // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
-        dispatch({
-          type: 'SET_STREAMING_TOKEN',
-          payload: _streamingTokens,
-        });
-        dispatch({
-          type: 'SET_WEB_TOKEN',
-          payload: _webToken,
-        });
-        dispatch({
-          type: 'SET_LOGIN',
-          payload: true,
-        });
-        _isLogined.current = true;
-
-        setLoading(true);
-        const webApi = new WebApi(_webToken);
-
-        setLoadingText(t('Fetching user info...'));
-        try {
-          const _profile = await webApi.getUserProfile();
-          setProfile(_profile);
+    } else {
+      if (!_authentication.current) {
+        log.info('Authentication initial.');
+        const authenticationCompleted = async (_streamingTokens, _webToken) => {
+          log.info('Authentication completed');
+          webTokenRef.current = _webToken;
+          // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
           dispatch({
-            type: 'SET_PROFILE',
-            payload: _profile,
+            type: 'SET_STREAMING_TOKEN',
+            payload: _streamingTokens,
           });
-          setLoadingText(t('Fetching consoles...'));
-          const _consoles = await webApi.getConsoles();
-          setConsoles(_consoles);
-        } catch (e) {
-          Alert.alert(t('Error'), e);
-        }
-        setLoading(false);
-      };
+          dispatch({
+            type: 'SET_WEB_TOKEN',
+            payload: _webToken,
+          });
+          dispatch({
+            type: 'SET_LOGIN',
+            payload: true,
+          });
+          _isLogined.current = true;
+          setShowLogin(false);
 
-      _authentication.current = new Authentication(authenticationCompleted);
-      dispatch({
-        type: 'SET_AUTHENTICATION',
-        payload: _authentication.current,
-      });
-    }
-
-    if (_isFocused.current) {
-      log.info('HomeScreen isFocused:', _isFocused.current);
-
-      // Return from Login screen
-      if (route.params?.xalUrl) {
-        if (!_isLogined.current) {
-          log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
-          setXalUrl(route.params.xalUrl);
           setLoading(true);
-          setLoadingText(
-            t('Login successful, refreshing login credentials...'),
-          );
-          _authentication.current.startAuthflow(
-            _redirect.current,
-            route.params.xalUrl,
-          );
-        }
-      } else if (route.params?.needRefresh && webTokenRef.current) {
-        setLoading(true);
-        setLoadingText(t('Fetching consoles...'));
-        const webApi = new WebApi(webTokenRef.current);
-        webApi.getConsoles().then(_consoles => {
-          setConsoles(_consoles);
-          setLoading(false);
-        });
-      } else if (!_isLogined.current) {
-        setLoading(true);
-        setLoadingText(t('Checking login status...'));
-        _authentication.current
-          .checkAuthentication()
-          .then(isAuth => {
+          const webApi = new WebApi(_webToken);
+
+          setLoadingText(t('Fetching user info...'));
+          try {
+            const _profile = await webApi.getUserProfile();
+            setProfile(_profile);
             dispatch({
-              type: 'SET_AUTHENTICATION',
-              payload: _authentication.current,
+              type: 'SET_PROFILE',
+              payload: _profile,
             });
-            if (!isAuth) {
-              _authentication.current._xal
-                .getRedirectUri()
-                .then(redirectObj => {
-                  setLoading(false);
-                  log.info('Redirect:', redirectObj);
-                  _redirect.current = redirectObj;
-                  dispatch({
-                    type: 'SET_REDIRECT',
-                    payload: redirectObj,
-                  });
-                  Alert.alert(
-                    t('Warning'),
-                    t(
-                      'Login has expired or not logged in, please log in again',
-                    ),
-                    [
-                      {
-                        text: t('Confirm'),
-                        style: 'default',
-                        onPress: () => {
-                          navigation.navigate('Login', {
-                            authUrl: redirectObj.sisuAuth.MsaOauthRedirect,
-                          });
-                        },
-                      },
-                    ],
-                  );
-                });
-            }
-          })
-          .catch(e => {
+            setLoadingText(t('Fetching consoles...'));
+            const _consoles = await webApi.getConsoles();
+            setConsoles(_consoles);
+          } catch (e) {
             Alert.alert(t('Error'), e);
+          }
+          setLoading(false);
+        };
+
+        _authentication.current = new Authentication(authenticationCompleted);
+        dispatch({
+          type: 'SET_AUTHENTICATION',
+          payload: _authentication.current,
+        });
+      }
+
+      if (_isFocused.current) {
+        log.info('HomeScreen isFocused:', _isFocused.current);
+
+        // Return from Login screen
+        if (route.params?.xalUrl) {
+          if (!_isLogined.current) {
+            log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
+            setXalUrl(route.params.xalUrl);
+            setLoading(true);
+            setLoadingText(
+              t('Login successful, refreshing login credentials...'),
+            );
+            _authentication.current.startAuthflow(
+              _redirect.current,
+              route.params.xalUrl,
+            );
+          }
+        } else if (route.params?.needRefresh && webTokenRef.current) {
+          setLoading(true);
+          setLoadingText(t('Fetching consoles...'));
+          const webApi = new WebApi(webTokenRef.current);
+          webApi.getConsoles().then(_consoles => {
+            setConsoles(_consoles);
+            setLoading(false);
           });
+        } else if (!_isLogined.current) {
+          setLoading(true);
+          setLoadingText(t('Checking login status...'));
+          _authentication.current
+            .checkAuthentication()
+            .then(isAuth => {
+              dispatch({
+                type: 'SET_AUTHENTICATION',
+                payload: _authentication.current,
+              });
+              if (!isAuth) {
+                _authentication.current._xal
+                  .getRedirectUri()
+                  .then(redirectObj => {
+                    setLoading(false);
+                    log.info('Redirect:', redirectObj);
+                    _redirect.current = redirectObj;
+                    dispatch({
+                      type: 'SET_REDIRECT',
+                      payload: redirectObj,
+                    });
+                    setShowLogin(true);
+                  });
+              }
+            })
+            .catch(e => {
+              Alert.alert(t('Error'), e);
+            });
+        }
       }
     }
 
@@ -317,6 +302,23 @@ function HomeScreen({navigation, route}) {
     );
   };
 
+  const handleLogin = () => {
+    navigation.navigate('Login', {
+      authUrl: _redirect.current.sisuAuth.MsaOauthRedirect,
+    });
+  };
+
+  const renderLogin = () => {
+    return (
+      <View>
+        <Text style={styles.title}>{t('NoLogin')}</Text>
+        <Button mode="outlined" onPress={handleLogin}>
+          &nbsp;{t('Login')}&nbsp;
+        </Button>
+      </View>
+    );
+  };
+
   const renderProfile = () => {
     if (!showProfile || !profile) {
       return null;
@@ -377,12 +379,14 @@ function HomeScreen({navigation, route}) {
   };
 
   const renderContent = () => {
-    if (!isLogined || loading) {
+    if (loading) {
       return null;
     }
-    if (consoles.length) {
+    if (showLogin) {
+      return <View style={styles.centerContainer}>{renderLogin()}</View>;
+    } else if (consoles.length) {
       return (
-        <View>
+        <SafeAreaView style={styles.container}>
           <View style={styles.consoleList}>
             <FlatList
               data={consoles}
@@ -406,41 +410,53 @@ function HomeScreen({navigation, route}) {
               }}
             />
           </View>
-        </View>
+        </SafeAreaView>
       );
     } else {
       return (
-        <View style={styles.noConsoles}>
-          <Text variant="titleMedium">{t('NoConsoles')}</Text>
-        </View>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.noConsoles}>
+            <Text variant="titleMedium">{t('NoConsoles')}</Text>
+          </View>
+        </SafeAreaView>
       );
     }
   };
 
   return (
-    <SafeAreaView style={styles.container} renderToHardwareTextureAndroid>
-      <View>
-        <Spinner
-          visible={loading}
-          color={'#107C10'}
-          textContent={loadingText}
-          textStyle={styles.spinnerTextStyle}
-        />
+    <>
+      <Spinner
+        visible={loading}
+        color={'#107C10'}
+        textContent={loadingText}
+        textStyle={styles.spinnerTextStyle}
+      />
 
-        {renderUsbWarningModal()}
+      {renderUsbWarningModal()}
 
-        {renderProfile()}
+      {renderProfile()}
 
-        {renderContent()}
-      </View>
+      {renderContent()}
+
       {renderFab()}
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 20,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   spinnerTextStyle: {
     color: '#107C10',

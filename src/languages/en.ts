@@ -1,9 +1,10 @@
 export default {
   translation: {
     Consoles: 'Consoles',
-    Xcloud: 'Xcloud',
+    Xcloud: 'XCloud',
     Host: 'Host',
     Settings: 'Settings',
+    NoLogin: 'Not logged in, please login',
     'Fetching user info...': 'Fetching user info...',
     'Fetching consoles...': 'Fetching consoles...',
     'Login successful, refreshing login credentials...':
