@@ -16,6 +16,16 @@ const sensor = [
     ],
   },
   {
+    name: 'sensor_type',
+    type: 'radio',
+    title: t('gyroTypeTitle'),
+    description: t('gyroTypeDesc'),
+    data: [
+      {value: 1, text: t('LT press')},
+      {value: 2, text: t('Global')},
+    ],
+  },
+  {
     name: 'sensor_sensitivity_x',
     type: 'slider',
     min: 100,

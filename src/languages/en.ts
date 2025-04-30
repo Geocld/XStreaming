@@ -1,7 +1,7 @@
 export default {
   translation: {
     Consoles: 'Consoles',
-    Xcloud: 'XCloud',
+    Xcloud: 'xCloud',
     Host: 'Host',
     Settings: 'Settings',
     NoLogin: 'Not logged in, please login',
@@ -101,9 +101,13 @@ export default {
     Exit: 'Exit',
     gyroTitle: 'Enable Gyroscope',
     gyroDesc:
-      'Whether to force the use of the device’s gyroscope. When the LT button is pressed, the gyroscope simulates the right stick, commonly used in FPS games.',
-    gyroTips:
-      "Currently, only the device's gyroscope is supported; gamepad gyroscope is not supported",
+      'Whether to force the use of the device’s gyroscope. The gyroscope simulates the right stick.',
+    gyroTips: 'Controller gyroscope is supported in Android 12+',
+    gyroTypeTitle: 'Gyroscope Trigger Type',
+    gyroTypeDesc:
+      'Set the gyroscope trigger to activate on LT press or globally',
+    'LT press': 'LT Press',
+    Global: 'Global',
     gyroSenTitleX: 'Gyroscope X-axis Sensitivity',
     gyroSenDescX: 'Adjust gyroscope X-axis sensitivity',
     gyroSenTitleY: 'Gyroscope Y-axis Sensitivity',

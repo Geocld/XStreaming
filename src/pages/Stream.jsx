@@ -464,12 +464,18 @@ function StreamScreen({navigation, route}) {
                 break;
             }
             // gyroscope only work when LT button press
-            if (gpState.LeftTrigger >= _settings.dead_zone) {
+            if (_settings.sensor_type === 1) {
+              if (gpState.LeftTrigger >= _settings.dead_zone) {
+                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
+                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
+              } else {
+                gpState.RightThumbXAxis = 0;
+                gpState.RightThumbYAxis = 0;
+              }
+            } else if (_settings.sensor_type === 2) {
+              // Global
               gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
               gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-            } else {
-              gpState.RightThumbXAxis = 0;
-              gpState.RightThumbYAxis = 0;
             }
           }
         },
@@ -653,6 +659,8 @@ function StreamScreen({navigation, route}) {
               if (e.includes('WaitingForServerToRegister')) {
                 msg =
                   '[StartSession] Fail:' + t('WaitingForServerToRegister') + e;
+              } else {
+                msg = '[StartSession] Fail:' + e;
               }
             } else {
               if (e.message?.indexOf('400') > -1) {
