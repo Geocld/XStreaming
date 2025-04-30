@@ -1,5 +1,6 @@
 import React from 'react';
 import {WebView} from 'react-native-webview';
+import Spinner from 'react-native-loading-spinner-overlay';
 import {debugFactory} from '../utils/debug';
 
 const log = debugFactory('LoginScreen');
@@ -19,6 +20,10 @@ function DetailScreen({navigation, route}) {
       <WebView
         source={{uri: authUrl}}
         originWhitelist={['*']}
+        startInLoadingState={true}
+        renderLoading={() => (
+          <Spinner visible={true} cancelable={true} color={'#107C10'} />
+        )}
         setSupportMultipleWindows={false}
         onShouldStartLoadWithRequest={request => {
           // log.info('onShouldStartLoadWithRequest:', request);
