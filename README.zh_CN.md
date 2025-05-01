@@ -17,7 +17,7 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 ## iOS
 
 `XStreaming`已经上架Apple store！因为上架限制商店命名`PeaSyo`。如果你喜欢这个应用，不妨花一杯咖啡的钱在商店买入：
-<a href="https://apps.apple.com/us/app/peasyo/id6743263824">
+<a href="https://apps.apple.com/cn/app/peasyo/id6743263824">
     <img alt="Download on the App Store" src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/apple-store-badge.svg" style="height: 64px">
 </a>
 
