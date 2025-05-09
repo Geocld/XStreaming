@@ -1,11 +1,11 @@
 <p align="center">
   <a href="https://github.com/Geocld/XStreaming">
-    <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/logo.png" width="546">
+    <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/logo.png" width="258">
   </a>
 </p>
 
 <p align="center">
-  开源Xbox/云游戏串流应用.
+  开源Xbox/云游戏串流应用，支持Android/iOS.
 </p>
 
 ## 介绍
