@@ -1,11 +1,11 @@
 <p align="center">
   <a href="https://github.com/Geocld/XStreaming">
-    <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/logo.png" width="546">
+    <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/logo.png" width="258">
   </a>
 </p>
 
 <p align="center">
-  Opensource Xbox Remote Client.
+  Open source Xbox streaming client that allows you to stream Xbox and play xCloud anytime, supporting Android/iOS.
 </p>
 
 **English** | [中文](./README.zh_CN.md)
