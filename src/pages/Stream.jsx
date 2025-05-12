@@ -293,7 +293,7 @@ function StreamScreen({navigation, route}) {
 
       timer.current = setInterval(() => {
         postData2Webview('gamepad', gpState);
-      }, 4);
+      }, 1000 / _settings.polling_rate);
     } else if (_settings.gamepad_kernal === 'Native') {
       log.info('Entry native mode');
       gpDownEventListener.current = eventEmitter.addListener(
@@ -437,7 +437,7 @@ function StreamScreen({navigation, route}) {
 
       timer.current = setInterval(() => {
         postData2Webview('gamepad', gpState);
-      }, 4);
+      }, 1000 / _settings.polling_rate);
     }
 
     if (_settings.sensor) {
@@ -981,7 +981,7 @@ function StreamScreen({navigation, route}) {
       if (settings.gamepad_kernal !== 'Native') {
         timer.current = setInterval(() => {
           postData2Webview('gamepad', gpState);
-        }, 4);
+        }, 1000 / settings.polling_rate);
       }
     }
   };

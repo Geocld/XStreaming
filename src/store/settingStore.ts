@@ -40,6 +40,7 @@ export type Settings = {
   custom_virtual_gamepad: string;
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
+  polling_rate: number;
   sensor: number;
   sensor_type: number;
   sensor_sensitivity_x: number;
@@ -87,6 +88,7 @@ const defaultSettings: Settings = {
   custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,
+  polling_rate: 250,
   sensor: 0,
   sensor_type: 1,
   sensor_sensitivity_x: 15000,

@@ -264,5 +264,7 @@ export default {
     Audio_volume_title: '音量控制',
     Audio_volume_desc:
       '如果默认音量最大值达不到预期，可以在此处选择放大音源(注意过大的音量会影响听力！)',
+    'Polling rate': '手柄回报率',
+    'Modify controller response rate': '修改手柄回报率',
   },
 };
