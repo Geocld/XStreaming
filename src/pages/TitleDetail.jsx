@@ -12,6 +12,7 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
+import games from '../mock/games.json';
 
 const {UsbRumbleManager} = NativeModules;
 
@@ -118,6 +119,15 @@ function TitleDetail({navigation, route}) {
     }
   }
 
+  let description = '';
+  if (
+    titleItem &&
+    games[titleItem.XboxTitleId] &&
+    games[titleItem.XboxTitleId].short_description
+  ) {
+    description = games[titleItem.XboxTitleId].short_description;
+  }
+
   return (
     <View style={styles.container}>
       <Spinner
@@ -151,6 +161,9 @@ function TitleDetail({navigation, route}) {
                   {t('byorg')}
                 </HelperText>
               )}
+            </View>
+
+            <View style={styles.tagsWrap}>
               {titleItem.Categories.map(item => {
                 return (
                   <View style={styles.tagContainer} key={item}>
@@ -158,6 +171,10 @@ function TitleDetail({navigation, route}) {
                   </View>
                 );
               })}
+            </View>
+
+            <View style={styles.description}>
+              <Text variant="titleSmall">{description}</Text>
             </View>
           </ScrollView>
 
@@ -213,6 +230,10 @@ const styles = StyleSheet.create({
     padding: 5,
     marginRight: 5,
     marginBottom: 10,
+  },
+  description: {
+    paddingLeft: 10,
+    paddingRight: 10,
   },
   productTitle: {
     marginBottom: 10,

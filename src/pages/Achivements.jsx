@@ -8,7 +8,7 @@ import {useTranslation} from 'react-i18next';
 import moment from 'moment';
 import {useSelector} from 'react-redux';
 import WebApi from '../web';
-import {getAllGames} from '../web';
+import games from '../mock/games.json';
 
 const log = debugFactory('AchivementScreen');
 
@@ -25,26 +25,26 @@ function AchivementScreen({navigation}) {
     webApi
       .getHistoryAchivements()
       .then(data => {
-        getAllGames().then(games => {
-          data.forEach(item => {
-            if (games[item.titleId] && games[item.titleId].image_urls) {
-              item.image =
-                games[item.titleId].image_urls.box_art ||
-                games[item.titleId].image_urls.poster;
-            }
-          });
-          setArchivements(data);
-          setLoading(false);
+        data.forEach(item => {
+          if (games[item.titleId] && games[item.titleId].image_urls) {
+            item.image =
+              games[item.titleId].image_urls.box_art ||
+              games[item.titleId].image_urls.poster;
+          }
         });
+        setArchivements(data);
+        setLoading(false);
       })
       .catch(e => {
-        log('GetHistoryAchivements error:', e);
+        // log('GetHistoryAchivements error:', e);
+        // console.log('GetHistoryAchivements error:', e);
+        setLoading(false);
       });
   }, [webToken]);
 
   const formatTime = isoString => {
     const date = moment(isoString).local();
-    return date.format('YYYY-MM-DD HH:mm:ss');
+    return date.format('YYYY-MM-DD HH:mm');
   };
 
   return (
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backgroundImageStyle: {
-    opacity: 0.6,
+    opacity: 0.75,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
