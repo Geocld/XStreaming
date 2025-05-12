@@ -388,28 +388,48 @@ function StreamScreen({navigation, route}) {
         'onTrigger',
         event => {
           if (!isLeftTriggerCanClick.current) {
+            // Short trigger
             if (_settings.short_trigger) {
-              triggerMax = _settings.dead_zone + 0.1;
-            }
-            if (event.leftTrigger >= triggerMax) {
-              gpState.LeftTrigger = 1;
+              triggerMax = _settings.dead_zone;
+              if (event.leftTrigger >= triggerMax) {
+                gpState.LeftTrigger = 1;
+              } else {
+                setTimeout(() => {
+                  gpState.LeftTrigger = 0;
+                }, 16);
+              }
             } else {
-              setTimeout(() => {
-                gpState.LeftTrigger = 0;
-              }, 16);
+              // Line trigger
+              if (event.leftTrigger >= 0.05) {
+                gpState.LeftTrigger = event.leftTrigger;
+              } else {
+                setTimeout(() => {
+                  gpState.LeftTrigger = 0;
+                }, 16);
+              }
             }
           }
 
           if (!isRightTriggerCanClick.current) {
+            // Short trigger
             if (_settings.short_trigger) {
-              triggerMax = _settings.dead_zone + 0.1;
-            }
-            if (event.rightTrigger > triggerMax) {
-              gpState.RightTrigger = 1;
+              triggerMax = _settings.dead_zone;
+              if (event.rightTrigger >= triggerMax) {
+                gpState.RightTrigger = 1;
+              } else {
+                setTimeout(() => {
+                  gpState.RightTrigger = 0;
+                }, 16);
+              }
             } else {
-              setTimeout(() => {
-                gpState.RightTrigger = 0;
-              }, 16);
+              // Line trigger
+              if (event.rightTrigger >= 0.05) {
+                gpState.RightTrigger = event.rightTrigger;
+              } else {
+                setTimeout(() => {
+                  gpState.RightTrigger = 0;
+                }, 16);
+              }
             }
           }
         },
@@ -838,6 +858,12 @@ function StreamScreen({navigation, route}) {
           rightTrigger,
           settings.rumble_intensity || 3,
         );
+
+        if (rumbleData.duration < 20) {
+          setTimeout(() => {
+            GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
+          }, 300);
+        }
       }
     }
     if (type === 'performance') {

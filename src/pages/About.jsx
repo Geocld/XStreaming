@@ -12,18 +12,15 @@ function AboutScreen() {
         </View>
         <View>
           <Text variant="titleMedium">
-            XStreaming is an full open-source mobile client for xCloud and Xbox
-            home streaming, great inspired by
-            <LinkText url={'https://github.com/unknownskl/greenlight'}>
-              Greenlight
-            </LinkText>
+            XStreaming is an Open source Xbox streaming client that allows you
+            stream Xbox and play xCloud anytime, supporting Android/iOS.
           </Text>
         </View>
       </View>
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">Want to contribute to XStreaming?</Text>
+          <Text variant="titleLarge">Contribute to XStreaming</Text>
         </View>
 
         <View>
@@ -42,7 +39,7 @@ function AboutScreen() {
         </View>
         <View>
           <LinkText url={'https://github.com/Geocld/XStreaming-desktop'}>
-            https://github.com/Geocld/XStreaming-desktop
+            https://github.com/Geocld/XStreamingDesktop
           </LinkText>
         </View>
       </View>
