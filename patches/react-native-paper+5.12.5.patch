@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-paper/src/components/SegmentedButtons/SegmentedButtonItem.tsx b/node_modules/react-native-paper/src/components/SegmentedButtons/SegmentedButtonItem.tsx
+index 92623d2..fa41ada 100644
+--- a/node_modules/react-native-paper/src/components/SegmentedButtons/SegmentedButtonItem.tsx
++++ b/node_modules/react-native-paper/src/components/SegmentedButtons/SegmentedButtonItem.tsx
+@@ -270,7 +262,7 @@ const styles = StyleSheet.create({
+     alignItems: 'center',
+     justifyContent: 'center',
+     paddingVertical: 9,
+-    paddingHorizontal: 16,
++    paddingHorizontal: 6,
+   },
+ });

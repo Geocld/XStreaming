@@ -1,3 +1,4 @@
+import axios from 'axios';
 import uuid from 'react-native-uuid';
 import XstsToken from '../tokens/xststoken';
 import Http from '../utils/http';
@@ -270,6 +271,7 @@ export default class WebApi {
         .then((res: any) => {
           // log.info('[getHistoryAchivements] getHistoryAchivements:', JSON.stringify(res));
           if (res.titles) {
+            console.log('getHistoryAchivements res:', res);
             resolve(res.titles);
           } else {
             resolve([]);
@@ -314,6 +316,25 @@ export default class WebApi {
         .catch(e => {
           console.log('[getAchivementDetail] error:', e);
           reject(e);
+        });
+    });
+  }
+
+  getAllGames() {
+    return new Promise(resolve => {
+      let games: any = [];
+      axios
+        .get('https://cdn.jsdelivr.net/gh/Geocld/XStreaming@main/games.json', {
+          timeout: 30 * 1000,
+        })
+        .then(res => {
+          if (res.status === 200) {
+            games = res.data;
+          }
+          resolve(games);
+        })
+        .catch(e => {
+          resolve([]);
         });
     });
   }

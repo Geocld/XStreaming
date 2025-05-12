@@ -17,7 +17,7 @@ export default {
       'Login has expired or not logged in, please log in again',
     'Loading...': 'Loading...',
     'Start stream': 'Start stream',
-    'Power on and start stream': 'Power on and start stream',
+    'Power on and start stream': 'Power on start stream',
     'Local connect': 'Local connect',
     'Remote connect': 'Remote connect',
     'Disconnect and power off': 'Disconnect and power off',

@@ -393,8 +393,11 @@ export default class XcloudApi {
                 continue;
               }
 
-              const groups = pattern.exec(item.candidate).groups;
-              lst.push(groups);
+              const pats = pattern.exec(item.candidate);
+              if (pats && pats.groups) {
+                const groups = pats.groups;
+                lst.push(groups);
+              }
             }
 
             // PerferIPV6
@@ -579,7 +582,7 @@ export default class XcloudApi {
         .then(res => {
           if (res.status === 200) {
             officialTitles = res.data.Products;
-            console.log('officialTitles:', officialTitles);
+            // console.log('officialTitles:', officialTitles);
           }
           resolve(officialTitles);
         })
