@@ -24,7 +24,7 @@ index 7c2a541..e68f1e3 100644
              styles.icon,
              Boolean(labelVisible) && styles.iconWithLabel,
 -            Boolean(tintColor) && { tintColor },
-+            { tintColor: '#107C10' },
++            { tintColor: '#ffffff' },
            ]}
 -          source={require('../assets/back-icon.png')}
 +          // source={require('../assets/back-icon.png')}

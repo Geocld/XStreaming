@@ -14,17 +14,17 @@ const bases = [
       {value: 'zht', text: '繁體中文'},
     ],
   },
-  {
-    name: 'theme',
-    type: 'radio',
-    title: t('Theme'),
-    description: t('Set the app theme to take effect on the next launch'),
-    data: [
-      {value: 'auto', text: t('Auto')},
-      {value: 'light', text: t('Light')},
-      {value: 'dark', text: t('Dark')},
-    ],
-  },
+  // {
+  //   name: 'theme',
+  //   type: 'radio',
+  //   title: t('Theme'),
+  //   description: t('Set the app theme to take effect on the next launch'),
+  //   data: [
+  //     {value: 'auto', text: t('Auto')},
+  //     {value: 'light', text: t('Light')},
+  //     {value: 'dark', text: t('Dark')},
+  //   ],
+  // },
   {
     name: 'preferred_game_language',
     type: 'radio',
