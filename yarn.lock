@@ -2861,6 +2861,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/fast-text-encoding@npm:^1":
+  version: 1.0.3
+  resolution: "@types/fast-text-encoding@npm:1.0.3"
+  checksum: 10c0/9ec0ca8f2461202ac3321160b0e7b8d07a4728b1b3197fa68c672d792cb7cdfff08924f81b3564d21db9bcb9c90e47680f7ff7b73195192776baecc17293c9c2
+  languageName: node
+  linkType: hard
+
 "@types/graceful-fs@npm:^4.1.3":
   version: 4.1.9
   resolution: "@types/graceful-fs@npm:4.1.9"
@@ -3718,7 +3725,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:^1.1.2, base64-js@npm:^1.3.1":
+"base64-js@npm:1.5.1, base64-js@npm:^1.1.2, base64-js@npm:^1.3.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 10c0/f23823513b63173a001030fae4f2dabe283b99a9d324ade3ad3d148e218134676f1ee8568c877cd79ec1c53158dcf2d2ba527a97c606618928ba99dd930102bf
@@ -4415,6 +4422,18 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10c0/082c375a2bdc4f4469c99f325ff458adad62a3fc2c482d59923c260cb08152f34e2659f72b3767db8bb2f21ca81a60a42d1019605a412132d7b9f59363a005cc
+  languageName: node
+  linkType: hard
+
+"debug@npm:4.3.4":
+  version: 4.3.4
+  resolution: "debug@npm:4.3.4"
+  dependencies:
+    ms: "npm:2.1.2"
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 10c0/cedbec45298dd5c501d01b92b119cd3faebe5438c3917ff11ae1bff86a6c722930ac9c8659792824013168ba6db7c4668225d845c633fbdafbbf902a6389f736
   languageName: node
   linkType: hard
 
@@ -5179,6 +5198,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"event-target-shim@npm:6.0.2":
+  version: 6.0.2
+  resolution: "event-target-shim@npm:6.0.2"
+  checksum: 10c0/e40b89effb1bd0fdd44dd198e3b61669c2bff89b680a8156c50480b5df8d4364208d1db09fbe823211005651558415691cb3ff72c22618eb154e55282b8b0481
+  languageName: node
+  linkType: hard
+
 "event-target-shim@npm:^5.0.0, event-target-shim@npm:^5.0.1":
   version: 5.0.1
   resolution: "event-target-shim@npm:5.0.1"
@@ -5268,6 +5294,13 @@ __metadata:
   version: 2.0.6
   resolution: "fast-levenshtein@npm:2.0.6"
   checksum: 10c0/111972b37338bcb88f7d9e2c5907862c280ebf4234433b95bc611e518d192ccb2d38119c4ac86e26b668d75f7f3894f4ff5c4982899afced7ca78633b08287c4
+  languageName: node
+  linkType: hard
+
+"fast-text-encoding@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "fast-text-encoding@npm:1.0.6"
+  checksum: 10c0/e1d0381bda229c92c7906f63308f3b9caca8c78b732768b1ee16f560089ed21bc159bbe1434138ccd3815931ec8d4785bdade1ad1c45accfdf27ac6606ac67d2
   languageName: node
   linkType: hard
 
@@ -8993,6 +9026,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-webrtc@npm:^124.0.5":
+  version: 124.0.5
+  resolution: "react-native-webrtc@npm:124.0.5"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+    event-target-shim: "npm:6.0.2"
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: 10c0/8a731620f3f173b4a22bf8e1e3ff2e35d31984760c9adcaff1df2e7f33710316c193fb245f44bce98f1d40d8d3164b556d96c706d3f4f153b4a29f74a1d8f685
+  languageName: node
+  linkType: hard
+
 "react-native-webview@npm:^13.10.2":
   version: 13.10.5
   resolution: "react-native-webview@npm:13.10.5"
@@ -10802,6 +10848,7 @@ __metadata:
     "@react-navigation/stack": "npm:^6.3.29"
     "@tsconfig/react-native": "npm:^3.0.0"
     "@types/debug": "npm:^4"
+    "@types/fast-text-encoding": "npm:^1"
     "@types/react": "npm:^18.0.24"
     "@types/react-test-renderer": "npm:^18.0.0"
     "@types/semver": "npm:^7"
@@ -10811,6 +10858,7 @@ __metadata:
     babel-jest: "npm:^29.2.1"
     deepmerge: "npm:^4.3.1"
     eslint: "npm:^8.19.0"
+    fast-text-encoding: "npm:^1.0.6"
     i18next: "npm:^23.11.5"
     ip-address: "npm:^9.0.5"
     jest: "npm:^29.2.1"
@@ -10840,6 +10888,7 @@ __metadata:
     react-native-url-polyfill: "npm:^2.0.0"
     react-native-uuid: "npm:^2.0.2"
     react-native-vector-icons: "npm:^10.1.0"
+    react-native-webrtc: "npm:^124.0.5"
     react-native-webview: "npm:^13.10.2"
     react-redux: "npm:^9.1.2"
     react-test-renderer: "npm:18.2.0"
