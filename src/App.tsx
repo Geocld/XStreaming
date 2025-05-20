@@ -143,7 +143,7 @@ function App() {
         Alert.alert(
           t('Update Warning'),
           t(
-            `Check new version ${latestVer}, current version is ${version}. \n\n Update: \n\n ${updateText}`,
+            `Check new version ${latestVer}, current version is ${version}. \n ${updateText}`,
           ),
           [
             {

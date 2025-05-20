@@ -105,8 +105,9 @@ export default {
     gyroTips: 'Controller gyroscope is supported in Android 12+',
     gyroTypeTitle: 'Gyroscope Trigger Type',
     gyroTypeDesc:
-      'Set the gyroscope trigger to activate on LT press or globally',
+      'Set the gyroscope trigger to activate on LT/LB press or globally',
     'LT press': 'LT Press',
+    'LB press': 'LB Press',
     Global: 'Global',
     gyroSenTitleX: 'Gyroscope X-axis Sensitivity',
     gyroSenDescX: 'Adjust gyroscope X-axis sensitivity',

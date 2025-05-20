@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
   },
   sorce: {
     flexDirection: 'row',
+    marginLeft: -5,
   },
 });
 

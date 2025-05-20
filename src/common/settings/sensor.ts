@@ -22,7 +22,8 @@ const sensor = [
     description: t('gyroTypeDesc'),
     data: [
       {value: 1, text: t('LT press')},
-      {value: 2, text: t('Global')},
+      {value: 2, text: t('LB press')},
+      {value: 3, text: t('Global')},
     ],
   },
   {

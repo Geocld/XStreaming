@@ -66,7 +66,7 @@ const display = [
       {value: '', text: 'Auto'},
       // {value: 'video/AV1', text: 'AV1'},
       // {value: 'video/VP9', text: 'VP9'},
-      {value: '', text: 'H265'},
+      // {value: '', text: 'H265'},
       // {value: 'video/VP8', text: 'VP8'},
       {value: 'video/H264-4d', text: 'H264-High'},
       {value: 'video/H264-42e', text: 'H264-Medium'},

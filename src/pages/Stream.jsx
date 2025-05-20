@@ -493,6 +493,15 @@ function StreamScreen({navigation, route}) {
                 gpState.RightThumbYAxis = 0;
               }
             } else if (_settings.sensor_type === 2) {
+              // LB
+              if (gpState.LeftShoulder > 0) {
+                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
+                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
+              } else {
+                gpState.RightThumbXAxis = 0;
+                gpState.RightThumbYAxis = 0;
+              }
+            } else if (_settings.sensor_type === 3) {
               // Global
               gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
               gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
@@ -919,7 +928,7 @@ function StreamScreen({navigation, route}) {
   };
 
   const handleToggleWebviewPerformance = () => {
-    if (showPerformance) {
+    if (!showPerformance) {
       postData2Webview('showPerformance', {});
     } else {
       postData2Webview('hidePerformance', {});
@@ -1132,7 +1141,7 @@ function StreamScreen({navigation, route}) {
                             handleToggleWebviewPerformance();
                             webviewRef.current &&
                               webviewRef.current.requestFocus();
-                          }, 10);
+                          }, 100);
                         } else {
                           setShowPerformance(!showPerformance);
                         }
