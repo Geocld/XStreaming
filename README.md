@@ -18,7 +18,7 @@ XStreaming is an open-source mobile client for xCloud and Xbox home streaming, g
 
 ## iOS
 
-`XStreaming` is now available on the Apple Store! Due to listing restrictions, it is named `PeaSyo` in the store. If you like this app, why not buy it for the price of a cup of coffee:
+`XStreaming` is now available on the Apple Store! Due to listing restrictions, it is named `PeaSyo` in the store. If you like this app, you can support us by purchasing it for the price of a cup of coffee.
 
 <a href="https://apps.apple.com/us/app/peasyo/id6743263824">
     <img alt="Download on the App Store" src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/apple-store-badge.svg" style="height: 64px">
