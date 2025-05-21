@@ -10,6 +10,10 @@ import com.facebook.react.defaults.DefaultReactNativeHost;
 import com.facebook.soloader.SoLoader;
 import com.umeng.commonsdk.UMConfigure;
 
+import com.oney.WebRTCModule.WebRTCModuleOptions;
+import android.media.AudioAttributes;
+import org.webrtc.audio.JavaAudioDeviceModule;
+
 import android.util.Log;
 
 import java.util.HashMap;
@@ -65,6 +69,17 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate() {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
+
+    // webrtc
+    WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
+    AudioAttributes audioAttributes = new AudioAttributes.Builder()
+          .setUsage(AudioAttributes.USAGE_MEDIA)
+          .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+          .build();
+    options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
+          .setAudioAttributes(audioAttributes)
+          .createAudioDeviceModule();
+
     UMConfigure.preInit(this,"66ab42a4192e0574e75249b9","XStreaming");
     UMConfigure.init(this, "66ab42a4192e0574e75249b9", "XStreaming", UMConfigure.DEVICE_TYPE_PHONE, "");
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
