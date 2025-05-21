@@ -14,7 +14,7 @@ import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import games from '../mock/games.json';
 
-const {UsbRumbleManager} = NativeModules;
+const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
 const log = debugFactory('TitleDetailScreen');
 
@@ -53,8 +53,30 @@ function TitleDetail({navigation, route}) {
     const usbController = await UsbRumbleManager.getUsbController();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
+    const webviewVersion = FullScreenManager.getWebViewVersion();
+    let isLagecy = false;
+    if (webviewVersion) {
+      const verArr = webviewVersion.split('.');
+      const mainVer = verArr[0];
+
+      // webview version is below 91
+      if (mainVer < 91) {
+        isLagecy = true;
+      }
+    }
+
+    let routeName = 'Stream';
+    if (settings.render_engine === 'native') {
+      routeName = 'NativeStream';
+    }
+
+    // Lagecy user force to native stream
+    if (isLagecy) {
+      routeName = 'NativeStream';
+    }
+
     navigation.navigate({
-      name: 'Stream',
+      name: routeName,
       params: {
         sessionId: titleItem.titleId || titleItem.XCloudTitleId,
         settings,
