@@ -13,7 +13,7 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
 import ConsoleItem from '../components/ConsoleItem';
 import Profile from '../components/Profile';
-import {getSettings} from '../store/settingStore';
+import {getSettings, saveSettings} from '../store/settingStore';
 
 import Authentication from '../Authentication';
 import WebApi from '../web';
@@ -26,7 +26,7 @@ import {debugFactory} from '../utils/debug';
 
 const log = debugFactory('HomeScreen');
 
-const {UsbRumbleManager} = NativeModules;
+const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -64,6 +64,17 @@ function HomeScreen({navigation, route}) {
   React.useEffect(() => {
     log.info('Page loaded.');
     SplashScreen.hide();
+
+    const _settings = getSettings();
+    const webviewVersion = FullScreenManager.getWebViewVersion();
+    if (webviewVersion) {
+      const verArr = webviewVersion.split('.');
+      const mainVer = verArr[0];
+      if (mainVer < 91) {
+        _settings.render_engine = 'native';
+        saveSettings(_settings);
+      }
+    }
 
     const updateLayout = () => {
       const {width, height} = Dimensions.get('window');
@@ -230,7 +241,7 @@ function HomeScreen({navigation, route}) {
     }
   };
 
-  const handleStartStream = async (sessionId, isNative = false) => {
+  const handleStartStream = async sessionId => {
     const settings = getSettings();
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
@@ -239,18 +250,40 @@ function HomeScreen({navigation, route}) {
     if (isUsbMode) {
       setShowUsbWarnShowModal(true);
     } else {
-      handleNavigateStream(sessionId, isNative);
+      handleNavigateStream(sessionId);
     }
   };
 
-  const handleNavigateStream = async (sessionId, isNative = false) => {
+  const handleNavigateStream = async sessionId => {
     const settings = getSettings();
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
     const usbController = await UsbRumbleManager.getUsbController();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
+    const webviewVersion = FullScreenManager.getWebViewVersion();
+    let isLagecy = false;
+    if (webviewVersion) {
+      const verArr = webviewVersion.split('.');
+      const mainVer = verArr[0];
+
+      // webview version is below 91
+      if (mainVer < 91) {
+        isLagecy = true;
+      }
+    }
+
+    let routeName = 'Stream';
+    if (settings.render_engine === 'native') {
+      routeName = 'NativeStream';
+    }
+
+    // Lagecy user force to native stream
+    if (isLagecy) {
+      routeName = 'NativeStream';
+    }
+
     navigation.navigate({
-      name: isNative ? 'NativeStream' : 'Stream',
+      name: routeName,
       params: {
         sessionId,
         settings,
@@ -403,7 +436,6 @@ function HomeScreen({navigation, route}) {
                     <ConsoleItem
                       consoleItem={item}
                       onPress={() => handleStartStream(item.id)}
-                      onPress2={() => handleStartStream(item.id, true)}
                       onPoweronStream={() => handlePoweronAndStream(item.id)}
                     />
                   </View>

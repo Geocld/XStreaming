@@ -26,6 +26,17 @@ const bases = [
     ],
   },
   {
+    name: 'render_engine',
+    type: 'radio',
+    title: t('renderEngineTitle'),
+    description: t('renderEngineDesc'),
+    tips: t('renderEngineTips'),
+    data: [
+      {value: 'web', text: t('Webview')},
+      {value: 'native', text: t('Native')},
+    ],
+  },
+  {
     name: 'preferred_game_language',
     type: 'radio',
     title: t('Preferred language of game'),

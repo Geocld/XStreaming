@@ -99,13 +99,11 @@ class webRTCClient {
 
     // @ts-ignore
     this._webrtcClient.ontrack = (event: any) => {
-      console.log('ontrack:', event);
       this._trackHandler && this._trackHandler(event);
     };
 
     // @ts-ignore
     this._webrtcClient.onaddstream = (event: any) => {
-      console.log('onaddstream:', event);
       this._trackAddHandler && this._trackAddHandler(event);
     };
 

@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
+import android.webkit.WebView;
 
 public class FullScreenManager extends ReactContextBaseJavaModule {
     public FullScreenManager(ReactApplicationContext reactContext) {
@@ -112,5 +114,19 @@ public class FullScreenManager extends ReactContextBaseJavaModule {
             }
         });
 
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod=true)
+    public String getWebViewVersion() {
+        String version = "";
+        try {
+            PackageInfo infos = WebView.getCurrentWebViewPackage();
+            if (infos != null) {
+                version = infos.versionName;
+            }
+            return version;
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

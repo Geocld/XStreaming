@@ -21,6 +21,9 @@ const display = [
     description: t(
       'Select video stream format, if you want video fullscreen, please select Stretch or Zoom',
     ),
+    tips: t(
+      'In Native mode, only scaling can be set for the rendering engine.',
+    ),
     data: [
       {value: '', text: t('Aspect ratio')},
       {value: 'Stretch', text: t('Stretch')},

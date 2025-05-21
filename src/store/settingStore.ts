@@ -14,6 +14,7 @@ type DisplayOptions = {
 export type Settings = {
   locale: string;
   resolution: number;
+  render_engine: 'web' | 'native';
   xhome_bitrate_mode: string;
   xhome_bitrate: number | string;
   xcloud_bitrate_mode: string;
@@ -62,6 +63,7 @@ export type Settings = {
 const defaultSettings: Settings = {
   locale: 'en',
   resolution: 720,
+  render_engine: 'web',
   xhome_bitrate_mode: 'auto',
   xhome_bitrate: 20,
   xcloud_bitrate_mode: 'auto',
@@ -84,7 +86,7 @@ const defaultSettings: Settings = {
   short_trigger: false,
   video_format: '',
   show_virtual_gamead: false,
-  virtual_gamepad_opacity: 0.6,
+  virtual_gamepad_opacity: 0.8,
   custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,

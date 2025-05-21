@@ -19,7 +19,7 @@ import {
   IconButton,
   TextInput,
 } from 'react-native-paper';
-import {RTCView, MediaStream} from 'react-native-webrtc';
+import {RTCView, MediaStream, RTCRtpReceiver} from 'react-native-webrtc';
 import Orientation from 'react-native-orientation-locker';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useSelector} from 'react-redux';
@@ -93,8 +93,6 @@ function NativeStreamScreen({navigation, route}) {
   const [settings, setSettings] = React.useState({});
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
-  const [showDisplayModal, setShowDisplayModal] = React.useState(false);
-  const [showAudioModal, setShowAudioModal] = React.useState(false);
   const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [connectState, setConnectState] = React.useState('');
@@ -596,7 +594,17 @@ function NativeStreamScreen({navigation, route}) {
           ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
           setLoadingText(`${t(CONNECTED)}`);
           setLoading(false);
-          setShowVirtualGamepad(true);
+
+          // Alway show virtual gamepad
+          if (_settings.show_virtual_gamead) {
+            setShowVirtualGamepad(true);
+          }
+
+          // Alway show performance
+          if (_settings.show_performance) {
+            setShowPerformance(true);
+          }
+
           setRemote(remoteStream.current.toURL());
 
           const sendFrame = () => {
@@ -706,6 +714,154 @@ function NativeStreamScreen({navigation, route}) {
       setLoading(true);
       setLoadingText(`${t('Connecting...')}`);
 
+      const setCodec = sdp => {
+        const codec = _settings.codec;
+        const codecArr = codec.split('-');
+        const mimeType = codecArr[0]; // H264
+        const profiles = codecArr[1]; // ['4d'] 4d = high, 42e = mid, 420 = low
+
+        if (!mimeType || !profiles) {
+          return sdp;
+        }
+        const capabilities = RTCRtpReceiver.getCapabilities('video');
+
+        if (capabilities === null) {
+          return sdp;
+        }
+
+        const codecs = capabilities.codecs;
+        const prefCodecs = [];
+
+        for (let i = 0; i < codecs.length; i++) {
+          if (codecs[i].mimeType === mimeType) {
+            if (profiles.length > 0) {
+              for (let j = 0; j < profiles.length; j++) {
+                if (
+                  codecs[i].sdpFmtpLine?.indexOf(
+                    'profile-level-id=' + profiles[j],
+                  ) !== -1
+                ) {
+                  console.log(
+                    'Adding codec as preference:',
+                    codecs[i],
+                    profiles[j],
+                  );
+                  prefCodecs.push(codecs[i]);
+                }
+              }
+            } else {
+              console.log('Adding codec as preference:', codecs[i]);
+              prefCodecs.push(codecs[i]);
+            }
+          }
+        }
+
+        if (prefCodecs.length === 0) {
+          console.log(
+            'setCodec() No video codec matches with mimetype:',
+            mimeType,
+          );
+          return sdp;
+        }
+
+        if (mimeType.indexOf('H264') > -1) {
+          // High=4d Medium=42e Low=420
+          const h264Pattern = /a=fmtp:(\d+).*profile-level-id=([0-9a-f]{6})/g;
+          const profilePrefix = profiles[0];
+          const preferredCodecIds = [];
+          // Find all H.264 codec profile IDs
+          const matches = sdp.matchAll(h264Pattern) || [];
+          for (const match of matches) {
+            const id = match[1];
+            const profileId = match[2];
+
+            if (profileId.startsWith(profilePrefix)) {
+              preferredCodecIds.push(id);
+            }
+          }
+          // No preferred IDs found
+          if (!preferredCodecIds.length) {
+            return sdp;
+          }
+
+          const lines = sdp.split('\r\n');
+          for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            const line = lines[lineIndex];
+            if (!line.startsWith('m=video')) {
+              continue;
+            }
+
+            // https://datatracker.ietf.org/doc/html/rfc4566#section-5.14
+            // m=<media> <port> <proto> <fmt>
+            // m=video 9 UDP/TLS/RTP/SAVPF 127 39 102 104 106 108
+            const tmp = line.trim().split(' ');
+
+            // Get array of <fmt>
+            // ['127', '39', '102', '104', '106', '108']
+            let ids = tmp.slice(3);
+
+            // Remove preferred IDs in the original array
+            ids = ids.filter(item => !preferredCodecIds.includes(item));
+
+            // Put preferred IDs at the beginning
+            ids = preferredCodecIds.concat(ids);
+
+            // Update line's content
+            lines[lineIndex] = tmp.slice(0, 3).concat(ids).join(' ');
+
+            break;
+          }
+
+          return lines.join('\r\n');
+        }
+      };
+
+      const setBitrate = (sdp, media, bitrate) => {
+        const lines = sdp.split('\r\n');
+
+        for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+          let _media = '';
+          let line = lines[lineNumber];
+          if (!line.startsWith('m=')) {
+            continue;
+          }
+          if (line.startsWith(`m=${media}`)) {
+            _media = media;
+          }
+          // Invalid media, continue looking
+          if (!_media) {
+            continue;
+          }
+
+          const bLine = `b=AS:${bitrate}`;
+
+          while ((lineNumber++, lineNumber < lines.length)) {
+            line = lines[lineNumber];
+
+            // Ignore lines that start with "i=" or "c="
+            if (line.startsWith('i=') || line.startsWith('c=')) {
+              continue;
+            }
+
+            if (line.startsWith('b=AS:')) {
+              // Replace bitrate
+              lines[lineNumber] = bLine;
+              // Stop lookine for "b=AS:" line
+              break;
+            }
+
+            if (line.startsWith('m=')) {
+              // "b=AS:" line not found, add "b" line before "m="
+              lines.splice(lineNumber, 0, bLine);
+              // Stop
+              break;
+            }
+          }
+        }
+
+        return lines.join('\r\n');
+      };
+
       streamApi
         .startSession(route.params?.sessionId, _settings.resolution)
         .then(configuration => {
@@ -713,6 +869,52 @@ function NativeStreamScreen({navigation, route}) {
             `${t('Configuration obtained successfully, initiating offer...')}`,
           );
           webrtcClient.createOffer().then(offer => {
+            // Set codec
+            if (_settings.codec !== '') {
+              offer.sdp = setCodec(offer.sdp);
+            }
+
+            // Set bitrate
+            if (route.params?.streamType === 'cloud') {
+              if (
+                _settings.xcloud_bitrate_mode === 'custom' &&
+                _settings.xcloud_bitrate !== 0
+              ) {
+                console.log(
+                  'setVideoBitrate xcloud:',
+                  _settings.xcloud_bitrate + 'Mb/s',
+                );
+                offer.sdp = setBitrate(
+                  offer.sdp,
+                  'video',
+                  _settings.xcloud_bitrate,
+                );
+              }
+            } else {
+              if (
+                _settings.xhome_bitrate_mode === 'custom' &&
+                _settings.xhome_bitrate !== 0
+              ) {
+                console.log(
+                  'setVideoBitrate xhome:',
+                  _settings.xhome_bitrate + 'Mb/s',
+                );
+                offer.sdp = setBitrate(
+                  offer.sdp,
+                  'video',
+                  _settings.xhome_bitrate,
+                );
+              }
+            }
+
+            if (_settings.audio_bitrate_mode === 'custom') {
+              offer.sdp = setBitrate(
+                offer.sdp,
+                'audio',
+                _settings.audio_bitrate,
+              );
+            }
+
             streamApi
               .sendSDPOffer(offer)
               .then(sdpResponse => {
@@ -1097,9 +1299,28 @@ function NativeStreamScreen({navigation, route}) {
     );
   };
 
+  const renderMenu = () => {
+    if (settings.show_menu) {
+      return (
+        <View style={styles.quickMenu}>
+          <IconButton
+            icon="menu"
+            size={28}
+            onPress={() => {
+              setShowModal(true);
+            }}
+          />
+        </View>
+      );
+    } else {
+      return null;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Spinner
+        cancelable
         visible={loading}
         color={'#107C10'}
         textContent={loadingText}
@@ -1110,7 +1331,7 @@ function NativeStreamScreen({navigation, route}) {
         <RTCView
           style={styles.player}
           zOrder={9}
-          objectFit={'contain'}
+          objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
           streamURL={remote}
         />
       )}
@@ -1122,6 +1343,8 @@ function NativeStreamScreen({navigation, route}) {
       {renderOptionsModal()}
 
       {renderTextPanel()}
+
+      {renderMenu()}
     </View>
   );
 }
@@ -1141,6 +1364,12 @@ const styles = StyleSheet.create({
     // backgroundColor: 'rgba(0, 0, 0, 0.5)',
     marginLeft: '32%',
     marginRight: '32%',
+  },
+  quickMenu: {
+    position: 'absolute',
+    right: 5,
+    bottom: 5,
+    zIndex: 99,
   },
 });
 

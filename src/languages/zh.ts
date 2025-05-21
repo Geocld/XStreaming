@@ -65,6 +65,8 @@ export default {
     'Video stream format': '画面比例',
     'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
       '选择视频流格式，如果你需要画面全屏,请选择拉伸或缩放，如果你的物理显示器不是16:9，会导致画面不协调或展示不全',
+    'In Native mode, only scaling can be set for the rendering engine.':
+      'Native模式渲染引擎下，只能设置缩放和16:9',
     'Aspect ratio': '保持长宽比(16:9)',
     'Native: Use native gamepad kernal to vibrate':
       'Native: 使用安卓原生手柄内核振动',
@@ -116,6 +118,8 @@ export default {
     'Display settings': '画面设置',
     'Set parameters such as screen clarity and saturation':
       '设置画面清晰度、饱和度等参数',
+    'Display settings is not working in native render engine.':
+      'Native渲染引擎下无法设置画面',
     'Override native Xbox gamepad support': '覆盖安卓手柄支持',
     bind_usb_device_description:
       '强制XStreaming的USB驱动接管所有受支持的Xbox/DualSense手柄(实验性)',
@@ -278,5 +282,9 @@ export default {
     'Streaming is closed': '串流被主机端终结',
     'NAT failed':
       'NAT失败，如果你正在尝试远程串流，请保证已经正确配置路由器，并设置已经设置端口转发，如果无法解决远程串流，请使用官方Xbox应用。',
+    renderEngineTitle: '渲染引擎',
+    renderEngineDesc: '选择webview/native渲染引擎，播放视频流',
+    renderEngineTips:
+      '\nwebview: 使用系统webview播放视频流，需要webview版本91以上。\n native: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性。',
   },
 };

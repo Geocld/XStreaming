@@ -31,7 +31,6 @@ function SettingsScreen({navigation}) {
   const profile = useSelector(state => state.profile);
 
   const currentLanguage = i18n.language;
-  console.log('currentLanguage:', currentLanguage);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -137,7 +136,16 @@ function SettingsScreen({navigation}) {
             description={t(
               'Set parameters such as screen clarity and saturation',
             )}
-            onPress={() => navigation.navigate('Display')}
+            onPress={() => {
+              const settings = getSettings();
+              if (settings.render_engine === 'native') {
+                Alert.alert(
+                  t('Display settings is not working in native render engine.'),
+                );
+                return;
+              }
+              navigation.navigate('Display');
+            }}
           />
         </View>
 

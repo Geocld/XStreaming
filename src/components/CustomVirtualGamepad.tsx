@@ -15,7 +15,7 @@ type Props = {
 
 const CustomVirtualGamepad: React.FC<Props> = ({
   title,
-  opacity = 0.6,
+  opacity = 0.8,
   onPressIn,
   onPressOut,
   onStickMove,

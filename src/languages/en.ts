@@ -135,5 +135,10 @@ export default {
       'If the default maximum volume does not meet your expectations, you can choose to amplify the audio source here (Note: excessive volume may affect your hearing!)',
     'NAT failed':
       'NAT failed. If you are attempting remote streaming, please ensure your router is properly configured and port forwarding is set up. If you cannot resolve remote streaming issues, please use the official Xbox app.',
+    renderEngineTitle: 'Render Engine',
+    renderEngineDesc:
+      'You can choose between webview/native rendering engines to play the video stream.',
+    renderEngineTips:
+      '\nwebview: Uses the system webview to play video streams, requiring webview version 91 or higher.\nnative: No dependency on webview, uses native rendering for lower power consumption and better compatibility.',
   },
 };
