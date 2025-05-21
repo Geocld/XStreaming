@@ -32,6 +32,15 @@ const GamepadButton: React.FC<Props> = ({
     })
     .minDuration(16);
 
+  if (['A', 'B', 'X', 'Y'].indexOf(name) > -1) {
+    width = 70;
+    height = 70;
+  }
+  if (name === 'Nexus') {
+    width = 60;
+    height = 60;
+  }
+
   return (
     <GestureDetector gesture={longPressGesture}>
       <TouchableOpacity style={style}>

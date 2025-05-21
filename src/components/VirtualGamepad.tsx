@@ -30,7 +30,7 @@ const VirtualGamepad: React.FC<Props> = ({
 
   const {width} = Dimensions.get('window');
 
-  const nexusLeft = width * 0.5 - 20;
+  const nexusLeft = width * 0.5 - 30;
   const viewLeft = width * 0.5 - 100;
   const menuLeft = width * 0.5 + 60;
 
@@ -220,27 +220,27 @@ const styles = StyleSheet.create({
   },
   a: {
     bottom: 50,
-    right: 70,
+    right: 50,
   },
   b: {
     bottom: 90,
-    right: 30,
+    right: 10,
   },
   x: {
     bottom: 90,
-    right: 110,
+    right: 90,
   },
   y: {
     bottom: 130,
-    right: 70,
+    right: 50,
   },
   l3: {
-    bottom: 50,
-    left: 130,
+    bottom: 80,
+    left: 195,
   },
   r3: {
-    bottom: 20,
-    right: 210,
+    bottom: 40,
+    right: 235,
   },
   view: {
     bottom: 10,
@@ -252,16 +252,16 @@ const styles = StyleSheet.create({
     bottom: 10,
   },
   leftJs: {
-    left: 100,
-    bottom: 110,
+    left: 160,
+    bottom: 140,
   },
   rightJs: {
-    right: 180,
-    bottom: 80,
+    right: 200,
+    bottom: 100,
   },
   dpadLeft: {
-    width: 30,
-    height: 20,
+    width: 50,
+    height: 30,
     borderWidth: 2,
     borderColor: '#fff',
     left: 30,
@@ -269,30 +269,30 @@ const styles = StyleSheet.create({
     borderRightWidth: 0,
   },
   dpadTop: {
-    width: 20,
-    height: 30,
+    width: 30,
+    height: 50,
     borderWidth: 2,
     borderColor: '#fff',
-    left: 58,
-    bottom: 100,
+    left: 78,
+    bottom: 110,
     borderBottomWidth: 0,
   },
   dpadRight: {
-    width: 30,
-    height: 20,
+    width: 50,
+    height: 30,
     borderWidth: 2,
     borderColor: '#fff',
-    left: 76,
+    left: 106,
     bottom: 80,
     borderLeftWidth: 0,
   },
   dpadBottom: {
-    width: 20,
-    height: 30,
+    width: 30,
+    height: 50,
     borderWidth: 2,
     borderColor: '#fff',
-    left: 58,
-    bottom: 50,
+    left: 78,
+    bottom: 30,
     borderTopWidth: 0,
   },
 });

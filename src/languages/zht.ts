@@ -230,5 +230,16 @@ export default {
     Audio_volume_title: '音量控制',
     Audio_volume_desc:
       '如果預設音量最大值達不到預期，可以在此處選擇放大音源（注意過大的音量會影響聽力！）',
+    'Connecting...': '正在連接...',
+    'Disconnecting...': '正在斷開連接...',
+    'Configuration obtained successfully, initiating offer...':
+      '獲取配置成功，開始發起offer...',
+    'Remote offer retrieved successfully...': '遠程offer獲取成功...',
+    'Ready to send ICE...': '準備發送ICE...',
+    'Exchange ICE successfully...': 'ICE交換成功, 正在建立連接...',
+    'Configuring ICE, waiting for response...': '正在配置ICE，正在等待響應...',
+    'Streaming is closed': '串流被主机端终结',
+    'NAT failed':
+      'NAT失败，如果你正在尝试远程串流，请保证已经正确配置路由器，并设置已经设置端口转发，如果无法解决远程串流，请使用官方Xbox应用。',
   },
 };

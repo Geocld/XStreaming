@@ -424,7 +424,7 @@ class webRTCClient {
   getStreamState() {
     return new Promise(resove => {
       const performances = {
-        // resolution: globalThis.resolution,
+        resolution: '',
         rtt: '-1 (-1%)',
         fps: 0,
         pl: '-1 (-1%)',

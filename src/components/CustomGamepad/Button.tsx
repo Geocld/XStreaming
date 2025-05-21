@@ -18,6 +18,15 @@ const GamepadButton: React.FC<Props> = ({
   scale = 1,
   style,
 }) => {
+  if (['A', 'B', 'X', 'Y'].indexOf(name) > -1) {
+    width = 70;
+    height = 70;
+  }
+  if (name === 'Nexus') {
+    width = 60;
+    height = 60;
+  }
+
   return (
     <View style={style}>
       <SvgXml xml={icons[name]} width={width * scale} height={height * scale} />

@@ -26,7 +26,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     const _settings = getSettings();
     const {width, height} = Dimensions.get('window');
 
-    const nexusLeft = width * 0.5 - 20;
+    const nexusLeft = width * 0.5 - 30;
     const viewLeft = width * 0.5 - 100;
     const menuLeft = width * 0.5 + 60;
 
@@ -61,43 +61,43 @@ const CustomVirtualGamepad: React.FC<Props> = ({
       },
       {
         name: 'A',
-        x: width - 70,
-        y: height - 50,
+        x: width - 85,
+        y: height - 70,
         scale: 1,
         show: true,
       },
       {
         name: 'B',
-        x: width - 30,
-        y: height - 90,
+        x: width - 45,
+        y: height - 110,
         scale: 1,
         show: true,
       },
       {
         name: 'X',
-        x: width - 110,
-        y: height - 90,
+        x: width - 125,
+        y: height - 110,
         scale: 1,
         show: true,
       },
       {
         name: 'Y',
-        x: width - 70,
-        y: height - 130,
+        x: width - 85,
+        y: height - 150,
         scale: 1,
         show: true,
       },
       {
         name: 'LeftThumb',
-        x: 130,
-        y: height - 50,
+        x: 200,
+        y: height - 90,
         scale: 1,
         show: true,
       },
       {
         name: 'RightThumb',
-        x: width - 210,
-        y: height - 30,
+        x: width - 230,
+        y: height - 80,
         scale: 1,
         show: true,
       },
@@ -111,7 +111,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
       {
         name: 'Nexus',
         x: nexusLeft,
-        y: height - 30,
+        y: height - 50,
         scale: 1,
         show: true,
       },
@@ -124,23 +124,23 @@ const CustomVirtualGamepad: React.FC<Props> = ({
       },
       {
         name: 'Dpad',
-        x: 20,
-        y: height - 170,
-        width: 60,
-        height: 60,
+        x: 50,
+        y: height - 140,
+        width: 100,
+        height: 100,
         scale: 1,
         show: true,
       },
       {
         name: 'LeftStick',
         x: 175,
-        y: height - 185,
+        y: height - 205,
         show: true,
       },
       {
         name: 'RightStick',
-        x: width - 255,
-        y: height - 155,
+        x: width - 265,
+        y: height - 195,
         show: true,
       },
     ];

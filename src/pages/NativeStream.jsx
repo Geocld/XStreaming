@@ -39,6 +39,8 @@ import PerfPanel from '../components/PerfPanel';
 const log = debugFactory('NativeStreamScreen');
 
 const CONNECTED = 'connected';
+const CLOSED = 'closed';
+const FAILED = 'failed';
 const DUALSENSE = 'DualSenseController';
 
 const {
@@ -109,6 +111,7 @@ function NativeStreamScreen({navigation, route}) {
   const remoteStream = React.useRef(null);
   const keepaliveInterval = React.useRef(null);
   const performanceInterval = React.useRef(null);
+  const connectStateRef = React.useRef('');
 
   const gpDownEventListener = React.useRef(undefined);
   const gpUpEventListener = React.useRef(undefined);
@@ -122,6 +125,7 @@ function NativeStreamScreen({navigation, route}) {
   const isRightstickMoving = React.useRef(false);
   const timer = React.useRef(undefined);
   const frameTimer = React.useRef(undefined);
+  const isRequestExit = React.useRef(false);
 
   // event
   const usbGpEventListener = React.useRef(undefined);
@@ -530,7 +534,6 @@ function NativeStreamScreen({navigation, route}) {
         e.preventDefault();
 
         // Show confirm modal
-        console.log('show modal');
         setShowModal(true);
         GamepadManager.setCurrentScreen('');
       }
@@ -584,59 +587,94 @@ function NativeStreamScreen({navigation, route}) {
         remoteStream.current.addTrack(track, remoteStream.current);
       });
 
-      webrtcClient.setConnectedHandler(status => {
-        setConnectState(status);
-        if (status === CONNECTED) {
+      webrtcClient.setConnectedHandler(state => {
+        connectStateRef.current = state;
+
+        setConnectState(state);
+        if (state === CONNECTED) {
           // Connected
           ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
-        }
-        // Connected
-        setLoadingText(`${t(CONNECTED)}`);
-        setLoading(false);
-        setShowVirtualGamepad(true);
-        setRemote(remoteStream.current.toURL());
+          setLoadingText(`${t(CONNECTED)}`);
+          setLoading(false);
+          setShowVirtualGamepad(true);
+          setRemote(remoteStream.current.toURL());
 
-        const sendFrame = () => {
-          webrtcClient &&
-            webrtcClient.getChannelProcessor('input')?.addProcessedFrame({
-              serverDataKey: new Date().getTime(),
-              firstFramePacketArrivalTimeMs: 9954.2,
-              frameSubmittedTimeMs: 9954.2,
-              frameDecodedTimeMs: 10033,
-              frameRenderedTimeMs: 10033,
-            });
-        };
-        sendFrame();
-
-        if (!frameTimer.current) {
-          frameTimer.current = setInterval(() => {
-            sendFrame();
-          }, 5 * 1000);
-        }
-
-        // Start keepalive loop
-        if (!keepaliveInterval.current) {
-          keepaliveInterval.current = setInterval(() => {
-            streamApi
-              .sendKeepalive()
-              .then(result => {
-                log.info('StartStream keepalive:', JSON.stringify(result));
-              })
-              .catch(error => {
-                log.error(
-                  'Failed to send keepalive. Error details:\n',
-                  JSON.stringify(error),
-                );
+          const sendFrame = () => {
+            webrtcClient &&
+              webrtcClient.getChannelProcessor('input')?.addProcessedFrame({
+                serverDataKey: new Date().getTime(),
+                firstFramePacketArrivalTimeMs: 9954.2,
+                frameSubmittedTimeMs: 9954.2,
+                frameDecodedTimeMs: 10033,
+                frameRenderedTimeMs: 10033,
               });
-          }, 20 * 1000);
-        }
+          };
+          setTimeout(() => {
+            sendFrame();
+          }, 3000);
 
-        if (!performanceInterval.current) {
-          performanceInterval.current = setInterval(() => {
-            webrtcClient.getStreamState().then(res => {
-              setPerformance(res);
-            });
-          }, 1000);
+          if (!frameTimer.current) {
+            frameTimer.current = setInterval(() => {
+              sendFrame();
+            }, 5 * 1000);
+          }
+
+          // Start keepalive loop
+          if (!keepaliveInterval.current) {
+            keepaliveInterval.current = setInterval(() => {
+              streamApi
+                .sendKeepalive()
+                .then(result => {
+                  log.info('StartStream keepalive:', JSON.stringify(result));
+                })
+                .catch(error => {
+                  log.error(
+                    'Failed to send keepalive. Error details:\n',
+                    JSON.stringify(error),
+                  );
+                });
+            }, 20 * 1000);
+          }
+
+          if (!performanceInterval.current) {
+            performanceInterval.current = setInterval(() => {
+              webrtcClient.getStreamState().then(res => {
+                res.resolution = '1920 X 720';
+                if (
+                  _settings.resolution === 1080 ||
+                  _settings.resolution === 1081
+                ) {
+                  res.resolution = '1920 X 1080';
+                }
+                setPerformance(res);
+              });
+            }, 1000);
+          }
+        } else if (state === CLOSED) {
+          if (isRequestExit.current) {
+            return;
+          }
+          Alert.alert(t('Warning'), t('Streaming is closed'), [
+            {
+              text: t('Confirm'),
+              style: 'default',
+              onPress: () => {
+                exit();
+              },
+            },
+          ]);
+        } else if (state === FAILED) {
+          if (connectStateRef.current === '') {
+            Alert.alert(t('Warning'), t('NAT failed'), [
+              {
+                text: t('Confirm'),
+                style: 'default',
+                onPress: () => {
+                  exit();
+                },
+              },
+            ]);
+          }
         }
       });
 
@@ -664,6 +702,9 @@ function NativeStreamScreen({navigation, route}) {
             });
           });
       };
+
+      setLoading(true);
+      setLoadingText(`${t('Connecting...')}`);
 
       streamApi
         .startSession(route.params?.sessionId, _settings.resolution)
@@ -716,9 +757,6 @@ function NativeStreamScreen({navigation, route}) {
       setTimeout(() => {
         const {height: dHeight} = Dimensions.get('window');
         setModalMaxHeight(dHeight - 50);
-
-        setLoading(true);
-        setLoadingText(`${t('Connecting...')}`);
       }, 100);
     }, 500);
 
@@ -870,6 +908,7 @@ function NativeStreamScreen({navigation, route}) {
   };
 
   const requestExit = () => {
+    isRequestExit.current = true;
     setShowPerformance(false);
     setShowVirtualGamepad(false);
     webrtcClient && webrtcClient.close();
@@ -1020,6 +1059,44 @@ function NativeStreamScreen({navigation, route}) {
     );
   };
 
+  const renderPerformancePanel = () => {
+    if (showPerformance) {
+      return <PerfPanel performance={performance} />;
+    } else {
+      return null;
+    }
+  };
+
+  const renderTextPanel = () => {
+    return (
+      <Portal>
+        <Modal
+          visible={showMessageModal}
+          onDismiss={() => {
+            setShowMessageModal(false);
+          }}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              <TextInput
+                label={t('Text')}
+                value={message}
+                onChangeText={text => setMessage(text)}
+              />
+              <Button
+                mode="contained"
+                loading={messageSending}
+                style={{marginTop: 10}}
+                onPress={handleSendMessage}>
+                {t('Send')}
+              </Button>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Spinner
@@ -1038,9 +1115,13 @@ function NativeStreamScreen({navigation, route}) {
         />
       )}
 
+      {renderPerformancePanel()}
+
       {renderVirtualGamepad()}
 
       {renderOptionsModal()}
+
+      {renderTextPanel()}
     </View>
   );
 }

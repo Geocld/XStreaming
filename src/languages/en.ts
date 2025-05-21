@@ -133,5 +133,7 @@ export default {
     Audio_volume_title: 'Volume Control',
     Audio_volume_desc:
       'If the default maximum volume does not meet your expectations, you can choose to amplify the audio source here (Note: excessive volume may affect your hearing!)',
+    'NAT failed':
+      'NAT failed. If you are attempting remote streaming, please ensure your router is properly configured and port forwarding is set up. If you cannot resolve remote streaming issues, please use the official Xbox app.',
   },
 };

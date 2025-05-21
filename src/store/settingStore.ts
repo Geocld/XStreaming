@@ -88,7 +88,7 @@ const defaultSettings: Settings = {
   custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,
-  polling_rate: 250,
+  polling_rate: 62.5,
   sensor: 0,
   sensor_type: 1,
   sensor_sensitivity_x: 15000,
