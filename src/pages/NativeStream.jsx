@@ -39,6 +39,7 @@ import PerfPanel from '../components/PerfPanel';
 const log = debugFactory('NativeStreamScreen');
 
 const CONNECTED = 'connected';
+const CONNECTING = 'connecting';
 const CLOSED = 'closed';
 const FAILED = 'failed';
 const DUALSENSE = 'DualSenseController';
@@ -586,9 +587,6 @@ function NativeStreamScreen({navigation, route}) {
       });
 
       webrtcClient.setConnectedHandler(state => {
-        connectStateRef.current = state;
-
-        setConnectState(state);
         if (state === CONNECTED) {
           // Connected
           ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
@@ -662,6 +660,9 @@ function NativeStreamScreen({navigation, route}) {
           if (isRequestExit.current) {
             return;
           }
+          if (connectStateRef.curren !== CONNECTED) {
+            return;
+          }
           Alert.alert(t('Warning'), t('Streaming is closed'), [
             {
               text: t('Confirm'),
@@ -672,21 +673,23 @@ function NativeStreamScreen({navigation, route}) {
             },
           ]);
         } else if (state === FAILED) {
-          if (connectStateRef.current === '') {
-            Alert.alert(t('Warning'), t('NAT failed'), [
-              {
-                text: t('Confirm'),
-                style: 'default',
-                onPress: () => {
-                  exit();
-                },
+          Alert.alert(t('Warning'), t('NAT failed'), [
+            {
+              text: t('Confirm'),
+              style: 'default',
+              onPress: () => {
+                exit();
               },
-            ]);
-          }
+            },
+          ]);
         }
+
+        setConnectState(state);
+        connectStateRef.current = state;
       });
 
       const exit = () => {
+        setLoading(false);
         webrtcClient && webrtcClient.close();
         streamApi
           .stopStream()
@@ -935,6 +938,21 @@ function NativeStreamScreen({navigation, route}) {
                       );
                       webrtcClient.setIceCandidates(iceDetails);
                       setLoadingText(`${t('Exchange ICE successfully...')}`);
+                    })
+                    .catch(e => {
+                      Alert.alert(
+                        t('Warning'),
+                        '[sendICECandidates] fail:' + e,
+                        [
+                          {
+                            text: t('Confirm'),
+                            style: 'default',
+                            onPress: () => {
+                              exit();
+                            },
+                          },
+                        ],
+                      );
                     });
                 });
               })
@@ -950,6 +968,35 @@ function NativeStreamScreen({navigation, route}) {
                 ]);
               });
           });
+        })
+        .catch(e => {
+          if (e !== '') {
+            let msg = '';
+            if (typeof e === 'string') {
+              if (e.includes('WaitingForServerToRegister')) {
+                msg =
+                  '[StartSession] Fail:' + t('WaitingForServerToRegister') + e;
+              } else {
+                msg = '[StartSession] Fail:' + e;
+              }
+            } else {
+              if (e.message?.indexOf('400') > -1) {
+                const error = t('noAllow');
+                msg = '[StartSession] Fail:' + error;
+              } else {
+                msg = '[StartSession] Fail:' + e;
+              }
+            }
+            Alert.alert(t('Warning'), msg, [
+              {
+                text: t('Confirm'),
+                style: 'default',
+                onPress: () => {
+                  navigation.navigate('Home');
+                },
+              },
+            ]);
+          }
         });
     }
 
