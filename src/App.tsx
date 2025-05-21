@@ -31,6 +31,7 @@ import AchivementScreen from './pages/Achivements';
 import AchivementDetailScreen from './pages/ArchivementDetail';
 import LoginScreen from './pages/Login';
 import StreamScreen from './pages/Stream';
+import NativeStreamScreen from './pages/NativeStream';
 import SettingsScreen from './pages/Settings';
 import SettingDetailScreen from './pages/SettingDetail';
 import TitleDetailScreen from './pages/TitleDetail';
@@ -78,7 +79,7 @@ const CombinedDarkTheme = merge(paperDarkTheme, DarkTheme);
 
 const TabIcon = (route: any, params: any) => {
   const {focused, color, size} = params;
-  let iconName;
+  let iconName = '';
   if (route.name === 'Home') {
     iconName = focused ? 'game-controller' : 'game-controller-outline';
   } else if (route.name === 'Settings') {
@@ -198,7 +199,11 @@ function App() {
                   component={StreamScreen}
                   options={{headerShown: false}}
                 />
-                <RootStack.Screen name="Debug" component={DebugScreen} />
+                <RootStack.Screen
+                  name="NativeStream"
+                  component={NativeStreamScreen}
+                  options={{headerShown: false}}
+                />
                 <RootStack.Screen
                   name="CustomGamepad"
                   component={CustomGamepadScreen}
@@ -258,6 +263,7 @@ function App() {
                   component={Ds5SettingsScreen}
                   options={{title: t('DualSense')}}
                 />
+                <RootStack.Screen name="Debug" component={DebugScreen} />
               </RootStack.Group>
 
               <RootStack.Group screenOptions={{presentation: 'modal'}}>

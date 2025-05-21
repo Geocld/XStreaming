@@ -2939,6 +2939,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-native-vector-icons@npm:^6.4.18":
+  version: 6.4.18
+  resolution: "@types/react-native-vector-icons@npm:6.4.18"
+  dependencies:
+    "@types/react": "npm:*"
+    "@types/react-native": "npm:^0.70"
+  checksum: 10c0/b27f2295c5baaba9ce2ff9ade6e505e4d1fe4f40a628df13dc26d0e1b3ccee9775846f3613a443d91cfe86844703b81e9e64a10cc4b7fac1edfde96cb82c893b
+  languageName: node
+  linkType: hard
+
+"@types/react-native@npm:^0.70":
+  version: 0.70.19
+  resolution: "@types/react-native@npm:0.70.19"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: 10c0/09a5191dd0f3b85abfa8939df585860ba11a666d888846c7fd7d8d5d1cd72a39224e154403f90a5b82f1dc6c896fa3447e4f5061b2d3e102d0ce798e559d7f13
+  languageName: node
+  linkType: hard
+
 "@types/react-test-renderer@npm:^18.0.0":
   version: 18.3.0
   resolution: "@types/react-test-renderer@npm:18.3.0"
@@ -9026,7 +9045,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webrtc@npm:^124.0.5":
+"react-native-webrtc@npm:124.0.5":
   version: 124.0.5
   resolution: "react-native-webrtc@npm:124.0.5"
   dependencies:
@@ -10850,6 +10869,7 @@ __metadata:
     "@types/debug": "npm:^4"
     "@types/fast-text-encoding": "npm:^1"
     "@types/react": "npm:^18.0.24"
+    "@types/react-native-vector-icons": "npm:^6.4.18"
     "@types/react-test-renderer": "npm:^18.0.0"
     "@types/semver": "npm:^7"
     "@ui-kitten/components": "npm:^5.3.1"
@@ -10888,7 +10908,7 @@ __metadata:
     react-native-url-polyfill: "npm:^2.0.0"
     react-native-uuid: "npm:^2.0.2"
     react-native-vector-icons: "npm:^10.1.0"
-    react-native-webrtc: "npm:^124.0.5"
+    react-native-webrtc: "npm:124.0.5"
     react-native-webview: "npm:^13.10.2"
     react-redux: "npm:^9.1.2"
     react-test-renderer: "npm:18.2.0"

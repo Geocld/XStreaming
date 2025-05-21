@@ -88,6 +88,19 @@ const ConsoleItem = (props: any) => {
               {t('Start stream')}
             </Button>
           )}
+
+          <Button
+            mode="outlined"
+            labelStyle={{marginHorizontal: 0}}
+            background={{
+              borderless: false,
+              color: 'rgba(255, 255, 255, 0.2)',
+              foreground: true,
+            }}
+            style={{marginTop: 10}}
+            onPress={props.onPress2}>
+            Native stream
+          </Button>
         </View>
       </Card.Content>
     </Card>

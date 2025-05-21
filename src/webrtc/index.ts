@@ -122,20 +122,21 @@ class webRTCClient {
         'connectionstatechange:',
         this._webrtcClient?.connectionState,
       );
+      this._connectedHandler(this._webrtcClient?.connectionState);
     });
 
-    this._webrtcClient.addEventListener('iceconnectionstatechange', _ => {
-      switch (this._webrtcClient?.iceConnectionState) {
-        case 'connected':
-        case 'completed':
-          console.log(
-            'client.current.iceConnectionState:',
-            this._webrtcClient?.iceConnectionState,
-          );
-          this._connectedHandler();
-          break;
-      }
-    });
+    // this._webrtcClient.addEventListener('iceconnectionstatechange', _ => {
+    //   switch (this._webrtcClient?.iceConnectionState) {
+    //     case 'connected':
+    //     case 'completed':
+    //       console.log(
+    //         'client.current.iceConnectionState:',
+    //         this._webrtcClient?.iceConnectionState,
+    //       );
+    //       this._connectedHandler(this._webrtcClient?.iceConnectionState);
+    //       break;
+    //   }
+    // });
   }
 
   createOffer() {
@@ -211,6 +212,14 @@ class webRTCClient {
   setIceCandidates(iceDetails: any) {
     for (const candidate in iceDetails) {
       if (iceDetails[candidate].candidate === 'a=end-of-candidates') {
+        continue;
+      }
+
+      const hasInvalidTcpType =
+        iceDetails[candidate].candidate.includes('UDP') &&
+        iceDetails[candidate].candidate.includes('tcptype');
+      if (hasInvalidTcpType) {
+        // console.warn('Skipping invalid candidate:', iceDetails[candidate]);
         continue;
       }
 
@@ -482,13 +491,6 @@ class webRTCClient {
                     let currentDecodeTime =
                       (totalDecodeTimeDiff / framesDecodedDiff) * 1000;
 
-                    // Fix decode time incorrect in webview
-                    if (currentDecodeTime > 20) {
-                      currentDecodeTime -= 20;
-                    }
-                    if (currentDecodeTime > 18) {
-                      currentDecodeTime -= 15;
-                    }
                     performances.decode = `${currentDecodeTime.toFixed(2)}ms`;
                   } else {
                     performances.decode = '--';

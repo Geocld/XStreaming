@@ -230,7 +230,7 @@ function HomeScreen({navigation, route}) {
     }
   };
 
-  const handleStartStream = async sessionId => {
+  const handleStartStream = async (sessionId, isNative = false) => {
     const settings = getSettings();
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
@@ -239,18 +239,18 @@ function HomeScreen({navigation, route}) {
     if (isUsbMode) {
       setShowUsbWarnShowModal(true);
     } else {
-      handleNavigateStream(sessionId);
+      handleNavigateStream(sessionId, isNative);
     }
   };
 
-  const handleNavigateStream = async sessionId => {
+  const handleNavigateStream = async (sessionId, isNative = false) => {
     const settings = getSettings();
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
     const usbController = await UsbRumbleManager.getUsbController();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
     navigation.navigate({
-      name: 'Stream',
+      name: isNative ? 'NativeStream' : 'Stream',
       params: {
         sessionId,
         settings,
@@ -403,6 +403,7 @@ function HomeScreen({navigation, route}) {
                     <ConsoleItem
                       consoleItem={item}
                       onPress={() => handleStartStream(item.id)}
+                      onPress2={() => handleStartStream(item.id, true)}
                       onPoweronStream={() => handlePoweronAndStream(item.id)}
                     />
                   </View>
