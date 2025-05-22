@@ -29,8 +29,9 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 ## 功能
 
 - 串流Xbox One、Xbox Series S/X的音视频
-- 支持1080P分辨率
+- 支持1080P/1080P(HQ)
 - 支持外接、蓝牙、虚拟手柄，支持手柄振动
+- 支持Webview/Native双渲染模式切换
 - 支持手柄按键映射
 - 免代理云游戏
 - 好友列表
@@ -38,15 +39,16 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 - IPv6优先连接支持
 
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.jpg" width="400" />
-<img src="https://github.com/Geocld/XStreaming/blob/main/images/home.jpg" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.jpg" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings.jpg" width="400" />
+<img src="https://github.com/Geocld/XStreaming/blob/main/images/home.png" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings1.png" width="400" />
+<img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings2.png" width="400" />
 
 ## 兼容性
-理论上XStreaming兼容Android 8+甚至更低版本，但要保证设备的Webview版本不低于91,具体可以查看[低版本安卓无法运行方法](https://github.com/Geocld/XStreaming/blob/main/tools/readme.md)
+XStreaming v2.0.0新增了双渲染内核机制，已兼容webview低于91的设备，如果串流界面出现白屏或无响应的情况，请在`设置 - 渲染引擎 - 选择Native`，即可用安卓原生渲染引擎播放视频流。
 
 ## 本地开发
 
 ### 环境要求
-- [React Native](https://reactnative.dev/) >= 0.74
+- [React Native](https://reactnative.dev/) >= 0.72
 - [NodeJs](https://nodejs.org/) >= 20
 - [Yarn](https://yarnpkg.com/) >= 1.22
 
