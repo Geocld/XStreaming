@@ -3,7 +3,6 @@ import {
   View,
   Alert,
   NativeModules,
-  Vibration,
   NativeEventEmitter,
   StyleSheet,
   ScrollView,
@@ -26,7 +25,7 @@ import {useSelector} from 'react-redux';
 import RNRestart from 'react-native-restart';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
-import {getSettings, saveSettings} from '../store/settingStore';
+import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import webRTCClient from '../webrtc';
 import {debugFactory} from '../utils/debug';
@@ -39,7 +38,6 @@ import PerfPanel from '../components/PerfPanel';
 const log = debugFactory('NativeStreamScreen');
 
 const CONNECTED = 'connected';
-const CONNECTING = 'connecting';
 const CLOSED = 'closed';
 const FAILED = 'failed';
 const DUALSENSE = 'DualSenseController';
@@ -334,8 +332,8 @@ function NativeStreamScreen({navigation, route}) {
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
 
-          const keyUpTimestamp = Date.now();
-          const timeDiff = keyUpTimestamp - (keyDownTimestamp[keyName] || 0);
+          // const keyUpTimestamp = Date.now();
+          // const timeDiff = keyUpTimestamp - (keyDownTimestamp[keyName] || 0);
           // console.log('timeDiff:', timeDiff);
 
           // if (timeDiff < BUTTON_CLICK_THRESHOLD) {
@@ -578,6 +576,8 @@ function NativeStreamScreen({navigation, route}) {
 
       remoteStream.current = new MediaStream(undefined);
 
+      webrtcClient.setPollRate(_settings.polling_rate);
+
       webrtcClient.setTrackHandler(event => {
         const track = event.track;
         if (!remoteStream.current) {
@@ -686,6 +686,100 @@ function NativeStreamScreen({navigation, route}) {
 
         setConnectState(state);
         connectStateRef.current = state;
+      });
+
+      webrtcClient.setRumbleHandler(rumbleData => {
+        if (!_settings.vibration) {
+          return;
+        }
+        console.log('rumbleData:', rumbleData);
+        if (isUsbMode) {
+          // console.log('isUsbMode:', isUsbMode);
+          if (route.params?.usbController === DUALSENSE) {
+            let weakMagnitude = rumbleData.weakMagnitude * 255;
+            let strongMagnitude = rumbleData.strongMagnitude * 255;
+            if (weakMagnitude > 255) {
+              weakMagnitude = 255;
+            }
+            if (strongMagnitude > 255) {
+              strongMagnitude = 255;
+            }
+            UsbRumbleManager.setDsController(
+              16,
+              124,
+              16,
+              0,
+              0,
+              0,
+              strongMagnitude, // left motor
+              weakMagnitude, // right motor
+              _settings.left_trigger_type || 0,
+              _settings.left_trigger_effects || [],
+              _settings.right_trigger_type || 0,
+              _settings.right_trigger_effects || [],
+            );
+          } else {
+            let weakMagnitude = rumbleData.weakMagnitude * 32767;
+            let strongMagnitude = rumbleData.strongMagnitude * 32767;
+            let leftTrigger = rumbleData.leftTrigger * 32767;
+            let rightTrigger = rumbleData.rightTrigger * 32767;
+            if (weakMagnitude > 32767) {
+              weakMagnitude = 32767;
+            }
+            if (strongMagnitude > 32767) {
+              strongMagnitude = 32767;
+            }
+            if (leftTrigger > 32767) {
+              leftTrigger = 32767;
+            }
+            if (rightTrigger > 32767) {
+              rightTrigger = 32767;
+            }
+            if (weakMagnitude > 0 || strongMagnitude > 0) {
+              if (leftTrigger > 0 || rightTrigger > 0) {
+                UsbRumbleManager.rumbleTriggers(leftTrigger, rightTrigger);
+              } else {
+                UsbRumbleManager.rumbleTriggers(0, 0);
+              }
+            } else {
+              UsbRumbleManager.rumbleTriggers(0, 0);
+            }
+            UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
+
+            if (rumbleData.duration < 20) {
+              setTimeout(() => {
+                UsbRumbleManager.rumble(0, 0);
+                UsbRumbleManager.rumbleTriggers(0, 0);
+              }, 300);
+            }
+          }
+        } else {
+          // Native android rumble
+          let weakMagnitude = rumbleData.weakMagnitude * 100;
+          let strongMagnitude = rumbleData.strongMagnitude * 100;
+          let leftTrigger = rumbleData.leftTrigger * 100;
+          let rightTrigger = rumbleData.rightTrigger * 100;
+          if (weakMagnitude > 100) {
+            weakMagnitude = 100;
+          }
+          if (strongMagnitude > 100) {
+            strongMagnitude = 100;
+          }
+          GamepadManager.vibrate(
+            10000,
+            weakMagnitude,
+            strongMagnitude,
+            leftTrigger,
+            rightTrigger,
+            _settings.rumble_intensity || 3,
+          );
+
+          if (rumbleData.duration < 20) {
+            setTimeout(() => {
+              GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
+            }, 300);
+          }
+        }
       });
 
       const exit = () => {
@@ -819,52 +913,6 @@ function NativeStreamScreen({navigation, route}) {
         }
       };
 
-      const setBitrate = (sdp, media, bitrate) => {
-        const lines = sdp.split('\r\n');
-
-        for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
-          let _media = '';
-          let line = lines[lineNumber];
-          if (!line.startsWith('m=')) {
-            continue;
-          }
-          if (line.startsWith(`m=${media}`)) {
-            _media = media;
-          }
-          // Invalid media, continue looking
-          if (!_media) {
-            continue;
-          }
-
-          const bLine = `b=AS:${bitrate}`;
-
-          while ((lineNumber++, lineNumber < lines.length)) {
-            line = lines[lineNumber];
-
-            // Ignore lines that start with "i=" or "c="
-            if (line.startsWith('i=') || line.startsWith('c=')) {
-              continue;
-            }
-
-            if (line.startsWith('b=AS:')) {
-              // Replace bitrate
-              lines[lineNumber] = bLine;
-              // Stop lookine for "b=AS:" line
-              break;
-            }
-
-            if (line.startsWith('m=')) {
-              // "b=AS:" line not found, add "b" line before "m="
-              lines.splice(lineNumber, 0, bLine);
-              // Stop
-              break;
-            }
-          }
-        }
-
-        return lines.join('\r\n');
-      };
-
       streamApi
         .startSession(route.params?.sessionId, _settings.resolution)
         .then(configuration => {
@@ -875,47 +923,6 @@ function NativeStreamScreen({navigation, route}) {
             // Set codec
             if (_settings.codec !== '') {
               offer.sdp = setCodec(offer.sdp);
-            }
-
-            // Set bitrate
-            if (route.params?.streamType === 'cloud') {
-              if (
-                _settings.xcloud_bitrate_mode === 'custom' &&
-                _settings.xcloud_bitrate !== 0
-              ) {
-                console.log(
-                  'setVideoBitrate xcloud:',
-                  _settings.xcloud_bitrate + 'Mb/s',
-                );
-                offer.sdp = setBitrate(
-                  offer.sdp,
-                  'video',
-                  _settings.xcloud_bitrate,
-                );
-              }
-            } else {
-              if (
-                _settings.xhome_bitrate_mode === 'custom' &&
-                _settings.xhome_bitrate !== 0
-              ) {
-                console.log(
-                  'setVideoBitrate xhome:',
-                  _settings.xhome_bitrate + 'Mb/s',
-                );
-                offer.sdp = setBitrate(
-                  offer.sdp,
-                  'video',
-                  _settings.xhome_bitrate,
-                );
-              }
-            }
-
-            if (_settings.audio_bitrate_mode === 'custom') {
-              offer.sdp = setBitrate(
-                offer.sdp,
-                'audio',
-                _settings.audio_bitrate,
-              );
             }
 
             streamApi

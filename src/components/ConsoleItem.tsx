@@ -18,7 +18,7 @@ const ConsoleItem = (props: any) => {
       return (
         <Image
           source={require('../assets/console/series-x.png')}
-          style={{width: '100%', height: 100}}
+          style={{width: '100%', height: 130}}
         />
       );
     } else if (type === 'XboxSeriesS') {
@@ -104,13 +104,9 @@ const styles = StyleSheet.create({
   red: {
     color: '#dc2626',
   },
-  image: {
-    paddingTop: 5,
-    paddingBottom: 5,
-  },
+  image: {},
   textCenter: {
     textAlign: 'center',
-    marginBottom: 5,
   },
   consoleInfos: {},
   footer: {

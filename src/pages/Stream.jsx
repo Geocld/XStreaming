@@ -846,6 +846,13 @@ function StreamScreen({navigation, route}) {
             UsbRumbleManager.rumbleTriggers(0, 0);
           }
           UsbRumbleManager.rumble(weakMagnitude, strongMagnitude);
+
+          if (rumbleData.duration < 20) {
+            setTimeout(() => {
+              UsbRumbleManager.rumble(0, 0);
+              UsbRumbleManager.rumbleTriggers(0, 0);
+            }, 300);
+          }
         }
       } else {
         // Native android rumble

@@ -103,8 +103,9 @@ export default class GamepadDriver implements Driver {
     }
 
     // requestAnimationFrame(() => { this.run() })
+    const pollRate = this._application?._polling_rate || 62.5;
     this._timer = setTimeout(() => {
       this.run();
-    }, 1000 / 120);
+    }, 1000 / pollRate);
   }
 }

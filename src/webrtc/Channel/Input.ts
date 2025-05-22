@@ -87,6 +87,8 @@ export default class InputChannel extends BaseChannel {
 
     this.getClient()._inputDriver.run();
 
+    const pollRate = this.getClient()._polling_rate || 62.5;
+
     this._inputInterval = setInterval(() => {
       const metadataQueue = this.getMetadataQueue();
       const gamepadQueue = this.getGamepadQueue();
@@ -98,7 +100,7 @@ export default class InputChannel extends BaseChannel {
 
         this.send(packet.toBuffer());
       }
-    }, 8); // 16 ms = 1 frame (1000/60)
+    }, 1000 / pollRate); // 16 ms = 1 frame (1000/60)
   }
 
   onMessage(event: any) {
@@ -115,8 +117,8 @@ export default class InputChannel extends BaseChannel {
 
     if (reportType === this._reportTypes.Vibration) {
       dataView.getUint8(i); // rumbleType: 0 = FourMotorRumble
-      const gamepadIndex = dataView.getUint8(i + 1); // Gamepadindex?
-      console.log('gamepad: ', gamepadIndex);
+      // const gamepadIndex = dataView.getUint8(i + 1); // Gamepadindex?
+      // console.log('gamepad: ', gamepadIndex);
       i += 2; // Read one unknown byte extra
 
       const leftMotorPercent = dataView.getUint8(i) / 100;
@@ -139,9 +141,9 @@ export default class InputChannel extends BaseChannel {
         repeat,
       };
 
-      console.log('rumbleData:', rumbleData);
+      // console.log('rumbleData:', rumbleData);
 
-      // TODO: vibrator
+      this._client._rumbleHandler(rumbleData);
     }
   }
 

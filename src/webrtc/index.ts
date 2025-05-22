@@ -82,6 +82,7 @@ class webRTCClient {
     RightThumbXAxis: 0.0,
     RightThumbYAxis: 0.0,
   };
+  _polling_rate = 62.5;
 
   constructor() {
     console.log('xstreaming Player loaded!');
@@ -154,26 +155,6 @@ class webRTCClient {
           this._webrtcClient?.setLocalDescription(offer).then(() => {
             resolve(offer);
           });
-        });
-    });
-  }
-
-  createOffer2() {
-    console.log('createOffer2');
-    return new Promise((resolve, reject) => {
-      if (this._webrtcClient === undefined) {
-        reject('webRTC client not started yet. Run .init() first.');
-        return;
-      }
-      this._webrtcClient
-        .createOffer({
-          mandatory: {
-            OfferToReceiveAudio: true,
-            OfferToReceiveVideo: true,
-          },
-        })
-        .then(offer => {
-          resolve(offer);
         });
     });
   }
@@ -514,6 +495,15 @@ class webRTCClient {
         });
       }
     });
+  }
+
+  setPollRate(value: number) {
+    this._polling_rate = value || 62.5;
+  }
+
+  _rumbleHandler: any;
+  setRumbleHandler(listener: any) {
+    this._rumbleHandler = listener;
   }
 }
 
