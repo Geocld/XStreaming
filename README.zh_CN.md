@@ -40,7 +40,7 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.jpg" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.png" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings1.png" width="400" />
-<img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings2.png" width="400" />
+<img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings2.png" width="400" />
 
 ## 兼容性
 XStreaming v2.0.0新增了双渲染内核机制，已兼容webview低于91的设备，如果串流界面出现白屏或无响应的情况，请在`设置 - 渲染引擎 - 选择Native`，即可用安卓原生渲染引擎播放视频流。

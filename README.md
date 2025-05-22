@@ -42,7 +42,7 @@ If you are looking for Windows/MacOS/Linux(steamOS) Xbox streaming application, 
 
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.jpg" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.png" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings1.png" width="400" />
-<img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings2.png" width="400" />
+<img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings2.png" width="400" />
 
 ## Compatibility
 
