@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.app.Service;
 import android.content.ServiceConnection;
+import android.view.WindowManager;
 
 import com.xstreaming.input.UsbDriverService;
 import com.xstreaming.input.ControllerHandler;
@@ -389,6 +390,8 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     // Start the USB driver
     bindService(new Intent(this, UsbDriverService.class),
             usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
+
+    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
   }
 
   /**
