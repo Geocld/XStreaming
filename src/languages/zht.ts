@@ -58,9 +58,9 @@ export default {
       '設置主機串流碼率（注意：並不是碼率越高越好，最終碼率以串流協商為準）',
     'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
       '設置主機串流碼率（注意：並不是碼率越高越好，最終碼率以串流協商為準）',
-    Codec: '編碼器',
+    Codec: '解碼器',
     'If your device supports newer codecs, it can reduce the video bandwidth requirements':
-      '如果您的設備支持較新的編解碼器，則可以降低視頻帶寬要求。',
+      '如果您的設備支持較新的解碼器，則可以降低視頻帶寬要求。',
     Vibration: '振動',
     'Video stream format': '畫面比例',
     'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
