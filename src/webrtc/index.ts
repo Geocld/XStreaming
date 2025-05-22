@@ -22,10 +22,25 @@ class webRTCClient {
   _webrtcConfiguration = {
     iceServers: [
       {
+        urls: 'stun:worldaz.relay.teams.microsoft.com:3478',
+      },
+      {
         urls: 'stun:stun.l.google.com:19302',
       },
       {
         urls: 'stun:stun1.l.google.com:19302',
+      },
+      {
+        urls: 'stun:relay1.expressturn.com',
+      },
+      {
+        urls: 'stun:relay2.expressturn.com',
+      },
+      {
+        urls: 'stun:stun.kinesisvideo.us-east-1.amazonaws.com:443',
+      },
+      {
+        urls: 'stun:stun.douyucdn.cn:18000',
       },
     ],
   };
@@ -469,6 +484,14 @@ class webRTCClient {
                   if (framesDecodedDiff !== 0) {
                     let currentDecodeTime =
                       (totalDecodeTimeDiff / framesDecodedDiff) * 1000;
+
+                    // Fix decode time is incorrect in android
+                    if (currentDecodeTime > 20) {
+                      currentDecodeTime -= 20;
+                    }
+                    if (currentDecodeTime > 17) {
+                      currentDecodeTime -= 15;
+                    }
 
                     performances.decode = `${currentDecodeTime.toFixed(2)}ms`;
                   } else {
