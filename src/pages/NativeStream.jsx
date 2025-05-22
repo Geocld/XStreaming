@@ -97,7 +97,6 @@ function NativeStreamScreen({navigation, route}) {
   const [connectState, setConnectState] = React.useState('');
   const [performance, setPerformance] = React.useState({});
   const [showPerformance, setShowPerformance] = React.useState(false);
-  const [needPoweroff, setNeedPoweroff] = React.useState(false);
   const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
@@ -692,7 +691,7 @@ function NativeStreamScreen({navigation, route}) {
         if (!_settings.vibration) {
           return;
         }
-        console.log('rumbleData:', rumbleData);
+        // console.log('rumbleData:', rumbleData);
         if (isUsbMode) {
           // console.log('isUsbMode:', isUsbMode);
           if (route.params?.usbController === DUALSENSE) {
@@ -1085,7 +1084,7 @@ function NativeStreamScreen({navigation, route}) {
     setMessageSending(false);
   };
 
-  const handleExit = () => {
+  const handleExit = (off = false) => {
     setLoading(true);
     setLoadingText(t('Disconnecting...'));
     if (isExiting) {
@@ -1094,7 +1093,7 @@ function NativeStreamScreen({navigation, route}) {
     setIsExiting(true);
     webrtcClient && webrtcClient.close();
     streamApi.stopStream().then(() => {
-      if (needPoweroff) {
+      if (off) {
         handlePowerOff();
       }
       setTimeout(() => {
@@ -1163,7 +1162,7 @@ function NativeStreamScreen({navigation, route}) {
     }
   };
 
-  const requestExit = () => {
+  const requestExit = (off = false) => {
     isRequestExit.current = true;
     setShowPerformance(false);
     setShowVirtualGamepad(false);
@@ -1173,7 +1172,7 @@ function NativeStreamScreen({navigation, route}) {
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
     }
-    handleExit();
+    handleExit(off);
   };
 
   const renderVirtualGamepad = () => {
@@ -1290,8 +1289,7 @@ function NativeStreamScreen({navigation, route}) {
                         title={t('Disconnect and power off')}
                         background={background}
                         onPress={() => {
-                          setNeedPoweroff(true);
-                          requestExit();
+                          requestExit(true);
                         }}
                       />
                     )}
