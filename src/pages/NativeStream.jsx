@@ -617,12 +617,12 @@ function NativeStreamScreen({navigation, route}) {
           };
           setTimeout(() => {
             sendFrame();
-          }, 3000);
+          }, 2000);
 
           if (!frameTimer.current) {
             frameTimer.current = setInterval(() => {
               sendFrame();
-            }, 5 * 1000);
+            }, 10 * 1000);
           }
 
           // Start keepalive loop
