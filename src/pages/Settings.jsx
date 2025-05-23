@@ -340,7 +340,7 @@ function SettingsScreen({navigation}) {
             Version: v{pkg.version}
           </Text>
           <Text style={styles.versionText} variant="titleSmall">
-            © 2025 Geocld
+            © 2024-2025 Geocld
           </Text>
         </View>
       </ScrollView>
