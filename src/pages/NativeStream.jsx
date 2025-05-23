@@ -1108,16 +1108,6 @@ function NativeStreamScreen({navigation, route}) {
     });
   };
 
-  const handleTimeoutExit = () => {
-    streamApi.stopStream().then(() => {
-      authentication._tokenStore &&
-        authentication._tokenStore.clearTokenUpdateTime();
-      setTimeout(() => {
-        RNRestart.restart();
-      }, 100);
-    });
-  };
-
   const handleCloseModal = () => {
     setShowModal(false);
     GamepadManager.setCurrentScreen('stream');
@@ -1408,6 +1398,7 @@ const styles = StyleSheet.create({
   player: {
     flex: 1,
     width: '100%',
+    backgroundColor: 'black',
   },
   spinnerTextStyle: {
     color: '#107C10',
