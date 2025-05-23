@@ -461,6 +461,7 @@ function HomeScreen({navigation, route}) {
       <Spinner
         visible={loading}
         color={'#107C10'}
+        overlayColor={'rgba(0, 0, 0, 0)'}
         textContent={loadingText}
         textStyle={styles.spinnerTextStyle}
       />

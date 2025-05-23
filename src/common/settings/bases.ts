@@ -32,8 +32,8 @@ const bases = [
     description: t('renderEngineDesc'),
     tips: t('renderEngineTips'),
     data: [
-      {value: 'web', text: t('Webview')},
       {value: 'native', text: t('Native')},
+      {value: 'web', text: t('Webview')},
     ],
   },
   {

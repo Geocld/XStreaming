@@ -66,6 +66,7 @@ function FriendsScreen({navigation}) {
       <Spinner
         visible={loading}
         color={'#107C10'}
+        overlayColor={'rgba(0, 0, 0, 0)'}
         textContent={t('Loading...')}
         textStyle={styles.spinnerTextStyle}
       />

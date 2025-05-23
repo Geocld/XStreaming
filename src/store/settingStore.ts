@@ -63,7 +63,7 @@ export type Settings = {
 const defaultSettings: Settings = {
   locale: 'en',
   resolution: 720,
-  render_engine: 'web',
+  render_engine: 'native',
   xhome_bitrate_mode: 'auto',
   xhome_bitrate: 20,
   xcloud_bitrate_mode: 'auto',

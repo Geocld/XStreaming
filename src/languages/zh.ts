@@ -283,8 +283,8 @@ export default {
     'NAT failed':
       'NAT失败，如果你正在尝试远程串流，请保证已经正确配置路由器，并设置已经设置端口转发，如果无法解决远程串流，请使用官方Xbox应用。',
     renderEngineTitle: '渲染引擎',
-    renderEngineDesc: '选择webview/native渲染引擎，播放视频流',
+    renderEngineDesc: '选择native/webview渲染引擎，播放视频流',
     renderEngineTips:
-      '\nwebview: 使用系统webview播放视频流，需要webview版本91以上。\n native: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性。',
+      '\nnative: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性(推荐)。\n\nwebview: 使用系统webview播放视频流，需要webview版本91以上。 ',
   },
 };

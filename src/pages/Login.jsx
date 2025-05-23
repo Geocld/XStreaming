@@ -22,7 +22,7 @@ function DetailScreen({navigation, route}) {
         originWhitelist={['*']}
         startInLoadingState={true}
         renderLoading={() => (
-          <Spinner visible={true} cancelable={true} color={'#107C10'} />
+          <Spinner visible={true} cancelable={true} color={'#107C10'} overlayColor={'rgba(0, 0, 0, 0)'} />
         )}
         setSupportMultipleWindows={false}
         onShouldStartLoadWithRequest={request => {

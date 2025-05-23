@@ -90,6 +90,7 @@ function SettingsScreen({navigation}) {
         visible={loading}
         textContent={t('Loading...')}
         color={'#107C10'}
+        overlayColor={'rgba(0, 0, 0, 0)'}
         textStyle={styles.spinnerTextStyle}
       />
 

@@ -154,6 +154,8 @@ function TitleDetail({navigation, route}) {
     <View style={styles.container}>
       <Spinner
         visible={!titleItem}
+        color={'#107C10'}
+        overlayColor={'rgba(0, 0, 0, 0)'}
         textContent={t('Loading...')}
         textStyle={styles.spinnerTextStyle}
       />

@@ -1287,7 +1287,9 @@ function NativeStreamScreen({navigation, route}) {
                   <List.Item
                     title={t('Disconnect')}
                     background={background}
-                    onPress={requestExit}
+                    onPress={() => {
+                      requestExit(false);
+                    }}
                   />
                   <List.Item
                     title={t('Cancel')}
@@ -1365,6 +1367,7 @@ function NativeStreamScreen({navigation, route}) {
         cancelable
         visible={loading}
         color={'#107C10'}
+        overlayColor={'rgba(0, 0, 0, 0)'}
         textContent={loadingText}
         textStyle={styles.spinnerTextStyle}
       />
