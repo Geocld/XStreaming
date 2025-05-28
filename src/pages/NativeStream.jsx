@@ -512,6 +512,18 @@ function NativeStreamScreen({navigation, route}) {
                 gpState.RightThumbYAxis = 0;
               }
             } else if (_settings.sensor_type === 3) {
+              // LT/LB
+              if (
+                gpState.LeftTrigger >= _settings.dead_zone ||
+                gpState.LeftShoulder > 0
+              ) {
+                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
+                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
+              } else {
+                gpState.RightThumbXAxis = 0;
+                gpState.RightThumbYAxis = 0;
+              }
+            } else if (_settings.sensor_type === 4) {
               // Global
               gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
               gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;

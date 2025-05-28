@@ -205,6 +205,7 @@ export default {
     gyroTypeDesc: '設置陀螺儀觸發為LT/LB按下觸發或全局',
     'LT press': 'LT按下',
     'LB press': 'LB按下',
+    'LT/LB press': 'LT或LB按下',
     Global: '全局',
     gyroSenTitleX: '陀螺儀X軸靈敏度',
     gyroSenDescX: '調節陀螺儀X軸靈敏度',
@@ -248,6 +249,8 @@ export default {
     renderEngineTitle: '渲染引擎',
     renderEngineDesc: '你可以選擇 native/webview 渲染引擎來播放影片串流。',
     renderEngineTips:
-      '\nnative: 無需依賴 webview，採用原生渲染，具備更低功耗及更高相容性(推荐)。\n\nwebview: 使用系統 webview 播放影片串流，需 webview 版本 91 以上。',
+      '\nnative: 無需依賴 webview，採用原生渲染，具備更低功耗及更高相容性(推荐)。\n\nwebview: 使用系統 webview 播放影片串流，需 webview 版本 91 以上，该模式支持麦克风(实验)。',
+    'Open Microphone': '打开麦克风',
+    'Close Microphone': '关闭麦克风',
   },
 };

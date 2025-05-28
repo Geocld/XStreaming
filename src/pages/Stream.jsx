@@ -102,6 +102,7 @@ function StreamScreen({navigation, route}) {
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
   const [volume, setVolume] = React.useState(1);
+  const [openMicro, setOpenMicro] = React.useState(false);
 
   const gpDownEventListener = React.useRef(undefined);
   const gpUpEventListener = React.useRef(undefined);
@@ -502,6 +503,18 @@ function StreamScreen({navigation, route}) {
                 gpState.RightThumbYAxis = 0;
               }
             } else if (_settings.sensor_type === 3) {
+              // LT/LB
+              if (
+                gpState.LeftTrigger >= _settings.dead_zone ||
+                gpState.LeftShoulder > 0
+              ) {
+                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
+                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
+              } else {
+                gpState.RightThumbXAxis = 0;
+                gpState.RightThumbYAxis = 0;
+              }
+            } else if (_settings.sensor_type === 4) {
               // Global
               gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
               gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
@@ -905,6 +918,13 @@ function StreamScreen({navigation, route}) {
       setPerformance(perf);
     }
     if (type === 'connectionstate') {
+      // Toggle microphone
+      if (
+        connectState === CONNECTED &&
+        (message === 'new' || message === 'connecting')
+      ) {
+        return;
+      }
       setConnectState(message);
       if (message === CONNECTED) {
         ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
@@ -931,6 +951,13 @@ function StreamScreen({navigation, route}) {
          this situation we should refresh all tokens to make new connection.
        */
       handleTimeoutExit();
+    }
+    if (type === 'sendChatSdp') {
+      streamApi.sendChatSdp(message).then(sdpResponse => {
+        log.info('sendChatSdp.exchangeResponse:', sdpResponse);
+        const sdpDetails = JSON.parse(sdpResponse.exchangeResponse);
+        postData2Webview('sendChatSdpEnd', sdpDetails);
+      });
     }
   };
 
@@ -1191,6 +1218,24 @@ function StreamScreen({navigation, route}) {
                         }}
                       />
                     )}
+
+                  {connectState === CONNECTED && (
+                    <List.Item
+                      title={
+                        openMicro ? t('Close Microphone') : t('Open Microphone')
+                      }
+                      background={background}
+                      onPress={() => {
+                        setOpenMicro(!openMicro);
+                        if (!openMicro) {
+                          postData2Webview('openMicro');
+                        } else {
+                          postData2Webview('closeMicro');
+                        }
+                        handleCloseModal();
+                      }}
+                    />
+                  )}
 
                   {connectState === CONNECTED && (
                     <List.Item

@@ -319,6 +319,78 @@ export default class XcloudApi {
     });
   }
 
+  // sendChatSdpOffer
+  sendChatSdp(sdpOffer) {
+    return new Promise((resolve, reject) => {
+      const body = JSON.stringify({
+        messageType: 'offer',
+        sdp: sdpOffer.sdp,
+        configuration: {
+          isMediaStreamsChatRenegotiation: true,
+        },
+      });
+      axios
+        .post(
+          `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+          body,
+          {
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + this.gsToken,
+            },
+          },
+        )
+        .then(() => {
+          // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
+          axios
+            .get(
+              `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: 'Bearer ' + this.gsToken,
+                },
+              },
+            )
+            .then(res => {
+              log.info('[sendSChatSdp] res.data:', res.data);
+              if (res.data.exchangeResponse) {
+                resolve(res.data);
+              } else {
+                const checkInterval = setInterval(() => {
+                  if (this.isStoped) {
+                    clearInterval(checkInterval);
+                    return;
+                  }
+                  axios
+                    .get(
+                      `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+                      {
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: 'Bearer ' + this.gsToken,
+                        },
+                      },
+                    )
+                    .then(res2 => {
+                      if (res2.data.exchangeResponse) {
+                        resolve(res2.data);
+                        clearInterval(checkInterval);
+                      }
+                    })
+                    .catch(e => {
+                      reject(e);
+                      clearInterval(checkInterval);
+                    });
+                }, 1000);
+              }
+              // resolve(sdpResponse.exchangeResponse);
+            });
+        });
+    });
+  }
+
   checkIceResponse() {
     return new Promise((resolve, reject) => {
       axios
@@ -384,6 +456,7 @@ export default class XcloudApi {
             }
 
             const pattern = new RegExp(
+              // eslint-disable-next-line prettier/prettier
               /^(?:a=)?candidate:(?<foundation>\d+) (?<component>\d+) (?<protocol>\w+) (?<priority>\d+) (?<ip>[^\s]+) (?<port>\d+) (?<the_rest>.*)/
             );
 

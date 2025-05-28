@@ -23,7 +23,8 @@ const sensor = [
     data: [
       {value: 1, text: t('LT press')},
       {value: 2, text: t('LB press')},
-      {value: 3, text: t('Global')},
+      {value: 3, text: t('LT/LB press')},
+      {value: 4, text: t('Global')},
     ],
   },
   {
