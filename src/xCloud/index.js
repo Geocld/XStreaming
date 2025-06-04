@@ -669,6 +669,8 @@ export default class XcloudApi {
     return new Promise((resolve, reject) => {
       const productIdQueue = [];
       const v2TitleMap = {};
+      const _settings = getSettings();
+      const lang = _settings.locale.indexOf('zh') > -1 ? 'zh-TW' : 'en-US';
       if (!Array.isArray(titles)) {
         log.info('[getGamePassProducts] error titles is not a array:', titles);
         resolve([]);
@@ -688,7 +690,7 @@ export default class XcloudApi {
         ];
         axios
           .post(
-            'https://catalog.gamepass.com/v3/products?market=US&language=en-US&hydration=RemoteLowJade0',
+            `https://catalog.gamepass.com/v3/products?market=US&language=${lang}&hydration=RemoteLowJade0`,
             {
               Products: mergeProductIds,
             },

@@ -25,7 +25,7 @@ const ConsoleItem = (props: any) => {
       return (
         <Image
           source={require('../assets/console/series-s.png')}
-          style={{width: '100%', height: 50}}
+          style={{width: '100%', height: 130}}
         />
       );
     } else {
@@ -45,6 +45,11 @@ const ConsoleItem = (props: any) => {
           <View>
             <Text variant="titleMedium" style={styles.textCenter}>
               {consoleItem.consoleType}
+            </Text>
+            <Text
+              variant="labelSmall"
+              style={[styles.textCenter, {color: '#999'}]}>
+              ({consoleItem.id})
             </Text>
             {consoleItem.powerState === 'On' ? (
               <Text style={[styles.green, styles.textCenter]}>

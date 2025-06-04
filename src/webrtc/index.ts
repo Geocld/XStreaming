@@ -255,6 +255,17 @@ class webRTCClient {
     this._connectedHandler = listener;
   }
 
+  _sdpHandler: any;
+  sdpNegotiationChat() {
+    this.createOffer().then(offer => {
+      this._sdpHandler(this, offer);
+    });
+  }
+
+  setSdpHandler(listener: any) {
+    this._sdpHandler = listener;
+  }
+
   _gatherIce() {
     console.log('_gatherIce _webrtcClient:', this._webrtcClient);
     this._webrtcClient?.addEventListener('icecandidate', event => {

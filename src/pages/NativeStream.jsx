@@ -100,6 +100,7 @@ function NativeStreamScreen({navigation, route}) {
   const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
+  const [openMicro, setOpenMicro] = React.useState(false);
 
   // webrtc
   const [webrtcClient, setWebrtcClient] = React.useState(undefined);
@@ -597,6 +598,20 @@ function NativeStreamScreen({navigation, route}) {
         remoteStream.current.addTrack(track, remoteStream.current);
       });
 
+      webrtcClient.setSdpHandler((client, offer) => {
+        streamApi
+          .sendChatSdp(offer)
+          .then(sdpResponse => {
+            log.info('sendChatSdp.exchangeResponse:', sdpResponse);
+            const sdpDetails = JSON.parse(sdpResponse.exchangeResponse);
+
+            webrtcClient.setRemoteOffer(sdpDetails.sdp);
+          })
+          .catch(error => {
+            console.log('ChatSDP Exchange error:', error);
+          });
+      });
+
       webrtcClient.setConnectedHandler(state => {
         if (state === CONNECTED) {
           // Connected
@@ -695,6 +710,7 @@ function NativeStreamScreen({navigation, route}) {
           ]);
         }
 
+        // Toggle microphone
         setConnectState(state);
         connectStateRef.current = state;
       });
@@ -1177,6 +1193,21 @@ function NativeStreamScreen({navigation, route}) {
     handleExit(off);
   };
 
+  const handleToggleMic = () => {
+    if (!webrtcClient) {
+      return;
+    }
+    if (webrtcClient.getChannelProcessor('chat').isPaused === true) {
+      webrtcClient.getChannelProcessor('chat').startMic();
+      setOpenMicro(true);
+    } else {
+      webrtcClient.getChannelProcessor('chat').stopMic();
+      setOpenMicro(false);
+    }
+
+    handleCloseModal();
+  };
+
   const renderVirtualGamepad = () => {
     if (!showVirtualGamepad) {
       return null;
@@ -1232,17 +1263,26 @@ function NativeStreamScreen({navigation, route}) {
                     />
                   )}
 
-                  {connectState === CONNECTED &&
-                    settings.gamepad_kernal === 'Native' && (
-                      <List.Item
-                        title={t('Toggle Virtual Gamepad')}
-                        background={background}
-                        onPress={() => {
-                          setShowVirtualGamepad(!showVirtualGamepad);
-                          handleCloseModal();
-                        }}
-                      />
-                    )}
+                  {connectState === CONNECTED && (
+                    <List.Item
+                      title={t('Toggle Virtual Gamepad')}
+                      background={background}
+                      onPress={() => {
+                        setShowVirtualGamepad(!showVirtualGamepad);
+                        handleCloseModal();
+                      }}
+                    />
+                  )}
+
+                  {/* {connectState === CONNECTED && (
+                    <List.Item
+                      title={
+                        openMicro ? t('Close Microphone') : t('Open Microphone')
+                      }
+                      background={background}
+                      onPress={handleToggleMic}
+                    />
+                  )} */}
 
                   {connectState === CONNECTED && (
                     <List.Item

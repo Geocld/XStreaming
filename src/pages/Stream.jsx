@@ -1219,7 +1219,7 @@ function StreamScreen({navigation, route}) {
                       />
                     )}
 
-                  {connectState === CONNECTED && (
+                  {/* {connectState === CONNECTED && (
                     <List.Item
                       title={
                         openMicro ? t('Close Microphone') : t('Open Microphone')
@@ -1235,7 +1235,7 @@ function StreamScreen({navigation, route}) {
                         handleCloseModal();
                       }}
                     />
-                  )}
+                  )} */}
 
                   {connectState === CONNECTED && (
                     <List.Item
