@@ -12,6 +12,8 @@ import RNRestart from 'react-native-restart';
 import Slider from '@react-native-community/slider';
 import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {clearStreamToken} from '../store/streamTokenStore';
+import {clearWebToken} from '../store/webTokenStore';
 
 import bases from '../common/settings/bases';
 import display from '../common/settings/display';
@@ -105,9 +107,16 @@ function SettingDetailScreen({navigation, route}) {
   };
 
   const handleSave = () => {
-    if (current === 'locale' || current === 'force_region_ip') {
+    if (current === 'locale') {
       handleSaveSettings();
       restart();
+    } else if (current === 'force_region_ip') {
+      clearStreamToken();
+      clearWebToken();
+      handleSaveSettings();
+      setTimeout(() => {
+        restart();
+      }, 500);
     } else if (current === 'xhome_bitrate_mode') {
       settings.xhome_bitrate_mode = value;
       settings.xhome_bitrate = value2;

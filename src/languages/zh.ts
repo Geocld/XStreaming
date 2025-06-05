@@ -23,6 +23,7 @@ export default {
       '无法在主机上建立串流，原因是主机没有连接到Xbox服务器，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试手动重启主机并重试',
     'Login has expired or not logged in, please log in again':
       '登录已失效或未登录，请重新登录',
+    AuthFailDesc: '认证失败，请重新登录，错误:',
     'Loading...': '加载中...',
     'Start stream': '开始串流',
     'Power on and start stream': '开机串流',

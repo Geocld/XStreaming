@@ -11,6 +11,7 @@ import {
 import {Button, Text, FAB, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
+import RNRestart from 'react-native-restart';
 import ConsoleItem from '../components/ConsoleItem';
 import Profile from '../components/Profile';
 import {getSettings, saveSettings} from '../store/settingStore';
@@ -104,6 +105,8 @@ function HomeScreen({navigation, route}) {
     } else {
       if (!_authentication.current) {
         log.info('Authentication initial.');
+
+        // Auth completed callback
         const authenticationCompleted = async (_streamingTokens, _webToken) => {
           log.info('Authentication completed');
           webTokenRef.current = _webToken;
@@ -143,7 +146,24 @@ function HomeScreen({navigation, route}) {
           setLoading(false);
         };
 
-        _authentication.current = new Authentication(authenticationCompleted);
+        // Auth failed callback
+        const authenticationFailed = msg => {
+          Alert.alert(t('Error'), t('AuthFailDesc') + msg, [
+            {
+              text: t('Confirm'),
+              style: 'default',
+              onPress: () => {
+                // Restart application to relogin
+                RNRestart.restart();
+              },
+            },
+          ]);
+        };
+
+        _authentication.current = new Authentication(
+          authenticationCompleted,
+          authenticationFailed,
+        );
         dispatch({
           type: 'SET_AUTHENTICATION',
           payload: _authentication.current,

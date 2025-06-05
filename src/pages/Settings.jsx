@@ -9,6 +9,8 @@ import RNRestart from 'react-native-restart';
 import CookieManager from '@react-native-cookies/cookies';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
+import {clearStreamToken} from '../store/streamTokenStore';
+import {clearWebToken} from '../store/webTokenStore';
 
 import bases from '../common/settings/bases';
 import display from '../common/settings/display';
@@ -50,6 +52,8 @@ function SettingsScreen({navigation}) {
           style: 'default',
           onPress: () => {
             setLoading(true);
+            clearStreamToken();
+            clearWebToken();
             authentication._tokenStore.clear();
             CookieManager.clearAll();
             setTimeout(() => {
@@ -318,11 +322,11 @@ function SettingsScreen({navigation}) {
             />
           )}
 
-          {/* <SettingItem
+          <SettingItem
             title={'DEBUG'}
             description={'Enter debug'}
             onPress={() => handleItemPress('debug')}
-          /> */}
+          />
 
           {profile && profile.GameDisplayName ? (
             <SettingItem

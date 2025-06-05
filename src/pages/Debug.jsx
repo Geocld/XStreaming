@@ -66,7 +66,7 @@ function DebugScreen({navigation, route}) {
           setShowDebug(true);
         }}
       />
-      {/* <SettingItem
+      <SettingItem
         title={'Show tokens'}
         description={'Show auth token'}
         onPress={() => {
@@ -81,7 +81,7 @@ function DebugScreen({navigation, route}) {
       `;
           Alert.alert('Token', result);
         }}
-      /> */}
+      />
       {/* <SettingItem
         title={'Gamepad debug'}
         description={`Test OTG Gamepad.`}

@@ -21,6 +21,7 @@ export default {
       '無法在主機上建立串流，原因是主機沒有連接到Xbox伺服器，這通常發生在主機系統異常或主機正在更新或主機未登錄賬號，請嘗試手動重啟主機並重試',
     'Login has expired or not logged in, please log in again':
       '登錄已失效或未登錄，請重新登錄',
+    AuthFailDesc: '认证失败，請重新登錄，错误:',
     'Loading...': '加載中...',
     'Start stream': '開始串流',
     'Power on and start stream': '開機並串流',

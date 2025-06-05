@@ -13,8 +13,9 @@ export default {
     Warning: 'Warning',
     WaitingForServerToRegister:
       'Unable to start stream session on console. The console is not connected to the Xbox servers. This ocasionally happens then there is an update or when the user is not signed in to the console. Please hard reboot your console and try again.',
-    'Login has expired or not logged in, please log in again':
-      'Login has expired or not logged in, please log in again',
+    'Login has expired or not logged in, please login again':
+      'Login has expired or not logged in, please login again',
+    AuthFailDesc: 'Login failed, please login again, error:',
     'Loading...': 'Loading...',
     'Start stream': 'Start stream',
     'Power on and start stream': 'Power on start stream',
