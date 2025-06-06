@@ -287,7 +287,7 @@ export default {
     renderEngineTitle: '渲染引擎',
     renderEngineDesc: '选择native/webview渲染引擎，播放视频流',
     renderEngineTips:
-      '\nnative: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性(推荐)。\n\nwebview: 使用系统webview播放视频流，需要webview版本91以上,该模式支持麦克风(实验)。 ',
+      '\nnative: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性(推荐)。\n\nwebview: 使用系统webview播放视频流，需要webview版本91以上。 ',
     'Open Microphone': '打开麦克风',
     'Close Microphone': '关闭麦克风',
   },
