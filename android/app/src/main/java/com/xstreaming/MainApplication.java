@@ -11,9 +11,12 @@ import com.facebook.soloader.SoLoader;
 import com.umeng.commonsdk.UMConfigure;
 
 import com.oney.WebRTCModule.WebRTCModuleOptions;
+
+import android.content.Context;
 import android.media.AudioAttributes;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
+import android.media.AudioManager;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -76,9 +79,15 @@ public class MainApplication extends Application implements ReactApplication {
           .setUsage(AudioAttributes.USAGE_MEDIA)
           .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
           .build();
+
+    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+    boolean isStereoSupported = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE) != null;
+
     options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
-          .setAudioAttributes(audioAttributes)
-          .createAudioDeviceModule();
+            .setAudioAttributes(audioAttributes)
+            .setUseStereoInput(isStereoSupported)
+            .setUseStereoOutput(isStereoSupported)
+            .createAudioDeviceModule();
 
     UMConfigure.preInit(this,"66ab42a4192e0574e75249b9","XStreaming");
     UMConfigure.init(this, "66ab42a4192e0574e75249b9", "XStreaming", UMConfigure.DEVICE_TYPE_PHONE, "");

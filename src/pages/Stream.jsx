@@ -108,8 +108,7 @@ function StreamScreen({navigation, route}) {
   const gpUpEventListener = React.useRef(undefined);
   const dpDownEventListener = React.useRef(undefined);
   const dpUpEventListener = React.useRef(undefined);
-  const leftStickEventListener = React.useRef(undefined);
-  const rightStickEventListener = React.useRef(undefined);
+  const stickEventListener = React.useRef(undefined);
   const triggerEventListener = React.useRef(undefined);
   const timer = React.useRef(undefined);
   const isLeftTriggerCanClick = React.useRef(false);
@@ -362,26 +361,24 @@ function StreamScreen({navigation, route}) {
         },
       );
 
-      leftStickEventListener.current = eventEmitter.addListener(
-        'onLeftStickMove',
+      stickEventListener.current = eventEmitter.addListener(
+        'onStickMove',
         event => {
-          // console.log('onLeftStickMove:', event);
-          gpState.LeftThumbXAxis = normaliseAxis(event.axisX);
-          gpState.LeftThumbYAxis = normaliseAxis(event.axisY);
-        },
-      );
+          // console.log('onStickMove:', event);
+          gpState.LeftThumbXAxis = normaliseAxis(event.leftStickX);
+          gpState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
 
-      rightStickEventListener.current = eventEmitter.addListener(
-        'onRightStickMove',
-        event => {
-          if (Math.abs(event.axisX) > 0.1 || Math.abs(event.axisY) > 0.1) {
+          if (
+            Math.abs(event.rightStickX) > 0.1 ||
+            Math.abs(event.rightStickY) > 0.1
+          ) {
             isRightstickMoving.current = true;
           } else {
             isRightstickMoving.current = false;
           }
 
-          gpState.RightThumbXAxis = normaliseAxis(event.axisX);
-          gpState.RightThumbYAxis = normaliseAxis(event.axisY);
+          gpState.RightThumbXAxis = normaliseAxis(event.rightStickX);
+          gpState.RightThumbYAxis = normaliseAxis(event.rightStickY);
         },
       );
 
@@ -588,9 +585,7 @@ function StreamScreen({navigation, route}) {
       gpUpEventListener.current && gpUpEventListener.current.remove();
       dpDownEventListener.current && dpDownEventListener.current.remove();
       dpUpEventListener.current && dpUpEventListener.current.remove();
-      leftStickEventListener.current && leftStickEventListener.current.remove();
-      rightStickEventListener.current &&
-        rightStickEventListener.current.remove();
+      stickEventListener.current && stickEventListener.current.remove();
       triggerEventListener.current && triggerEventListener.current.remove();
       sensorEventListener.current && sensorEventListener.current.remove();
       timer.current && clearInterval(timer.current);

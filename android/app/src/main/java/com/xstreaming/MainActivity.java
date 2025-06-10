@@ -27,6 +27,7 @@ import android.view.WindowManager;
 
 import com.xstreaming.input.UsbDriverService;
 import com.xstreaming.input.ControllerHandler;
+import com.xstreaming.utils.Vector2d;
 
 class Dpad {
   final static int UP       = 19;
@@ -101,6 +102,8 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
 
   public static MainActivity instance;
 
+  private final Vector2d inputVector = new Vector2d();
+
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
    * rendering of the component.
@@ -168,44 +171,6 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     return 0;
   }
 
-  private void processJoystickInput(MotionEvent event,
-                                    int historyPos) {
-
-    InputDevice inputDevice = event.getDevice();
-
-    // Calculate the horizontal distance to move by
-    // using the input value from one of these physical controls:
-    // the left control stick, hat axis, or the right control stick.
-    float x = getCenteredAxis(event, inputDevice,
-            MotionEvent.AXIS_X, historyPos);
-
-    float rx = getCenteredAxis(event, inputDevice,
-            MotionEvent.AXIS_Z, historyPos);
-
-    // Calculate the vertical distance to move by
-    // using the input value from one of these physical controls:
-    // the left control stick, hat switch, or the right control stick.
-    float y = getCenteredAxis(event, inputDevice,
-            MotionEvent.AXIS_Y, historyPos);
-
-    float ry = getCenteredAxis(event, inputDevice,
-            MotionEvent.AXIS_RZ, historyPos);
-
-    Log.d("MainActivity1", "left axisX:" + x);
-    Log.d("MainActivity1", "left axisY:" + y);
-    WritableMap leftParams = Arguments.createMap();
-    leftParams.putDouble("axisX", x);
-    leftParams.putDouble("axisY", y);
-    sendEvent("onLeftStickMove", leftParams);
-
-    Log.d("MainActivity1", "right axisX:" + rx);
-    Log.d("MainActivity1", "right axisY:" + ry);
-    WritableMap rightParams = Arguments.createMap();
-    rightParams.putDouble("axisX", rx);
-    rightParams.putDouble("axisY", ry);
-    sendEvent("onRightStickMove", rightParams);
-  }
-
   private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
     InputDevice.MotionRange range;
 
@@ -217,6 +182,23 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     }
 
     return range;
+  }
+
+  private Vector2d populateCachedVector(float x, float y) {
+    // Reinitialize our cached Vector2d object
+    inputVector.initialize(x, y);
+    return inputVector;
+  }
+
+  private void handleDeadZone(Vector2d stickVector, float deadzoneRadius) {
+    if (stickVector.getMagnitude() <= deadzoneRadius) {
+      // Deadzone
+      stickVector.initialize(0, 0);
+    }
+
+    // We're not normalizing here because we let the computer handle the deadzones.
+    // Normalizing can make the deadzones larger than they should be after the computer also
+    // evaluates the deadzone.
   }
 
   @Override
@@ -245,7 +227,7 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       }
     }
 
-    // Joystick
+    // Trigger
     if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) ==
             InputDevice.SOURCE_JOYSTICK &&
             event.getAction() == MotionEvent.ACTION_MOVE) {
@@ -311,23 +293,99 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
         }
       }
 
-      Log.d("MainActivity1", "Left Trigger:" + lTrigger);
-      Log.d("MainActivity1", "Right Trigger:" + rTrigger);
+//      Log.d("MainActivity1", "Left Trigger:" + lTrigger);
+//      Log.d("MainActivity1", "Right Trigger:" + rTrigger);
 
       WritableMap triggerParams = Arguments.createMap();
       triggerParams.putDouble("leftTrigger", lTrigger);
       triggerParams.putDouble("rightTrigger", rTrigger);
       sendEvent("onTrigger", triggerParams);
 
-      // Process the movements starting from the
-      // earliest historical position in the batch
-      for (int i = 0; i < historySize; i++) {
-        // Process the event at historical position i
-        processJoystickInput(event, i);
+      int deadzonePercentage = 10;
+      int leftStickXAxis = MotionEvent.AXIS_X;
+      int leftStickYAxis = MotionEvent.AXIS_Y;
+      int rightStickXAxis = -1;
+      int rightStickYAxis = -1;
+      double stickDeadzone = (double)deadzonePercentage / 100.0;
+      float leftStickDeadzoneRadius = (float) stickDeadzone;
+      float rightStickDeadzoneRadius = (float) stickDeadzone;
+
+      InputDevice.MotionRange zRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_Z);
+      InputDevice.MotionRange rzRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RZ);
+
+      if (zRange != null && rzRange != null) {
+        rightStickXAxis = MotionEvent.AXIS_Z;
+        rightStickYAxis = MotionEvent.AXIS_RZ;
+      } else {
+        // Try RX and RY now
+        InputDevice.MotionRange rxRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RX);
+        InputDevice.MotionRange ryRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RY);
+
+        if (rxRange != null && ryRange != null) {
+          rightStickXAxis = MotionEvent.AXIS_RX;
+          rightStickYAxis = MotionEvent.AXIS_RY;
+        }
       }
 
-      // Process the current movement sample in the batch (position -1)
-      processJoystickInput(event, -1);
+      float lsX = 0, lsY = 0, rsX = 0, rsY = 0, rt = 0, lt = 0, hatX = 0, hatY = 0;
+      lsX = event.getAxisValue(leftStickXAxis);
+      lsY = event.getAxisValue(leftStickYAxis);
+
+      rsX = event.getAxisValue(rightStickXAxis);
+      rsY = event.getAxisValue(rightStickYAxis);
+
+      // Left stick
+      Vector2d leftStickVector = populateCachedVector(lsX, lsY);
+      handleDeadZone(leftStickVector, leftStickDeadzoneRadius);
+
+      double leftStickX = leftStickVector.getX();
+      double leftStickY = leftStickVector.getY();
+
+      if(leftStickX > 1) {
+        leftStickX = 1;
+      }
+      if(leftStickX < -1) {
+        leftStickX = -1;
+      }
+      if(leftStickY > 1) {
+        leftStickY = 1;
+      }
+      if(leftStickY < -1) {
+        leftStickY = -1;
+      }
+
+//      Log.d("MainActivity1", "left axisX:" + leftStickX);
+//      Log.d("MainActivity1", "left axisY:" + leftStickY);
+
+      // Right stick
+      Vector2d rightStickVector = populateCachedVector(rsX, rsY);
+
+      handleDeadZone(rightStickVector, rightStickDeadzoneRadius);
+
+      double rightStickX = rightStickVector.getX();
+      double rightStickY = rightStickVector.getY();
+
+      if(rightStickX > 1) {
+        rightStickX = 1;
+      }
+      if(rightStickX < -1) {
+        rightStickX = -1;
+      }
+      if(rightStickY > 1) {
+        rightStickY = 1;
+      }
+      if(rightStickY < -1) {
+        rightStickY = -1;
+      }
+
+      //  Log.d("MainActivity1", "right axisX:" + rightStickX);
+      //  Log.d("MainActivity1", "right axisY:" + rightStickY);
+      WritableMap stickParams = Arguments.createMap();
+      stickParams.putDouble("leftStickX", leftStickX);
+      stickParams.putDouble("leftStickY", leftStickY);
+      stickParams.putDouble("rightStickX", rightStickX);
+      stickParams.putDouble("rightStickY", rightStickY);
+      sendEvent("onStickMove", stickParams);
     }
     return true;
   }
