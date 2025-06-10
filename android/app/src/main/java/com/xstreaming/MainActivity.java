@@ -113,19 +113,104 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     return "xstreaming";
   }
 
+  private void handleSendDpadDownEvent(int keyCode) {
+    WritableMap params = Arguments.createMap();
+    params.putInt("dpadIdx", keyCode);
+    sendEvent("onDpadKeyDown", params);
+  }
+
+  private void handleSendDpadUpEvent() {
+    WritableMap params = Arguments.createMap();
+    params.putInt("dpadIdx", -1);
+    sendEvent("onDpadKeyUp", params);
+  }
+
+  private int handleRemapping(int keyCode, KeyEvent event, String type) {
+    InputDevice inputDevice = event.getDevice();
+    // Joycon left
+    if (inputDevice.getVendorId() == 0x057e && inputDevice.getProductId() == 0x2006) {
+      switch (event.getScanCode())
+      {
+        case 546:
+          if (type.equals("down")) {
+            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_LEFT);
+          } else {
+            handleSendDpadUpEvent();
+          }
+          return KeyEvent.KEYCODE_DPAD_LEFT;
+        case 547:
+          if (type.equals("down")) {
+            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_RIGHT);
+          } else {
+            handleSendDpadUpEvent();
+          }
+          return KeyEvent.KEYCODE_DPAD_RIGHT;
+        case 544:
+          if (type.equals("down")) {
+            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_UP);
+          } else {
+            handleSendDpadUpEvent();
+          }
+          return KeyEvent.KEYCODE_DPAD_UP;
+        case 545:
+          if (type.equals("down")) {
+            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_DOWN);
+          } else {
+            handleSendDpadUpEvent();
+          }
+          return KeyEvent.KEYCODE_DPAD_DOWN;
+        case 309: // screenshot
+          return KeyEvent.KEYCODE_BUTTON_MODE;
+        case 310:
+          return KeyEvent.KEYCODE_BUTTON_L1;
+        case 312:
+          return KeyEvent.KEYCODE_BUTTON_L2;
+        case 314:
+          return KeyEvent.KEYCODE_BUTTON_SELECT;
+        case 317:
+          return KeyEvent.KEYCODE_BUTTON_THUMBL;
+      }
+    }
+    // Joycon right
+    if (inputDevice.getVendorId() == 0x057e && inputDevice.getProductId() == 0x2007) {
+      switch (event.getScanCode())
+      {
+        case 307:
+          return KeyEvent.KEYCODE_BUTTON_Y;
+        case 308:
+          return KeyEvent.KEYCODE_BUTTON_X;
+        case 304:
+          return KeyEvent.KEYCODE_BUTTON_A;
+        case 305:
+          return KeyEvent.KEYCODE_BUTTON_B;
+        case 311:
+          return KeyEvent.KEYCODE_BUTTON_R1;
+        case 313:
+          return KeyEvent.KEYCODE_BUTTON_R2;
+        case 315:
+          return KeyEvent.KEYCODE_BUTTON_START;
+        case 316:
+          return KeyEvent.KEYCODE_BUTTON_MODE;
+        case 318:
+          return KeyEvent.KEYCODE_BUTTON_THUMBR;
+      }
+    }
+    return keyCode;
+  }
+
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     String currentScreen = GamepadManager.getCurrentScreen();
-    Log.d("MainActivity1", "keyCode down:" + keyCode);
-    Log.d("MainActivity1", "currentScreen:" + currentScreen);
+//    Log.d("MainActivity1", "currentScreen:" + currentScreen);
 
     if (!currentScreen.equals("stream")) {
       return super.onKeyDown(keyCode, event);
     }
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+      int finalKeyCode = handleRemapping(keyCode, event, "down");
       WritableMap params = Arguments.createMap();
-      params.putInt("keyCode", keyCode);
-      Log.d("MainActivity1", "keyCode down2:" + params);
+      params.putInt("keyCode", finalKeyCode);
+//      Log.d("MainActivity1", "keyCode down:" + keyCode);
       sendEvent("onGamepadKeyDown", params);
       return true;
     }
@@ -139,36 +224,14 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       return super.onKeyUp(keyCode, event);
     }
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+      int finalKeyCode = handleRemapping(keyCode, event, "up");
       WritableMap params = Arguments.createMap();
-      params.putInt("keyCode", keyCode);
-      Log.d("MainActivity1", "keyCode up:" + params);
+      params.putInt("keyCode", finalKeyCode);
+//      Log.d("MainActivity1", "keyCode up:" + params);
       sendEvent("onGamepadKeyUp", params);
       return true;
     }
     return super.onKeyUp(keyCode, event);
-  }
-
-  private static float getCenteredAxis(MotionEvent event,
-                                       InputDevice device, int axis, int historyPos) {
-    final InputDevice.MotionRange range =
-            device.getMotionRange(axis, event.getSource());
-
-    // A joystick at rest does not always report an absolute position of
-    // (0,0). Use the getFlat() method to determine the range of values
-    // bounding the joystick axis center.
-    if (range != null) {
-      final float flat = range.getFlat();
-      final float value =
-              historyPos < 0 ? event.getAxisValue(axis):
-                      event.getHistoricalAxisValue(axis, historyPos);
-
-      // Ignore axis values that are within the 'flat' region of the
-      // joystick axis center.
-      if (Math.abs(value) > flat) {
-        return value;
-      }
-    }
-    return 0;
   }
 
   private static InputDevice.MotionRange getMotionRangeForJoystickAxis(InputDevice dev, int axis) {
@@ -231,8 +294,6 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) ==
             InputDevice.SOURCE_JOYSTICK &&
             event.getAction() == MotionEvent.ACTION_MOVE) {
-      // Process all historical movement samples in the batch
-      final int historySize = event.getHistorySize();
 
       InputDevice.MotionRange leftTriggerRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_LTRIGGER);
       InputDevice.MotionRange rightTriggerRange = getMotionRangeForJoystickAxis(inputDevice, MotionEvent.AXIS_RTRIGGER);
