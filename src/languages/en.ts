@@ -140,6 +140,27 @@ export default {
     renderEngineDesc:
       'You can choose between native/webview rendering engines to play the video stream.',
     renderEngineTips:
-      '\nnative: No dependency on webview, uses native rendering for lower power consumption and better compatibility(recommend).\n\nwebview: Uses the system webview to play video streams, requiring webview version 91 or higher.',
+      '\nnative: No dependency on webview, uses native rendering for lower power consumption and better compatibility(recommend).\n\nwebview: Uses the system webview to play video streams, requiring webview version 91 or higher.\n\nDifferent rendering engines have their own advantages and disadvantages. Please choose based on the actual performance of the device.',
+    'Device testing': 'Device testing',
+    'Testing current device and controller':
+      'Testing current device and controller',
+    Rumble1s: 'Rumble1s',
+    'Stop rumble': 'Stop rumble',
+    ControllerRumble: 'Controller Rumble',
+    Refresh: 'Refresh',
+    Model: 'Model',
+    'Android Version': 'Android Version',
+    'API Version': 'API Version',
+    'Kernal Version': 'Kernel Version',
+    'Webview Version': 'Webview Version',
+    'Device rumble': 'Device rumble',
+    supported: 'supported',
+    unsupported: 'unsupported',
+    lowThanAndroid12: 'Below Android 12',
+    Controllers: 'Controllers',
+    Name: 'Name',
+    Rumble: 'Rumble',
+    Sensor: 'Sensor',
+    Details: 'Details',
   },
 };

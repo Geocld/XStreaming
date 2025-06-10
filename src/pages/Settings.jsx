@@ -308,11 +308,22 @@ function SettingsScreen({navigation}) {
               />
             );
           })}
+          <SettingItem
+            title={t('Device testing')}
+            description={t('Testing current device and controller')}
+            onPress={() => navigation.navigate('DeviceInfos')}
+          />
 
           <SettingItem
             title={t('About')}
             description={`${t('About XStreaming')}`}
-            onPress={() => navigation.navigate('About')}
+            onPress={() => {
+              if (currentLanguage === 'zh' || currentLanguage === 'zht') {
+                navigation.navigate('AboutZh');
+              } else {
+                navigation.navigate('About');
+              }
+            }}
           />
           {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
             <SettingItem
@@ -322,11 +333,11 @@ function SettingsScreen({navigation}) {
             />
           )}
 
-          <SettingItem
+          {/* <SettingItem
             title={'DEBUG'}
             description={'Enter debug'}
             onPress={() => handleItemPress('debug')}
-          />
+          /> */}
 
           {profile && profile.GameDisplayName ? (
             <SettingItem

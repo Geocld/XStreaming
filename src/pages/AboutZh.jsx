@@ -3,7 +3,7 @@ import {StyleSheet, View, ScrollView} from 'react-native';
 import {Text} from 'react-native-paper';
 import LinkText from '../components/LinkText';
 
-function AboutScreen() {
+function AboutZhScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.block}>
@@ -12,19 +12,18 @@ function AboutScreen() {
         </View>
         <View>
           <Text variant="titleMedium">
-            XStreaming is an Open source Xbox streaming client that allows you
-            stream Xbox and play xCloud anytime, supporting Android/iOS.
+            XStreaming是一款开源的Xbox/云游戏串流移动端客户端,你可以使用XStreaming在任何地方连接Xbox主机和游玩xCloud，支持Android/iOS/Windows/MacOS/SteamOS
           </Text>
         </View>
       </View>
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">Contribute to XStreaming</Text>
+          <Text variant="titleLarge">给XStreaming做贡献</Text>
         </View>
 
         <View>
-          <Text variant="titleMedium">XStreaming:</Text>
+          <Text variant="titleMedium">XStreaming代码仓库:</Text>
         </View>
         <View>
           <LinkText url={'https://github.com/Geocld/XStreaming'}>
@@ -34,7 +33,7 @@ function AboutScreen() {
 
         <View style={{marginTop: 15}}>
           <Text variant="titleMedium">
-            XStreaming-desktop(Windows/MacOS/SteamOS):
+            桌面端 XStreaming-desktop(Windows/MacOS/SteamOS):
           </Text>
         </View>
         <View>
@@ -56,7 +55,7 @@ function AboutScreen() {
       <View style={styles.block}>
         <View style={styles.title}>
           <Text variant="titleLarge">
-            Are you looking for an Playstation streaming client?
+            如果你在找一款PlayStation串流客户端，可以尝试安卓端PeaSyo：
           </Text>
         </View>
 
@@ -72,7 +71,7 @@ function AboutScreen() {
 
       <View style={styles.block}>
         <View style={styles.title}>
-          <Text variant="titleLarge">About author</Text>
+          <Text variant="titleLarge">关于作者</Text>
         </View>
         <View>
           <View>
@@ -101,4 +100,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AboutScreen;
+export default AboutZhScreen;

@@ -41,10 +41,12 @@ import NativeGameMapScreen from './pages/NativeGameMap';
 import GameMapDetailScreen from './pages/GameMapDetail';
 import DisplaySettingsScreen from './pages/DisplaySettings';
 import AboutScreen from './pages/About';
+import AboutZhScreen from './pages/AboutZh';
 import FeedbackScreen from './pages/Feedback';
 import VirtualGamepadSettingsScreen from './pages/VirtualGamepadSettings';
 import CustomGamepadScreen from './pages/CustomGamepad';
 import Ds5SettingsScreen from './pages/Ds5Settings';
+import DeviceInfosScreen from './pages/DeviceInfos';
 import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
@@ -240,6 +242,11 @@ function App() {
                   options={{title: t('About')}}
                 />
                 <RootStack.Screen
+                  name="AboutZh"
+                  component={AboutZhScreen}
+                  options={{title: t('About')}}
+                />
+                <RootStack.Screen
                   name="Feedback"
                   component={FeedbackScreen}
                   options={{title: t('Feedback')}}
@@ -262,6 +269,11 @@ function App() {
                   name="Ds5"
                   component={Ds5SettingsScreen}
                   options={{title: t('DualSense')}}
+                />
+                <RootStack.Screen
+                  name="DeviceInfos"
+                  component={DeviceInfosScreen}
+                  options={{title: t('Device testing')}}
                 />
                 <RootStack.Screen name="Debug" component={DebugScreen} />
               </RootStack.Group>
