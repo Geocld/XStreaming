@@ -6,7 +6,15 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import {Text, SegmentedButtons, Appbar, Chip} from 'react-native-paper';
+import {
+  Text,
+  SegmentedButtons,
+  Appbar,
+  Chip,
+  Portal,
+  Modal,
+  Card,
+} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useSelector} from 'react-redux';
 import TitleItem from '../components/TitleItem';
@@ -19,8 +27,10 @@ import {useTranslation} from 'react-i18next';
 const log = debugFactory('CloudScreen');
 
 function CloudScreen({navigation, route}) {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
   const streamingTokens = useSelector(state => state.streamingTokens);
+
+  const currentLanguage = i18n.language;
 
   // log.info('streamingTokens:', streamingTokens);
 
@@ -31,6 +41,7 @@ function CloudScreen({navigation, route}) {
   const [loading, setLoading] = React.useState(false);
   const [loadmoring, setLoadmoring] = React.useState(false);
   const [isLimited, setIsLimited] = React.useState(false);
+  const [showToturial, setShowToturial] = React.useState(false);
   const [titles, setTitles] = React.useState([]);
   const [newTitles, setNewTitles] = React.useState([]);
   const [titlesMap, setTitlesMap] = React.useState({});
@@ -179,6 +190,45 @@ function CloudScreen({navigation, route}) {
     }, 1000);
   };
 
+  const renderTutorial = () => {
+    return (
+      <Portal>
+        <Modal
+          visible={showToturial}
+          onDismiss={() => {
+            setShowToturial(false);
+          }}
+          contentContainerStyle={{marginLeft: '10%', marginRight: '10%'}}>
+          <Card>
+            <Card.Content>
+              <Text variant="bodyMedium">
+                如果你在中国大陆地区，因为云游戏服务器均在海外，云游戏延迟和丢包率高都是正常现象，
+                如果你需要使用加速器提升云游戏质量，请按照以下操作顺序加速云游戏。
+              </Text>
+              <Text variant="bodyMedium" style={{marginTop: 10}}>
+                1. 打开XStreaming，设置 - 云游戏 -
+                地区选择日本或韩国，哪个地区地理位置离你近就选哪个，选择后记得保存，此时XStreaming会重启一次。
+              </Text>
+              <Text variant="bodyMedium" style={{marginTop: 10}}>
+                2.
+                重启后进入云游戏栏目，选择你需要玩的游戏，开始，等待连接，待连接成功显示游戏画面后，
+                将XStreaming切到后台（注意不是直接杀掉APP进程）。
+              </Text>
+              <Text variant="bodyMedium" style={{marginTop: 10}}>
+                3. 打开加速器，选择加速『XStreaming』，点击加速，等待加速成功。
+              </Text>
+              <Text variant="bodyMedium" style={{marginTop: 10}}>
+                4.
+                返回XStreaming，此时你就会发现延迟和丢包都下来了（此时你会看到丢帧比较多，不用紧张，这是因为先进了游戏，未加速时的丢帧比较多，该数值是累计的，等加速稳定后这个数据会降下去），
+                云游戏加速成功。
+              </Text>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+    );
+  };
+
   /**
    * 0 - recent
    * 1 - new
@@ -266,6 +316,17 @@ function CloudScreen({navigation, route}) {
               />
             </Appbar.Header>
 
+            {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
+              <Text
+                variant="labelMedium"
+                style={styles.tutorialText}
+                onPress={() => {
+                  setShowToturial(true);
+                }}>
+                🚀点击查看云游戏加速指引
+              </Text>
+            )}
+
             {keyword && (
               <View style={styles.search}>
                 <Chip
@@ -308,6 +369,8 @@ function CloudScreen({navigation, route}) {
           </View>
         </>
       )}
+
+      {renderTutorial()}
 
       {isLimited && (
         <View style={styles.container}>
@@ -358,6 +421,11 @@ const styles = StyleSheet.create({
   search: {
     paddingLeft: 10,
     paddingRight: 10,
+  },
+  tutorialText: {
+    textAlign: 'center',
+    paddingTop: 5,
+    paddingBottom: 10,
   },
 });
 

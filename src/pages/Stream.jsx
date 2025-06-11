@@ -643,8 +643,9 @@ function StreamScreen({navigation, route}) {
         setIsExiting(false);
         Orientation.unlockAllOrientations();
         FullScreenManager.immersiveModeOff();
+        const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         navigation.navigate({
-          name: 'Home',
+          name: dest,
           params: {needRefresh: true},
         });
       }, 500);
@@ -715,7 +716,9 @@ function StreamScreen({navigation, route}) {
                   if (isExiting) {
                     return;
                   }
-                  navigation.navigate('Home');
+                  const dest =
+                    route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+                  navigation.navigate(dest);
                 },
               },
             ]);

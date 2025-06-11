@@ -807,6 +807,7 @@ function NativeStreamScreen({navigation, route}) {
       });
 
       const exit = () => {
+        const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         setLoading(false);
         webrtcClient && webrtcClient.close();
         streamApi
@@ -817,7 +818,7 @@ function NativeStreamScreen({navigation, route}) {
               Orientation.unlockAllOrientations();
               FullScreenManager.immersiveModeOff();
               navigation.navigate({
-                name: 'Home',
+                name: dest,
                 params: {needRefresh: true},
               });
             }, 500);
@@ -826,7 +827,7 @@ function NativeStreamScreen({navigation, route}) {
             Orientation.unlockAllOrientations();
             FullScreenManager.immersiveModeOff();
             navigation.navigate({
-              name: 'Home',
+              name: dest,
               params: {needRefresh: true},
             });
           });
@@ -1023,7 +1024,9 @@ function NativeStreamScreen({navigation, route}) {
                 text: t('Confirm'),
                 style: 'default',
                 onPress: () => {
-                  navigation.navigate('Home');
+                  const dest =
+                    route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+                  navigation.navigate(dest);
                 },
               },
             ]);
@@ -1123,8 +1126,9 @@ function NativeStreamScreen({navigation, route}) {
         setIsExiting(false);
         Orientation.unlockAllOrientations();
         FullScreenManager.immersiveModeOff();
+        const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         navigation.navigate({
-          name: 'Home',
+          name: dest,
           params: {needRefresh: true},
         });
       }, 500);
