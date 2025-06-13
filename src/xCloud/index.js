@@ -793,4 +793,74 @@ export default class XcloudApi {
         });
     });
   }
+
+  getConsoles() {
+    return new Promise((resolve, reject) => {
+      const deviceInfo = JSON.stringify({
+        appInfo: {
+          env: {
+            // clientAppId: 'Microsoft.GamingApp',
+            // clientAppType: 'native',
+            // clientAppVersion: '2203.1001.4.0',
+            // clientSdkVersion: '8.5.2',
+            // httpEnvironment: 'prod',
+            // sdkInstallId: '',
+            clientAppId: 'www.xbox.com',
+            clientAppType: 'browser',
+            clientAppVersion: '26.1.97',
+            clientSdkVersion: '10.3.7',
+            httpEnvironment: 'prod',
+            sdkInstallId: '',
+          },
+        },
+        dev: {
+          hw: {
+            make: 'Microsoft',
+            // 'model': 'Surface Pro',
+            model: 'unknown',
+            // 'sdktype': 'native',
+            sdktype: 'web',
+          },
+          os: {
+            name: 'windows',
+            ver: '22631.2715',
+            platform: 'desktop',
+          },
+          displayInfo: {
+            dimensions: {
+              widthInPixels: 1920,
+              heightInPixels: 1080,
+            },
+            pixelDensity: {
+              dpiX: 1,
+              dpiY: 1,
+            },
+          },
+          browser: {
+            browserName: 'chrome',
+            browserVersion: '130.0',
+          },
+        },
+      });
+      axios
+        .get(`${this.host}/v6/servers/home?mr=50`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-MS-Device-Info': deviceInfo,
+            Authorization: 'Bearer ' + this.gsToken,
+          },
+        })
+        .then(res => {
+          console.log('getConsoles res:', res.data);
+          if (res.data && res.data.results) {
+            resolve(res.data.results);
+          } else {
+            resolve([]);
+          }
+        })
+        .catch(e => {
+          resolve([]);
+        });
+    });
+  }
 }

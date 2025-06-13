@@ -38,7 +38,7 @@ const ConsoleItem = (props: any) => {
       <Card.Content>
         <View style={styles.consoleInfos}>
           <Text variant="titleLarge" style={styles.textCenter}>
-            {consoleItem.name}
+            {consoleItem.deviceName}
           </Text>
           {/* <Divider /> */}
           <View style={styles.image}>{renderImage()}</View>
@@ -49,7 +49,7 @@ const ConsoleItem = (props: any) => {
             <Text
               variant="labelSmall"
               style={[styles.textCenter, {color: '#999'}]}>
-              ({consoleItem.id})
+              ({consoleItem.serverId})
             </Text>
             {consoleItem.powerState === 'On' ? (
               <Text style={[styles.green, styles.textCenter]}>

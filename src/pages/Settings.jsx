@@ -339,11 +339,11 @@ function SettingsScreen({navigation}) {
             onPress={() => handleItemPress('debug')}
           /> */}
 
-          {profile && profile.GameDisplayName ? (
+          {profile && profile.gamertag ? (
             <SettingItem
               title={t('Logout')}
               description={`${t('Current user')}: ${
-                profile ? profile.GameDisplayName : ''
+                profile ? profile.gamertag : ''
               }`}
               onPress={() => handleItemPress('logout')}
             />

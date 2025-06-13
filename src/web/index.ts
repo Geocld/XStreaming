@@ -1,4 +1,3 @@
-import axios from 'axios';
 import uuid from 'react-native-uuid';
 import XstsToken from '../tokens/xststoken';
 import Http from '../utils/http';
@@ -194,6 +193,44 @@ export default class WebApi {
               infos[item.id] = item.value;
             });
             resolve(infos);
+          } else {
+            resolve({});
+          }
+        })
+        .catch(e => {
+          reject(e);
+        });
+    });
+  }
+
+  getUserProfileV2() {
+    const http = new Http();
+    const xid = this.webToken.data.DisplayClaims.xui[0].xid;
+    return new Promise((resolve, reject) => {
+      http
+        .get(
+          'peoplehub.xboxlive.com',
+          `/users/me/people/xuids(${xid})/decoration/detail`,
+          {
+            Authorization:
+              'XBL3.0 x=' +
+              this.webToken.data.DisplayClaims.xui[0].uhs +
+              ';' +
+              this.webToken.data.Token,
+            'Accept-Language': 'en-US',
+            'x-xbl-contract-version': '3',
+            'x-xbl-client-name': 'XboxApp',
+            'x-xbl-client-type': 'UWA',
+            'x-xbl-client-version': '39.39.22001.0',
+          },
+        )
+        .then((res: any) => {
+          log.info(
+            '[getUserProfileV2] /users/me/people response:',
+            JSON.stringify(res),
+          );
+          if (res && res.people && res.people.length) {
+            resolve(res.people[0]);
           } else {
             resolve({});
           }

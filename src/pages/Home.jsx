@@ -24,6 +24,7 @@ import SplashScreen from 'react-native-splash-screen';
 import {useTranslation} from 'react-i18next';
 import NetInfo from '@react-native-community/netinfo';
 import {debugFactory} from '../utils/debug';
+import XcloudApi from '../xCloud';
 
 const log = debugFactory('HomeScreen');
 
@@ -54,6 +55,8 @@ function HomeScreen({navigation, route}) {
 
   const webToken = useSelector(state => state.webToken);
   const webTokenRef = React.useRef(null);
+
+  const _xHomeApiRef = React.useRef(null);
 
   const dispatch = useDispatch();
 
@@ -131,14 +134,24 @@ function HomeScreen({navigation, route}) {
 
           setLoadingText(t('Fetching user info...'));
           try {
-            const _profile = await webApi.getUserProfile();
+            const _profile = await webApi.getUserProfileV2();
             setProfile(_profile);
             dispatch({
               type: 'SET_PROFILE',
               payload: _profile,
             });
             setLoadingText(t('Fetching consoles...'));
-            const _consoles = await webApi.getConsoles();
+
+            const _xHomeApi = new XcloudApi(
+              _streamingTokens.xHomeToken.getDefaultRegion().baseUri,
+              _streamingTokens.xHomeToken.data.gsToken,
+              'home',
+              () => {},
+            );
+            _xHomeApiRef.current = _xHomeApi;
+
+            const _consoles = await _xHomeApi.getConsoles();
+            // const _consoles = await webApi.getConsoles();
             setConsoles(_consoles);
           } catch (e) {
             Alert.alert(t('Error'), e);
@@ -188,10 +201,13 @@ function HomeScreen({navigation, route}) {
             );
           }
         } else if (route.params?.needRefresh && webTokenRef.current) {
+          if (!_xHomeApiRef.current) {
+            return;
+          }
           setLoading(true);
           setLoadingText(t('Fetching consoles...'));
-          const webApi = new WebApi(webTokenRef.current);
-          webApi.getConsoles().then(_consoles => {
+
+          _xHomeApiRef.current.getConsoles().then(_consoles => {
             setConsoles(_consoles);
             setLoading(false);
           });
@@ -248,7 +264,7 @@ function HomeScreen({navigation, route}) {
       const powerOnRes = await webApi.powerOn(sessionId);
       log.info('powerOn:', powerOnRes);
 
-      const _consoles = await webApi.getConsoles();
+      const _consoles = await _xHomeApiRef.current.getConsoles();
       setConsoles(_consoles);
 
       setLoading(false);
@@ -455,8 +471,10 @@ function HomeScreen({navigation, route}) {
                     ]}>
                     <ConsoleItem
                       consoleItem={item}
-                      onPress={() => handleStartStream(item.id)}
-                      onPoweronStream={() => handlePoweronAndStream(item.id)}
+                      onPress={() => handleStartStream(item.serverId)}
+                      onPoweronStream={() =>
+                        handlePoweronAndStream(item.serverId)
+                      }
                     />
                   </View>
                 );
