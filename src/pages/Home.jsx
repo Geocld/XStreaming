@@ -130,16 +130,16 @@ function HomeScreen({navigation, route}) {
           setShowLogin(false);
 
           setLoading(true);
-          const webApi = new WebApi(_webToken);
+          // const webApi = new WebApi(_webToken);
 
-          setLoadingText(t('Fetching user info...'));
+          // setLoadingText(t('Fetching user info...'));
           try {
-            const _profile = await webApi.getUserProfileV2();
-            setProfile(_profile);
-            dispatch({
-              type: 'SET_PROFILE',
-              payload: _profile,
-            });
+            // const _profile = await webApi.getUserProfileV2();
+            // setProfile(_profile);
+            // dispatch({
+            //   type: 'SET_PROFILE',
+            //   payload: _profile,
+            // });
             setLoadingText(t('Fetching consoles...'));
 
             const _xHomeApi = new XcloudApi(
@@ -388,38 +388,38 @@ function HomeScreen({navigation, route}) {
     );
   };
 
-  const renderProfile = () => {
-    if (!showProfile || !profile) {
-      return null;
-    }
-    return (
-      <Portal>
-        <Modal
-          visible={showProfile}
-          onDismiss={() => {
-            setShowProfile(false);
-          }}
-          contentContainerStyle={{marginLeft: '10%', marginRight: '10%'}}>
-          <Card>
-            <Card.Content>
-              <Profile profile={profile} />
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
-    );
-  };
+  // const renderProfile = () => {
+  //   if (!showProfile || !profile) {
+  //     return null;
+  //   }
+  //   return (
+  //     <Portal>
+  //       <Modal
+  //         visible={showProfile}
+  //         onDismiss={() => {
+  //           setShowProfile(false);
+  //         }}
+  //         contentContainerStyle={{marginLeft: '10%', marginRight: '10%'}}>
+  //         <Card>
+  //           <Card.Content>
+  //             <Profile profile={profile} />
+  //           </Card.Content>
+  //         </Card>
+  //       </Modal>
+  //     </Portal>
+  //   );
+  // };
 
   const renderFab = () => {
     const fabActions = [
-      {
-        icon: 'information',
-        label: t('Profile'),
-        onPress: () => {
-          setFabOpen(false);
-          setShowProfile(true);
-        },
-      },
+      // {
+      //   icon: 'information',
+      //   label: t('Profile'),
+      //   onPress: () => {
+      //     setFabOpen(false);
+      //     setShowProfile(true);
+      //   },
+      // },
       {
         icon: 'account-supervisor',
         label: t('Friends'),
@@ -440,7 +440,7 @@ function HomeScreen({navigation, route}) {
       <FAB.Group
         open={fabOpen}
         visible
-        icon={fabOpen ? 'account-circle' : 'account-circle-outline'}
+        icon={fabOpen ? 'dots-vertical' : 'dots-horizontal'}
         actions={fabActions}
         onStateChange={({open}) => setFabOpen(open)}
       />
@@ -506,7 +506,7 @@ function HomeScreen({navigation, route}) {
 
       {renderUsbWarningModal()}
 
-      {renderProfile()}
+      {/* {renderProfile()} */}
 
       {renderContent()}
 

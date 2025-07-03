@@ -18,6 +18,8 @@ const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
 const log = debugFactory('TitleDetailScreen');
 
+const warnTitles = ['MINECRAFTDUNGEONS', 'MICROSOFTFLIGHTSIMULATOR'];
+
 function TitleDetail({navigation, route}) {
   const {t} = useTranslation();
   const [titleItem, setTitleItem] = React.useState(null);
@@ -73,6 +75,10 @@ function TitleDetail({navigation, route}) {
     // Lagecy user force to native stream
     if (isLagecy) {
       routeName = 'NativeStream';
+    }
+
+    if (warnTitles.indexOf(titleItem.titleId) > -1) {
+      routeName = 'Stream';
     }
 
     navigation.navigate({
@@ -187,8 +193,16 @@ function TitleDetail({navigation, route}) {
               )}
             </View>
 
+            {warnTitles.indexOf(titleItem.titleId) > -1 ? (
+              <View style={styles.tagsWrap}>
+                <HelperText type="error" visible={true}>
+                  {t('compatibleWarn')}
+                </HelperText>
+              </View>
+            ) : null}
+
             <View style={styles.tagsWrap}>
-              {titleItem.Categories.map(item => {
+              {titleItem.LocalizedCategories.map(item => {
                 return (
                   <View style={styles.tagContainer} key={item}>
                     <Text variant="titleSmall">{item}</Text>

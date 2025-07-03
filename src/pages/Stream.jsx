@@ -697,6 +697,8 @@ function StreamScreen({navigation, route}) {
               if (e.includes('WaitingForServerToRegister')) {
                 msg =
                   '[StartSession] Fail:' + t('WaitingForServerToRegister') + e;
+              } else if (e.includes('xboxstreaminghelper.cpp')) {
+                msg = '[StartSession] Fail:' + t('XboxstreaminghelperErr') + e;
               } else {
                 msg = '[StartSession] Fail:' + e;
               }
@@ -1334,6 +1336,9 @@ function StreamScreen({navigation, route}) {
           injectedJavaScriptObject={{
             settings,
             streamType: route.params?.streamType,
+            inputTouch:
+              route.params?.sessionId === 'MINECRAFTDUNGEONS' ||
+              route.params?.sessionId === 'MICROSOFTFLIGHTSIMULATOR',
           }}
           onMessage={event => {
             handleWebviewMessage(event);

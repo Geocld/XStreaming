@@ -21,6 +21,8 @@ export default {
     Warning: '提示',
     WaitingForServerToRegister:
       '无法在主机上建立串流，原因是主机没有连接到Xbox服务器，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试手动重启主机并重试',
+    XboxstreaminghelperErr:
+      '主机串流功能无法正常运行，当你看到这个错误时，不是XStreaming发生了错误，而是主机的串流功能由于某些原因已经无法正常工作，你需要长按电源键或断开电源重启主机修复此问题，具体错误：',
     'Login has expired or not logged in, please log in again':
       '登录已失效或未登录，请重新登录',
     AuthFailDesc: '认证失败，请重新登录，错误:',
@@ -230,6 +232,7 @@ export default {
     Reset: '恢复默认值',
     Delete: '删除',
     Exit: '退出',
+    Thanks: '鸣谢',
     Connected: '连接成功',
     'Update Warning': '新版本提示',
     gyroTitle: '启用陀螺仪',
@@ -246,6 +249,8 @@ export default {
     gyroSenTitleY: '陀螺仪Y轴灵敏度',
     gyroSenDescY: '调节陀螺仪Y轴灵敏度',
     byorg: '该游戏属于自购游戏，非XGPU库游戏，如需游玩，请保证已购买此游戏。',
+    compatibleWarn:
+      '该游戏在第三方串流应用上存在兼容性问题，建议从官方途径游玩此游戏。',
     Device: '设备',
     Controller: '控制器',
     show_menu_title: '显示快捷菜单',

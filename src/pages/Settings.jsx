@@ -30,11 +30,25 @@ const log = debugFactory('SettingsScreen');
 function SettingsScreen({navigation}) {
   const {t, i18n} = useTranslation();
   const authentication = useSelector(state => state.authentication);
-  const profile = useSelector(state => state.profile);
 
   const currentLanguage = i18n.language;
 
   const [loading, setLoading] = React.useState(false);
+
+  const sisuToken = authentication._tokenStore.getSisuToken();
+
+  let isAuthed = false;
+  let user = '';
+
+  if (sisuToken && sisuToken.data && sisuToken.data.AuthorizationToken) {
+    isAuthed = true;
+
+    if (sisuToken.data.AuthorizationToken.DisplayClaims) {
+      try {
+        user = sisuToken.data.AuthorizationToken.DisplayClaims.xui[0].mgt;
+      } catch (e) {}
+    }
+  }
 
   React.useEffect(() => {
     log.info('settings page show');
@@ -328,7 +342,7 @@ function SettingsScreen({navigation}) {
           {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
             <SettingItem
               title={'支持及交流'}
-              description={'支持开发或交流更多串流技术'}
+              description={'支持开发或交流使用心得'}
               onPress={() => navigation.navigate('Feedback')}
             />
           )}
@@ -339,12 +353,15 @@ function SettingsScreen({navigation}) {
             onPress={() => handleItemPress('debug')}
           /> */}
 
-          {profile && profile.gamertag ? (
+          <SettingItem
+            title={t('Thanks')}
+            onPress={() => navigation.navigate('Thanks')}
+          />
+
+          {isAuthed ? (
             <SettingItem
               title={t('Logout')}
-              description={`${t('Current user')}: ${
-                profile ? profile.gamertag : ''
-              }`}
+              description={`${t('Current user')}: ${user}`}
               onPress={() => handleItemPress('logout')}
             />
           ) : null}

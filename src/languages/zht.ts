@@ -11,6 +11,7 @@ export default {
     GameMap: '手柄映射',
     Profile: '个人信息',
     NoLogin: '尚未登錄，請登錄',
+    Thanks: '鸣谢',
     'Fetching user info...': '正在獲取用戶信息...',
     'Fetching consoles...': '正在獲取終端信息...',
     'Login successful, refreshing login credentials...':
@@ -19,6 +20,8 @@ export default {
     Warning: '提示',
     WaitingForServerToRegister:
       '無法在主機上建立串流，原因是主機沒有連接到Xbox伺服器，這通常發生在主機系統異常或主機正在更新或主機未登錄賬號，請嘗試手動重啟主機並重試',
+    XboxstreaminghelperErr:
+      '主機串流功能無法正常運行。當您看到此錯誤時，並非 XStreaming 發生問題，而是主機的串流功能因某些原因已無法正常工作。您需要長按電源鍵或斷開電源以重啟主機來修復此問題。具體錯誤',
     'Login has expired or not logged in, please log in again':
       '登錄已失效或未登錄，請重新登錄',
     AuthFailDesc: '认证失败，請重新登錄，错误:',
@@ -213,6 +216,8 @@ export default {
     gyroSenTitleY: '陀螺儀Y軸靈敏度',
     gyroSenDescY: '調節陀螺儀X軸靈敏度',
     byorg: '該遊戲屬於自購遊戲，非XGPU庫遊戲，如需遊玩，請保證已購買此遊戲。',
+    compatibleWarn:
+      '該遊戲在第三方串流應用上存在相容性問題，建議通過官方途徑遊玩此遊戲。',
     show_menu_title: '顯示快捷菜單',
     show_menu_desc: '串流介面右下角始終顯示快捷菜單。',
     sensorInvertTitle: '反轉陀螺儀模擬搖桿',

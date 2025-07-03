@@ -13,6 +13,8 @@ export default {
     Warning: 'Warning',
     WaitingForServerToRegister:
       'Unable to start stream session on console. The console is not connected to the Xbox servers. This ocasionally happens then there is an update or when the user is not signed in to the console. Please hard reboot your console and try again.',
+    XboxstreaminghelperErr:
+      "The host streaming function is not working properly. When you see this error, it does not indicate an issue with XStreaming itself, but rather that the host's streaming functionality has stopped functioning due to certain reasons. You need to press and hold the power button or disconnect the power supply to restart the host and resolve the issue. Specific error:",
     'Login has expired or not logged in, please login again':
       'Login has expired or not logged in, please login again',
     AuthFailDesc: 'Login failed, please login again, error:',
@@ -116,6 +118,8 @@ export default {
     gyroSenDescY: 'Adjust gyroscope Y-axis sensitivity',
     byorg:
       'This game is a self-purchased game, not part of the XGPU library. Please ensure that you have purchased this game to play.',
+    compatibleWarn:
+      'This game has compatibility issues with third-party streaming apps. It is recommended to play this game through official channels.',
     show_menu_title: 'Display Quick Menu',
     show_menu_desc:
       'The quick menu is always displayed in the lower right corner of the streaming page.',
