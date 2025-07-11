@@ -11,6 +11,7 @@ import com.facebook.soloader.SoLoader;
 import com.umeng.commonsdk.UMConfigure;
 
 import com.oney.WebRTCModule.WebRTCModuleOptions;
+import com.xstreaming.touchcontrols.AnalogStickPackage;
 
 import android.content.Context;
 import android.media.AudioAttributes;
@@ -44,6 +45,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new BatteryPackage());
             packages.add(new SensorPackage());
             packages.add(new GamepadSensorPackage());
+            packages.add(new AnalogStickPackage());
           return packages;
         }
 

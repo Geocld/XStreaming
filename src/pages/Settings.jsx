@@ -347,11 +347,11 @@ function SettingsScreen({navigation}) {
             />
           )}
 
-          {/* <SettingItem
+          <SettingItem
             title={'DEBUG'}
             description={'Enter debug'}
             onPress={() => handleItemPress('debug')}
-          /> */}
+          />
 
           <SettingItem
             title={t('Thanks')}

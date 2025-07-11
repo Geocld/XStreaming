@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="AnalogStickView">
+        <attr name="radius" format="dimension" />
+        <attr name="handleRadius" format="dimension" />
+        <attr name="drawableBase" format="reference" />
+        <attr name="drawableHandle" format="reference" />
+    </declare-styleable>
+
+</resources>

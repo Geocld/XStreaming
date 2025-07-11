@@ -86,7 +86,7 @@ const defaultSettings: Settings = {
   short_trigger: false,
   video_format: '',
   show_virtual_gamead: false,
-  virtual_gamepad_opacity: 0.8,
+  virtual_gamepad_opacity: 0.7,
   custom_virtual_gamepad: '',
   gamepad_maping: null,
   native_gamepad_maping: null,

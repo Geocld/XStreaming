@@ -988,8 +988,8 @@ function StreamScreen({navigation, route}) {
   // Virtual gamepad move joystick
   const handleStickMove = (id, data) => {
     // console.log('handleStickMove:', id, data);
-    let leveledX = data.dist.x;
-    let leveledY = data.dist.y;
+    let leveledX = data.x;
+    let leveledY = -data.y;
 
     if (typeof leveledX === 'string') {
       leveledX = leveledX.toFixed(2);

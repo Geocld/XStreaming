@@ -12,6 +12,8 @@ import {Portal, Dialog, Switch} from 'react-native-paper';
 import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 
+import AnalogStick from '../components/AnalogStick';
+
 const {GamepadManager, UsbRumbleManager} = NativeModules;
 
 function DebugScreen({navigation, route}) {
@@ -46,6 +48,10 @@ function DebugScreen({navigation, route}) {
     settings.debug = value;
     setSettings(settings);
     saveSettings(settings);
+  };
+
+  const handleAnalogStickChange = event => {
+    console.log('Analog stick position:', event.x, event.y);
   };
 
   return (
@@ -166,8 +172,27 @@ function DebugScreen({navigation, route}) {
           }, 1000);
         }}
       />
+
+      <View style={styles.analogStick}>
+        <AnalogStick
+          style={styles.analogStick}
+          radius={150}
+          handleRadius={50}
+          onStickChange={handleAnalogStickChange}
+        />
+      </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  analogStick: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: '#666',
+    overflow: 'hidden',
+  },
+});
 
 export default DebugScreen;

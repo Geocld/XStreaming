@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, View, TouchableOpacity, Dimensions} from 'react-native';
 import GamepadButton from './GamepadButton';
-import {ReactNativeJoystick} from '../components/Joystick';
+import AnalogStick from '../components/AnalogStick';
 
 type Props = {
   opacity: number;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 const VirtualGamepad: React.FC<Props> = ({
-  opacity = 0.8,
+  opacity = 0.7,
   onPressIn,
   onPressOut,
   onStickMove,
@@ -165,23 +165,20 @@ const VirtualGamepad: React.FC<Props> = ({
       />
 
       <View style={[styles.button, styles.leftJs, {opacity}]}>
-        <ReactNativeJoystick
-          color="#ffffff"
-          radius={50}
-          onMove={data => handleStickMove('left', data)}
-          onStart={data => handleStickMove('left', data)}
-          onStop={data => handleStickMove('left', data)}
+        <AnalogStick
+          style={styles.analogStick}
+          radius={140}
+          handleRadius={80}
+          onStickChange={(data: any) => handleStickMove('left', data)}
         />
       </View>
 
       <View style={[styles.button, styles.rightJs, {opacity}]}>
-        <ReactNativeJoystick
-          color="#ffffff"
-          style={{opacity}}
-          radius={50}
-          onMove={data => handleStickMove('right', data)}
-          onStart={data => handleStickMove('right', data)}
-          onStop={data => handleStickMove('right', data)}
+        <AnalogStick
+          style={styles.analogStick}
+          radius={150}
+          handleRadius={100}
+          onStickChange={(data: any) => handleStickMove('right', data)}
         />
       </View>
     </View>
@@ -252,12 +249,20 @@ const styles = StyleSheet.create({
     bottom: 10,
   },
   leftJs: {
-    left: 160,
+    left: 140,
     bottom: 140,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
   },
   rightJs: {
     right: 200,
     bottom: 100,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
   },
   dpadLeft: {
     width: 50,
@@ -294,6 +299,13 @@ const styles = StyleSheet.create({
     left: 78,
     bottom: 30,
     borderTopWidth: 0,
+  },
+  analogStick: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255, 255, 255, .3)',
+    overflow: 'hidden',
   },
 });
 

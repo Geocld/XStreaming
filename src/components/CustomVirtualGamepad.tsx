@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, View, Dimensions} from 'react-native';
 import GamepadButton from './CustomGamepad/GamepadButton';
 import Dpad from './CustomGamepad/Dpad';
-import {ReactNativeJoystick} from '../components/Joystick';
+import AnalogStick from '../components/AnalogStick';
 import {getSettings} from '../store/gamepadStore';
 
 type Props = {
@@ -15,7 +15,7 @@ type Props = {
 
 const CustomVirtualGamepad: React.FC<Props> = ({
   title,
-  opacity = 0.8,
+  opacity = 0.7,
   onPressIn,
   onPressOut,
   onStickMove,
@@ -193,13 +193,14 @@ const CustomVirtualGamepad: React.FC<Props> = ({
                 {top: button.y, left: button.x},
                 {opacity},
               ]}>
-              <ReactNativeJoystick
-                color="#ffffff"
-                radius={50}
-                onMove={data => handleStickMove('left', data)}
-                onStart={data => handleStickMove('left', data)}
-                onStop={data => handleStickMove('left', data)}
-              />
+              <View style={styles.leftJs}>
+                <AnalogStick
+                  style={styles.analogStick}
+                  radius={140}
+                  handleRadius={80}
+                  onStickChange={(data: any) => handleStickMove('left', data)}
+                />
+              </View>
             </View>
           );
         } else if (button.name === 'RightStick') {
@@ -211,14 +212,14 @@ const CustomVirtualGamepad: React.FC<Props> = ({
                 {top: button.y, left: button.x},
                 {opacity},
               ]}>
-              <ReactNativeJoystick
-                color="#ffffff"
-                style={{opacity}}
-                radius={50}
-                onMove={data => handleStickMove('right', data)}
-                onStart={data => handleStickMove('right', data)}
-                onStop={data => handleStickMove('right', data)}
-              />
+              <View style={styles.rightJs}>
+                <AnalogStick
+                  style={styles.analogStick}
+                  radius={140}
+                  handleRadius={80}
+                  onStickChange={(data: any) => handleStickMove('right', data)}
+                />
+              </View>
             </View>
           );
         } else {
@@ -255,6 +256,25 @@ const styles = StyleSheet.create({
   button: {
     opacity: 0.5,
     position: 'absolute',
+  },
+  leftJs: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
+  },
+  rightJs: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
+  },
+  analogStick: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255, 255, 255, .3)',
+    overflow: 'hidden',
   },
 });
 
