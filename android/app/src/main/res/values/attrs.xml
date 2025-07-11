@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <attr name="drawableIdle" format="reference" />
+    <attr name="drawablePressed" format="reference" />
+
+    <declare-styleable name="ButtonView">
+        <attr name="buttonName" />
+        <attr name="drawableIdle" />
+        <attr name="drawablePressed" />
+    </declare-styleable>
 
     <declare-styleable name="AnalogStickView">
         <attr name="radius" format="dimension" />

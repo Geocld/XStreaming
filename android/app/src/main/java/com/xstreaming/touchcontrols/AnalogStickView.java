@@ -1,4 +1,3 @@
-// android/app/src/main/java/com/xstreaming/touchcontrols/AnalogStickView.java
 package com.xstreaming.touchcontrols;
 
 import android.content.Context;
@@ -15,7 +14,6 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.xstreaming.R;
-import android.graphics.Path;
 
 public class AnalogStickView extends CustomView {
 

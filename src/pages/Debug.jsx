@@ -13,6 +13,7 @@ import {getSettings, saveSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 
 import AnalogStick from '../components/AnalogStick';
+import ButtonView from '../components/ButtonView';
 
 const {GamepadManager, UsbRumbleManager} = NativeModules;
 
@@ -179,6 +180,30 @@ function DebugScreen({navigation, route}) {
           radius={150}
           handleRadius={50}
           onStickChange={handleAnalogStickChange}
+        />
+      </View>
+
+      <View>
+        <ButtonView
+          style={{width: 100, height: 100}}
+          buttonName="control_button_lt"
+          onPressIn={() => {
+            console.log('lt onPressIn');
+          }}
+          onPressOut={() => {
+            console.log('lt onPressOut');
+          }}
+        />
+
+        <ButtonView
+          style={{width: 100, height: 100}}
+          buttonName="control_button_rt"
+          onPressIn={() => {
+            console.log('rt onPressIn');
+          }}
+          onPressOut={() => {
+            console.log('rt onPressOut');
+          }}
         />
       </View>
     </ScrollView>

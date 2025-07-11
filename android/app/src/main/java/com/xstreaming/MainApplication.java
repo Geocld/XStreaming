@@ -12,6 +12,7 @@ import com.umeng.commonsdk.UMConfigure;
 
 import com.oney.WebRTCModule.WebRTCModuleOptions;
 import com.xstreaming.touchcontrols.AnalogStickPackage;
+import com.xstreaming.touchcontrols.ButtonViewPackage;
 
 import android.content.Context;
 import android.media.AudioAttributes;
@@ -46,6 +47,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new SensorPackage());
             packages.add(new GamepadSensorPackage());
             packages.add(new AnalogStickPackage());
+            packages.add(new ButtonViewPackage());
           return packages;
         }
 
