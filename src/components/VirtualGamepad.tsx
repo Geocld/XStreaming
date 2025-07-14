@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, View, TouchableOpacity, Dimensions} from 'react-native';
-import GamepadButton from './GamepadButton';
 import AnalogStick from '../components/AnalogStick';
+import ButtonView from './ButtonView';
 
 type Props = {
   opacity: number;
@@ -30,101 +30,153 @@ const VirtualGamepad: React.FC<Props> = ({
 
   const {width} = Dimensions.get('window');
 
-  const nexusLeft = width * 0.5 - 30;
+  const nexusLeft = width * 0.5 - 20;
   const viewLeft = width * 0.5 - 100;
   const menuLeft = width * 0.5 + 60;
 
   return (
     <View style={styles.wrap} pointerEvents="box-none">
-      <GamepadButton
-        name="LeftTrigger"
-        style={[styles.button, styles.lt, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+      <ButtonView
+        style={[styles.button, styles.lt]}
+        buttonName="control_button_lt"
+        onPressIn={() => {
+          console.log('lt onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('lt onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="RightTrigger"
+      <ButtonView
         style={[styles.button, styles.rt, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_rt"
+        onPressIn={() => {
+          console.log('rt onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('rt onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="LeftShoulder"
+      <ButtonView
         style={[styles.button, styles.lb, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_lb"
+        onPressIn={() => {
+          console.log('lb onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('lb onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="RightShoulder"
+      <ButtonView
         style={[styles.button, styles.rb, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_rb"
+        onPressIn={() => {
+          console.log('rb onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('rb onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="A"
+      <ButtonView
         style={[styles.button, styles.a, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_a"
+        onPressIn={() => {
+          console.log('a onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('a onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="B"
+      <ButtonView
         style={[styles.button, styles.b, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_b"
+        onPressIn={() => {
+          console.log('b onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('b onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="X"
+      <ButtonView
         style={[styles.button, styles.x, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_x"
+        onPressIn={() => {
+          console.log('x onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('x onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="Y"
+      <ButtonView
         style={[styles.button, styles.y, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_y"
+        onPressIn={() => {
+          console.log('y onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('y onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="LeftThumb"
+      <ButtonView
         style={[styles.button, styles.l3, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_left_joystick_down"
+        onPressIn={() => {
+          console.log('l3 onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('l3 onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="RightThumb"
+      <ButtonView
         style={[styles.button, styles.r3, {opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_right_joystick_down"
+        onPressIn={() => {
+          console.log('r3 onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('r3 onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="View"
+      <ButtonView
         style={[styles.button, styles.view, {left: viewLeft, opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_view"
+        onPressIn={() => {
+          console.log('view onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('view onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="Nexus"
+      <ButtonView
         style={[styles.button, styles.nexus, {left: nexusLeft, opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_xbox"
+        onPressIn={() => {
+          console.log('nexus onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('nexus onPressOut');
+        }}
       />
 
-      <GamepadButton
-        name="Menu"
+      <ButtonView
         style={[styles.button, styles.menu, {left: menuLeft, opacity}]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        buttonName="control_button_menu"
+        onPressIn={() => {
+          console.log('menu onPressIn');
+        }}
+        onPressOut={() => {
+          console.log('menu onPressOut');
+        }}
       />
 
       <TouchableOpacity
@@ -196,40 +248,42 @@ const styles = StyleSheet.create({
     zIndex: 9,
   },
   button: {
-    opacity: 0.5,
+    width: 50,
+    height: 50,
+    opacity: 0.6,
     position: 'absolute',
   },
   lt: {
-    left: 20,
+    left: 30,
     top: 40,
   },
   rt: {
-    right: 20,
-    top: 40,
+    right: 30,
+    top: 30,
   },
   lb: {
-    left: 20,
-    top: 100,
+    left: 30,
+    top: 110,
   },
   rb: {
-    right: 20,
-    top: 100,
+    right: 30,
+    top: 110,
   },
   a: {
-    bottom: 50,
-    right: 50,
+    bottom: 60,
+    right: 70,
   },
   b: {
-    bottom: 90,
-    right: 10,
+    bottom: 110,
+    right: 20,
   },
   x: {
-    bottom: 90,
-    right: 90,
+    bottom: 110,
+    right: 120,
   },
   y: {
-    bottom: 130,
-    right: 50,
+    bottom: 160,
+    right: 70,
   },
   l3: {
     bottom: 80,

@@ -72,14 +72,10 @@ public class ButtonViewManager extends SimpleViewManager<ButtonView> {
     }
 
     @ReactProp(name = "onPressIn")
-    public void setOnPressIn(ButtonView view, @Nullable Boolean dummy) {
-        // 这个属性只是用来触发JS回调
-    }
+    public void setOnPressIn(ButtonView view, @Nullable Boolean dummy) {}
 
     @ReactProp(name = "onPressOut")
-    public void setOnPressOut(ButtonView view, @Nullable Boolean dummy) {
-        // 这个属性只是用来触发JS回调
-    }
+    public void setOnPressOut(ButtonView view, @Nullable Boolean dummy) {}
 
     @Override
     public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
