@@ -699,8 +699,14 @@ function StreamScreen({navigation, route}) {
             let msg = '';
             if (typeof e === 'string') {
               if (e.includes('WaitingForServerToRegister')) {
-                msg =
-                  '[StartSession] Fail:' + t('WaitingForServerToRegister') + e;
+                if (e.includes('disabled streaming')) {
+                  msg = '[StartSession] Fail:' + t('DisabledStreamingErr') + e;
+                } else {
+                  msg =
+                    '[StartSession] Fail:' +
+                    t('WaitingForServerToRegister') +
+                    e;
+                }
               } else if (e.includes('xboxstreaminghelper.cpp')) {
                 msg = '[StartSession] Fail:' + t('XboxstreaminghelperErr') + e;
               } else {

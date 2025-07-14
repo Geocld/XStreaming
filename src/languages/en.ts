@@ -15,6 +15,8 @@ export default {
       'Unable to start stream session on console. The console is not connected to the Xbox servers. This ocasionally happens then there is an update or when the user is not signed in to the console. Please hard reboot your console and try again.',
     XboxstreaminghelperErr:
       "The host streaming function is not working properly. When you see this error, it does not indicate an issue with XStreaming itself, but rather that the host's streaming functionality has stopped functioning due to certain reasons. You need to press and hold the power button or disconnect the power supply to restart the host and resolve the issue. Specific error:",
+    DisabledStreamingErr:
+      'Streaming has been disabled on the client. This issue may be caused by:\n1. Xbox Console - Settings - Devices & connections - Remote features is not enabled;\n2. You may be using the China Mainland version of Xbox, which does not support streaming functionality.',
     'Login has expired or not logged in, please login again':
       'Login has expired or not logged in, please login again',
     AuthFailDesc: 'Login failed, please login again, error:',

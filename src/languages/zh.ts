@@ -24,6 +24,8 @@ export default {
       '无法在主机上建立串流，原因是主机没有连接到Xbox服务器，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试手动重启主机并重试',
     XboxstreaminghelperErr:
       '主机串流功能无法正常运行，当你看到这个错误时，不是XStreaming发生了错误，而是主机的串流功能由于某些原因已经无法正常工作，你需要长按电源键或断开电源重启主机修复此问题，具体错误：',
+    DisabledStreamingErr:
+      '主机端已禁用串流功能。出现此问题可能原因如下：\n1. Xbox主机-设置-设备和连接-远程功能没有启用; \n 2.你可能正在使用中国大陆版Xbox，该版本Xbox无法使用串流功能。',
     'Login has expired or not logged in, please log in again':
       '登录已失效或未登录，请重新登录',
     AuthFailDesc: '认证失败，请重新登录，错误:',

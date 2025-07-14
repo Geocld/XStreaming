@@ -23,6 +23,8 @@ export default {
       '無法在主機上建立串流，原因是主機沒有連接到Xbox伺服器，這通常發生在主機系統異常或主機正在更新或主機未登錄賬號，請嘗試手動重啟主機並重試',
     XboxstreaminghelperErr:
       '主機串流功能無法正常運行。當您看到此錯誤時，並非 XStreaming 發生問題，而是主機的串流功能因某些原因已無法正常工作。您需要長按電源鍵或斷開電源以重啟主機來修復此問題。具體錯誤',
+    DisabledStreamingErr:
+      '主机端已禁用串流功能。出現此問題可能原因如下：\n1. Xbox主機-設定-裝置和連線-遠端功能沒有啟用;\n2. 你可能正在使用中國大陸版Xbox，該版本Xbox無法使用串流功能。',
     'Login has expired or not logged in, please log in again':
       '登錄已失效或未登錄，請重新登錄',
     AuthFailDesc: '认证失败，請重新登錄，错误:',
