@@ -565,9 +565,9 @@ function StreamScreen({navigation, route}) {
         const {height: dHeight} = Dimensions.get('window');
         setModalMaxHeight(dHeight - 50);
 
-        setTimeout(() => {
-          setShowVirtualGamepad(true);
-        }, 1000);
+        // setTimeout(() => {
+        //   setShowVirtualGamepad(true);
+        // }, 1000);
       }, 100);
 
       // console.log('gamepad_kernal:', _settings.gamepad_kernal);
@@ -1324,7 +1324,7 @@ function StreamScreen({navigation, route}) {
       )}
 
       <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
-        {/* <WebView
+        <WebView
           ref={instance => {
             webviewRef.current = instance;
           }}
@@ -1347,7 +1347,7 @@ function StreamScreen({navigation, route}) {
           onMessage={event => {
             handleWebviewMessage(event);
           }}
-        /> */}
+        />
       </View>
     </>
   );

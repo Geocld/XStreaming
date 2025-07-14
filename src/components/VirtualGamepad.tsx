@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, TouchableOpacity, Dimensions} from 'react-native';
+import {StyleSheet, View, Dimensions} from 'react-native';
 import AnalogStick from '../components/AnalogStick';
 import ButtonView from './ButtonView';
 
@@ -39,181 +39,120 @@ const VirtualGamepad: React.FC<Props> = ({
       <ButtonView
         style={[styles.button, styles.lt]}
         buttonName="control_button_lt"
-        onPressIn={() => {
-          console.log('lt onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('lt onPressOut');
-        }}
+        onPressIn={() => handlePressIn('LeftTrigger')}
+        onPressOut={() => handlePressOut('LeftTrigger')}
       />
 
       <ButtonView
         style={[styles.button, styles.rt, {opacity}]}
         buttonName="control_button_rt"
-        onPressIn={() => {
-          console.log('rt onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('rt onPressOut');
-        }}
+        onPressIn={() => handlePressIn('RightTrigger')}
+        onPressOut={() => handlePressOut('RightTrigger')}
       />
 
       <ButtonView
         style={[styles.button, styles.lb, {opacity}]}
         buttonName="control_button_lb"
-        onPressIn={() => {
-          console.log('lb onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('lb onPressOut');
-        }}
+        onPressIn={() => handlePressIn('LeftShoulder')}
+        onPressOut={() => handlePressOut('LeftShoulder')}
       />
 
       <ButtonView
         style={[styles.button, styles.rb, {opacity}]}
         buttonName="control_button_rb"
-        onPressIn={() => {
-          console.log('rb onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('rb onPressOut');
-        }}
+        onPressIn={() => handlePressIn('RightShoulder')}
+        onPressOut={() => handlePressOut('RightShoulder')}
       />
 
       <ButtonView
         style={[styles.button, styles.a, {opacity}]}
         buttonName="control_button_a"
-        onPressIn={() => {
-          console.log('a onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('a onPressOut');
-        }}
+        onPressIn={() => handlePressIn('A')}
+        onPressOut={() => handlePressOut('A')}
       />
 
       <ButtonView
         style={[styles.button, styles.b, {opacity}]}
         buttonName="control_button_b"
-        onPressIn={() => {
-          console.log('b onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('b onPressOut');
-        }}
+        onPressIn={() => handlePressIn('B')}
+        onPressOut={() => handlePressOut('B')}
       />
 
       <ButtonView
         style={[styles.button, styles.x, {opacity}]}
         buttonName="control_button_x"
-        onPressIn={() => {
-          console.log('x onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('x onPressOut');
-        }}
+        onPressIn={() => handlePressIn('X')}
+        onPressOut={() => handlePressOut('X')}
       />
 
       <ButtonView
         style={[styles.button, styles.y, {opacity}]}
         buttonName="control_button_y"
-        onPressIn={() => {
-          console.log('y onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('y onPressOut');
-        }}
+        onPressIn={() => handlePressIn('Y')}
+        onPressOut={() => handlePressOut('Y')}
       />
 
       <ButtonView
         style={[styles.button, styles.l3, {opacity}]}
         buttonName="control_button_left_joystick_down"
-        onPressIn={() => {
-          console.log('l3 onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('l3 onPressOut');
-        }}
+        onPressIn={() => handlePressIn('LeftThumb')}
+        onPressOut={() => handlePressOut('LeftThumb')}
       />
 
       <ButtonView
         style={[styles.button, styles.r3, {opacity}]}
         buttonName="control_button_right_joystick_down"
-        onPressIn={() => {
-          console.log('r3 onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('r3 onPressOut');
-        }}
+        onPressIn={() => handlePressIn('RightThumb')}
+        onPressOut={() => handlePressOut('RightThumb')}
       />
 
       <ButtonView
         style={[styles.button, styles.view, {left: viewLeft, opacity}]}
         buttonName="control_button_view"
-        onPressIn={() => {
-          console.log('view onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('view onPressOut');
-        }}
+        onPressIn={() => handlePressIn('View')}
+        onPressOut={() => handlePressOut('View')}
       />
 
       <ButtonView
         style={[styles.button, styles.nexus, {left: nexusLeft, opacity}]}
         buttonName="control_button_xbox"
-        onPressIn={() => {
-          console.log('nexus onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('nexus onPressOut');
-        }}
+        onPressIn={() => handlePressIn('Nexus')}
+        onPressOut={() => handlePressOut('Nexus')}
       />
 
       <ButtonView
         style={[styles.button, styles.menu, {left: menuLeft, opacity}]}
         buttonName="control_button_menu"
-        onPressIn={() => {
-          console.log('menu onPressIn');
-        }}
-        onPressOut={() => {
-          console.log('menu onPressOut');
-        }}
+        onPressIn={() => handlePressIn('Menu')}
+        onPressOut={() => handlePressOut('Menu')}
       />
 
-      <TouchableOpacity
-        style={[styles.button, styles.dpadLeft, {opacity}]}
-        onPressIn={() => {
-          handlePressIn('DPadLeft');
-        }}
-        onPressOut={() => {
-          handlePressOut('DPadLeft');
-        }}
-      />
-      <TouchableOpacity
+      <ButtonView
         style={[styles.button, styles.dpadTop, {opacity}]}
-        onPressIn={() => {
-          handlePressIn('DPadUp');
-        }}
-        onPressOut={() => {
-          handlePressOut('DPadUp');
-        }}
+        buttonName="control_button_up"
+        onPressIn={() => handlePressIn('DPadUp')}
+        onPressOut={() => handlePressOut('DPadUp')}
       />
-      <TouchableOpacity
-        style={[styles.button, styles.dpadRight, {opacity}]}
-        onPressIn={() => {
-          handlePressIn('DPadRight');
-        }}
-        onPressOut={() => {
-          handlePressOut('DPadRight');
-        }}
+
+      <ButtonView
+        style={[styles.button, styles.dpadLeft, {opacity}]}
+        buttonName="control_button_left"
+        onPressIn={() => handlePressIn('DPadLeft')}
+        onPressOut={() => handlePressOut('DPadLeft')}
       />
-      <TouchableOpacity
+
+      <ButtonView
         style={[styles.button, styles.dpadBottom, {opacity}]}
-        onPressIn={() => {
-          handlePressIn('DPadDown');
-        }}
-        onPressOut={() => {
-          handlePressOut('DPadDown');
-        }}
+        buttonName="control_button_down"
+        onPressIn={() => handlePressIn('DPadDown')}
+        onPressOut={() => handlePressOut('DPadDown')}
+      />
+
+      <ButtonView
+        style={[styles.button, styles.dpadRight, {opacity}]}
+        buttonName="control_button_right"
+        onPressIn={() => handlePressIn('DPadRight')}
+        onPressOut={() => handlePressOut('DPadRight')}
       />
 
       <View style={[styles.button, styles.leftJs, {opacity}]}>
@@ -287,7 +226,7 @@ const styles = StyleSheet.create({
   },
   l3: {
     bottom: 80,
-    left: 195,
+    left: 225,
   },
   r3: {
     bottom: 40,
@@ -303,8 +242,8 @@ const styles = StyleSheet.create({
     bottom: 10,
   },
   leftJs: {
-    left: 140,
-    bottom: 140,
+    left: 180,
+    bottom: 150,
     width: 120,
     height: 120,
     borderRadius: 60,
@@ -319,40 +258,28 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   dpadLeft: {
-    width: 50,
-    height: 30,
-    borderWidth: 2,
-    borderColor: '#fff',
-    left: 30,
+    width: 60,
+    height: 60,
+    left: 20,
     bottom: 80,
-    borderRightWidth: 0,
   },
   dpadTop: {
-    width: 30,
-    height: 50,
-    borderWidth: 2,
-    borderColor: '#fff',
-    left: 78,
-    bottom: 110,
-    borderBottomWidth: 0,
+    width: 60,
+    height: 60,
+    left: 75,
+    bottom: 135,
   },
   dpadRight: {
-    width: 50,
-    height: 30,
-    borderWidth: 2,
-    borderColor: '#fff',
-    left: 106,
+    width: 60,
+    height: 60,
+    left: 130,
     bottom: 80,
-    borderLeftWidth: 0,
   },
   dpadBottom: {
-    width: 30,
-    height: 50,
-    borderWidth: 2,
-    borderColor: '#fff',
-    left: 78,
-    bottom: 30,
-    borderTopWidth: 0,
+    width: 60,
+    height: 60,
+    left: 75,
+    bottom: 25,
   },
   analogStick: {
     width: 200,
