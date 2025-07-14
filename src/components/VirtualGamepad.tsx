@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, .3)',
+    backgroundColor: 'rgba(255, 255, 255, .5)',
     overflow: 'hidden',
   },
 });
