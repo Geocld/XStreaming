@@ -12,7 +12,7 @@ public class ButtonHaptics {
 
     public ButtonHaptics(Context context) {
         this.context = context;
-        this.enabled = true;
+        this.enabled = false;
     }
 
     public void trigger() {

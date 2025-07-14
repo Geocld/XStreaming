@@ -166,5 +166,9 @@ export default {
     Rumble: 'Rumble',
     Sensor: 'Sensor',
     Details: 'Details',
+    Size: 'Size',
+    ShowTitle: 'Display',
+    Show: 'Show',
+    Hide: 'Hide',
   },
 };

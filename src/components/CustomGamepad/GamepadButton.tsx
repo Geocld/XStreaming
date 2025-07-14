@@ -1,8 +1,5 @@
 import React from 'react';
-import {TouchableOpacity} from 'react-native';
-import {GestureDetector, Gesture} from 'react-native-gesture-handler';
-import {SvgXml} from 'react-native-svg';
-import icons from '../../common/virtualgp';
+import ButtonView from '../ButtonView';
 
 type Props = {
   name: string;
@@ -14,43 +11,48 @@ type Props = {
   onPressOut: (name: string) => void;
 };
 
+const mapping: any = {
+  LeftTrigger: 'control_button_lt',
+  RightTrigger: 'control_button_rt',
+  LeftShoulder: 'control_button_lb',
+  RightShoulder: 'control_button_rb',
+  A: 'control_button_a',
+  B: 'control_button_b',
+  X: 'control_button_x',
+  Y: 'control_button_y',
+  LeftThumb: 'control_button_left_joystick_down',
+  RightThumb: 'control_button_right_joystick_down',
+  View: 'control_button_view',
+  Nexus: 'control_button_xbox',
+  Menu: 'control_button_menu',
+  DPadUp: 'control_button_up',
+  DPadLeft: 'control_button_left',
+  DPadDown: 'control_button_down',
+  DPadRight: 'control_button_right',
+};
+
 const GamepadButton: React.FC<Props> = ({
   name,
-  width = 40,
-  height = 40,
+  width = 50,
+  height = 50,
   scale = 1,
   onPressIn,
   onPressOut,
   style,
 }) => {
-  const longPressGesture = Gesture.LongPress()
-    .onStart(() => {
-      onPressIn && onPressIn(name);
-    })
-    .onEnd(() => {
-      onPressOut && onPressOut(name);
-    })
-    .minDuration(16);
-
-  if (['A', 'B', 'X', 'Y'].indexOf(name) > -1) {
-    width = 70;
-    height = 70;
-  }
-  if (name === 'Nexus') {
-    width = 60;
-    height = 60;
-  }
-
   return (
-    <GestureDetector gesture={longPressGesture}>
-      <TouchableOpacity style={style}>
-        <SvgXml
-          xml={icons[name]}
-          width={width * scale}
-          height={height * scale}
-        />
-      </TouchableOpacity>
-    </GestureDetector>
+    <ButtonView
+      style={[
+        style,
+        {
+          width: width * scale,
+          height: height * scale,
+        },
+      ]}
+      buttonName={mapping[name]}
+      onPressIn={() => onPressIn(name)}
+      onPressOut={() => onPressOut(name)}
+    />
   );
 };
 

@@ -19,12 +19,12 @@ const GamepadButton: React.FC<Props> = ({
   style,
 }) => {
   if (['A', 'B', 'X', 'Y'].indexOf(name) > -1) {
-    width = 70;
-    height = 70;
+    width = 80;
+    height = 80;
   }
-  if (name === 'Nexus') {
-    width = 60;
-    height = 60;
+  if (name.indexOf('DPad') > -1) {
+    width = 50;
+    height = 50;
   }
 
   return (

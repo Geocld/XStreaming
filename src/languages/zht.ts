@@ -6,7 +6,8 @@ export default {
     Settings: '設置',
     Login: '登錄',
     About: '關於',
-    Feedback: '反馈及支持',
+    Feedback: '交流及支持',
+    Version: '版本',
     Close: '關閉',
     GameMap: '手柄映射',
     Profile: '个人信息',
@@ -14,7 +15,7 @@ export default {
     Thanks: '鸣谢',
     'Fetching user info...': '正在獲取用戶信息...',
     'Fetching consoles...': '正在獲取終端信息...',
-    'Login successful, refreshing login credentials...':
+    'Login successful, refreshing loginShow: credentials...':
       '登錄成功，正在刷新登錄憑證...',
     'Checking login status...': '正在檢查登錄...',
     Warning: '提示',
@@ -278,5 +279,9 @@ export default {
     Rumble: '振動',
     Sensor: '感測器',
     Details: '詳情',
+    Size: '大小',
+    ShowTitle: '展示',
+    Show: '显示',
+    Hide: '隐藏',
   },
 };

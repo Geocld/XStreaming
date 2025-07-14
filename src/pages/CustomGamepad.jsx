@@ -59,78 +59,78 @@ function CustomGamepadScreen({navigation, route}) {
     setTimeout(() => {
       const {width, height} = Dimensions.get('window');
 
-      const nexusLeft = width * 0.5 - 30;
+      const nexusLeft = width * 0.5 - 20;
       const viewLeft = width * 0.5 - 100;
       const menuLeft = width * 0.5 + 60;
 
       const _buttons = [
         {
           name: 'LeftTrigger',
-          x: 20,
+          x: 30,
           y: 40,
           scale: 1,
           show: true,
         },
         {
           name: 'RightTrigger',
-          x: width - 20,
+          x: width - 40,
           y: 40,
           scale: 1,
           show: true,
         },
         {
           name: 'LeftShoulder',
-          x: 20,
+          x: 30,
           y: 100,
           scale: 1,
           show: true,
         },
         {
           name: 'RightShoulder',
-          x: width - 20,
-          y: 100,
+          x: width - 40,
+          y: 110,
           scale: 1,
           show: true,
         },
         {
           name: 'A',
-          x: width - 85,
-          y: height - 70,
+          x: width - 90,
+          y: height - 60,
           scale: 1,
           show: true,
         },
         {
           name: 'B',
-          x: width - 45,
+          x: width - 40,
           y: height - 110,
           scale: 1,
           show: true,
         },
         {
           name: 'X',
-          x: width - 125,
+          x: width - 140,
           y: height - 110,
           scale: 1,
           show: true,
         },
         {
           name: 'Y',
-          x: width - 85,
-          y: height - 150,
+          x: width - 90,
+          y: height - 160,
           scale: 1,
           show: true,
         },
         {
           name: 'LeftThumb',
-          x: 200,
-          y: height - 90,
+          x: 210,
+          y: height - 80,
           scale: 1,
           show: true,
         },
         {
           name: 'RightThumb',
-          x: width - 230,
-          y: height - 80,
+          x: width - 235,
+          y: height - 70,
           scale: 1,
           show: true,
         },
@@ -144,7 +144,7 @@ function CustomGamepadScreen({navigation, route}) {
         {
           name: 'Nexus',
           x: nexusLeft,
-          y: height - 50,
+          y: height - 30,
           scale: 1,
           show: true,
         },
@@ -156,12 +156,27 @@ function CustomGamepadScreen({navigation, route}) {
           show: true,
         },
         {
-          name: 'Dpad',
-          x: 50,
-          y: height - 140,
-          width: 100,
-          height: 100,
-          scale: 1,
+          name: 'DPadUp',
+          x: 85,
+          y: height - 145,
+          show: true,
+        },
+        {
+          name: 'DPadLeft',
+          x: 35,
+          y: height - 95,
+          show: true,
+        },
+        {
+          name: 'DPadDown',
+          x: 85,
+          y: height - 45,
+          show: true,
+        },
+        {
+          name: 'DPadRight',
+          x: 135,
+          y: height - 95,
           show: true,
         },
         {
@@ -251,77 +266,77 @@ function CustomGamepadScreen({navigation, route}) {
   const handleReset = () => {
     const {width, height} = Dimensions.get('window');
 
-    const nexusLeft = width * 0.5 - 30;
+    const nexusLeft = width * 0.5 - 20;
     const viewLeft = width * 0.5 - 100;
     const menuLeft = width * 0.5 + 60;
 
     const _buttons = [
       {
         name: 'LeftTrigger',
-        x: 20,
+        x: 30,
         y: 40,
         scale: 1,
         show: true,
       },
       {
         name: 'RightTrigger',
-        x: width - 20,
+        x: width - 40,
         y: 40,
         scale: 1,
         show: true,
       },
       {
         name: 'LeftShoulder',
-        x: 20,
+        x: 30,
         y: 100,
         scale: 1,
         show: true,
       },
       {
         name: 'RightShoulder',
-        x: width - 20,
-        y: 100,
+        x: width - 40,
+        y: 110,
         scale: 1,
         show: true,
       },
       {
         name: 'A',
-        x: width - 85,
-        y: height - 70,
+        x: width - 90,
+        y: height - 60,
         scale: 1,
         show: true,
       },
       {
         name: 'B',
-        x: width - 45,
+        x: width - 40,
         y: height - 110,
         scale: 1,
         show: true,
       },
       {
         name: 'X',
-        x: width - 125,
+        x: width - 140,
         y: height - 110,
         scale: 1,
         show: true,
       },
       {
         name: 'Y',
-        x: width - 85,
-        y: height - 150,
+        x: width - 90,
+        y: height - 160,
         scale: 1,
         show: true,
       },
       {
         name: 'LeftThumb',
-        x: 200,
-        y: height - 90,
+        x: 210,
+        y: height - 80,
         scale: 1,
         show: true,
       },
       {
         name: 'RightThumb',
-        x: width - 230,
+        x: width - 235,
         y: height - 80,
         scale: 1,
         show: true,
@@ -336,7 +351,7 @@ function CustomGamepadScreen({navigation, route}) {
       {
         name: 'Nexus',
         x: nexusLeft,
-        y: height - 50,
+        y: height - 30,
         scale: 1,
         show: true,
       },
@@ -348,12 +363,27 @@ function CustomGamepadScreen({navigation, route}) {
         show: true,
       },
       {
-        name: 'Dpad',
-        x: 50,
-        y: height - 140,
-        width: 100,
-        height: 100,
-        scale: 1,
+        name: 'DPadUp',
+        x: 85,
+        y: height - 145,
+        show: true,
+      },
+      {
+        name: 'DPadLeft',
+        x: 35,
+        y: height - 95,
+        show: true,
+      },
+      {
+        name: 'DPadDown',
+        x: 85,
+        y: height - 45,
+        show: true,
+      },
+      {
+        name: 'DPadRight',
+        x: 135,
+        y: height - 95,
         show: true,
       },
       {
@@ -481,14 +511,14 @@ function CustomGamepadScreen({navigation, route}) {
                 )}
 
               <View style={styles.title}>
-                <Text>{t('Show')}</Text>
+                <Text>{t('ShowTitle')}</Text>
                 <Divider style={styles.divider} />
               </View>
               <RadioButton.Group
                 onValueChange={val => handleChangeShow(val)}
                 value={currentShow}>
-                <RadioButton.Item label={'Display'} value={true} />
-                <RadioButton.Item label={'Hide'} value={false} />
+                <RadioButton.Item label={t('Show')} value={true} />
+                <RadioButton.Item label={t('Hide')} value={false} />
               </RadioButton.Group>
             </Card.Content>
           </Card>

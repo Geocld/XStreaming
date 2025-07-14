@@ -49,7 +49,7 @@ public class Vector {
     }
 
     public float getLength() {
-        return (float) Math.sqrt(getLengthSq());  // 使用 Math.sqrt 而不是 kotlin.math.sqrt
+        return (float) Math.sqrt(getLengthSq());
     }
 
     public Vector getNormalized() {

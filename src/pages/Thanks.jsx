@@ -33,7 +33,7 @@ function ThanksScreen({navigation, route}) {
       <Spinner
         visible={loading}
         cancelable={true}
-        color={'#DF6069'}
+        color={'#107C10'}
         textContent={''}
         textStyle={styles.spinnerTextStyle}
       />
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   spinnerTextStyle: {
-    color: '#DF6069',
+    color: '#107C10',
     textAlign: 'center',
   },
 });

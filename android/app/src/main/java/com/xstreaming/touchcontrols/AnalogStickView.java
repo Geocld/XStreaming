@@ -28,7 +28,6 @@ public class AnalogStickView extends CustomView {
     private TouchTracker touchTracker;
     private Vector center;
     private Vector handlePosition = new Vector(0f, 0f);
-    private Rect clipBoundsTmp = new Rect();
 
     public interface StateChangedCallback {
         void onStateChanged(Vector state);
@@ -48,7 +47,6 @@ public class AnalogStickView extends CustomView {
     }
 
     private void init(Context context, AttributeSet attrs) {
-        // 如果有属性文件，从中读取
         if (attrs != null) {
             try {
                 TypedArray a = context.getTheme().obtainStyledAttributes(
@@ -62,7 +60,6 @@ public class AnalogStickView extends CustomView {
                 drawableHandle = a.getDrawable(R.styleable.AnalogStickView_drawableHandle);
                 a.recycle();
             } catch (Exception e) {
-                // 如果属性文件不存在，使用默认值
                 setDefaultDrawables();
             }
         } else {
@@ -77,13 +74,11 @@ public class AnalogStickView extends CustomView {
             drawableBase = ContextCompat.getDrawable(getContext(), R.drawable.control_analog_stick_base);
             drawableHandle = ContextCompat.getDrawable(getContext(), R.drawable.control_analog_stick_handle);
         } catch (Exception e) {
-            // 如果drawable资源不存在，创建简单的圆形drawable
             createFallbackDrawables();
         }
     }
 
     private void createFallbackDrawables() {
-        // 创建简单的圆形drawable作为后备方案
         android.graphics.drawable.GradientDrawable baseDrawable = new android.graphics.drawable.GradientDrawable();
         baseDrawable.setShape(android.graphics.drawable.GradientDrawable.OVAL);
         baseDrawable.setColor(0x80FFFFFF);

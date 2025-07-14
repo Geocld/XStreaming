@@ -22,7 +22,7 @@ public class ButtonView extends CustomView {
     private ButtonPressedCallback buttonPressedCallback = null;
     private Drawable drawableIdle;
     private Drawable drawablePressed;
-    private String buttonName = ""; // 新增按钮名称字段
+    private String buttonName = "";
 
     public interface ButtonPressedCallback {
         void onButtonPressed(boolean pressed);
@@ -47,11 +47,10 @@ public class ButtonView extends CustomView {
         // 从XML属性获取drawable或按钮名称
         drawableIdle = a.getDrawable(R.styleable.ButtonView_drawableIdle);
         drawablePressed = a.getDrawable(R.styleable.ButtonView_drawablePressed);
-        buttonName = a.getString(R.styleable.ButtonView_buttonName); // 新增按钮名称属性
+        buttonName = a.getString(R.styleable.ButtonView_buttonName);
 
         a.recycle();
 
-        // 如果指定了按钮名称但没有指定drawable，则尝试根据名称加载
         if (buttonName != null && !buttonName.isEmpty() &&
                 (drawableIdle == null || drawablePressed == null)) {
             loadDrawablesByName(context.getResources(), buttonName);
@@ -60,7 +59,6 @@ public class ButtonView extends CustomView {
         setClickable(true);
     }
 
-    // 根据按钮名称加载XML drawable
     public void setButtonName(String name) {
         this.buttonName = name;
         if (name != null && !name.isEmpty()) {
@@ -69,7 +67,6 @@ public class ButtonView extends CustomView {
         }
     }
 
-    // 根据名称从res加载drawable
     private void loadDrawablesByName(Resources res, String baseName) {
         try {
             int idleResId = res.getIdentifier(baseName, "drawable", getContext().getPackageName());
@@ -86,7 +83,6 @@ public class ButtonView extends CustomView {
         }
     }
 
-    // 直接设置drawable的方法
     public void setDrawableIdle(Drawable drawable) {
         this.drawableIdle = drawable;
         invalidate();
@@ -97,7 +93,6 @@ public class ButtonView extends CustomView {
         invalidate();
     }
 
-    // 其余方法保持不变...
     public boolean isButtonPressed() {
         return buttonPressed;
     }

@@ -29,6 +29,7 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
 
   React.useEffect(() => {
     navigation.setOptions({
+      // eslint-disable-next-line react/no-unstable-nested-components
       headerRight: () => (
         <IconButton
           icon="plus"
@@ -86,10 +87,12 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
                 mode="contained"
                 style={{marginTop: 20}}
                 onPress={() => {
+                  const _name = name;
                   if (!isError) {
                     setShowAddModal(false);
+                    setName('');
                     setTimeout(() => {
-                      navigation.navigate('CustomGamepad', {name});
+                      navigation.navigate('CustomGamepad', {name: _name});
                     }, 300);
                   }
                 }}>
