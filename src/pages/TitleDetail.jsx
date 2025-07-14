@@ -171,13 +171,15 @@ function TitleDetail({navigation, route}) {
       {titleItem && (
         <>
           <ScrollView style={styles.scrollView}>
-            <Image
-              source={{
-                uri: 'https:' + titleItem.Image_Poster.URL,
-              }}
-              resizeMode="cover"
-              style={styles.image}
-            />
+            {titleItem.Image_Poster && (
+              <Image
+                source={{
+                  uri: 'https:' + titleItem.Image_Poster.URL,
+                }}
+                resizeMode="cover"
+                style={styles.image}
+              />
+            )}
             <View style={styles.textWrap}>
               <Text variant="titleLarge" style={styles.productTitle}>
                 {titleItem.ProductTitle}

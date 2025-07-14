@@ -30,14 +30,16 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
             color="#0000ff"
           />
         )}
-        <Image
-          source={{
-            uri: 'https:' + titleItem.Image_Tile.URL,
-          }}
-          resizeMode={'cover'}
-          onLoad={() => setLoading(false)}
-          style={styles.image}
-        />
+        {titleItem && titleItem.Image_Tile && (
+          <Image
+            source={{
+              uri: 'https:' + titleItem.Image_Tile.URL,
+            }}
+            resizeMode={'cover'}
+            onLoad={() => setLoading(false)}
+            style={styles.image}
+          />
+        )}
         <View style={styles.descriptionContainer}>
           <Text
             style={styles.description}
