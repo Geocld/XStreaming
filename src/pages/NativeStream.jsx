@@ -1006,8 +1006,14 @@ function NativeStreamScreen({navigation, route}) {
             let msg = '';
             if (typeof e === 'string') {
               if (e.includes('WaitingForServerToRegister')) {
-                msg =
-                  '[StartSession] Fail:' + t('WaitingForServerToRegister') + e;
+                if (e.includes('disabled streaming')) {
+                  msg = '[StartSession] Fail:' + t('DisabledStreamingErr') + e;
+                } else {
+                  msg =
+                    '[StartSession] Fail:' +
+                    t('WaitingForServerToRegister') +
+                    e;
+                }
               } else {
                 msg = '[StartSession] Fail:' + e;
               }
