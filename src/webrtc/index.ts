@@ -11,6 +11,8 @@ import ChatChannel from './Channel/Chat';
 
 import GamepadDriver from './Driver/Gamepad';
 
+import server from '../../server.json';
+
 globalThis._lastStat = null;
 
 class webRTCClient {
@@ -41,6 +43,11 @@ class webRTCClient {
       },
       {
         urls: 'stun:stun.douyucdn.cn:18000',
+      },
+      {
+        urls: server.url,
+        username: server.username,
+        credential: server.credential,
       },
     ],
   };
