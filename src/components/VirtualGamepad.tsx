@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   rb: {
     right: 30,
-    top: 110,
+    top: 100,
   },
   a: {
     bottom: 60,

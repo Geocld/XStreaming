@@ -52,7 +52,7 @@ function DebugScreen({navigation, route}) {
   };
 
   const handleAnalogStickChange = event => {
-    console.log('Analog stick position:', event.x, event.y);
+    // console.log('Analog stick position:', event.x, event.y);
   };
 
   return (
@@ -186,23 +186,23 @@ function DebugScreen({navigation, route}) {
       <View>
         <ButtonView
           style={{width: 100, height: 100}}
-          buttonName="control_button_lt"
-          onPressIn={() => {
-            console.log('lt onPressIn');
-          }}
-          onPressOut={() => {
-            console.log('lt onPressOut');
-          }}
-        />
-
-        <ButtonView
-          style={{width: 100, height: 100}}
           buttonName="control_button_rt"
           onPressIn={() => {
             console.log('rt onPressIn');
           }}
           onPressOut={() => {
             console.log('rt onPressOut');
+          }}
+        />
+
+        <ButtonView
+          style={{width: 100, height: 100}}
+          buttonName="control_button_lb"
+          onPressIn={() => {
+            console.log('lb onPressIn');
+          }}
+          onPressOut={() => {
+            console.log('lb onPressOut');
           }}
         />
       </View>

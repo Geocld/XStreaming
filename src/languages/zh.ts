@@ -140,7 +140,7 @@ export default {
     'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
       '📢自定义虚拟按键位置可能跟实际渲染存在误差，请以实际效果为准',
     'Customize virtual buttons': '自定义虚拟按键',
-    'Customize buttons of virtual gamepad': '自定义虚拟手柄按键',
+    'Customize buttons of virtual gamepad': '编辑/使用自定义虚拟手柄',
     'Click on an element to set its size and display':
       '👆点击元素设置元素大小及显示',
     'Drag elements to adjust their position': '✋拖动元素调整位置',

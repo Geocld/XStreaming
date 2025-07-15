@@ -1146,21 +1146,23 @@ function NativeStreamScreen({navigation, route}) {
     GamepadManager.setCurrentScreen('stream');
   };
 
-  // Virtual gamepad press
+  // Virtual gamepad press start
   const handleButtonPressIn = name => {
-    webrtcClient.getChannelProcessor('input').pressButtonStart(name);
+    gpState[name] = 1;
   };
 
+  // Virtual gamepad press end
   const handleButtonPressOut = name => {
     setTimeout(() => {
-      webrtcClient.getChannelProcessor('input').pressButtonEnd(name);
+      gpState[name] = 0;
     }, 50);
   };
 
+  // Virtual gamepad stick move
   const handleStickMove = (id, data) => {
     // console.log('handleStickMove:', id, data);
     let leveledX = data.x;
-    let leveledY = -data.y;
+    let leveledY = data.y;
 
     if (typeof leveledX === 'string') {
       leveledX = leveledX.toFixed(2);
@@ -1175,13 +1177,11 @@ function NativeStreamScreen({navigation, route}) {
       } else {
         isRightstickMoving.current = false;
       }
-      webrtcClient
-        .getChannelProcessor('input')
-        .moveRightStick(Number(leveledX), Number(leveledY));
+      gpState.RightThumbXAxis = Number(leveledX);
+      gpState.RightThumbYAxis = Number(leveledY);
     } else {
-      webrtcClient
-        .getChannelProcessor('input')
-        .moveLeftStick(Number(leveledX), Number(leveledY));
+      gpState.LeftThumbXAxis = Number(leveledX);
+      gpState.LeftThumbYAxis = Number(leveledY);
     }
   };
 
