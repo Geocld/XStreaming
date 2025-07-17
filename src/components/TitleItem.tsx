@@ -20,6 +20,30 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
     onPress && onPress(titleItem);
   };
 
+  const renderImage = () => {
+    if (!titleItem) {
+      return null;
+    }
+    const url = titleItem.Image_Tile
+      ? titleItem.Image_Tile.URL
+      : titleItem.Image_Poster.URL;
+
+    if (url) {
+      return (
+        <Image
+          source={{
+            uri: 'https:' + url,
+          }}
+          resizeMode={'cover'}
+          onLoad={() => setLoading(false)}
+          style={styles.image}
+        />
+      );
+    } else {
+      return null;
+    }
+  };
+
   return (
     <Pressable onPress={handlePress}>
       <View style={styles.card}>
@@ -30,16 +54,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
             color="#0000ff"
           />
         )}
-        {titleItem && titleItem.Image_Tile && (
-          <Image
-            source={{
-              uri: 'https:' + titleItem.Image_Tile.URL,
-            }}
-            resizeMode={'cover'}
-            onLoad={() => setLoading(false)}
-            style={styles.image}
-          />
-        )}
+        {renderImage()}
         <View style={styles.descriptionContainer}>
           <Text
             style={styles.description}
