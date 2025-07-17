@@ -40,7 +40,7 @@ const VirtualGamepad: React.FC<Props> = ({
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       <ButtonView
-        style={[styles.button, styles.lt]}
+        style={[styles.button, styles.lt, {opacity}]}
         buttonName="control_button_lt"
         onPressIn={() => handlePressIn('LeftTrigger')}
         onPressOut={() => handlePressOut('LeftTrigger')}
