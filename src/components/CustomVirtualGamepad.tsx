@@ -182,8 +182,6 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     onStickMove && onStickMove(id, data);
   };
 
-  console.log('settings:', localSettings);
-
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       {buttons.map((button: any) => {
@@ -314,6 +312,7 @@ const styles = StyleSheet.create({
   button: {
     opacity: 0.5,
     position: 'absolute',
+    zIndex: 10,
   },
   leftJs: {
     width: 120,
