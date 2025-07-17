@@ -123,6 +123,12 @@ export default {
     'Signal server': '信令伺服器',
     'Virtual gamepad': '虛擬手柄',
     'Always display the virtual gamepad': '始終顯示虛擬手柄',
+    virtual_joystick_title: '虛擬搖桿佈局',
+    virtual_joystick_desc: '可設置虛擬搖桿佈局為固定/自由模式',
+    virtual_joystick_tips:
+      '自由模式下，螢幕左/右側空白區域均可分別操作左/右搖桿',
+    Fixed: '固定',
+    Free: '自由',
     'Select gamepad kernal, you can not use virtual gamepad in Web kernal':
       '選擇手柄驅動內核，在 Web 內核下你將無法使用虛擬手柄',
     'Config opacity of virtual gamepad': '設置虛擬按鍵透明度',

@@ -38,6 +38,7 @@ export type Settings = {
   video_format: string;
   show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
+  virtual_gamepad_joystick: number;
   custom_virtual_gamepad: string;
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
@@ -88,6 +89,7 @@ const defaultSettings: Settings = {
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.7,
   custom_virtual_gamepad: '',
+  virtual_gamepad_joystick: 0,
   gamepad_maping: null,
   native_gamepad_maping: null,
   polling_rate: 62.5,

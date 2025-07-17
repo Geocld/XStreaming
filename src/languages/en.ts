@@ -172,5 +172,11 @@ export default {
     ShowTitle: 'Display',
     Show: 'Show',
     Hide: 'Hide',
+    virtual_joystick_title: 'Virtual Joystick Layout',
+    virtual_joystick_desc: 'Set the virtual joystick layout to Fixed/Free mode',
+    virtual_joystick_tips:
+      'In Free mode, the left/right joystick can be operated in blank areas on either side of the screen',
+    Fixed: 'Fixed',
+    Free: 'Free',
   },
 };

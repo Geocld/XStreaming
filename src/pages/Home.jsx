@@ -206,7 +206,7 @@ function HomeScreen({navigation, route}) {
           if (!_xHomeApiRef.current) {
             return;
           }
-          // Refresh silence
+          // Refresh silently
           // setLoading(true);
           // setLoadingText(t('Fetching consoles...'));
 

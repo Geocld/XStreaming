@@ -2,6 +2,7 @@ import React from 'react';
 import {StyleSheet, View, Dimensions} from 'react-native';
 import GamepadButton from './CustomGamepad/GamepadButton';
 import AnalogStick from '../components/AnalogStick';
+import {getSettings as getLocalSettings} from '../store/settingStore';
 import {getSettings} from '../store/gamepadStore';
 
 type Props = {
@@ -20,6 +21,9 @@ const CustomVirtualGamepad: React.FC<Props> = ({
   onStickMove,
 }) => {
   const [buttons, setButtons] = React.useState<any>([]);
+  const localSettings = getLocalSettings();
+
+  const {width: clientW, height: clientH} = Dimensions.get('window');
 
   React.useEffect(() => {
     const _settings = getSettings();
@@ -178,6 +182,8 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     onStickMove && onStickMove(id, data);
   };
 
+  console.log('settings:', localSettings);
+
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       {buttons.map((button: any) => {
@@ -185,43 +191,95 @@ const CustomVirtualGamepad: React.FC<Props> = ({
           return null;
         }
         if (button.name === 'LeftStick') {
-          return (
-            <View
-              key={button.name}
-              style={[
-                styles.button,
-                {top: button.y, left: button.x},
-                {opacity},
-              ]}>
-              <View style={styles.leftJs}>
+          if (localSettings.virtual_gamepad_joystick === 1) {
+            return (
+              <View
+                key={button.name}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  zIndex: 9,
+                  width: clientW * 0.5,
+                  height: clientH,
+                }}>
                 <AnalogStick
-                  style={styles.analogStick}
+                  style={{
+                    width: clientW * 0.5,
+                    height: clientH,
+                  }}
                   radius={140}
                   handleRadius={80}
                   onStickChange={(data: any) => handleStickMove('left', data)}
                 />
               </View>
-            </View>
-          );
+            );
+          } else {
+            return (
+              <View
+                key={button.name}
+                style={[
+                  styles.button,
+                  {top: button.y, left: button.x},
+                  {opacity},
+                ]}>
+                <View style={styles.leftJs}>
+                  <AnalogStick
+                    style={styles.analogStick}
+                    radius={140}
+                    handleRadius={80}
+                    onStickChange={(data: any) => handleStickMove('left', data)}
+                  />
+                </View>
+              </View>
+            );
+          }
         } else if (button.name === 'RightStick') {
-          return (
-            <View
-              key={button.name}
-              style={[
-                styles.button,
-                {top: button.y, left: button.x},
-                {opacity},
-              ]}>
-              <View style={styles.rightJs}>
+          if (localSettings.virtual_gamepad_joystick === 1) {
+            return (
+              <View
+                key={button.name}
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 0,
+                  zIndex: 9,
+                  width: clientW * 0.5,
+                  height: clientH,
+                }}>
                 <AnalogStick
-                  style={styles.analogStick}
-                  radius={140}
-                  handleRadius={80}
+                  style={{
+                    width: clientW * 0.5,
+                    height: clientH,
+                  }}
+                  radius={150}
+                  handleRadius={100}
                   onStickChange={(data: any) => handleStickMove('right', data)}
                 />
               </View>
-            </View>
-          );
+            );
+          } else {
+            return (
+              <View
+                key={button.name}
+                style={[
+                  styles.button,
+                  {top: button.y, left: button.x},
+                  {opacity},
+                ]}>
+                <View style={styles.rightJs}>
+                  <AnalogStick
+                    style={styles.analogStick}
+                    radius={140}
+                    handleRadius={80}
+                    onStickChange={(data: any) =>
+                      handleStickMove('right', data)
+                    }
+                  />
+                </View>
+              </View>
+            );
+          }
         } else {
           return (
             <GamepadButton
