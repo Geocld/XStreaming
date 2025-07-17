@@ -12,7 +12,7 @@ function FeedbackScreen({navigation, route}) {
         </View>
         <View>
           <Text variant="titleMedium">
-            喜欢折腾、主机串流、云游戏及串流技术开发，欢迎加入群聊
+            喜欢折腾、主机串流、云游戏及交流串流心得，欢迎加入群聊
           </Text>
           <Text variant="titleMedium">群号：964721224</Text>
         </View>

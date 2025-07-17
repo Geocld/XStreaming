@@ -851,7 +851,7 @@ export default class XcloudApi {
           },
         })
         .then(res => {
-          console.log('getConsoles res:', res.data);
+          log.info('getConsoles res:', res.data);
           if (res.data && res.data.results) {
             resolve(res.data.results);
           } else {

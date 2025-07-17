@@ -13,7 +13,6 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
 import ConsoleItem from '../components/ConsoleItem';
-import Profile from '../components/Profile';
 import {getSettings, saveSettings} from '../store/settingStore';
 
 import Authentication from '../Authentication';
@@ -35,14 +34,14 @@ function HomeScreen({navigation, route}) {
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
   const [xalUrl, setXalUrl] = React.useState('');
-  const [profile, setProfile] = React.useState(null);
+  // const [profile, setProfile] = React.useState(null);
   const [consoles, setConsoles] = React.useState([]);
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
   const [showLogin, setShowLogin] = React.useState(false);
-  const [showProfile, setShowProfile] = React.useState(false);
+  // const [showProfile, setShowProfile] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
   const _authentication = React.useRef(authentication);
@@ -130,7 +129,7 @@ function HomeScreen({navigation, route}) {
           setShowLogin(false);
 
           setLoading(true);
-          // const webApi = new WebApi(_webToken);
+          const webApi = new WebApi(_webToken);
 
           // setLoadingText(t('Fetching user info...'));
           try {
@@ -150,8 +149,11 @@ function HomeScreen({navigation, route}) {
             );
             _xHomeApiRef.current = _xHomeApi;
 
-            const _consoles = await _xHomeApi.getConsoles();
-            // const _consoles = await webApi.getConsoles();
+            let _consoles = await _xHomeApi.getConsoles();
+
+            if (!_consoles.length) {
+              _consoles = await webApi.getConsoles();
+            }
             setConsoles(_consoles);
           } catch (e) {
             Alert.alert(t('Error'), e);
@@ -204,12 +206,21 @@ function HomeScreen({navigation, route}) {
           if (!_xHomeApiRef.current) {
             return;
           }
-          setLoading(true);
-          setLoadingText(t('Fetching consoles...'));
+          // Refresh silence
+          // setLoading(true);
+          // setLoadingText(t('Fetching consoles...'));
 
+          const webApi = new WebApi(webTokenRef.current);
           _xHomeApiRef.current.getConsoles().then(_consoles => {
-            setConsoles(_consoles);
-            setLoading(false);
+            if (!_consoles.length) {
+              webApi.getConsoles().then(_consolesV1 => {
+                setConsoles(_consolesV1);
+                // setLoading(false);
+              });
+            } else {
+              setConsoles(_consoles);
+              // setLoading(false);
+            }
           });
         } else if (!_isLogined.current) {
           setLoading(true);
@@ -264,7 +275,11 @@ function HomeScreen({navigation, route}) {
       const powerOnRes = await webApi.powerOn(sessionId);
       log.info('powerOn:', powerOnRes);
 
-      const _consoles = await _xHomeApiRef.current.getConsoles();
+      let _consoles = await _xHomeApiRef.current.getConsoles();
+
+      if (!_consoles.length) {
+        _consoles = await webApi.getConsoles();
+      }
       setConsoles(_consoles);
 
       setLoading(false);

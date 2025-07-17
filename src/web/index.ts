@@ -127,7 +127,7 @@ export default class WebApi {
 
   getConsoles() {
     const http = new Http();
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       http
         .get(
           'xccs.xboxlive.com',
@@ -151,13 +151,18 @@ export default class WebApi {
             JSON.stringify(res),
           );
           if (res.result) {
+            const consoles = res.result;
+            consoles.forEach((item: any) => {
+              item.serverId = item.id;
+              item.deviceName = item.name;
+            });
             resolve(res.result);
           } else {
             resolve([]);
           }
         })
-        .catch(e => {
-          reject(e);
+        .catch(() => {
+          resolve([]);
         });
     });
   }
