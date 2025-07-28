@@ -1014,6 +1014,8 @@ function NativeStreamScreen({navigation, route}) {
                     t('WaitingForServerToRegister') +
                     e;
                 }
+              } else if (e.includes('xboxstreaminghelper.cpp')) {
+                msg = '[StartSession] Fail:' + t('XboxstreaminghelperErr') + e;
               } else {
                 msg = '[StartSession] Fail:' + e;
               }
