@@ -138,7 +138,7 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
   {
     name: 'virtual_gamepad_opacity',
     type: 'slider',
-    min: 0.1,
+    min: 0,
     max: 1,
     step: 0.1,
     title: t('Virtual Opacity'),

@@ -496,14 +496,14 @@ function CustomGamepadScreen({navigation, route}) {
                     </View>
                     <Slider
                       value={currentScale}
-                      minimumValue={1}
+                      minimumValue={0.5}
                       maximumValue={4}
                       step={0.1}
                       onValueChange={val => {
                         setCurrentScale(val);
                         handleChangeSize(val);
                       }}
-                      lowerLimit={1}
+                      lowerLimit={0.5}
                       minimumTrackTintColor="#107C10"
                       maximumTrackTintColor="grey"
                     />
