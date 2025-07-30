@@ -78,8 +78,6 @@ const gpState = {
   RightThumbYAxis: 0.0,
 };
 
-const keyDownTimestamp = {};
-
 function NativeStreamScreen({navigation, route}) {
   const {t} = useTranslation();
   const authentication = useSelector(state => state.authentication);
@@ -116,8 +114,7 @@ function NativeStreamScreen({navigation, route}) {
   const dpUpEventListener = React.useRef(undefined);
   const stickEventListener = React.useRef(undefined);
   const triggerEventListener = React.useRef(undefined);
-  const isLeftTriggerCanClick = React.useRef(false);
-  const isRightTriggerCanClick = React.useRef(false);
+  const isTriggerMotion = React.useRef(false);
   const isRightstickMoving = React.useRef(false);
   const timer = React.useRef(undefined);
   const frameTimer = React.useRef(undefined);
@@ -313,14 +310,14 @@ function NativeStreamScreen({navigation, route}) {
           const keyName = gpMaping[keyCode];
           gpState[keyName] = 1;
 
-          keyDownTimestamp[keyName] = Date.now();
-
-          // If LeftTrigger or RightTrigger is a button, onTrigger event should not be processed.
-          if (keyName === 'LeftTrigger') {
-            isLeftTriggerCanClick.current = true;
-          }
-          if (keyName === 'RightTrigger') {
-            isRightTriggerCanClick.current = true;
+          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+            setTimeout(() => {
+              if (!isTriggerMotion.current) {
+                gpState[keyName] = 1;
+              }
+            }, 16);
+          } else {
+            gpState[keyName] = 1;
           }
         },
       );
@@ -331,23 +328,15 @@ function NativeStreamScreen({navigation, route}) {
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
 
-          // const keyUpTimestamp = Date.now();
-          // const timeDiff = keyUpTimestamp - (keyDownTimestamp[keyName] || 0);
-          // console.log('timeDiff:', timeDiff);
-
-          // if (timeDiff < BUTTON_CLICK_THRESHOLD) {
-          //   return;
-          // }
-          // console.log('onGamepadKeyUp:', event);
-
-          if (keyName === 'LeftTrigger') {
-            isLeftTriggerCanClick.current = true;
+          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+            setTimeout(() => {
+              if (!isTriggerMotion.current) {
+                gpState[keyName] = 0;
+              }
+            }, 16);
+          } else {
+            gpState[keyName] = 0;
           }
-          if (keyName === 'RightTrigger') {
-            isRightTriggerCanClick.current = true;
-          }
-
-          gpState[keyName] = 0;
         },
       );
 
@@ -394,49 +383,48 @@ function NativeStreamScreen({navigation, route}) {
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
-          if (!isLeftTriggerCanClick.current) {
-            // Short trigger
-            if (_settings.short_trigger) {
-              triggerMax = _settings.dead_zone;
-              if (event.leftTrigger >= triggerMax) {
-                gpState.LeftTrigger = 1;
-              } else {
-                setTimeout(() => {
-                  gpState.LeftTrigger = 0;
-                }, 16);
-              }
+          console.log('onTrigger:', event);
+          isTriggerMotion.current = true;
+
+          // Short trigger
+          if (_settings.short_trigger) {
+            triggerMax = _settings.dead_zone;
+            if (event.leftTrigger >= triggerMax) {
+              gpState.LeftTrigger = 1;
             } else {
-              // Line trigger
-              if (event.leftTrigger >= 0.05) {
-                gpState.LeftTrigger = event.leftTrigger;
-              } else {
-                setTimeout(() => {
-                  gpState.LeftTrigger = 0;
-                }, 16);
-              }
+              setTimeout(() => {
+                gpState.LeftTrigger = 0;
+              }, 16);
+            }
+          } else {
+            // Line trigger
+            if (event.leftTrigger >= 0.05) {
+              gpState.LeftTrigger = event.leftTrigger;
+            } else {
+              setTimeout(() => {
+                gpState.LeftTrigger = 0;
+              }, 16);
             }
           }
 
-          if (!isRightTriggerCanClick.current) {
-            // Short trigger
-            if (_settings.short_trigger) {
-              triggerMax = _settings.dead_zone;
-              if (event.rightTrigger >= triggerMax) {
-                gpState.RightTrigger = 1;
-              } else {
-                setTimeout(() => {
-                  gpState.RightTrigger = 0;
-                }, 16);
-              }
+          // Short trigger
+          if (_settings.short_trigger) {
+            triggerMax = _settings.dead_zone;
+            if (event.rightTrigger >= triggerMax) {
+              gpState.RightTrigger = 1;
             } else {
-              // Line trigger
-              if (event.rightTrigger >= 0.05) {
-                gpState.RightTrigger = event.rightTrigger;
-              } else {
-                setTimeout(() => {
-                  gpState.RightTrigger = 0;
-                }, 16);
-              }
+              setTimeout(() => {
+                gpState.RightTrigger = 0;
+              }, 16);
+            }
+          } else {
+            // Line trigger
+            if (event.rightTrigger >= 0.05) {
+              gpState.RightTrigger = event.rightTrigger;
+            } else {
+              setTimeout(() => {
+                gpState.RightTrigger = 0;
+              }, 16);
             }
           }
         },

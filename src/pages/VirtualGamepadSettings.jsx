@@ -165,6 +165,10 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 10,
   },
+  modal: {
+    marginLeft: '10%',
+    marginRight: '10%',
+  },
 });
 
 export default VirtualGamepadSettingsScreen;

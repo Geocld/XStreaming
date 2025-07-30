@@ -89,7 +89,7 @@ const defaultSettings: Settings = {
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.7,
   custom_virtual_gamepad: '',
-  virtual_gamepad_joystick: 0,
+  virtual_gamepad_joystick: 1,
   gamepad_maping: null,
   native_gamepad_maping: null,
   polling_rate: 62.5,
