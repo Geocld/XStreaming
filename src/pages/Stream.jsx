@@ -1334,6 +1334,7 @@ function StreamScreen({navigation, route}) {
             inputTouch:
               route.params?.sessionId === 'MINECRAFTDUNGEONS' ||
               route.params?.sessionId === 'MICROSOFTFLIGHTSIMULATOR',
+            // route.params?.sessionId === 'GENSHINIMPACT',
           }}
           onMessage={event => {
             handleWebviewMessage(event);
