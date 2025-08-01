@@ -301,11 +301,9 @@ function StreamScreen({navigation, route}) {
           const keyName = gpMaping[keyCode];
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            setTimeout(() => {
-              if (!isTriggerMotion.current) {
-                gpState[keyName] = 1;
-              }
-            }, 16);
+            if (!isTriggerMotion.current) {
+              gpState[keyName] = 1;
+            }
           } else {
             gpState[keyName] = 1;
           }
@@ -319,11 +317,9 @@ function StreamScreen({navigation, route}) {
           const keyName = gpMaping[keyCode];
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            setTimeout(() => {
-              if (!isTriggerMotion.current) {
-                gpState[keyName] = 0;
-              }
-            }, 16);
+            if (!isTriggerMotion.current) {
+              gpState[keyName] = 0;
+            }
           } else {
             gpState[keyName] = 0;
           }
