@@ -670,7 +670,10 @@ export default class XcloudApi {
       const productIdQueue = [];
       const v2TitleMap = {};
       const _settings = getSettings();
-      const lang = _settings.locale.indexOf('zh') > -1 ? 'zh-TW' : 'en-US';
+      const lang =
+        _settings.preferred_game_language.indexOf('zh') > -1
+          ? 'zh-TW'
+          : 'en-US';
       if (!Array.isArray(titles)) {
         log.info('[getGamePassProducts] error titles is not a array:', titles);
         resolve([]);
@@ -707,7 +710,7 @@ export default class XcloudApi {
           .then(res => {
             if (res.data && res.data.Products) {
               const products = res.data.Products;
-              const mergedTitles = [];
+              let mergedTitles = [];
               for (const key in products) {
                 if (v2TitleMap[key]) {
                   mergedTitles.push({
@@ -725,6 +728,9 @@ export default class XcloudApi {
               mergedTitles.sort((a, b) =>
                 a.ProductTitle.localeCompare(b.ProductTitle),
               );
+              mergedTitles = mergedTitles.filter(item => {
+                return item.titleId || item.XCloudTitleId;
+              });
               resolve(mergedTitles);
             } else {
               resolve([]);
@@ -787,6 +793,33 @@ export default class XcloudApi {
         .then(res => {
           // log.info('getRecentTitles res:', res.data);
           resolve(res.data);
+        })
+        .catch(e => {
+          resolve([]);
+        });
+    });
+  }
+
+  // Get alternate ids
+  getAlternateIds(id) {
+    return new Promise(resolve => {
+      axios
+        .post(
+          `${this.host}/v2/titles`,
+          {
+            alternateIdType: 'productId',
+            alternateIds: [id],
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + this.gsToken,
+            },
+          },
+        )
+        .then(res => {
+          console.log('res.data:', res.data);
+          resolve(res.data || []);
         })
         .catch(e => {
           resolve([]);

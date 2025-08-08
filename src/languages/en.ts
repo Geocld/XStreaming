@@ -63,7 +63,9 @@ export default {
     'Mapping key of gamepad': 'Mapping key of gamepad',
     'Override native Xbox gamepad support': 'Override native gamepad support',
     noAllow:
-      'Permission denied for streaming or cloud gaming. Please verify your login status and try logging in again. For cloud gaming, ensure you have an active XGPU subscription. For non-XGPU games, verify that you own the game',
+      'Permission denied for cloud gaming. Please verify your login status and try logging in again. For cloud gaming, ensure you have an active XGPU subscription. For non-XGPU games, verify that you own the game',
+    homeNoAllow:
+      'Streaming permission check failed. Please check if your login has expired and try logging in again',
     bind_usb_device_description:
       'Force Peasyo’s USB driver to take over all supported /DualSense controllers (experimental)',
     bind_usb_device_tips:

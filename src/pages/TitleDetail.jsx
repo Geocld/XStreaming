@@ -9,9 +9,11 @@ import {
   HelperText,
 } from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
+import {useSelector} from 'react-redux';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
+import XcloudApi from '../xCloud';
 import games from '../mock/games.json';
 
 const {UsbRumbleManager, FullScreenManager} = NativeModules;
@@ -24,6 +26,7 @@ function TitleDetail({navigation, route}) {
   const {t} = useTranslation();
   const [titleItem, setTitleItem] = React.useState(null);
   const [settings, setSettings] = React.useState({});
+  const streamingTokens = useSelector(state => state.streamingTokens);
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
 
   React.useEffect(() => {
@@ -39,9 +42,20 @@ function TitleDetail({navigation, route}) {
   }, [route.params?.titleItem, navigation]);
 
   const handleStartGame = async () => {
-    log.info('HandleStartCloudGame titleId:', titleItem.XCloudTitleId);
+    const titleId = titleItem.titleId || titleItem.XCloudTitleId;
+    log.info('HandleStartCloudGame titleId:', titleId);
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
+
+    // if (streamingTokens.xCloudToken) {
+    //   const _xCloudApi = new XcloudApi(
+    //     streamingTokens.xCloudToken.getDefaultRegion().baseUri,
+    //     streamingTokens.xCloudToken.data.gsToken,
+    //     'cloud',
+    //   );
+    //   // _xCloudApi.getAlternateIds('9N4096HX1WWQ');
+    //   _xCloudApi.getAlternateIds(titleId);
+    // }
 
     if (isUsbMode) {
       setShowUsbWarnShowModal(true);

@@ -1005,10 +1005,19 @@ function NativeStreamScreen({navigation, route}) {
               }
             } else {
               if (e.message?.indexOf('400') > -1) {
-                const error = t('noAllow');
-                msg = '[StartSession] Fail:' + error;
+                const error =
+                  route.params?.streamType === 'cloud'
+                    ? t('noAllow')
+                    : t('homeNoAllow');
+                msg =
+                  `[StartSession](${
+                    route.params?.streamType === 'cloud' ? 'Cloud' : 'Home'
+                  }) Fail:` + error;
               } else {
-                msg = '[StartSession] Fail:' + e;
+                msg =
+                  `[StartSession](${
+                    route.params?.streamType === 'cloud' ? 'Cloud' : 'Home'
+                  }) Fail:` + e;
               }
             }
             Alert.alert(t('Warning'), msg, [

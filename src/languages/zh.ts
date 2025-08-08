@@ -159,7 +159,8 @@ export default {
     'Modify the linear trigger action to a short trigger':
       '将线性扳机动作修改为短扳机',
     noAllow:
-      '你没有权限开始串流或云游戏，请检查登录是否过期并尝试重新登录，如果你正在尝试游玩云游戏，请确保你是XGPU，如果你正在尝试游玩非XGPU游戏，请确保你已经购买此游戏',
+      '你没有权限开始云游戏，请检查登录是否过期并尝试重新登录，如果你正在尝试游玩云游戏，请确保你是XGPU，如果你正在尝试游玩非XGPU游戏，请确保你已经购买此游戏',
+    homeNoAllow: '串流权限检查失败，请检查登录是否过期并尝试重新登录',
     Horizon: '水平',
     Vertical: '垂直',
     'Auto check update': '自动检查更新',

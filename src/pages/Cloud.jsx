@@ -98,7 +98,12 @@ function CloudScreen({navigation, route}) {
               _xCloudApi.getNewTitles().then(newTitleRes => {
                 const _newTitles = [];
                 newTitleRes.forEach(item => {
-                  if (item.id && _titleMap[item.id]) {
+                  if (
+                    item.id &&
+                    _titleMap[item.id] &&
+                    (_titleMap[item.id].titleId ||
+                      _titleMap[item.id].XCloudTitleId)
+                  ) {
                     _newTitles.push(_titleMap[item.id]);
                   }
                 });
