@@ -8,8 +8,8 @@ const GridBackground = ({
   const {width, height} = Dimensions.get('window');
 
   // Calculate number of lines needed
-  const horizontalLines = Math.floor(height / gridSize);
-  const verticalLines = Math.floor(width / gridSize);
+  const horizontalLines = Math.floor(height / gridSize) * 2;
+  const verticalLines = Math.floor(width / gridSize) * 2;
 
   return (
     <View style={styles.container}>
