@@ -72,11 +72,11 @@ const ConsoleItem = (props: any) => {
             <Button
               mode="outlined"
               labelStyle={{marginHorizontal: 0}}
-              background={{
-                borderless: false,
-                color: 'rgba(255, 255, 255, 0.2)',
-                foreground: true,
-              }}
+              // background={{
+              //   borderless: false,
+              //   color: 'rgba(255, 255, 255, 0.2)',
+              //   foreground: true,
+              // }}
               onPress={props.onPoweronStream}>
               {t('Power on and start stream')}
             </Button>
@@ -84,11 +84,11 @@ const ConsoleItem = (props: any) => {
             <Button
               mode="outlined"
               labelStyle={{marginHorizontal: 0}}
-              background={{
-                borderless: false,
-                color: 'rgba(255, 255, 255, 0.2)',
-                foreground: true,
-              }}
+              // background={{
+              //   borderless: false,
+              //   color: 'rgba(255, 255, 255, 0.2)',
+              //   foreground: true,
+              // }}
               onPress={props.onPress}>
               {t('Start stream')}
             </Button>
