@@ -10,6 +10,7 @@ export default {
     Feedback: '交流及支持',
     Version: '版本',
     Close: '关闭',
+    More: '更多',
     GameMap: '手柄映射',
     NoLogin: '尚未登录，请登录',
     'Fetching user info...': '正在获取用户信息...',

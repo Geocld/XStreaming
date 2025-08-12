@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, Image} from 'react-native';
+import {StyleSheet, View, Image, Platform, Dimensions} from 'react-native';
 import {Card, Text, Button} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {SvgXml} from 'react-native-svg';
@@ -11,6 +11,7 @@ const ConsoleItem = (props: any) => {
   const settings = getSettings();
 
   const consoleItem = props.consoleItem;
+  const {width} = Dimensions.get('window');
 
   const renderImage = () => {
     const type = consoleItem.consoleType;
@@ -18,14 +19,14 @@ const ConsoleItem = (props: any) => {
       return (
         <Image
           source={require('../assets/console/series-x.png')}
-          style={{width: '100%', height: 130}}
+          style={{width: '100%', height: width > 600 ? 150 : 130}}
         />
       );
     } else if (type === 'XboxSeriesS') {
       return (
         <Image
           source={require('../assets/console/series-s.png')}
-          style={{width: '100%', height: 130}}
+          style={{width: '100%', height: width > 600 ? 150 : 130}}
         />
       );
     } else {
@@ -70,25 +71,15 @@ const ConsoleItem = (props: any) => {
           {settings.power_on &&
           consoleItem.powerState === 'ConnectedStandby' ? (
             <Button
-              mode="outlined"
+              mode={Platform.isTV ? 'elevated' : 'outlined'}
               labelStyle={{marginHorizontal: 0}}
-              // background={{
-              //   borderless: false,
-              //   color: 'rgba(255, 255, 255, 0.2)',
-              //   foreground: true,
-              // }}
               onPress={props.onPoweronStream}>
               {t('Power on and start stream')}
             </Button>
           ) : (
             <Button
-              mode="outlined"
+              mode={Platform.isTV ? 'elevated' : 'outlined'}
               labelStyle={{marginHorizontal: 0}}
-              // background={{
-              //   borderless: false,
-              //   color: 'rgba(255, 255, 255, 0.2)',
-              //   foreground: true,
-              // }}
               onPress={props.onPress}>
               {t('Start stream')}
             </Button>

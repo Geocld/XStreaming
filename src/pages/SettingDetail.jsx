@@ -288,11 +288,11 @@ function SettingDetailScreen({navigation, route}) {
       </ScrollView>
 
       <View style={styles.buttonWrap}>
-        <Button mode="contained" style={styles.button} onPress={handleSave}>
+        <Button mode="elevated" style={styles.button} onPress={handleSave}>
           {t('Save')}
         </Button>
         <Button
-          mode="outlined"
+          mode="text"
           style={styles.button}
           onPress={() => navigation.goBack()}>
           {t('Back')}

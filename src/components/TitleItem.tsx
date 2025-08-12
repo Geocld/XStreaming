@@ -1,12 +1,14 @@
 import React from 'react';
 import {
+  Platform,
   StyleSheet,
   View,
   Image,
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import {Text} from 'react-native-paper';
+import {Text, Button} from 'react-native-paper';
+import {useTranslation} from 'react-i18next';
 
 type Props = {
   titleItem: any;
@@ -15,6 +17,7 @@ type Props = {
 
 const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
   const [loading, setLoading] = React.useState(true);
+  const {t} = useTranslation();
 
   const handlePress = () => {
     onPress && onPress(titleItem);
@@ -43,29 +46,60 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
       return null;
     }
   };
+  if (Platform.isTV) {
+    return (
+      <View>
+        <View style={styles.card}>
+          {loading && (
+            <ActivityIndicator
+              style={styles.loadingIndicator}
+              size="large"
+              color="#0000ff"
+            />
+          )}
+          {renderImage()}
+          <View style={styles.descriptionContainer}>
+            <Text
+              style={styles.description}
+              numberOfLines={2}
+              ellipsizeMode="tail">
+              {titleItem.ProductTitle}
+            </Text>
+          </View>
 
-  return (
-    <Pressable onPress={handlePress}>
-      <View style={styles.card}>
-        {loading && (
-          <ActivityIndicator
-            style={styles.loadingIndicator}
-            size="large"
-            color="#0000ff"
-          />
-        )}
-        {renderImage()}
-        <View style={styles.descriptionContainer}>
-          <Text
-            style={styles.description}
-            numberOfLines={2}
-            ellipsizeMode="tail">
-            {titleItem.ProductTitle}
-          </Text>
+          <Button
+            mode="text"
+            labelStyle={{marginHorizontal: 0}}
+            onPress={handlePress}>
+            {t('Start game')}
+          </Button>
         </View>
       </View>
-    </Pressable>
-  );
+    );
+  } else {
+    return (
+      <Pressable onPress={handlePress}>
+        <View style={styles.card}>
+          {loading && (
+            <ActivityIndicator
+              style={styles.loadingIndicator}
+              size="large"
+              color="#0000ff"
+            />
+          )}
+          {renderImage()}
+          <View style={styles.descriptionContainer}>
+            <Text
+              style={styles.description}
+              numberOfLines={2}
+              ellipsizeMode="tail">
+              {titleItem.ProductTitle}
+            </Text>
+          </View>
+        </View>
+      </Pressable>
+    );
+  }
 };
 
 const styles = StyleSheet.create({

@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   ToastAndroid,
+  Platform,
 } from 'react-native';
 import {
   Portal,
@@ -99,6 +100,8 @@ function NativeStreamScreen({navigation, route}) {
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
   const [openMicro, setOpenMicro] = React.useState(false);
+  const xHomeApiRef = React.useRef(undefined);
+  const xCloudApiRef = React.useRef(undefined);
 
   // webrtc
   const [webrtcClient, setWebrtcClient] = React.useState(undefined);
@@ -518,14 +521,42 @@ function NativeStreamScreen({navigation, route}) {
     // Back action
     navigation.addListener('beforeRemove', e => {
       stopVibrate();
-      if (e.data.action.type !== 'GO_BACK') {
-        navigation.dispatch(e.data.action);
+      if (Platform.isTV) {
+        if (e.data.action.type !== 'GO_BACK') {
+          navigation.dispatch(e.data.action);
+        } else {
+          // Exit directly in Android TV
+          const _streamApi =
+            route.params?.streamType === 'cloud'
+              ? xCloudApiRef.current
+              : xHomeApiRef.current;
+          setIsExiting(true);
+          if (_streamApi) {
+            _streamApi.stopStream().then(() => {
+              setTimeout(() => {
+                setIsExiting(false);
+                Orientation.unlockAllOrientations();
+                FullScreenManager.immersiveModeOff();
+                const dest =
+                  route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+                navigation.navigate({
+                  name: dest,
+                  params: {needRefresh: true},
+                });
+              }, 500);
+            });
+          }
+        }
       } else {
-        e.preventDefault();
+        if (e.data.action.type !== 'GO_BACK') {
+          navigation.dispatch(e.data.action);
+        } else {
+          e.preventDefault();
 
-        // Show confirm modal
-        setShowModal(true);
-        GamepadManager.setCurrentScreen('');
+          // Show confirm modal
+          setShowModal(true);
+          GamepadManager.setCurrentScreen('');
+        }
       }
     });
 
@@ -546,6 +577,7 @@ function NativeStreamScreen({navigation, route}) {
             authentication,
           );
           setStreamApi(_xCloudApi);
+          xCloudApiRef.current = _xCloudApi;
         }
       } else {
         if (streamingTokens.xHomeToken) {
@@ -556,6 +588,7 @@ function NativeStreamScreen({navigation, route}) {
             authentication,
           );
           setStreamApi(_xHomeApi);
+          xHomeApiRef.current = _xHomeApi;
         }
       }
     }

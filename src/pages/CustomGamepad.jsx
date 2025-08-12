@@ -90,7 +90,7 @@ function CustomGamepadScreen({navigation, route}) {
         {
           name: 'RightShoulder',
           x: width - 40,
-          y: 110,
+          y: 100,
           scale: 1,
           show: true,
         },
@@ -298,7 +298,7 @@ function CustomGamepadScreen({navigation, route}) {
       {
         name: 'RightShoulder',
         x: width - 40,
-        y: 110,
+        y: 100,
         scale: 1,
         show: true,
       },

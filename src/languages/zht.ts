@@ -4,6 +4,7 @@ export default {
     Xcloud: '雲遊戲',
     Host: '主機',
     Settings: '設置',
+    More: '更多',
     Login: '登錄',
     About: '關於',
     Feedback: '交流及支持',

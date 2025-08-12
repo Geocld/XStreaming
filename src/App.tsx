@@ -187,10 +187,25 @@ function App() {
           <NavigationContainer theme={navigationTheme}>
             <RootStack.Navigator>
               <RootStack.Group>
-                <RootStack.Screen
+                {/* <RootStack.Screen
                   name="Main"
                   component={HomeTabs}
                   options={{headerShown: false}}
+                /> */}
+                <RootStack.Screen
+                  name="Home"
+                  component={HomeScreen}
+                  options={{headerShown: false}}
+                />
+                <RootStack.Screen
+                  name="Cloud"
+                  component={CloudScreen}
+                  options={{title: t('Xcloud')}}
+                />
+                <RootStack.Screen
+                  name="Settings"
+                  component={SettingsScreen}
+                  options={{title: t('Settings')}}
                 />
                 <RootStack.Screen
                   name="Login"

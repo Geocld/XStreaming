@@ -37,11 +37,11 @@ function SearchScreen({navigation, route}) {
         value={keyword}
       />
       <View style={styles.buttonsWrap}>
-        <Button mode="contained" style={styles.button} onPress={handleConfirm}>
+        <Button mode="elevated" style={styles.button} onPress={handleConfirm}>
           {t('Confirm')}
         </Button>
         <Button
-          mode="outlined"
+          mode="text"
           style={styles.button}
           onPress={() => navigation.goBack()}>
           {t('Back')}

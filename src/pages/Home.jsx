@@ -4,15 +4,18 @@ import {
   View,
   Alert,
   FlatList,
+  Platform,
+  ScrollView,
   Dimensions,
   SafeAreaView,
   NativeModules,
 } from 'react-native';
-import {Button, Text, FAB, Portal, Modal, Card} from 'react-native-paper';
+import {Button, Text, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
 import ConsoleItem from '../components/ConsoleItem';
+import HomeItem from '../components/HomeItem';
 import {getSettings, saveSettings} from '../store/settingStore';
 
 import Authentication from '../Authentication';
@@ -34,14 +37,12 @@ function HomeScreen({navigation, route}) {
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
   const [xalUrl, setXalUrl] = React.useState('');
-  // const [profile, setProfile] = React.useState(null);
   const [consoles, setConsoles] = React.useState([]);
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
   const [showLogin, setShowLogin] = React.useState(false);
-  // const [showProfile, setShowProfile] = React.useState(false);
 
   const authentication = useSelector(state => state.authentication);
   const _authentication = React.useRef(authentication);
@@ -62,7 +63,7 @@ function HomeScreen({navigation, route}) {
   const isFocused = useIsFocused();
   const _isFocused = React.useRef(isFocused);
 
-  const [fabOpen, setFabOpen] = React.useState(false);
+  const {width} = Dimensions.get('window');
 
   React.useEffect(() => {
     log.info('Page loaded.');
@@ -80,8 +81,8 @@ function HomeScreen({navigation, route}) {
     }
 
     const updateLayout = () => {
-      const {width, height} = Dimensions.get('window');
-      setNumColumns(width > height ? 4 : 2);
+      const {width: w, height: h} = Dimensions.get('window');
+      setNumColumns(w > h ? 4 : 2);
     };
 
     updateLayout();
@@ -298,7 +299,7 @@ function HomeScreen({navigation, route}) {
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
     setCurrentConsoleId(sessionId);
-    if (isUsbMode) {
+    if (isUsbMode && !Platform.isTV) {
       setShowUsbWarnShowModal(true);
     } else {
       handleNavigateStream(sessionId);
@@ -403,107 +404,104 @@ function HomeScreen({navigation, route}) {
     );
   };
 
-  // const renderProfile = () => {
-  //   if (!showProfile || !profile) {
-  //     return null;
-  //   }
-  //   return (
-  //     <Portal>
-  //       <Modal
-  //         visible={showProfile}
-  //         onDismiss={() => {
-  //           setShowProfile(false);
-  //         }}
-  //         contentContainerStyle={{marginLeft: '10%', marginRight: '10%'}}>
-  //         <Card>
-  //           <Card.Content>
-  //             <Profile profile={profile} />
-  //           </Card.Content>
-  //         </Card>
-  //       </Modal>
-  //     </Portal>
-  //   );
-  // };
-
-  const renderFab = () => {
-    const fabActions = [
-      // {
-      //   icon: 'information',
-      //   label: t('Profile'),
-      //   onPress: () => {
-      //     setFabOpen(false);
-      //     setShowProfile(true);
-      //   },
-      // },
-      {
-        icon: 'account-supervisor',
-        label: t('Friends'),
-        onPress: () => navigation.navigate('Friends'),
-      },
-      {
-        icon: 'trophy',
-        label: t('Achivements'),
-        onPress: () => navigation.navigate('Achivements'),
-      },
-    ];
-
-    if (!isLogined) {
-      return null;
-    }
-
-    return (
-      <FAB.Group
-        open={fabOpen}
-        visible
-        icon={fabOpen ? 'dots-vertical' : 'dots-horizontal'}
-        actions={fabActions}
-        onStateChange={({open}) => setFabOpen(open)}
-      />
-    );
-  };
-
   const renderContent = () => {
     if (loading) {
       return null;
     }
     if (showLogin) {
       return <View style={styles.centerContainer}>{renderLogin()}</View>;
-    } else if (consoles.length) {
-      return (
-        <SafeAreaView style={styles.container}>
-          <View style={styles.consoleList}>
-            <FlatList
-              data={consoles}
-              numColumns={numColumns}
-              key={numColumns}
-              contentContainerStyle={styles.listContainer}
-              renderItem={({item}) => {
-                return (
-                  <View
-                    style={[
-                      styles.consoleItem,
-                      numColumns === 4 ? styles.listItemH : styles.listItemV,
-                    ]}>
-                    <ConsoleItem
-                      consoleItem={item}
-                      onPress={() => handleStartStream(item.serverId)}
-                      onPoweronStream={() =>
-                        handlePoweronAndStream(item.serverId)
-                      }
-                    />
-                  </View>
-                );
-              }}
-            />
-          </View>
-        </SafeAreaView>
-      );
     } else {
       return (
         <SafeAreaView style={styles.container}>
-          <View style={styles.noConsoles}>
-            <Text variant="titleMedium">{t('NoConsoles')}</Text>
-          </View>
+          <ScrollView>
+            <View style={[styles.blockTitle]}>
+              <Text variant="titleLarge" style={styles.blockTitleText}>
+                {t('Consoles')}
+              </Text>
+            </View>
+
+            {consoles.length > 0 ? (
+              <View style={styles.consoleList}>
+                <FlatList
+                  data={consoles}
+                  numColumns={numColumns}
+                  key={numColumns}
+                  contentContainerStyle={styles.listContainer}
+                  scrollEnabled={false}
+                  renderItem={({item}) => {
+                    return (
+                      <View
+                        style={[
+                          styles.consoleItem,
+                          numColumns === 4
+                            ? styles.listItemH
+                            : styles.listItemV,
+                        ]}>
+                        <ConsoleItem
+                          consoleItem={item}
+                          onPress={() => handleStartStream(item.serverId)}
+                          onPoweronStream={() =>
+                            handlePoweronAndStream(item.serverId)
+                          }
+                        />
+                      </View>
+                    );
+                  }}
+                />
+              </View>
+            ) : (
+              <View style={styles.noConsoles}>
+                <Text variant="titleMedium">{t('NoConsoles')}</Text>
+              </View>
+            )}
+
+            <View style={styles.blockTitle}>
+              <Text variant="titleLarge" style={styles.blockTitleText}>
+                {t('More')}
+              </Text>
+            </View>
+
+            <View style={styles.moreItems}>
+              <View
+                style={[
+                  styles.moreItem,
+                  {width: width > 600 ? '15%' : width / 2 - 40},
+                ]}>
+                <HomeItem
+                  title={t('Xcloud')}
+                  icon={'google-controller'}
+                  color={'#FFB900'}
+                  onPress={() => navigation.navigate('Cloud')}
+                />
+              </View>
+
+              <View
+                style={[
+                  styles.moreItem,
+                  {width: width > 600 ? '15%' : width / 2 - 40},
+                ]}>
+                <HomeItem
+                  title={t('Achivements')}
+                  icon={'trophy'}
+                  color={'#E81123'}
+                  onPress={() => navigation.navigate('Achivements')}
+                />
+              </View>
+
+              <View
+                style={[
+                  styles.moreItem,
+                  {width: width > 600 ? '15%' : width / 2 - 40},
+                ]}>
+                <HomeItem
+                  title={t('Settings')}
+                  icon={'cog-outline'}
+                  color={'#0078D7'}
+                  onPress={() => navigation.navigate('Settings')}
+                />
+              </View>
+            </View>
+          </ScrollView>
         </SafeAreaView>
       );
     }
@@ -521,11 +519,7 @@ function HomeScreen({navigation, route}) {
 
       {renderUsbWarningModal()}
 
-      {/* {renderProfile()} */}
-
       {renderContent()}
-
-      {renderFab()}
     </>
   );
 }
@@ -533,6 +527,7 @@ function HomeScreen({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 40,
   },
   centerContainer: {
     flex: 1,
@@ -553,10 +548,11 @@ const styles = StyleSheet.create({
     width: 250,
   },
   noConsoles: {
-    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 20,
   },
   consoleList: {
-    paddingTop: 40,
     paddingLeft: 10,
     paddingRight: 10,
     paddingBottom: 10,
@@ -572,6 +568,30 @@ const styles = StyleSheet.create({
   listItemV: {
     width: '50%',
     justifyContent: 'center',
+  },
+  blockTitle: {
+    paddingLeft: 20,
+    paddingRight: 10,
+    paddingBottom: 10,
+    marginBottom: 10,
+  },
+  blockTitleText: {
+    paddingBottom: 3,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255, 255, 255, .1)',
+  },
+  moreItems: {
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 40,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  moreItem: {
+    width: '15%',
+    marginRight: 20,
+    marginBottom: 10,
   },
 });
 

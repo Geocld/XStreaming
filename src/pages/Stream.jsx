@@ -9,6 +9,7 @@ import {
   ScrollView,
   Dimensions,
   ToastAndroid,
+  Platform,
 } from 'react-native';
 import {
   Portal,
@@ -101,6 +102,8 @@ function StreamScreen({navigation, route}) {
   const [messageSending, setMessageSending] = React.useState(false);
   const [volume, setVolume] = React.useState(1);
   const [openMicro, setOpenMicro] = React.useState(false);
+  const xHomeApiRef = React.useRef(undefined);
+  const xCloudApiRef = React.useRef(undefined);
 
   const gpDownEventListener = React.useRef(undefined);
   const gpUpEventListener = React.useRef(undefined);
@@ -504,14 +507,51 @@ function StreamScreen({navigation, route}) {
 
     navigation.addListener('beforeRemove', e => {
       stopVibrate();
-      if (e.data.action.type !== 'GO_BACK') {
-        navigation.dispatch(e.data.action);
+      if (Platform.isTV) {
+        if (e.data.action.type !== 'GO_BACK') {
+          navigation.dispatch(e.data.action);
+        } else {
+          // Exit directly in Android TV
+          const _streamApi =
+            route.params?.streamType === 'cloud'
+              ? xCloudApiRef.current
+              : xHomeApiRef.current;
+          setIsExiting(true);
+          if (_streamApi) {
+            _streamApi.stopStream().then(() => {
+              setTimeout(() => {
+                setIsExiting(false);
+                Orientation.unlockAllOrientations();
+                FullScreenManager.immersiveModeOff();
+                const dest =
+                  route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+                navigation.navigate({
+                  name: dest,
+                  params: {needRefresh: true},
+                });
+              }, 500);
+            });
+          } else {
+            Orientation.unlockAllOrientations();
+            FullScreenManager.immersiveModeOff();
+            const dest =
+              route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+            navigation.navigate({
+              name: dest,
+              params: {needRefresh: true},
+            });
+          }
+        }
       } else {
-        e.preventDefault();
+        if (e.data.action.type !== 'GO_BACK') {
+          navigation.dispatch(e.data.action);
+        } else {
+          e.preventDefault();
 
-        // Show confirm modal
-        setShowModal(true);
-        GamepadManager.setCurrentScreen('');
+          // Show confirm modal
+          setShowModal(true);
+          GamepadManager.setCurrentScreen('');
+        }
       }
     });
     if (route.params?.sessionId) {
@@ -528,6 +568,7 @@ function StreamScreen({navigation, route}) {
         authentication,
       );
       setXHomeApi(_xHomeApi);
+      xHomeApiRef.current = _xHomeApi;
     }
     if (streamingTokens.xCloudToken) {
       const _xCloudApi = new XcloudApi(
@@ -537,6 +578,7 @@ function StreamScreen({navigation, route}) {
         authentication,
       );
       setXCloudApi(_xCloudApi);
+      xCloudApiRef.current = _xCloudApi;
     }
 
     setTimeout(() => {

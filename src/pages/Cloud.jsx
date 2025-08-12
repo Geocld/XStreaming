@@ -287,7 +287,7 @@ function CloudScreen({navigation, route}) {
       {!isLimited && (
         <>
           <View style={styles.gameContainer}>
-            <Appbar.Header>
+            <Appbar.Header statusBarHeight={0}>
               <Appbar.Content
                 title={
                   <SegmentedButtons

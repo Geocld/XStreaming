@@ -234,13 +234,13 @@ function TitleDetail({navigation, route}) {
 
           <View style={styles.buttonWrap}>
             <Button
-              mode="contained"
+              mode="elevated"
               style={styles.button}
               onPress={handleStartGame}>
               &nbsp;{t('Start game')} &nbsp;
             </Button>
             <Button
-              mode="outlined"
+              mode="text"
               style={styles.button}
               onPress={() => navigation.goBack()}>
               {t('Back')}
