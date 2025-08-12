@@ -20,6 +20,7 @@ import {useTranslation} from 'react-i18next';
 import Draggable from 'react-native-draggable';
 import Slider from '@react-native-community/slider';
 import GamepadButton from '../components/CustomGamepad/Button';
+import GridBackground from '../components/GridBackground';
 import {getSettings, saveSettings, deleteSetting} from '../store/gamepadStore';
 import {
   getSettings as getUserSettings,
@@ -37,6 +38,7 @@ function CustomGamepadScreen({navigation, route}) {
   const [showActionModal, setActionShowModal] = React.useState(false);
   const [showWarnModal, setShowWarnShowModal] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
+  const [showGrid, setShowGrid] = React.useState(false);
   const [reloader, setReloader] = React.useState(Date.now());
 
   const [currentButton, setCurrentButton] = React.useState('');
@@ -122,7 +124,7 @@ function CustomGamepadScreen({navigation, route}) {
         },
         {
           name: 'LeftThumb',
-          x: 210,
+          x: 225,
           y: height - 80,
           scale: 1,
           show: true,
@@ -158,25 +160,25 @@ function CustomGamepadScreen({navigation, route}) {
         {
           name: 'DPadUp',
           x: 85,
-          y: height - 145,
+          y: height - 155,
           show: true,
         },
         {
           name: 'DPadLeft',
           x: 35,
-          y: height - 95,
+          y: height - 105,
           show: true,
         },
         {
           name: 'DPadDown',
           x: 85,
-          y: height - 45,
+          y: height - 55,
           show: true,
         },
         {
           name: 'DPadRight',
           x: 135,
-          y: height - 95,
+          y: height - 105,
           show: true,
         },
         {
@@ -201,6 +203,7 @@ function CustomGamepadScreen({navigation, route}) {
       setDefaultButtons(_buttons);
 
       setShowWarnShowModal(true);
+      setShowGrid(true);
     }, 500);
 
     navigation.addListener('beforeRemove', e => {
@@ -329,7 +332,7 @@ function CustomGamepadScreen({navigation, route}) {
       },
       {
         name: 'LeftThumb',
-        x: 210,
+        x: 225,
         y: height - 80,
         scale: 1,
         show: true,
@@ -365,25 +368,25 @@ function CustomGamepadScreen({navigation, route}) {
       {
         name: 'DPadUp',
         x: 85,
-        y: height - 145,
+        y: height - 155,
         show: true,
       },
       {
         name: 'DPadLeft',
         x: 35,
-        y: height - 95,
+        y: height - 105,
         show: true,
       },
       {
         name: 'DPadDown',
         x: 85,
-        y: height - 45,
+        y: height - 55,
         show: true,
       },
       {
         name: 'DPadRight',
         x: 135,
-        y: height - 95,
+        y: height - 105,
         show: true,
       },
       {
@@ -442,6 +445,8 @@ function CustomGamepadScreen({navigation, route}) {
     <SafeAreaView style={styles.container}>
       {renderWarningModal()}
 
+      {showGrid && <GridBackground gridSize={20} />}
+
       <Portal>
         <Modal
           visible={showActionModal}
@@ -491,7 +496,9 @@ function CustomGamepadScreen({navigation, route}) {
                 currentButton !== 'RightStick' && (
                   <>
                     <View style={styles.title}>
-                      <Text>{t('Size')}</Text>
+                      <Text>
+                        {t('Size')}: {currentScale}
+                      </Text>
                       <Divider style={styles.divider} />
                     </View>
                     <Slider
@@ -500,8 +507,9 @@ function CustomGamepadScreen({navigation, route}) {
                       maximumValue={4}
                       step={0.1}
                       onValueChange={val => {
-                        setCurrentScale(val);
-                        handleChangeSize(val);
+                        const _val = Math.round(val * 10) / 10;
+                        setCurrentScale(_val);
+                        handleChangeSize(_val);
                       }}
                       lowerLimit={0.5}
                       minimumTrackTintColor="#107C10"

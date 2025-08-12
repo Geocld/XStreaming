@@ -40,6 +40,15 @@ const GamepadButton: React.FC<Props> = ({
   onPressOut,
   style,
 }) => {
+  if (['A', 'B', 'X', 'Y'].indexOf(name) > -1) {
+    width = 60;
+    height = 60;
+  }
+  if (name.indexOf('DPad') > -1) {
+    width = 70;
+    height = 70;
+  }
+
   return (
     <ButtonView
       style={[
