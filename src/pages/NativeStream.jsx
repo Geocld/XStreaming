@@ -530,6 +530,7 @@ function NativeStreamScreen({navigation, route}) {
             route.params?.streamType === 'cloud'
               ? xCloudApiRef.current
               : xHomeApiRef.current;
+          setLoading(true);
           setIsExiting(true);
           if (_streamApi) {
             _streamApi.stopStream().then(() => {
@@ -543,7 +544,7 @@ function NativeStreamScreen({navigation, route}) {
                   name: dest,
                   params: {needRefresh: true},
                 });
-              }, 500);
+              }, 2000);
             });
           }
         }

@@ -35,8 +35,17 @@ const HomeItem: React.FC<Props> = ({title, icon, color, onPress}) => {
     );
   } else {
     return (
-      <Pressable onPress={handlePress}>
-        <Card>
+      <Pressable
+        onPress={handlePress}
+        android_ripple={{color: 'rgba(0, 0, 0, 0.1)', borderless: false}}
+        style={({pressed}) => [
+          styles.pressable,
+          {
+            opacity: pressed ? 0.6 : 1,
+            transform: [{scale: pressed ? 0.95 : 1}],
+          },
+        ]}>
+        <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardTop}>
               <Icon source={icon} color={color} size={40} />
@@ -54,6 +63,13 @@ const HomeItem: React.FC<Props> = ({title, icon, color, onPress}) => {
 };
 
 const styles = StyleSheet.create({
+  pressable: {
+    borderRadius: 8,
+  },
+  card: {
+    elevation: 2,
+    borderRadius: 8,
+  },
   cardTop: {
     alignContent: 'center',
     alignItems: 'center',

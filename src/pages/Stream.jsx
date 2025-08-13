@@ -516,6 +516,7 @@ function StreamScreen({navigation, route}) {
             route.params?.streamType === 'cloud'
               ? xCloudApiRef.current
               : xHomeApiRef.current;
+          postData2Webview('disconnect', {});
           setIsExiting(true);
           if (_streamApi) {
             _streamApi.stopStream().then(() => {
@@ -529,7 +530,7 @@ function StreamScreen({navigation, route}) {
                   name: dest,
                   params: {needRefresh: true},
                 });
-              }, 500);
+              }, 2000);
             });
           } else {
             Orientation.unlockAllOrientations();
