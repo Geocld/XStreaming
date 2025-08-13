@@ -34,19 +34,20 @@ If you are looking for Windows/MacOS/Linux(steamOS) Xbox streaming application, 
 - Support for 1080P/1080P(HQ) resolution
 - Support for virtual\OTG\bluetooth gamepad controls
 - Support controller rumble
+- Support Android TV
 - Supports rumble on xCloud without any proxy in some regions.
 - Dual render engines
 - Friends system
 - Archivements system
 - IPv6
 
-<img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.jpg" width="400" />
+<img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.png" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.png" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings1.png" width="400" />
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings2.png" width="400" />
 
 ## Compatibility
 
-XStreaming v2.0.0 introduces a dual-rendering engine mechanism, ensuring compatibility with devices running WebView versions below 91. If the streaming interface displays a blank screen or becomes unresponsive, navigate to `Settings > Rendering Engine > Select Native` to switch to the Android native rendering engine for video playback.
+XStreaming v2 introduces a dual-rendering engine mechanism, ensuring compatibility with devices running WebView versions below 91. If the streaming interface displays a blank screen or becomes unresponsive, navigate to `Settings > Rendering Engine > Select Native` to switch to the Android native rendering engine for video playback.
 
 ## Local Development
 

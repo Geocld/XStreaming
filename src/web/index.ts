@@ -161,7 +161,8 @@ export default class WebApi {
             resolve([]);
           }
         })
-        .catch(() => {
+        .catch(e => {
+          console.log('webapi getConsoles err:', e);
           resolve([]);
         });
     });

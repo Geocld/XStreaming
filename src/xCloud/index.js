@@ -892,6 +892,7 @@ export default class XcloudApi {
           }
         })
         .catch(e => {
+          console.log('xcloudapi getConsoles err:', e);
           resolve([]);
         });
     });

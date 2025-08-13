@@ -221,16 +221,20 @@ export default class Xal {
       return false;
     }
 
-    const codeChallange = await this.getCodeChallange();
-    const userToken = await this.exchangeCodeForToken(
-      code,
-      codeChallange.verifier,
-    );
+    try {
+      const codeChallange = await this.getCodeChallange();
+      const userToken = await this.exchangeCodeForToken(
+        code,
+        codeChallange.verifier,
+      );
 
-    tokenStore.setUserToken(userToken);
-    tokenStore.save();
+      tokenStore.setUserToken(userToken);
+      tokenStore.save();
 
-    return true;
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   exchangeCodeForToken(code, codeVerifier) {
@@ -398,8 +402,10 @@ export default class Xal {
     const curUserToken = tokenStore.getUserToken();
     // log.info('tokenStore:', tokenStore);
     // log.info('[refreshTokens] curUserToken:', curUserToken);
-    if (curUserToken === undefined)
+    if (curUserToken === undefined) {
+      tokenStore.clear && tokenStore.clear();
       throw new Error('User token is missing. Please authenticate first');
+    }
 
     try {
       const userToken = await this.refreshUserToken(curUserToken);
