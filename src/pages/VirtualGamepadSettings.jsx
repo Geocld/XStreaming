@@ -118,7 +118,7 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
       </ScrollView>
 
       <View style={styles.buttonWrap}>
-        <Button mode="contained" style={styles.button} onPress={handleSave}>
+        <Button mode="elevated" style={styles.button} onPress={handleSave}>
           {t('Select')}
         </Button>
         {value !== '' && (
@@ -127,7 +127,7 @@ function VirtualGamepadSettingsScreen({navigation, route}) {
           </Button>
         )}
         <Button
-          mode="outlined"
+          mode="text"
           style={styles.button}
           onPress={() => navigation.goBack()}>
           {t('Back')}

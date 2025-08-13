@@ -1,9 +1,9 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, Image} from 'react-native';
+import {StyleSheet, View, ScrollView} from 'react-native';
 import {Text} from 'react-native-paper';
 import axios from 'axios';
 import {useTranslation} from 'react-i18next';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../components/Spinner';
 
 function ThanksScreen({navigation, route}) {
   const {t, i18n} = useTranslation();
@@ -30,13 +30,7 @@ function ThanksScreen({navigation, route}) {
 
   return (
     <ScrollView style={styles.container}>
-      <Spinner
-        visible={loading}
-        cancelable={true}
-        color={'#107C10'}
-        textContent={''}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={loading} cancelable={true} />
       <View style={styles.block}>
         <View>
           {currentLanguage === 'zh' || currentLanguage === 'zht' ? (
@@ -79,10 +73,6 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 10,
-  },
-  spinnerTextStyle: {
-    color: '#107C10',
-    textAlign: 'center',
   },
 });
 

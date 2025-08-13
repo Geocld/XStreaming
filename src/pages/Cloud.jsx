@@ -15,7 +15,7 @@ import {
   Modal,
   Card,
 } from 'react-native-paper';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../components/Spinner';
 import {useSelector} from 'react-redux';
 import TitleItem from '../components/TitleItem';
 import XcloudApi from '../xCloud';
@@ -23,6 +23,11 @@ import Empty from '../components/Empty';
 // import mockData from '../mock/data';
 import {debugFactory} from '../utils/debug';
 import {useTranslation} from 'react-i18next';
+import {
+  getXcloudData,
+  saveXcloudData,
+  isxCloudDataValid,
+} from '../store/xcloudStore';
 
 const log = debugFactory('CloudScreen');
 
@@ -45,7 +50,7 @@ function CloudScreen({navigation, route}) {
   const [titles, setTitles] = React.useState([]);
   const [newTitles, setNewTitles] = React.useState([]);
   const [titlesMap, setTitlesMap] = React.useState({});
-  const [RecentTitles, setRecentNewTitles] = React.useState([]);
+  const [recentTitles, setRecentTitles] = React.useState([]);
   const [orgTitles, setOrgTitles] = React.useState([]);
   const [keyword, setKeyword] = React.useState('');
   const flatListRef = React.useRef(null);
@@ -61,14 +66,18 @@ function CloudScreen({navigation, route}) {
     if (!streamingTokens.xCloudToken) {
       setIsLimited(true);
     }
-    const fetchGames = () => {
+    const fetchGames = (silent = false) => {
+      if (silent) {
+        log.info('Fetch games silent');
+      }
       if (streamingTokens.xCloudToken) {
         const _xCloudApi = new XcloudApi(
           streamingTokens.xCloudToken.getDefaultRegion().baseUri,
           streamingTokens.xCloudToken.data.gsToken,
           'cloud',
         );
-        setLoading(true);
+
+        !silent && setLoading(true);
         _xCloudApi.getTitles().then(res => {
           // log.info('_xCloudApi.getTitles res: ', titles);
           if (res.results) {
@@ -124,9 +133,18 @@ function CloudScreen({navigation, route}) {
                       }
                     }
                   });
-                  setRecentNewTitles(_recentTitles);
+                  setRecentTitles(_recentTitles);
                   setLoading(false);
                   isFetchGame.current = true;
+
+                  // update cache
+                  saveXcloudData({
+                    titles: _titles,
+                    titleMap: _titleMap,
+                    newTitles: _newTitles,
+                    orgTitles: _orgTitles,
+                    recentTitles: _recentTitles,
+                  });
                 });
               });
             });
@@ -135,12 +153,40 @@ function CloudScreen({navigation, route}) {
       }
     };
     if (!isFetchGame.current) {
-      fetchGames();
+      // Get xcloud data from cache
+      const cacheData = getXcloudData();
+      if (cacheData && isxCloudDataValid(cacheData)) {
+        log.info('Get xcloud data from cache');
+        const {
+          titles: _titles,
+          titleMap: _titleMap,
+          newTitles: _newTitles,
+          orgTitles: _orgTitles,
+          recentTitles: _recentTitles,
+        } = cacheData;
+
+        setTitles(_titles);
+        setTitlesMap(_titleMap);
+        setNewTitles(_newTitles);
+        setOrgTitles(_orgTitles);
+        setRecentTitles(_recentTitles);
+
+        // Update silent
+        fetchGames(true);
+      } else {
+        fetchGames();
+      }
     }
 
     const updateLayout = () => {
-      const {width, height} = Dimensions.get('window');
-      setNumColumns(width > height ? 4 : 2);
+      const {width} = Dimensions.get('window');
+      if (width < 800) {
+        setNumColumns(2);
+      } else if (width >= 800 && width < 1500) {
+        setNumColumns(4);
+      } else if (width >= 1500) {
+        setNumColumns(8);
+      }
     };
 
     updateLayout();
@@ -242,7 +288,7 @@ function CloudScreen({navigation, route}) {
    */
   switch (current) {
     case 0:
-      currentTitles.current = RecentTitles;
+      currentTitles.current = recentTitles;
       break;
     case 1:
       currentTitles.current = newTitles;
@@ -276,13 +322,7 @@ function CloudScreen({navigation, route}) {
 
   return (
     <>
-      <Spinner
-        visible={loading}
-        color={'#107C10'}
-        overlayColor={'rgba(0, 0, 0, 0)'}
-        textContent={t('Loading...')}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={loading} text={t('Loading...')} />
 
       {!isLimited && (
         <>
@@ -400,9 +440,6 @@ const styles = StyleSheet.create({
   tips: {
     textAlign: 'center',
     lineHeight: 30,
-  },
-  spinnerTextStyle: {
-    color: '#107C10',
   },
   gameContainer: {
     flex: 1,

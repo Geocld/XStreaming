@@ -11,6 +11,7 @@ export default {
     Version: '版本',
     Close: '关闭',
     More: '更多',
+    Success: '成功',
     GameMap: '手柄映射',
     NoLogin: '尚未登录，请登录',
     'Fetching user info...': '正在获取用户信息...',
@@ -285,6 +286,7 @@ export default {
     Sended: '已发送',
     Text: '文字',
     'Send text': '发送文字',
+    Volume: '音量',
     Audio_volume_title: '音量控制',
     Audio_volume_desc:
       '如果默认音量最大值达不到预期，可以在此处选择放大音源(注意过大的音量会影响听力！)',
@@ -327,5 +329,8 @@ export default {
     Rumble: '振动',
     Sensor: '传感器',
     Details: '详情',
+    'Clear Cache': '清除缓存',
+    'Clear XStreaming Cache Data(Keep login data)':
+      '清除XStreaming应用缓存(保留登录数据)',
   },
 };

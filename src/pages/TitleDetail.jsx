@@ -8,7 +8,7 @@ import {
   Card,
   HelperText,
 } from 'react-native-paper';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../components/Spinner';
 import {useSelector} from 'react-redux';
 import {getSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
@@ -172,13 +172,7 @@ function TitleDetail({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      <Spinner
-        visible={!titleItem}
-        color={'#107C10'}
-        overlayColor={'rgba(0, 0, 0, 0)'}
-        textContent={t('Loading...')}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={!titleItem} text={t('Loading...')} />
 
       {renderUsbWarningModal()}
 
@@ -255,9 +249,6 @@ function TitleDetail({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  spinnerTextStyle: {
-    color: '#FFF',
   },
   scrollView: {
     flex: 1,

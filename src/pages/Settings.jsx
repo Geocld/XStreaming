@@ -1,8 +1,15 @@
 import React from 'react';
-import {StyleSheet, ScrollView, Alert, View, NativeModules} from 'react-native';
+import {
+  StyleSheet,
+  ScrollView,
+  Alert,
+  View,
+  NativeModules,
+  ToastAndroid,
+} from 'react-native';
 import {Text} from 'react-native-paper';
-import Spinner from 'react-native-loading-spinner-overlay';
-import {getSettings} from '../store/settingStore';
+import Spinner from '../components/Spinner';
+import {getSettings, resetSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
 import {useSelector} from 'react-redux';
 import RNRestart from 'react-native-restart';
@@ -11,6 +18,8 @@ import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {clearStreamToken} from '../store/streamTokenStore';
 import {clearWebToken} from '../store/webTokenStore';
+import {clearXcloudData} from '../store/xcloudStore';
+import {clearConsolesData} from '../store/consolesStore';
 
 import bases from '../common/settings/bases';
 import display from '../common/settings/display';
@@ -68,6 +77,8 @@ function SettingsScreen({navigation}) {
             setLoading(true);
             clearStreamToken();
             clearWebToken();
+            clearXcloudData();
+            clearConsolesData();
             authentication._tokenStore.clear();
             CookieManager.clearAll();
             setTimeout(() => {
@@ -102,15 +113,19 @@ function SettingsScreen({navigation}) {
     }
   };
 
+  const handleClearCache = () => {
+    clearXcloudData();
+    clearConsolesData();
+    resetSettings();
+    ToastAndroid.show(t('Success'), ToastAndroid.SHORT);
+    setTimeout(() => {
+      RNRestart.restart();
+    }, 1000);
+  };
+
   return (
     <View style={styles.container}>
-      <Spinner
-        visible={loading}
-        textContent={t('Loading...')}
-        color={'#107C10'}
-        overlayColor={'rgba(0, 0, 0, 0)'}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={loading} text={t('Loading...')} />
 
       <ScrollView>
         <View>
@@ -323,6 +338,12 @@ function SettingsScreen({navigation}) {
             );
           })}
           <SettingItem
+            title={t('Clear Cache')}
+            description={t('Clear XStreaming Cache Data(Keep login data)')}
+            onPress={() => handleClearCache()}
+          />
+
+          <SettingItem
             title={t('Device testing')}
             description={t('Testing current device and controller')}
             onPress={() => navigation.navigate('DeviceInfos')}
@@ -383,9 +404,6 @@ function SettingsScreen({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  spinnerTextStyle: {
-    color: '#107C10',
   },
   backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

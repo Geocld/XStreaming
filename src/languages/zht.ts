@@ -249,6 +249,7 @@ export default {
     Sended: '已发送',
     Text: '文字',
     'Send text': '发送文字',
+    Volume: '音量',
     Audio_volume_title: '音量控制',
     Audio_volume_desc:
       '如果預設音量最大值達不到預期，可以在此處選擇放大音源（注意過大的音量會影響聽力！）',
@@ -293,5 +294,8 @@ export default {
     ShowTitle: '展示',
     Show: '显示',
     Hide: '隐藏',
+    'Clear Cache': '清除缓存',
+    'Clear XStreaming Cache Data(Keep login data)':
+      '清除XStreaming应用缓存(保留登录数据)',
   },
 };

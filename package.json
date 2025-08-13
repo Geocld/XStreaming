@@ -32,6 +32,7 @@
     "react": "18.2.0",
     "react-i18next": "^14.1.2",
     "react-native": "0.72.14",
+    "react-native-animated-spinkit": "1.5.2",
     "react-native-draggable": "^3.3.0",
     "react-native-edge-to-edge": "^0.2.1",
     "react-native-gesture-handler": "^2.16.2",

@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView, ImageBackground} from 'react-native';
 import {Card, Text, ProgressBar} from 'react-native-paper';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../components/Spinner';
 import Empty from '../components/Empty';
 import {debugFactory} from '../utils/debug';
 import {useTranslation} from 'react-i18next';
@@ -49,13 +49,7 @@ function AchivementScreen({navigation}) {
 
   return (
     <View style={styles.container}>
-      <Spinner
-        visible={loading}
-        color={'#107C10'}
-        overlayColor={'rgba(0, 0, 0, 0)'}
-        textContent={t('Loading...')}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={loading} text={t('Loading...')} />
 
       {!loading && !archivements.length && <Empty />}
 
@@ -134,9 +128,6 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 20,
     overflow: 'hidden',
-  },
-  spinnerTextStyle: {
-    color: '#107C10',
   },
   backgroundImage: {
     flex: 1,

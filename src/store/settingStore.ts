@@ -135,3 +135,8 @@ export const getSettings = (): Settings => {
     return defaultSettings;
   }
 };
+
+export const resetSettings = () => {
+  log.info('resetSettings');
+  storage.set(STORE_KEY, JSON.stringify(defaultSettings));
+};

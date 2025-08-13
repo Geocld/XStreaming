@@ -7,8 +7,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import {SegmentedButtons} from 'react-native-paper';
-import Spinner from 'react-native-loading-spinner-overlay';
-import {getSettings} from '../store/settingStore';
+import Spinner from '../components/Spinner';
 import {useTranslation} from 'react-i18next';
 import {useSelector} from 'react-redux';
 import {debugFactory} from '../utils/debug';
@@ -81,13 +80,7 @@ function ArchivementDetail({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      <Spinner
-        visible={loading}
-        color={'#107C10'}
-        overlayColor={'rgba(0, 0, 0, 0)'}
-        textContent={t('Loading...')}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={loading} text={t('Loading...')} />
       <SegmentedButtons
         value={current}
         onValueChange={setCurrent}
@@ -132,9 +125,6 @@ function ArchivementDetail({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  spinnerTextStyle: {
-    color: '#107C10',
   },
   listContainer: {},
   listItemH: {

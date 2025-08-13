@@ -8823,6 +8823,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-animated-spinkit@npm:^1.5.2":
+  version: 1.5.2
+  resolution: "react-native-animated-spinkit@npm:1.5.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/5534e7111f31c560822481204149d7a08fa2bac10d4fc2391fd569d90635e4bc7e4327a9ce87aeda42faad764fb85fcc9c5ebcd594e904b62ea9bd4ccc6e2761
+  languageName: node
+  linkType: hard
+
 "react-native-draggable@npm:^3.3.0":
   version: 3.3.0
   resolution: "react-native-draggable@npm:3.3.0"
@@ -10889,6 +10899,7 @@ __metadata:
     react: "npm:18.2.0"
     react-i18next: "npm:^14.1.2"
     react-native: "npm:0.72.14"
+    react-native-animated-spinkit: "npm:^1.5.2"
     react-native-draggable: "npm:^3.3.0"
     react-native-edge-to-edge: "npm:^0.2.1"
     react-native-gesture-handler: "npm:^2.16.2"

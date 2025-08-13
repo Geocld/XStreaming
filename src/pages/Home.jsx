@@ -11,7 +11,7 @@ import {
   NativeModules,
 } from 'react-native';
 import {Button, Text, Portal, Modal, Card} from 'react-native-paper';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../components/Spinner';
 import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
 import ConsoleItem from '../components/ConsoleItem';
@@ -27,6 +27,11 @@ import {useTranslation} from 'react-i18next';
 import NetInfo from '@react-native-community/netinfo';
 import {debugFactory} from '../utils/debug';
 import XcloudApi from '../xCloud';
+import {
+  saveConsolesData,
+  getConsolesData,
+  isConsolesDataValid,
+} from '../store/consolesStore';
 
 const log = debugFactory('HomeScreen');
 
@@ -150,12 +155,26 @@ function HomeScreen({navigation, route}) {
             );
             _xHomeApiRef.current = _xHomeApi;
 
+            const cacheData = getConsolesData();
+
+            if (
+              cacheData &&
+              isConsolesDataValid(cacheData) &&
+              cacheData.consoles
+            ) {
+              setConsoles(cacheData.consoles);
+              setLoading(false);
+            }
+
             let _consoles = await _xHomeApi.getConsoles();
 
             if (!_consoles.length) {
               _consoles = await webApi.getConsoles();
             }
             setConsoles(_consoles);
+            saveConsolesData({
+              consoles: _consoles,
+            });
           } catch (e) {
             Alert.alert(t('Error'), e);
           }
@@ -509,13 +528,7 @@ function HomeScreen({navigation, route}) {
 
   return (
     <>
-      <Spinner
-        visible={loading}
-        color={'#107C10'}
-        overlayColor={'rgba(0, 0, 0, 0)'}
-        textContent={loadingText}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={loading} text={loadingText} />
 
       {renderUsbWarningModal()}
 

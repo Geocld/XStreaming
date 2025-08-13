@@ -14,6 +14,8 @@ import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {clearStreamToken} from '../store/streamTokenStore';
 import {clearWebToken} from '../store/webTokenStore';
+import {clearXcloudData} from '../store/xcloudStore';
+import {clearConsolesData} from '../store/consolesStore';
 
 import bases from '../common/settings/bases';
 import display from '../common/settings/display';
@@ -113,10 +115,14 @@ function SettingDetailScreen({navigation, route}) {
     } else if (current === 'force_region_ip') {
       clearStreamToken();
       clearWebToken();
+      clearXcloudData();
+      clearConsolesData();
       handleSaveSettings();
       setTimeout(() => {
         restart();
       }, 500);
+    } else if (current === 'preferred_game_language') {
+      clearXcloudData();
     } else if (current === 'xhome_bitrate_mode') {
       settings.xhome_bitrate_mode = value;
       settings.xhome_bitrate = value2;

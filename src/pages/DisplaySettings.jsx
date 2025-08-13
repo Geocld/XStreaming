@@ -1,7 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView, Image} from 'react-native';
 import {Text, Button} from 'react-native-paper';
-import Spinner from 'react-native-loading-spinner-overlay';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import Display from '../components/Display';

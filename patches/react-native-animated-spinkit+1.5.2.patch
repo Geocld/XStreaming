@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-animated-spinkit/src/Wander.tsx b/node_modules/react-native-animated-spinkit/src/Wander.tsx
+index 7b9702a..0926364 100644
+--- a/node_modules/react-native-animated-spinkit/src/Wander.tsx
++++ b/node_modules/react-native-animated-spinkit/src/Wander.tsx
+@@ -18,6 +18,8 @@ export default class Wander extends React.Component<SpinnerProps> {
+     } = this.props
+     const wanderDistance = size * 0.75
+ 
++    const colors = ['#FFB900', '#E81123', '#0078D7'];
++
+     return (
+       <AnimationContainer
+         initAnimation={() => ({
+@@ -64,7 +66,7 @@ export default class Wander extends React.Component<SpinnerProps> {
+                     style={{
+                       width: size / 5,
+                       height: size / 5,
+-                      backgroundColor: color,
++                      backgroundColor: colors[index],
+                       position: 'absolute',
+                       transform: [
+                         {

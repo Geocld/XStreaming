@@ -21,7 +21,7 @@ import {
 } from 'react-native-paper';
 import {RTCView, MediaStream, RTCRtpReceiver} from 'react-native-webrtc';
 import Orientation from 'react-native-orientation-locker';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../components/Spinner';
 import {useSelector} from 'react-redux';
 import RNRestart from 'react-native-restart';
 import XcloudApi from '../xCloud';
@@ -1159,6 +1159,7 @@ function NativeStreamScreen({navigation, route}) {
       }
       setTimeout(() => {
         setIsExiting(false);
+        setLoading(false);
         Orientation.unlockAllOrientations();
         FullScreenManager.immersiveModeOff();
         const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
@@ -1449,14 +1450,7 @@ function NativeStreamScreen({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      <Spinner
-        cancelable
-        visible={loading}
-        color={'#107C10'}
-        overlayColor={'rgba(0, 0, 0, 0)'}
-        textContent={loadingText}
-        textStyle={styles.spinnerTextStyle}
-      />
+      <Spinner loading={loading} text={loadingText} cancelable={true} />
 
       {remoteStream.current?.toURL() && (
         <RTCView
@@ -1488,9 +1482,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     backgroundColor: 'black',
-  },
-  spinnerTextStyle: {
-    color: '#107C10',
   },
   modal: {
     // backgroundColor: 'rgba(0, 0, 0, 0.5)',
