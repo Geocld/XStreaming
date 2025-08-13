@@ -54,7 +54,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
             <ActivityIndicator
               style={styles.loadingIndicator}
               size="large"
-              color="#0000ff"
+              color="#107C10"
             />
           )}
           {renderImage()}
@@ -84,7 +84,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
             <ActivityIndicator
               style={styles.loadingIndicator}
               size="large"
-              color="#0000ff"
+              color="#107C10"
             />
           )}
           {renderImage()}

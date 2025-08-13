@@ -131,7 +131,7 @@ function SettingsScreen({navigation}) {
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
-              {t('BasesSettings')}
+              ⚙️ {t('BasesSettings')}
             </Text>
           </View>
 
@@ -150,7 +150,7 @@ function SettingsScreen({navigation}) {
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
-              {t('DisplaySettings')}
+              🖥️ {t('DisplaySettings')}
             </Text>
           </View>
 
@@ -186,7 +186,7 @@ function SettingsScreen({navigation}) {
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
-              {t('GamepadSettings')}
+              🎮 {t('GamepadSettings')}
             </Text>
           </View>
 
@@ -213,7 +213,7 @@ function SettingsScreen({navigation}) {
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
-              {t('AudioSettings')}
+              🔊 {t('AudioSettings')}
             </Text>
           </View>
 
@@ -232,7 +232,7 @@ function SettingsScreen({navigation}) {
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
-              {t('XcloudSettings')}
+              ☁️ {t('XcloudSettings')}
             </Text>
           </View>
 

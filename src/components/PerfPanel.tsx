@@ -97,9 +97,11 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
             {isHorizon ? ' | ' : ''}
           </Text>
         </View>
-        <View>
-          <Text style={styles.text}>{renderBattery(battery)}</Text>
-        </View>
+        {battery && (
+          <View>
+            <Text style={styles.text}>{renderBattery(battery)}</Text>
+          </View>
+        )}
       </View>
     </View>
   );
