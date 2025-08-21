@@ -38,7 +38,7 @@ const ArchivementItem: React.FC<Props> = ({item}) => {
           <ActivityIndicator
             style={styles.loadingIndicator}
             size="large"
-            color="#0000ff"
+            color="#107C10"
           />
         )}
         {item.progressState !== 'Achieved' && (
