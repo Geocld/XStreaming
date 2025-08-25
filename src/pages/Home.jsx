@@ -171,10 +171,21 @@ function HomeScreen({navigation, route}) {
             if (!_consoles.length) {
               _consoles = await webApi.getConsoles();
             }
-            setConsoles(_consoles);
-            saveConsolesData({
-              consoles: _consoles,
-            });
+
+            if (
+              cacheData.consoles &&
+              _consoles.length >= cacheData.consoles.length
+            ) {
+              setConsoles(_consoles);
+              saveConsolesData({
+                consoles: _consoles,
+              });
+            } else {
+              setConsoles(_consoles);
+              saveConsolesData({
+                consoles: _consoles,
+              });
+            }
           } catch (e) {
             Alert.alert(t('Error'), e);
           }
@@ -300,7 +311,10 @@ function HomeScreen({navigation, route}) {
       if (!_consoles.length) {
         _consoles = await webApi.getConsoles();
       }
-      setConsoles(_consoles);
+
+      if (_consoles.length > 0) {
+        setConsoles(_consoles);
+      }
 
       setLoading(false);
 

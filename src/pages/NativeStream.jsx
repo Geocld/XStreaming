@@ -117,11 +117,11 @@ function NativeStreamScreen({navigation, route}) {
   const dpUpEventListener = React.useRef(undefined);
   const stickEventListener = React.useRef(undefined);
   const triggerEventListener = React.useRef(undefined);
-  const isTriggerMotion = React.useRef(false);
   const isRightstickMoving = React.useRef(false);
   const timer = React.useRef(undefined);
   const frameTimer = React.useRef(undefined);
   const isRequestExit = React.useRef(false);
+  const isConnected = React.useRef(false);
 
   // event
   const usbGpEventListener = React.useRef(undefined);
@@ -308,13 +308,11 @@ function NativeStreamScreen({navigation, route}) {
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
-          // console.log('onGamepadKeyDown:', event);
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
-          gpState[keyName] = 1;
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            if (!isTriggerMotion.current) {
+            if (_settings.short_trigger) {
               gpState[keyName] = 1;
             }
           } else {
@@ -330,7 +328,7 @@ function NativeStreamScreen({navigation, route}) {
           const keyName = gpMaping[keyCode];
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            if (!isTriggerMotion.current) {
+            if (_settings.short_trigger) {
               gpState[keyName] = 0;
             }
           } else {
@@ -361,7 +359,6 @@ function NativeStreamScreen({navigation, route}) {
       stickEventListener.current = eventEmitter.addListener(
         'onStickMove',
         event => {
-          // console.log('onStickMove:', event);
           gpState.LeftThumbXAxis = normaliseAxis(event.leftStickX);
           gpState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
 
@@ -382,8 +379,7 @@ function NativeStreamScreen({navigation, route}) {
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
-          console.log('onTrigger:', event);
-          isTriggerMotion.current = true;
+          // console.log('onTrigger:', event);
 
           // Short trigger
           if (_settings.short_trigger) {
@@ -630,9 +626,12 @@ function NativeStreamScreen({navigation, route}) {
       webrtcClient.setConnectedHandler(state => {
         if (state === CONNECTED) {
           // Connected
-          ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
+          if (!isConnected.current) {
+            ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
+          }
           setLoadingText(`${t(CONNECTED)}`);
           setLoading(false);
+          isConnected.current = true;
 
           // Alway show virtual gamepad
           if (_settings.show_virtual_gamead) {
@@ -714,15 +713,27 @@ function NativeStreamScreen({navigation, route}) {
             },
           ]);
         } else if (state === FAILED) {
-          Alert.alert(t('Warning'), t('NAT failed'), [
-            {
-              text: t('Confirm'),
-              style: 'default',
-              onPress: () => {
-                exit();
+          if (isConnected.current) {
+            Alert.alert(t('Warning'), t('Reconnected failed'), [
+              {
+                text: t('Confirm'),
+                style: 'default',
+                onPress: () => {
+                  exit();
+                },
               },
-            },
-          ]);
+            ]);
+          } else {
+            Alert.alert(t('Warning'), t('NAT failed'), [
+              {
+                text: t('Confirm'),
+                style: 'default',
+                onPress: () => {
+                  exit();
+                },
+              },
+            ]);
+          }
         }
 
         // Toggle microphone

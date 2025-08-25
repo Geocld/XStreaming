@@ -112,7 +112,6 @@ function StreamScreen({navigation, route}) {
   const stickEventListener = React.useRef(undefined);
   const triggerEventListener = React.useRef(undefined);
   const timer = React.useRef(undefined);
-  const isTriggerMotion = React.useRef(false);
   const isRightstickMoving = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
@@ -304,7 +303,7 @@ function StreamScreen({navigation, route}) {
           const keyName = gpMaping[keyCode];
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            if (!isTriggerMotion.current) {
+            if (_settings.short_trigger) {
               gpState[keyName] = 1;
             }
           } else {
@@ -320,7 +319,7 @@ function StreamScreen({navigation, route}) {
           const keyName = gpMaping[keyCode];
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            if (!isTriggerMotion.current) {
+            if (_settings.short_trigger) {
               gpState[keyName] = 0;
             }
           } else {
@@ -372,7 +371,7 @@ function StreamScreen({navigation, route}) {
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
-          isTriggerMotion.current = true;
+          console.log('onTrigger:', event);
           // Short trigger
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;

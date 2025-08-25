@@ -76,8 +76,8 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     description: t('bind_usb_device_description'),
     tips: t('bind_usb_device_tips'),
     data: [
-      {value: true, text: t('Enable')},
       {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
     ],
   },
   {
@@ -119,10 +119,10 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     name: 'short_trigger',
     type: 'radio',
     title: t('Short Trigger'),
-    description: t('Modify the linear trigger action to a short trigger'),
+    description: t('ShortTriggerDesc'),
     data: [
-      {value: true, text: t('Enable')},
       {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
     ],
   },
   {
@@ -131,8 +131,8 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
     title: t('Virtual gamepad'),
     description: t('Always display the virtual gamepad'),
     data: [
-      {value: true, text: t('Enable')},
       {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
     ],
   },
   {

@@ -25,7 +25,7 @@ export default {
     WaitingForServerToRegister:
       '无法在主机上建立串流，原因是主机没有连接到Xbox服务器，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试手动重启主机并重试',
     XboxstreaminghelperErr:
-      '主机串流功能无法正常运行，当你看到这个错误时，不是XStreaming发生了错误，而是主机的串流功能由于某些原因已经无法正常工作，你需要长按电源键或断开电源重启主机修复此问题，具体错误：',
+      '主机串流功能无法正常运行，当你看到这个错误时，不是XStreaming发生了错误，而是主机的串流功能由于某些原因已经无法正常工作，你需要长按电源键或断开电源(断开至少10秒)重启主机修复此问题，具体错误：',
     DisabledStreamingErr:
       '主机端已禁用串流功能。出现此问题可能原因如下：\n1. Xbox主机-设置-设备和连接-远程功能没有启用; \n 2.你可能正在使用中国大陆版Xbox，该版本Xbox无法使用串流功能。',
     'Login has expired or not logged in, please log in again':
@@ -158,8 +158,8 @@ export default {
     'After replacing the Android controller driver, controller button mapping is temporarily not supported':
       '覆盖安卓手柄驱动后暂不支持手柄按键映射',
     'Short Trigger': '短扳机',
-    'Modify the linear trigger action to a short trigger':
-      '将线性扳机动作修改为短扳机',
+    ShortTriggerDesc:
+      '如果你希望将控制器的线性扳机输入为短扳机输入，或者你使用了非线性扳机的控制器(如Switch/NS pro)，请打开此选项',
     noAllow:
       '你没有权限开始云游戏，请检查登录是否过期并尝试重新登录，如果你正在尝试游玩云游戏，请确保你是XGPU，如果你正在尝试游玩非XGPU游戏，请确保你已经购买此游戏',
     homeNoAllow: '串流权限检查失败，请检查登录是否过期并尝试重新登录',
@@ -303,6 +303,7 @@ export default {
     'Streaming is closed': '串流被主机端终结',
     'NAT failed':
       'NAT失败，如果你正在尝试远程串流，请保证已经正确配置路由器，并设置已经设置端口转发，如果无法解决远程串流，请使用官方Xbox应用。',
+    'Reconnected failed': '网络发生了变化，重连失败，请重新连接',
     renderEngineTitle: '渲染引擎',
     renderEngineDesc: '选择Native/Webview渲染引擎，播放视频流',
     renderEngineTips:

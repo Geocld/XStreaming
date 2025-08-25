@@ -14,7 +14,7 @@ export default {
     WaitingForServerToRegister:
       'Unable to start stream session on console. The console is not connected to the Xbox servers. This ocasionally happens then there is an update or when the user is not signed in to the console. Please hard reboot your console and try again.',
     XboxstreaminghelperErr:
-      "The host streaming function is not working properly. When you see this error, it does not indicate an issue with XStreaming itself, but rather that the host's streaming functionality has stopped functioning due to certain reasons. You need to press and hold the power button or disconnect the power supply to restart the host and resolve the issue. Specific error:",
+      "The host streaming function is not working properly. When you see this error, it does not indicate an issue with XStreaming itself, but rather that the host's streaming functionality has stopped functioning due to certain reasons. You need to press and hold the power button or disconnect the power(at least 10s) supply to restart the host and resolve the issue. Specific error:",
     DisabledStreamingErr:
       'Streaming has been disabled on the client. This issue may be caused by:\n1. Xbox Console - Settings - Devices & connections - Remote features is not enabled;\n2. You may be using the China Mainland version of Xbox, which does not support streaming functionality.',
     'Login has expired or not logged in, please login again':
@@ -144,6 +144,11 @@ export default {
       'If the default maximum volume does not meet your expectations, you can choose to amplify the audio source here (Note: excessive volume may affect your hearing!)',
     'NAT failed':
       'NAT failed. If you are attempting remote streaming, please ensure your router is properly configured and port forwarding is set up. If you cannot resolve remote streaming issues, please use the official Xbox app.',
+    'Reconnected failed':
+      'Network has changed, reconnection failed, please reconnect',
+    'Short Trigger': 'Short Trigger',
+    ShortTriggerDesc:
+      "If you want to convert the controller's analog trigger input to digital trigger input, or if you are using a controller with digital triggers (such as Switch/NS Pro), please enable this option",
     renderEngineTitle: 'Render Engine',
     renderEngineDesc:
       'You can choose between native/webview rendering engines to play the video stream.',

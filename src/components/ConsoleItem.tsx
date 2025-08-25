@@ -47,11 +47,11 @@ const ConsoleItem = (props: any) => {
             <Text variant="titleMedium" style={styles.textCenter}>
               {consoleItem.consoleType}
             </Text>
-            {/* <Text
+            <Text
               variant="labelSmall"
               style={[styles.textCenter, {color: '#999'}]}>
               ({consoleItem.serverId})
-            </Text> */}
+            </Text>
             {consoleItem.powerState === 'On' ? (
               <Text style={[styles.green, styles.textCenter]}>
                 {t('Powered on')}

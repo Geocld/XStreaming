@@ -9,8 +9,8 @@ const xhome = [
     title: t('Power on when streaming'),
     description: t('power_on_description'),
     data: [
-      {value: true, text: t('Enable')},
       {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
     ],
   },
   {
@@ -19,8 +19,8 @@ const xhome = [
     title: t('Ipv6'),
     description: t('Prioritize using IPv6 connection'),
     data: [
-      {value: true, text: t('Enable')},
       {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
     ],
   },
   {

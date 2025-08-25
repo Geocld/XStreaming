@@ -6,7 +6,6 @@ import {
   MD3LightTheme,
   adaptNavigationTheme,
 } from 'react-native-paper';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {createStackNavigator} from '@react-navigation/stack';
 import {
@@ -14,12 +13,11 @@ import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme,
 } from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 import merge from 'deepmerge';
 import {Provider} from 'react-redux';
 import store from './store';
-import {getSettings} from './store/settingStore';
+import {getSettings, saveSettings} from './store/settingStore';
 
 import customLightTheme from './theme/index';
 import customDarkTheme from './theme/index.dark';
@@ -57,10 +55,9 @@ import {SystemBars} from 'react-native-edge-to-edge';
 import './i18n';
 import SearchScreen from './pages/Search';
 
-const Tab = createBottomTabNavigator();
 const RootStack = createStackNavigator();
 
-const {UsbRumbleManager} = NativeModules;
+const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
 const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
@@ -80,61 +77,11 @@ const paperDarkTheme = {
 const CombinedDefaultTheme = merge(paperLightTheme, LightTheme);
 const CombinedDarkTheme = merge(paperDarkTheme, DarkTheme);
 
-const TabIcon = (route: any, params: any) => {
-  const {focused, color, size} = params;
-  let iconName = '';
-  if (route.name === 'Home') {
-    iconName = focused ? 'game-controller' : 'game-controller-outline';
-  } else if (route.name === 'Settings') {
-    iconName = focused ? 'settings' : 'settings-outline';
-  } else if (route.name === 'Cloud') {
-    iconName = 'logo-xbox';
-  }
-  return <Ionicons name={iconName} size={size} color={color} />;
-};
-
-function HomeTabs() {
-  const {t} = useTranslation();
-
-  return (
-    <Tab.Navigator
-      screenOptions={({route}) => ({
-        tabBarIcon: ({focused, color, size}) =>
-          TabIcon(route, {focused, color, size}),
-        tabBarActiveTintColor: '#107C10',
-        tabBarInactiveTintColor: 'gray',
-      })}>
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          headerShown: false,
-          tabBarLabel: t('Consoles'),
-          title: t('Consoles'),
-        }}
-      />
-      <Tab.Screen
-        name="Cloud"
-        component={CloudScreen}
-        options={{
-          headerShown: false,
-          tabBarLabel: t('Xcloud'),
-          title: t('Xcloud'),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{tabBarLabel: t('Settings'), title: t('Settings')}}
-      />
-    </Tab.Navigator>
-  );
-}
-
 function App() {
   const {t} = useTranslation();
   const colorScheme = useColorScheme();
   const settings = getSettings();
+  const deviceInfos = FullScreenManager.getDeviceInfos();
 
   if (settings.bind_usb_device !== undefined) {
     UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
@@ -178,6 +125,16 @@ function App() {
   } else if (settings.theme === 'light') {
     paperTheme = paperLightTheme;
     navigationTheme = CombinedDefaultTheme;
+  }
+
+  if (
+    deviceInfos.factor?.toLocaleUpperCase().indexOf('NINTENDO') > -1 &&
+    deviceInfos.model?.toLocaleUpperCase().indexOf('SWITCHLITE') > -1
+  ) {
+    if (!settings.short_trigger) {
+      settings.short_trigger = true;
+      saveSettings(settings);
+    }
   }
 
   return (

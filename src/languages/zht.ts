@@ -23,7 +23,7 @@ export default {
     WaitingForServerToRegister:
       '無法在主機上建立串流，原因是主機沒有連接到Xbox伺服器，這通常發生在主機系統異常或主機正在更新或主機未登錄賬號，請嘗試手動重啟主機並重試',
     XboxstreaminghelperErr:
-      '主機串流功能無法正常運行。當您看到此錯誤時，並非 XStreaming 發生問題，而是主機的串流功能因某些原因已無法正常工作。您需要長按電源鍵或斷開電源以重啟主機來修復此問題。具體錯誤',
+      '主機串流功能無法正常運行。當您看到此錯誤時，並非 XStreaming 發生問題，而是主機的串流功能因某些原因已無法正常工作。您需要長按電源鍵或斷開電源(至少10s)以重啟主機來修復此問題。具體錯誤',
     DisabledStreamingErr:
       '主机端已禁用串流功能。出現此問題可能原因如下：\n1. Xbox主機-設定-裝置和連線-遠端功能沒有啟用;\n2. 你可能正在使用中國大陸版Xbox，該版本Xbox無法使用串流功能。',
     'Login has expired or not logged in, please log in again':
@@ -253,6 +253,9 @@ export default {
     Audio_volume_title: '音量控制',
     Audio_volume_desc:
       '如果預設音量最大值達不到預期，可以在此處選擇放大音源（注意過大的音量會影響聽力！）',
+    'Short Trigger': '短扳機',
+    ShortTriggerDesc:
+      '如果你希望將控制器的線性扳機輸入為數位扳機輸入，或者你使用了非線性扳機的控制器(如Switch/NS Pro)，請開啟此選項',
     'Connecting...': '正在連接...',
     'Disconnecting...': '正在斷開連接...',
     'Configuration obtained successfully, initiating offer...':
@@ -264,6 +267,7 @@ export default {
     'Streaming is closed': '串流被主机端终结',
     'NAT failed':
       'NAT失败，如果你正在尝试远程串流，请保证已经正确配置路由器，并设置已经设置端口转发，如果无法解决远程串流，请使用官方Xbox应用。',
+    'Reconnected failed': '網絡發生了變化，重連失敗，請重新連接',
     renderEngineTitle: '渲染引擎',
     renderEngineDesc: '你可以選擇 Native/Webview 渲染引擎來播放影片串流。',
     renderEngineTips:

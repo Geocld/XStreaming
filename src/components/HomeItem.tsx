@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, Pressable, Platform} from 'react-native';
+import {StyleSheet, View, Platform, TouchableOpacity} from 'react-native';
 import {Text, Icon, Card, Button} from 'react-native-paper';
 
 type Props = {
@@ -35,16 +35,13 @@ const HomeItem: React.FC<Props> = ({title, icon, color, onPress}) => {
     );
   } else {
     return (
-      <Pressable
+      <TouchableOpacity
         onPress={handlePress}
-        android_ripple={{color: 'rgba(0, 0, 0, 0.1)', borderless: false}}
-        style={({pressed}) => [
-          styles.pressable,
-          {
-            opacity: pressed ? 0.6 : 1,
-            transform: [{scale: pressed ? 0.95 : 1}],
-          },
-        ]}>
+        activeOpacity={0.6}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        style={styles.pressable}>
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardTop}>
@@ -57,7 +54,7 @@ const HomeItem: React.FC<Props> = ({title, icon, color, onPress}) => {
             </View>
           </Card.Content>
         </Card>
-      </Pressable>
+      </TouchableOpacity>
     );
   }
 };
