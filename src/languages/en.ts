@@ -185,5 +185,8 @@ export default {
       'In Free mode, the left/right joystick can be operated in blank areas on either side of the screen',
     Fixed: 'Fixed',
     Free: 'Free',
+    History: 'History',
+    HistoryTitle: 'Update histories',
+    HistoryDesc: 'View update histories of XStreaming',
   },
 };

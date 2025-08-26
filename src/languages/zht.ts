@@ -302,5 +302,8 @@ export default {
     'Clear Cache': '清除缓存',
     'Clear XStreaming Cache Data(Keep login data)':
       '清除XStreaming应用缓存(保留登录数据)',
+    History: '历史',
+    HistoryTitle: '更新日志',
+    HistoryDesc: '查看XStreaming历史更新日志',
   },
 };
