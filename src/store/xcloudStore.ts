@@ -51,6 +51,6 @@ export const isxCloudDataValid = (data: any) => {
     return false;
   }
 
-  // Cache 7 days
-  return new Date().getTime() - cacheTime < 7 * 24 * 60 * 1000;
+  // Cache 15 days
+  return new Date().getTime() - cacheTime < 15 * 24 * 60 * 1000;
 };

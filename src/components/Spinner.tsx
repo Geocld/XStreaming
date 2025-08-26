@@ -7,12 +7,18 @@ type Props = {
   loading: boolean;
   cancelable: boolean;
   text: string;
+  closeCb: any;
   onChange: (value: any) => {};
 };
 
 const COLOR = '#107C10';
 
-const Loading: React.FC<Props> = ({loading, cancelable = false, text}) => {
+const Loading: React.FC<Props> = ({
+  loading,
+  cancelable = false,
+  text,
+  closeCb,
+}) => {
   return (
     <Spinner
       visible={loading}
@@ -23,6 +29,7 @@ const Loading: React.FC<Props> = ({loading, cancelable = false, text}) => {
       textStyle={styles.spinnerTextStyle}
       animation={'fade'}
       customIndicator={<Wander size={50} color={COLOR} />}
+      closeCb={closeCb}
     />
   );
 };

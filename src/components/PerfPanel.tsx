@@ -73,6 +73,11 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
         </View>
         <View>
           <Text style={styles.text}>
+            {t('JIT')}: {performance.jit || '-1'} {isHorizon ? '| ' : ''}
+          </Text>
+        </View>
+        <View>
+          <Text style={styles.text}>
             {t('FPS')}: {performance.fps || '-1'} {isHorizon ? '| ' : ''}
           </Text>
         </View>

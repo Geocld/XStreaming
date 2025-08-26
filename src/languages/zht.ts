@@ -173,6 +173,7 @@ export default {
     Gamepad: '手柄',
     Others: '其他',
     RTT: '延遲',
+    JIT: '抖动',
     FPS: '幀數',
     FD: '掉幀',
     PL: '丟包',

@@ -375,6 +375,12 @@ function SettingsScreen({navigation}) {
           /> */}
 
           <SettingItem
+            title={t('HistoryTitle')}
+            description={`${t('HistoryDesc')}`}
+            onPress={() => navigation.navigate('History')}
+          />
+
+          <SettingItem
             title={t('Thanks')}
             onPress={() => navigation.navigate('Thanks')}
           />

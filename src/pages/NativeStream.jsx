@@ -23,7 +23,6 @@ import {RTCView, MediaStream, RTCRtpReceiver} from 'react-native-webrtc';
 import Orientation from 'react-native-orientation-locker';
 import Spinner from '../components/Spinner';
 import {useSelector} from 'react-redux';
-import RNRestart from 'react-native-restart';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
 import {getSettings} from '../store/settingStore';
@@ -1185,6 +1184,10 @@ function NativeStreamScreen({navigation, route}) {
   const handleCloseModal = () => {
     setShowModal(false);
     GamepadManager.setCurrentScreen('stream');
+
+    if (!isConnected.current) {
+      setLoading(true);
+    }
   };
 
   // Virtual gamepad press start
@@ -1461,7 +1464,17 @@ function NativeStreamScreen({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      <Spinner loading={loading} text={loadingText} cancelable={true} />
+      {loading && (
+        <Spinner
+          loading={true}
+          text={loadingText}
+          cancelable={true}
+          closeCb={() => {
+            setLoading(false);
+            setShowModal(true);
+          }}
+        />
+      )}
 
       {remoteStream.current?.toURL() && (
         <RTCView

@@ -184,7 +184,7 @@ function TitleDetail({navigation, route}) {
                 source={{
                   uri: 'https:' + titleItem.Image_Poster.URL,
                 }}
-                resizeMode="cover"
+                resizeMode="center"
                 style={styles.image}
               />
             )}
@@ -195,13 +195,13 @@ function TitleDetail({navigation, route}) {
               <Text variant="titleMedium">{titleItem.PublisherName}</Text>
             </View>
 
-            <View style={styles.tagsWrap}>
-              {isByorg && (
+            {isByorg && (
+              <View style={styles.tagsWrap}>
                 <HelperText type="error" visible={true}>
                   {t('byorg')}
                 </HelperText>
-              )}
-            </View>
+              </View>
+            )}
 
             {warnTitles.indexOf(titleItem.titleId) > -1 ? (
               <View style={styles.tagsWrap}>

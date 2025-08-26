@@ -431,6 +431,7 @@ class webRTCClient {
       const performances = {
         resolution: '',
         rtt: '-1 (-1%)',
+        jit: '-1',
         fps: 0,
         pl: '-1 (-1%)',
         fl: '-1 (-1%)',
@@ -480,9 +481,24 @@ class webRTCClient {
                       (8 * (stat.bytesReceived - lastStat.bytesReceived)) /
                       timeDiff /
                       1000;
-                    performances.br = `${bitrate.toFixed(2)} Mbps`;
+                    performances.br = `${bitrate.toFixed(1)} Mbps`;
                   } else {
                     performances.br = '--';
+                  }
+
+                  // Jitter
+                  const bufferDelayDiff =
+                    (stat as any).jitterBufferDelay! -
+                    lastStat.jitterBufferDelay!;
+                  const emittedCountDiff =
+                    (stat as any).jitterBufferEmittedCount! -
+                    lastStat.jitterBufferEmittedCount!;
+                  if (emittedCountDiff > 0) {
+                    performances.jit =
+                      Math.round((bufferDelayDiff / emittedCountDiff) * 1000) +
+                      'ms';
+                  } else {
+                    performances.jit = '--';
                   }
 
                   // Decode time
@@ -517,7 +533,7 @@ class webRTCClient {
               stat.type === 'candidate-pair' &&
               stat.state === 'succeeded'
             ) {
-              // Round Trip Time（延迟）
+              // Round Trip Time
               const roundTripTime =
                 typeof stat.currentRoundTripTime !== 'undefined'
                   ? stat.currentRoundTripTime * 1000

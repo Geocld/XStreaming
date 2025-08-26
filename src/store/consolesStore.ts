@@ -47,6 +47,6 @@ export const isConsolesDataValid = (data: any) => {
     return false;
   }
 
-  // Cache 15 days
-  return new Date().getTime() - cacheTime < 15 * 24 * 60 * 1000;
+  // Cache 30 days
+  return new Date().getTime() - cacheTime < 30 * 24 * 60 * 1000;
 };

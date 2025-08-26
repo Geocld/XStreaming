@@ -46,6 +46,7 @@ import CustomGamepadScreen from './pages/CustomGamepad';
 import Ds5SettingsScreen from './pages/Ds5Settings';
 import DeviceInfosScreen from './pages/DeviceInfos';
 import ThanksScreen from './pages/Thanks';
+import HistoryScreen from './pages/History';
 import updater from './utils/updater';
 
 import {useTranslation} from 'react-i18next';
@@ -228,6 +229,11 @@ function App() {
                   name="Thanks"
                   component={ThanksScreen}
                   options={{title: t('Thanks')}}
+                />
+                <RootStack.Screen
+                  name="History"
+                  component={HistoryScreen}
+                  options={{title: t('HistoryTitle')}}
                 />
                 <RootStack.Screen
                   name="GameMap"

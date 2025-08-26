@@ -1,0 +1,34 @@
+diff --git a/node_modules/react-native-loading-spinner-overlay/lib/index.d.ts b/node_modules/react-native-loading-spinner-overlay/lib/index.d.ts
+index d85a7cc..4de9f48 100644
+--- a/node_modules/react-native-loading-spinner-overlay/lib/index.d.ts
++++ b/node_modules/react-native-loading-spinner-overlay/lib/index.d.ts
+@@ -13,6 +13,7 @@ export interface SpinnerPropTypes {
+     customIndicator?: React.ReactNode;
+     children?: React.ReactNode;
+     spinnerKey?: string;
++    closeCb?: any;
+ }
+-declare const Spinner: ({ cancelable, color, animation, overlayColor, size, textContent, textStyle, visible, indicatorStyle, customIndicator, children, spinnerKey }: SpinnerPropTypes) => JSX.Element;
++declare const Spinner: ({ cancelable, color, animation, overlayColor, size, textContent, textStyle, visible, indicatorStyle, customIndicator, children, spinnerKey, closeCb }: SpinnerPropTypes) => JSX.Element;
+ export default Spinner;
+diff --git a/node_modules/react-native-loading-spinner-overlay/lib/index.js b/node_modules/react-native-loading-spinner-overlay/lib/index.js
+index d686012..d4cca12 100644
+--- a/node_modules/react-native-loading-spinner-overlay/lib/index.js
++++ b/node_modules/react-native-loading-spinner-overlay/lib/index.js
+@@ -2,7 +2,7 @@ import * as React from 'react';
+ import { View, Text, Modal, ActivityIndicator } from 'react-native';
+ import styles from './style';
+ const transparent = 'transparent';
+-const Spinner = ({ cancelable = false, color = 'white', animation = 'none', overlayColor = 'rgba(0, 0, 0, 0.25)', size = 'large', textContent = '', textStyle, visible = false, indicatorStyle, customIndicator, children, spinnerKey }) => {
++const Spinner = ({ cancelable = false, color = 'white', animation = 'none', overlayColor = 'rgba(0, 0, 0, 0.25)', size = 'large', textContent = '', textStyle, visible = false, indicatorStyle, customIndicator, children, spinnerKey, closeCb }) => {
+     const [spinnerVisible, setSpinnerVisibility] = React.useState(visible);
+     const close = () => {
+         setSpinnerVisibility(false);
+@@ -10,6 +10,7 @@ const Spinner = ({ cancelable = false, color = 'white', animation = 'none', over
+     const _handleOnRequestClose = () => {
+         if (cancelable) {
+             close();
++            closeCb && closeCb();
+         }
+     };
+     React.useEffect(() => {

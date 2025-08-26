@@ -172,15 +172,7 @@ function HomeScreen({navigation, route}) {
               _consoles = await webApi.getConsoles();
             }
 
-            if (
-              cacheData.consoles &&
-              _consoles.length >= cacheData.consoles.length
-            ) {
-              setConsoles(_consoles);
-              saveConsolesData({
-                consoles: _consoles,
-              });
-            } else {
+            if (_consoles.length > 0) {
               setConsoles(_consoles);
               saveConsolesData({
                 consoles: _consoles,

@@ -1,6 +1,6 @@
 {
   "name": "xstreaming",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -37,7 +37,7 @@
     "react-native-edge-to-edge": "^0.2.1",
     "react-native-gesture-handler": "^2.16.2",
     "react-native-haptic-feedback": "^2.2.0",
-    "react-native-loading-spinner-overlay": "^3.0.1",
+    "react-native-loading-spinner-overlay": "3.0.1",
     "react-native-logs": "^5.1.0",
     "react-native-mmkv": "^2.12.2",
     "react-native-network-info": "^5.2.1",
