@@ -669,11 +669,6 @@ export default class XcloudApi {
     return new Promise((resolve, reject) => {
       const productIdQueue = [];
       const v2TitleMap = {};
-      const _settings = getSettings();
-      const lang =
-        _settings.preferred_game_language.indexOf('zh') > -1
-          ? 'zh-TW'
-          : 'en-US';
       if (!Array.isArray(titles)) {
         log.info('[getGamePassProducts] error titles is not a array:', titles);
         resolve([]);
@@ -688,59 +683,75 @@ export default class XcloudApi {
       // Get officialTitles
       this.getOfficialTitles().then(officialTitles => {
         // Fix: v2/titles API can not get full games
-        const mergeProductIds = [
-          ...new Set([...productIdQueue, ...officialTitles]),
-        ];
-        axios
-          .post(
-            `https://catalog.gamepass.com/v3/products?market=US&language=${lang}&hydration=RemoteLowJade0`,
-            {
-              Products: mergeProductIds,
-            },
-            {
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'ms-cv': 0,
-                'calling-app-name': 'Xbox Cloud Gaming Web',
-                'calling-app-version': '24.17.63',
-              },
-            },
-          )
-          .then(res => {
-            if (res.data && res.data.Products) {
-              const products = res.data.Products;
-              let mergedTitles = [];
-              for (const key in products) {
-                if (v2TitleMap[key]) {
-                  mergedTitles.push({
-                    productId: key,
-                    ...products[key],
-                    ...v2TitleMap[key],
-                  });
-                } else {
-                  mergedTitles.push({
-                    productId: key,
-                    ...products[key],
-                  });
-                }
-              }
-              mergedTitles.sort((a, b) =>
-                a.ProductTitle.localeCompare(b.ProductTitle),
-              );
-              mergedTitles = mergedTitles.filter(item => {
-                return item.titleId || item.XCloudTitleId;
-              });
-              resolve(mergedTitles);
-            } else {
-              resolve([]);
-            }
-          })
-          .catch(e => {
-            log.info('getGamePassProducts error:', e);
-            reject(e);
+        this.getCatalogGames(productIdQueue, v2TitleMap).then(titles1 => {
+          this.getCatalogGames(officialTitles, v2TitleMap).then(titles2 => {
+            const mergedTitles = [...titles1, ...titles2];
+            mergedTitles.sort((a, b) =>
+              a.ProductTitle.localeCompare(b.ProductTitle),
+            );
+            resolve(mergedTitles);
           });
+        });
       });
+    });
+  }
+
+  getCatalogGames(prods = [], v2TitleMap = {}) {
+    const _settings = getSettings();
+    const lang =
+      _settings.preferred_game_language.indexOf('zh') > -1 ? 'zh-TW' : 'en-US';
+    return new Promise(resolve => {
+      axios
+        .post(
+          `https://catalog.gamepass.com/v3/products?market=US&language=${lang}&hydration=RemoteLowJade0`,
+          {
+            Products: [...prods],
+          },
+          {
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              'ms-cv': 0,
+              'calling-app-name': 'Xbox Cloud Gaming Web',
+              'calling-app-version': '24.17.63',
+            },
+          },
+        )
+        .then(res => {
+          console.log('POST catalog.gamepass.com/v3/products success');
+          if (res.data && res.data.Products) {
+            const products = res.data.Products;
+            let mergedTitles = [];
+            for (const key in products) {
+              if (v2TitleMap[key]) {
+                mergedTitles.push({
+                  productId: key,
+                  ...products[key],
+                  ...v2TitleMap[key],
+                });
+              } else {
+                mergedTitles.push({
+                  productId: key,
+                  ...products[key],
+                });
+              }
+            }
+            mergedTitles.sort((a, b) =>
+              a.ProductTitle.localeCompare(b.ProductTitle),
+            );
+            mergedTitles = mergedTitles.filter(item => {
+              return item.titleId || item.XCloudTitleId;
+            });
+            resolve(mergedTitles);
+          } else {
+            resolve([]);
+          }
+        })
+        .catch(e => {
+          console.log('getGamePassProducts error:', e);
+          // reject(e);
+          resolve([]);
+        });
     });
   }
 
