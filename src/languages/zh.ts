@@ -337,5 +337,12 @@ export default {
     History: '历史',
     HistoryTitle: '更新日志',
     HistoryDesc: '查看XStreaming历史更新日志',
+    Server: '服务器',
+    'TURN server': 'TURN服务器',
+    'Custom TURN server': '自定义TURN服务器',
+    UrlIncorrect: '服务器URL格式不正确',
+    Username: '用户名',
+    Password: '密码',
+    'Save server': '保存服务器',
   },
 };

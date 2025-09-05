@@ -188,5 +188,10 @@ export default {
     History: 'History',
     HistoryTitle: 'Update histories',
     HistoryDesc: 'View update histories of XStreaming',
+    'TURN server': 'TURN server',
+    'Custom TURN server': 'Custom TURN server',
+    UrlIncorrect: 'Server URL format is incorrect',
+    Username: 'Username',
+    Password: 'Password',
   },
 };

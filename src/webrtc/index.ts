@@ -11,6 +11,10 @@ import ChatChannel from './Channel/Chat';
 
 import GamepadDriver from './Driver/Gamepad';
 
+import {getSettings} from '../store/settingStore';
+
+// import server from '../../server.json';
+
 globalThis._lastStat = null;
 
 class webRTCClient {
@@ -104,6 +108,21 @@ class webRTCClient {
   }
 
   init() {
+    const settings = getSettings();
+
+    if (
+      settings.server_url &&
+      settings.server_username &&
+      settings.server_credential
+    ) {
+      this._webrtcConfiguration.iceServers &&
+        this._webrtcConfiguration.iceServers.push({
+          urls: settings.server_url,
+          // @ts-ignore
+          username: settings.server_username,
+          credential: settings.server_credential,
+        });
+    }
     this._webrtcClient = new RTCPeerConnection(this._webrtcConfiguration);
 
     this._openDataChannels();

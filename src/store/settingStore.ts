@@ -56,6 +56,9 @@ export type Settings = {
   ipv6: boolean;
   check_update: boolean;
   power_on: boolean;
+  server_url: string;
+  server_username: string;
+  server_credential: string;
   theme: string;
   show_menu: boolean;
   debug: boolean;
@@ -105,6 +108,9 @@ const defaultSettings: Settings = {
   ipv6: false,
   check_update: true,
   power_on: false,
+  server_url: '',
+  server_username: '',
+  server_credential: '',
   display_options: {
     sharpness: 5,
     saturation: 100,

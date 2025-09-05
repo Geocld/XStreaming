@@ -338,6 +338,12 @@ function SettingsScreen({navigation}) {
             );
           })}
           <SettingItem
+            title={t('TURN server')}
+            description={t('Custom TURN server')}
+            onPress={() => navigation.navigate('Server')}
+          />
+
+          <SettingItem
             title={t('Clear Cache')}
             description={t('Clear XStreaming Cache Data(Keep login data)')}
             onPress={() => handleClearCache()}

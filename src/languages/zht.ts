@@ -305,5 +305,10 @@ export default {
     History: '历史',
     HistoryTitle: '更新日志',
     HistoryDesc: '查看XStreaming历史更新日志',
+    'TURN server': 'TURN 伺服器',
+    'Custom TURN server': '自訂 TURN 伺服器',
+    UrlIncorrect: '伺服器URL格式不正確',
+    Username: '用户名',
+    Password: '密碼',
   },
 };
