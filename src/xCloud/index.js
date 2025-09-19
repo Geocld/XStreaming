@@ -685,10 +685,19 @@ export default class XcloudApi {
         // Fix: v2/titles API can not get full games
         this.getCatalogGames(productIdQueue, v2TitleMap).then(titles1 => {
           this.getCatalogGames(officialTitles, v2TitleMap).then(titles2 => {
-            const mergedTitles = [...titles1, ...titles2];
+            let mergedTitles = [...titles1, ...titles2];
             mergedTitles.sort((a, b) =>
               a.ProductTitle.localeCompare(b.ProductTitle),
             );
+            mergedTitles = mergedTitles.reduce((acc, current) => {
+              const exists = acc.find(
+                item => item.ProductTitle === current.ProductTitle,
+              );
+              if (!exists) {
+                acc.push(current);
+              }
+              return acc;
+            }, []);
             resolve(mergedTitles);
           });
         });

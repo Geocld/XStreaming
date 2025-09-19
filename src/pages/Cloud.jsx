@@ -86,6 +86,9 @@ function CloudScreen({navigation, route}) {
 
               const _titleMap = {};
               const _orgTitles = [];
+
+              const _orgMap = {};
+
               _titles.forEach(item => {
                 _titleMap[item.productId] = item;
 
@@ -96,7 +99,10 @@ function CloudScreen({navigation, route}) {
                   item.details.programs &&
                   item.details.programs.indexOf('BYOG') > -1
                 ) {
-                  _orgTitles.push(item);
+                  if (!_orgMap[item.ProductTitle]) {
+                    _orgTitles.push(item);
+                    _orgMap[item.ProductTitle] = true;
+                  }
                 }
               });
 
@@ -157,13 +163,15 @@ function CloudScreen({navigation, route}) {
       const cacheData = getXcloudData();
       if (cacheData && isxCloudDataValid(cacheData)) {
         log.info('Get xcloud data from cache');
-        const {
+        let {
           titles: _titles,
           titleMap: _titleMap,
           newTitles: _newTitles,
           orgTitles: _orgTitles,
           recentTitles: _recentTitles,
         } = cacheData;
+
+        // Filter duplicate titles
 
         setTitles(_titles);
         setTitlesMap(_titleMap);
