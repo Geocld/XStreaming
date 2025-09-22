@@ -85,6 +85,7 @@ export default {
     XcloudSettings: 'Cloud Gaming',
     XchomeSettings: 'Console Streaming',
     SensorSettings: 'Sensor',
+    TurnServerSettings: 'TURN Server',
     Auto: 'Auto',
     Custom: 'Custom',
     bitrate: 'bitrate',
@@ -194,6 +195,9 @@ export default {
     UrlIncorrect: 'Server URL format is incorrect',
     Username: 'Username',
     Password: 'Password',
+    inner_server_title: 'Inner TURN server',
+    inner_server_desc:
+      'Use the official built-in XStreaming server, but stability is not guaranteed. It is disabled by default; enable it as needed.',
     'Auto toggle hold buttons': 'Auto toggle hold buttons',
     'Select what buttons become toggle holdable':
       'Select what buttons become toggle holdable',

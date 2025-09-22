@@ -25,6 +25,7 @@ import audio from '../common/settings/audio';
 import xcloud from '../common/settings/xcloud';
 import xhome from '../common/settings/xhome';
 import sensor from '../common/settings/sensor';
+import server from '../common/settings/server';
 import others from '../common/settings/others';
 
 const {UsbRumbleManager} = NativeModules;
@@ -63,6 +64,7 @@ function SettingDetailScreen({navigation, route}) {
         ...xcloud,
         ...xhome,
         ...sensor,
+        ...server,
         ...others,
       ];
       let metas = {};

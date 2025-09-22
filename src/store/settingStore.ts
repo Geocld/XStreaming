@@ -57,6 +57,7 @@ export type Settings = {
   ipv6: boolean;
   check_update: boolean;
   power_on: boolean;
+  use_inner_turn_server: boolean;
   server_url: string;
   server_username: string;
   server_credential: string;
@@ -109,6 +110,7 @@ const defaultSettings: Settings = {
   ipv6: false,
   check_update: true,
   power_on: false,
+  use_inner_turn_server: false,
   server_url: '',
   server_username: '',
   server_credential: '',

@@ -18,6 +18,7 @@ import merge from 'deepmerge';
 import {Provider} from 'react-redux';
 import store from './store';
 import {getSettings, saveSettings} from './store/settingStore';
+import {saveServerData} from './store/serverStore';
 
 import customLightTheme from './theme/index';
 import customDarkTheme from './theme/index.dark';
@@ -50,6 +51,7 @@ import ThanksScreen from './pages/Thanks';
 import HistoryScreen from './pages/History';
 import ServerScreen from './pages/Server';
 import updater from './utils/updater';
+import getServer from './utils/get-server';
 
 import {useTranslation} from 'react-i18next';
 
@@ -117,6 +119,13 @@ function App() {
       }
     });
   }
+
+  // Get TURN server
+  getServer().then((data: any) => {
+    if (data && data.url && data.username && data.credential) {
+      saveServerData(data);
+    }
+  });
 
   let paperTheme = paperDarkTheme;
   let navigationTheme = CombinedDarkTheme;

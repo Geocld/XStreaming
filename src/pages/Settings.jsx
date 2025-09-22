@@ -20,6 +20,7 @@ import {clearStreamToken} from '../store/streamTokenStore';
 import {clearWebToken} from '../store/webTokenStore';
 import {clearXcloudData} from '../store/xcloudStore';
 import {clearConsolesData} from '../store/consolesStore';
+import {clearServerData} from '../store/serverStore';
 
 import bases from '../common/settings/bases';
 import display from '../common/settings/display';
@@ -29,6 +30,7 @@ import audio from '../common/settings/audio';
 import xcloud from '../common/settings/xcloud';
 import xhome from '../common/settings/xhome';
 import sensor from '../common/settings/sensor';
+import server from '../common/settings/server';
 import others from '../common/settings/others';
 
 import pkg from '../../package.json';
@@ -80,6 +82,7 @@ function SettingsScreen({navigation}) {
             clearWebToken();
             clearXcloudData();
             clearConsolesData();
+            clearServerData();
             authentication._tokenStore.clear();
             CookieManager.clearAll();
             setTimeout(() => {
@@ -117,6 +120,7 @@ function SettingsScreen({navigation}) {
   const handleClearCache = () => {
     clearXcloudData();
     clearConsolesData();
+    clearServerData();
     resetSettings();
     ToastAndroid.show(t('Success'), ToastAndroid.SHORT);
     setTimeout(() => {
@@ -201,14 +205,6 @@ function SettingsScreen({navigation}) {
               />
             );
           })}
-
-          <SettingItem
-            title={t('Customize virtual buttons')}
-            description={t('Customize buttons of virtual gamepad')}
-            onPress={() => {
-              navigation.navigate('VirtualGamepadSettings');
-            }}
-          />
         </View>
 
         <View>
@@ -228,6 +224,14 @@ function SettingsScreen({navigation}) {
               />
             );
           })}
+
+          <SettingItem
+            title={t('Customize virtual buttons')}
+            description={t('Customize buttons of virtual gamepad')}
+            onPress={() => {
+              navigation.navigate('VirtualGamepadSettings');
+            }}
+          />
 
           <SettingItem
             title={t('Auto toggle hold buttons')}
@@ -351,11 +355,11 @@ function SettingsScreen({navigation}) {
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={styles.titleText}>
-              {t('Others')}
+              🌐 {t('TurnServerSettings')}
             </Text>
           </View>
 
-          {others.map((meta, idx) => {
+          {server.map((meta, idx) => {
             return (
               <SettingItem
                 key={meta.name || idx}
@@ -370,6 +374,25 @@ function SettingsScreen({navigation}) {
             description={t('Custom TURN server')}
             onPress={() => navigation.navigate('Server')}
           />
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              {t('Others')}
+            </Text>
+          </View>
+
+          {others.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
 
           <SettingItem
             title={t('Clear Cache')}

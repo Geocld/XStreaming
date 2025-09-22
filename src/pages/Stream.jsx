@@ -26,6 +26,7 @@ import RNRestart from 'react-native-restart';
 import XcloudApi from '../xCloud';
 import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {getServerData} from '../store/serverStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
@@ -123,6 +124,19 @@ function StreamScreen({navigation, route}) {
     const usbController = route.params?.usbController || 'Xbox360Controller';
 
     const _settings = getSettings();
+    const innerServer = getServerData();
+
+    if (
+      _settings.use_inner_turn_server &&
+      innerServer &&
+      innerServer.url &&
+      innerServer.username &&
+      innerServer.credential
+    ) {
+      _settings.server_url = innerServer.url;
+      _settings.server_username = innerServer.username;
+      _settings.server_credential = innerServer.credential;
+    }
     setSettings(_settings);
 
     const sweap = obj => {

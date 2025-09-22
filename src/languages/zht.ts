@@ -156,6 +156,7 @@ export default {
     XcloudSettings: '雲遊戲',
     XchomeSettings: '主機串流',
     SensorSettings: '感應器',
+    TurnServerSettings: 'TURN伺服器',
     Sharpness: '銳化',
     Saturation: '飽和度',
     Contrast: '對比度',
@@ -311,6 +312,9 @@ export default {
     UrlIncorrect: '伺服器URL格式不正確',
     Username: '用户名',
     Password: '密碼',
+    inner_server_title: '内置TURN伺服器',
+    inner_server_desc:
+      '使用 XStreaming 官方內建伺服器，但不保證穩定性，預設關閉，請按需開啟',
     'Auto toggle hold buttons': '自動保持按鍵',
     'Select what buttons become toggle holdable': '選擇哪些按鍵可以自動保持',
     HoldButtonsSettingsDesc:

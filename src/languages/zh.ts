@@ -176,6 +176,7 @@ export default {
     XcloudSettings: '云游戏',
     XchomeSettings: '主机串流',
     SensorSettings: '传感器',
+    TurnServerSettings: 'TURN服务器',
     Custom: '自定义',
     Size: '大小',
     ShowTitle: '展示',
@@ -345,7 +346,10 @@ export default {
     Username: '用户名',
     Password: '密码',
     'Save server': '保存服务器',
-    'Auto toggle hold buttons': '自动保持按键',
+    inner_server_title: '内置TURN服务器',
+    inner_server_desc:
+      '使用 XStreaming 官方内置服务器，但不保证稳定性，默认关闭，请按需打开',
+    'Auto toggle hold buttons': '自动粘连按键',
     'Select what buttons become toggle holdable': '选择哪些按键可以自动保持',
     HoldButtonsSettingsDesc:
       '自动保持按键功能可以让你在按住某个按键时，自动保持该按键为按下状态，直到你再次点击该按键。适用于需要持续按住某个按键的游戏场景，例如竞速游戏中的加速，射击游戏中的开火等。',

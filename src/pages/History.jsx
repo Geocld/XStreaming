@@ -30,8 +30,6 @@ function HistoryScreen({navigation, route}) {
         setLoading(false);
         if (res && res.data) {
           setReleases(res.data);
-
-          console.log('res.data:', res.data);
         }
       })
       .catch(e => {
