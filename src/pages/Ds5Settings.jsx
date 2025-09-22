@@ -31,8 +31,6 @@ function Ds5SettingsScreen({navigation, route}) {
 
   React.useEffect(() => {
     const _settings = getSettings();
-    console.log('Get localSettings:', _settings);
-    console.log('type:', route.params?.type);
     setSettings(_settings);
 
     let triggerType = _settings.left_trigger_type;

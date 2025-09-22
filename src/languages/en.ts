@@ -80,6 +80,7 @@ export default {
     BasesSettings: 'Basic',
     DisplaySettings: 'Display',
     GamepadSettings: 'Gamepad and Vibration',
+    vGamepadSettings: 'Virtual controller',
     AudioSettings: 'Audio',
     XcloudSettings: 'Cloud Gaming',
     XchomeSettings: 'Console Streaming',
@@ -193,5 +194,11 @@ export default {
     UrlIncorrect: 'Server URL format is incorrect',
     Username: 'Username',
     Password: 'Password',
+    'Auto toggle hold buttons': 'Auto toggle hold buttons',
+    'Select what buttons become toggle holdable':
+      'Select what buttons become toggle holdable',
+    HoldButtonsSettingsDesc:
+      'The auto toggle hold buttons feature allows you to automatically keep a button pressed when you hold it down, until you click the button again. This is useful for game scenarios that require continuous button presses, such as acceleration in racing games or firing in shooting games.',
+    'Hold Buttons': 'Hold Buttons',
   },
 };

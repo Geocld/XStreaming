@@ -24,6 +24,7 @@ import {clearConsolesData} from '../store/consolesStore';
 import bases from '../common/settings/bases';
 import display from '../common/settings/display';
 import gamepad from '../common/settings/gamepad';
+import vgamepad from '../common/settings/vgamepad';
 import audio from '../common/settings/audio';
 import xcloud from '../common/settings/xcloud';
 import xhome from '../common/settings/xhome';
@@ -206,6 +207,33 @@ function SettingsScreen({navigation}) {
             description={t('Customize buttons of virtual gamepad')}
             onPress={() => {
               navigation.navigate('VirtualGamepadSettings');
+            }}
+          />
+        </View>
+
+        <View>
+          <View style={styles.contentTitle}>
+            <Text variant="titleLarge" style={styles.titleText}>
+              🧩 {t('vGamepadSettings')}
+            </Text>
+          </View>
+
+          {vgamepad.map((meta, idx) => {
+            return (
+              <SettingItem
+                key={meta.name || idx}
+                title={meta.title}
+                description={meta.description}
+                onPress={() => handleItemPress(meta.name)}
+              />
+            );
+          })}
+
+          <SettingItem
+            title={t('Auto toggle hold buttons')}
+            description={t('Select what buttons become toggle holdable')}
+            onPress={() => {
+              navigation.navigate('HoldButtons');
             }}
           />
         </View>

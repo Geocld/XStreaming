@@ -151,6 +151,7 @@ export default {
     BasesSettings: '基礎',
     DisplaySettings: '顯示',
     GamepadSettings: '手把及震動',
+    vGamepadSettings: '虚拟按键',
     AudioSettings: '聲音',
     XcloudSettings: '雲遊戲',
     XchomeSettings: '主機串流',
@@ -310,5 +311,10 @@ export default {
     UrlIncorrect: '伺服器URL格式不正確',
     Username: '用户名',
     Password: '密碼',
+    'Auto toggle hold buttons': '自動保持按鍵',
+    'Select what buttons become toggle holdable': '選擇哪些按鍵可以自動保持',
+    HoldButtonsSettingsDesc:
+      '自動保持按鍵功能可以讓你在按住某個按鍵時，自動保持該按鍵為按下狀態，直到你再次點擊該按鍵。適用於需要持續按住某個按鍵的遊戲場景，例如競速遊戲中的加速，射擊遊戲中的開火等。',
+    'Hold Buttons': '保持按鍵',
   },
 };

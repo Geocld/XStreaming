@@ -43,6 +43,7 @@ import AboutZhScreen from './pages/AboutZh';
 import FeedbackScreen from './pages/Feedback';
 import VirtualGamepadSettingsScreen from './pages/VirtualGamepadSettings';
 import CustomGamepadScreen from './pages/CustomGamepad';
+import HoldButtonsScreen from './pages/HoldButtons';
 import Ds5SettingsScreen from './pages/Ds5Settings';
 import DeviceInfosScreen from './pages/DeviceInfos';
 import ThanksScreen from './pages/Thanks';
@@ -190,6 +191,11 @@ function App() {
                   name="VirtualGamepadSettings"
                   component={VirtualGamepadSettingsScreen}
                   options={{title: t('Custom')}}
+                />
+                <RootStack.Screen
+                  name="HoldButtons"
+                  component={HoldButtonsScreen}
+                  options={{title: t('Hold Buttons')}}
                 />
                 <RootStack.Screen
                   name="Display"

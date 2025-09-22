@@ -20,6 +20,7 @@ import {clearConsolesData} from '../store/consolesStore';
 import bases from '../common/settings/bases';
 import display from '../common/settings/display';
 import gamepad from '../common/settings/gamepad';
+import vgamepad from '../common/settings/vgamepad';
 import audio from '../common/settings/audio';
 import xcloud from '../common/settings/xcloud';
 import xhome from '../common/settings/xhome';
@@ -48,7 +49,6 @@ function SettingDetailScreen({navigation, route}) {
 
   React.useEffect(() => {
     const _settings = getSettings();
-    console.log('Get localSettings:', _settings);
     setSettings(_settings);
 
     if (route.params?.id) {
@@ -58,6 +58,7 @@ function SettingDetailScreen({navigation, route}) {
         ...bases,
         ...display,
         ...gamepad,
+        ...vgamepad,
         ...audio,
         ...xcloud,
         ...xhome,

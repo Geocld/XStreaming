@@ -1192,11 +1192,22 @@ function NativeStreamScreen({navigation, route}) {
 
   // Virtual gamepad press start
   const handleButtonPressIn = name => {
+    // Hold button
+    const hold_buttons = settings.hold_buttons || [];
+    if (hold_buttons.includes(name)) {
+      gpState[name] = gpState[name] === 1 ? 0 : 1;
+      return;
+    }
     gpState[name] = 1;
   };
 
   // Virtual gamepad press end
   const handleButtonPressOut = name => {
+    // Hold button
+    const hold_buttons = settings.hold_buttons || [];
+    if (hold_buttons.includes(name)) {
+      return;
+    }
     setTimeout(() => {
       gpState[name] = 0;
     }, 50);

@@ -1014,6 +1014,12 @@ function StreamScreen({navigation, route}) {
   // Virtual gamepad press
   const handleButtonPressIn = name => {
     // console.log('handleButtonPressIn:', name);
+    // Hold button
+    const hold_buttons = settings.hold_buttons || [];
+    if (hold_buttons.includes(name)) {
+      gpState[name] = gpState[name] === 1 ? 0 : 1;
+      return;
+    }
     gpState[name] = 1;
     if (settings.vibration) {
       Vibration.vibrate(30);
@@ -1021,6 +1027,11 @@ function StreamScreen({navigation, route}) {
   };
 
   const handleButtonPressOut = name => {
+    // Hold button
+    const hold_buttons = settings.hold_buttons || [];
+    if (hold_buttons.includes(name)) {
+      return;
+    }
     setTimeout(() => {
       // console.log('handleButtonPressOut:', name);
       gpState[name] = 0;

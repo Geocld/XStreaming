@@ -53,6 +53,7 @@ export type Settings = {
   right_trigger_type: number;
   right_trigger_effects: [];
   display_options: DisplayOptions;
+  hold_buttons: [];
   ipv6: boolean;
   check_update: boolean;
   power_on: boolean;
@@ -117,6 +118,7 @@ const defaultSettings: Settings = {
     contrast: 100,
     brightness: 100,
   },
+  hold_buttons: [],
   theme: 'dark',
   show_menu: false,
   debug: false,
