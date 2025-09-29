@@ -84,13 +84,12 @@ public class MainApplication extends Application implements ReactApplication {
           .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
           .build();
 
-    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-    boolean isStereoSupported = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE) != null;
+//    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
     options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
             .setAudioAttributes(audioAttributes)
-            .setUseStereoInput(isStereoSupported)
-            .setUseStereoOutput(isStereoSupported)
+            .setUseStereoInput(true)
+            .setUseStereoOutput(true)
             .createAudioDeviceModule();
 
     UMConfigure.preInit(this,"66ab42a4192e0574e75249b9","XStreaming");

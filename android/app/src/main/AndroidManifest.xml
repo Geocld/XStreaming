@@ -22,7 +22,9 @@
     <application
       android:name=".MainApplication"
       android:label="@string/app_name"
+      android:banner="@mipmap/ic_launcher"
       android:icon="@mipmap/ic_launcher"
+      android:logo="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher"
       android:allowBackup="false"
       android:hardwareAccelerated="true"
@@ -44,6 +46,7 @@
             <action android:name="android.intent.action.MAIN" />
             <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             <category android:name="android.intent.category.LAUNCHER" />
+            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             <category android:name="android.intent.category.GAME" />
         </intent-filter>
       </activity>
