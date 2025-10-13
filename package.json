@@ -1,6 +1,6 @@
 {
   "name": "xstreaming",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
