@@ -480,7 +480,9 @@ class webRTCClient {
         this._webrtcClient.getStats().then(stats => {
           stats.forEach((stat: any) => {
             if (stat.type === 'inbound-rtp' && stat.kind === 'video') {
-              performances.resolution = `${stat.frameWidth} X ${stat.frameHeight}`;
+              if (stat.frameWidth && stat.frameHeight) {
+                performances.resolution = `${stat.frameWidth} X ${stat.frameHeight}`;
+              }
 
               // FPS
               performances.fps = stat.framesPerSecond || 0;

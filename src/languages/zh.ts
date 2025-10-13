@@ -23,7 +23,7 @@ export default {
       '账号下没有找到主机，如果你有xbox主机，请确保主机开启了远程游玩功能，并且使用官方xbox App可以查看到该主机。',
     Warning: '提示',
     WaitingForServerToRegister:
-      '无法在主机上建立串流，原因是主机没有连接到Xbox服务器，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试手动重启主机并重试',
+      '无法在主机上建立串流，原因是主机没有连接到Xbox服务器。当你看到这个错误时，不是XStreaming发生了错误，这通常发生在主机系统异常或主机正在更新或主机未登录账号，请尝试长按电源键或断开电源(断开至少10秒)重启主机修复此问题。',
     XboxstreaminghelperErr:
       '主机串流功能无法正常运行，当你看到这个错误时，不是XStreaming发生了错误，而是主机的串流功能由于某些原因已经无法正常工作，你需要长按电源键或断开电源(断开至少10秒)重启主机修复此问题，具体错误：',
     DisabledStreamingErr:
@@ -58,6 +58,11 @@ export default {
     Resolution: '分辨率',
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '设置串流分辨率，支持720P/1080P/1080P(HQ)切换',
+    resolutionTips: `
+1.1080P(HQ)支持码率>=15Mbps 高码率运行，清晰度度更高
+2.主机串流只支持720P/1080P/1080P(HQ)
+3. 1440P只支持xCloud部分游戏，主机串流不支持
+4. xCloud目前微软调整分辨率策略，部分游戏Xbox Game Pass Ultimate级别会员目前只支持720P/1440P分辨率`,
     'Host stream bitrate': '主机串流码率',
     'Cloud stream bitrate': '云游戏码率',
     'Audio bitrate': '声音',
@@ -114,6 +119,9 @@ export default {
     'Do you want to logout?': '要退出登录吗?',
     'Current user': '当前用户',
     'Powered on': '开机',
+    'Powered off': '关机',
+    PoweredOnSentText: '已发送开机指令',
+    PoweredOffSentText: '已发送关机指令',
     Theme: '主题',
     'Set the app theme to take effect on the next launch':
       '设置APP主题，下次启动生效',

@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, Image, Platform, Dimensions} from 'react-native';
-import {Card, Text, Button} from 'react-native-paper';
+import {Card, Text, Button, Menu, IconButton} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {SvgXml} from 'react-native-svg';
 import icons from '../common/svg';
@@ -9,6 +9,10 @@ import {getSettings} from '../store/settingStore';
 const ConsoleItem = (props: any) => {
   const {t} = useTranslation();
   const settings = getSettings();
+
+  const [menuVisible, setMenuVisible] = React.useState(false);
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
 
   const consoleItem = props.consoleItem;
   const {width} = Dimensions.get('window');
@@ -37,6 +41,30 @@ const ConsoleItem = (props: any) => {
   return (
     <Card>
       <Card.Content>
+        <View style={styles.menuContainer}>
+          <Menu
+            visible={menuVisible}
+            onDismiss={closeMenu}
+            anchor={
+              <IconButton icon="dots-vertical" size={24} onPress={openMenu} />
+            }>
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                props.onPoweron && props.onPoweron();
+              }}
+              title={t('Powered on')}
+            />
+            <Menu.Item
+              onPress={() => {
+                closeMenu();
+                props.onPoweroff && props.onPoweroff();
+              }}
+              title={t('Powered off')}
+            />
+          </Menu>
+        </View>
+
         <View style={styles.consoleInfos}>
           <Text variant="titleLarge" style={styles.textCenter}>
             {consoleItem.deviceName}
@@ -111,6 +139,12 @@ const styles = StyleSheet.create({
   footerControl: {
     marginHorizontal: 2,
     backgroundColor: 'red',
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 1,
   },
 });
 

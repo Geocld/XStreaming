@@ -21,9 +21,9 @@ export default {
     'Checking login status...': '正在檢查登錄...',
     Warning: '提示',
     WaitingForServerToRegister:
-      '無法在主機上建立串流，原因是主機沒有連接到Xbox伺服器，這通常發生在主機系統異常或主機正在更新或主機未登錄賬號，請嘗試手動重啟主機並重試',
+      '無法在主機上建立串流，原因是主機沒有連接到Xbox伺服器。當你看到這個錯誤時，並非XStreaming發生錯誤，這通常發生在主機系統異常、主機正在更新或主機未登入帳號時。請嘗試長按電源鍵或斷開電源（斷開至少10秒）重啟主機以修復此問題。',
     XboxstreaminghelperErr:
-      '主機串流功能無法正常運行。當您看到此錯誤時，並非 XStreaming 發生問題，而是主機的串流功能因某些原因已無法正常工作。您需要長按電源鍵或斷開電源(至少10s)以重啟主機來修復此問題。具體錯誤',
+      '主機串流功能無法正常運行。當您看到此錯誤時，並非 XStreaming 發生問題，而是主機的串流功能因某些原因已無法正常工作。您需要長按電源鍵或斷開電源(至少10s)以重啟主機來修復此問題。具體錯誤:',
     DisabledStreamingErr:
       '主机端已禁用串流功能。出現此問題可能原因如下：\n1. Xbox主機-設定-裝置和連線-遠端功能沒有啟用;\n2. 你可能正在使用中國大陸版Xbox，該版本Xbox無法使用串流功能。',
     'Login has expired or not logged in, please log in again':
@@ -58,6 +58,11 @@ export default {
     Resolution: '分辨率',
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '設置串流分辨率，支持720P/1080P切換',
+    resolutionTips: `
+1. 1080P（高品質）支援碼率 >=15Mbps，以高碼率運行，清晰度更高。
+2. 主機串流僅支援 720P/1080P/1080P（高品質）。
+3. 1440P 僅支援部分 xCloud 遊戲，主機串流不支援此解析度。
+4. 目前微軟已調整 xCloud 的解析度策略，部分遊戲對 Xbox Game Pass Ultimate 級別會員僅支援 720P/1440P 解析度。`,
     'Host stream bitrate': '主機串流碼率',
     'Cloud stream bitrate': '雲遊戲碼率',
     'Audio bitrate': '声音碼率',
@@ -114,6 +119,9 @@ export default {
     'Do you want to logout?': '要登出嗎？',
     'Current user': '當前用戶',
     'Powered on': '開機',
+    'Powered off': '關機',
+    PoweredOnSentText: '已傳送開機指令',
+    PoweredOffSentText: '已傳送關機指令',
     'Low Latency Mode': 'WIFI低延迟模式',
     low_latency_mode_description:
       '使用Android wifi性能模式，以实现最佳的串流效果。可能导致某些设备蓝牙出现延迟，如果遇到蓝牙延迟问题，请选择停用此模式',

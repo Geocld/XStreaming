@@ -12,7 +12,7 @@ export default {
     'Checking login status...': 'Checking login status...',
     Warning: 'Warning',
     WaitingForServerToRegister:
-      'Unable to start stream session on console. The console is not connected to the Xbox servers. This ocasionally happens then there is an update or when the user is not signed in to the console. Please hard reboot your console and try again.',
+      'Unable to establish streaming on the console because the console is not connected to the Xbox servers. When you see this error, it is not an issue with XStreaming. This usually occurs when the console system is abnormal, the console is updating, or the console is not logged into an account. Please try holding down the power button or disconnecting the power (disconnect for at least 10 seconds) to restart the console and resolve this issue.',
     XboxstreaminghelperErr:
       "The host streaming function is not working properly. When you see this error, it does not indicate an issue with XStreaming itself, but rather that the host's streaming functionality has stopped functioning due to certain reasons. You need to press and hold the power button or disconnect the power(at least 10s) supply to restart the host and resolve the issue. Specific error:",
     DisabledStreamingErr:
@@ -23,6 +23,8 @@ export default {
     'Loading...': 'Loading...',
     'Start stream': 'Start stream',
     'Power on and start stream': 'Power on start stream',
+    PoweredOnSentText: 'Power on command sent',
+    PoweredOffSentText: 'Power off command sent',
     'Local connect': 'Local connect',
     'Remote connect': 'Remote connect',
     'Disconnect and power off': 'Disconnect and power off',
@@ -37,6 +39,11 @@ export default {
     Resolution: 'Resolution',
     'Set resolution, support 720P/1080P/1080P(HQ).':
       'Set resolution, support 720P/1080P/1080P(HQ).',
+    resolutionTips: `
+1. 1080P (HQ) supports bitrate >=15Mbps for high-bitrate operation, providing higher clarity.
+2. Host streaming only supports 720P/1080P/1080P (HQ).
+3. 1440P is only supported for some xCloud games; console streaming does not support it.
+4. xCloud currently has adjusted resolution policies by Microsoft. Some games for Xbox Game Pass Ultimate members only support 720P/1440P resolution.`,
     'Host stream bitrate': 'Host stream bitrate',
     'Cloud stream bitrate': 'Cloud stream bitrate',
     'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':

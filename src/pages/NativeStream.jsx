@@ -652,6 +652,7 @@ function NativeStreamScreen({navigation, route}) {
                 frameSubmittedTimeMs: 9954.2,
                 frameDecodedTimeMs: 10033,
                 frameRenderedTimeMs: 10033,
+                expectedDisplayTime: 10034,
               });
           };
           setTimeout(() => {

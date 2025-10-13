@@ -9,6 +9,7 @@ import {
   Dimensions,
   SafeAreaView,
   NativeModules,
+  ToastAndroid,
 } from 'react-native';
 import {Button, Text, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from '../components/Spinner';
@@ -318,6 +319,37 @@ function HomeScreen({navigation, route}) {
     }
   };
 
+  const handlePower = async (sessionId, off = false) => {
+    setLoading(true);
+    setLoadingText(t('Loading...'));
+    const webApi = new WebApi(webToken);
+    try {
+      if (off) {
+        const powerOnRes = await webApi.powerOff(sessionId);
+        log.info('powerOff:', powerOnRes);
+        ToastAndroid.show(t('PoweredOffSentText'), ToastAndroid.SHORT);
+      } else {
+        const powerOnRes = await webApi.powerOn(sessionId);
+        log.info('powerOn:', powerOnRes);
+        ToastAndroid.show(t('PoweredOnSentText'), ToastAndroid.SHORT);
+      }
+
+      let _consoles = await _xHomeApiRef.current.getConsoles();
+
+      if (!_consoles.length) {
+        _consoles = await webApi.getConsoles();
+      }
+
+      if (_consoles.length > 0) {
+        setConsoles(_consoles);
+      }
+
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
+  };
+
   const handleStartStream = async sessionId => {
     const settings = getSettings();
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
@@ -468,6 +500,8 @@ function HomeScreen({navigation, route}) {
                           onPoweronStream={() =>
                             handlePoweronAndStream(item.serverId)
                           }
+                          onPoweron={() => handlePower(item.serverId)}
+                          onPoweroff={() => handlePower(item.serverId, true)}
                         />
                       </View>
                     );
