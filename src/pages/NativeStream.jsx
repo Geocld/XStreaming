@@ -684,13 +684,6 @@ function NativeStreamScreen({navigation, route}) {
           if (!performanceInterval.current) {
             performanceInterval.current = setInterval(() => {
               webrtcClient.getStreamState().then(res => {
-                res.resolution = '1920 X 720';
-                if (
-                  _settings.resolution === 1080 ||
-                  _settings.resolution === 1081
-                ) {
-                  res.resolution = '1920 X 1080';
-                }
                 setPerformance(res);
               });
             }, 1000);

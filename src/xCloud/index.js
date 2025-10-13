@@ -41,8 +41,8 @@ export default class XcloudApi {
             // sdkInstallId: '',
             clientAppId: 'www.xbox.com',
             clientAppType: 'browser',
-            clientAppVersion: '26.1.97',
-            clientSdkVersion: '10.3.7',
+            clientAppVersion: '29.9.35',
+            clientSdkVersion: '10.6.8',
             httpEnvironment: 'prod',
             sdkInstallId: '',
           },
@@ -50,15 +50,14 @@ export default class XcloudApi {
         dev: {
           hw: {
             make: 'Microsoft',
-            // 'model': 'Surface Pro',
             model: 'unknown',
-            // 'sdktype': 'native',
+            platformType: 'desktop',
             sdktype: 'web',
           },
           os: {
             // name: 'android', // 720P
             // name: 'windows', // 1080P
-            // name: 'tizen', // 1080 hq ?
+            // name: 'tizen', // 1080P(HQ) or 1440P
             // For console streaming
             name: osName,
             ver: '22631.2715',
@@ -66,8 +65,8 @@ export default class XcloudApi {
           },
           displayInfo: {
             dimensions: {
-              widthInPixels: 1920,
-              heightInPixels: 1080,
+              widthInPixels: 4096,
+              heightInPixels: 2160,
             },
             pixelDensity: {
               dpiX: 1,
@@ -75,8 +74,8 @@ export default class XcloudApi {
             },
           },
           browser: {
-            browserName: 'chrome',
-            browserVersion: '130.0',
+            browserName: 'edge',
+            browserVersion: '140.0.3485.66',
           },
         },
       });
