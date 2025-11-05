@@ -82,6 +82,26 @@ const display = [
     ],
   },
   {
+    name: 'fsr',
+    type: 'radio',
+    title: t('FSR'),
+    description: t('FSR_desc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
+    name: 'fsr_sharpness',
+    type: 'slider',
+    min: 0,
+    max: 10,
+    step: 1,
+    title: t('fsr_sharpness_title'),
+    description: t('fsr_sharpness_desc'),
+    data: [],
+  },
+  {
     name: 'show_performance',
     type: 'radio',
     title: t('Show performance'),

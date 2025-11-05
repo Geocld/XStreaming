@@ -63,6 +63,8 @@ export type Settings = {
   server_credential: string;
   theme: string;
   show_menu: boolean;
+  fsr: boolean;
+  fsr_sharpness: number;
   debug: boolean;
 };
 
@@ -123,6 +125,8 @@ const defaultSettings: Settings = {
   hold_buttons: [],
   theme: 'dark',
   show_menu: false,
+  fsr: false,
+  fsr_sharpness: 2,
   debug: false,
 };
 

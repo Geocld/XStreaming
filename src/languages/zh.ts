@@ -318,7 +318,7 @@ export default {
     renderEngineTitle: '渲染引擎',
     renderEngineDesc: '选择Native/Webview渲染引擎，播放视频流',
     renderEngineTips:
-      '\nnative: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性(推荐)。\n\nwebview: 使用系统webview播放视频流，需要webview版本91以上。\n\n不同的渲染引擎各有优缺点，请根据设备实际效果选用。',
+      '\nnative: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性(推荐)。\n\nwebview: 使用系统webview播放视频流，需要webview版本91以上，支持FSR画面加强。\n\n不同的渲染引擎各有优缺点，请根据设备实际效果选用。',
     'Open Microphone': '打开麦克风',
     'Close Microphone': '关闭麦克风',
     'Device testing': '设备测试',
@@ -362,5 +362,9 @@ export default {
     HoldButtonsSettingsDesc:
       '自动保持按键功能可以让你在按住某个按键时，自动保持该按键为按下状态，直到你再次点击该按键。适用于需要持续按住某个按键的游戏场景，例如竞速游戏中的加速，射击游戏中的开火等。',
     'Hold Buttons': '保持按键',
+    FSR_desc: '启用FSR(FidelityFX Super Resolution)实现超分辨率，可以在不增加带宽的情况下提升画面清晰度，但会增加CPU/GPU负载',
+    fsr_sharpness_title: 'FSR锐化',
+    fsr_sharpness_desc: '调整FSR锐化',
+    'FSR started': 'FSR已启动'
   },
 };

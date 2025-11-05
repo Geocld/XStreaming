@@ -162,7 +162,7 @@ export default {
     renderEngineDesc:
       'You can choose between native/webview rendering engines to play the video stream.',
     renderEngineTips:
-      '\nnative: No dependency on webview, uses native rendering for lower power consumption and better compatibility(recommend).\n\nwebview: Uses the system webview to play video streams, requiring webview version 91 or higher.\n\nDifferent rendering engines have their own advantages and disadvantages. Please choose based on the actual performance of the device.',
+      '\nnative: No dependency on webview, uses native rendering for lower power consumption and better compatibility(recommend).\n\nwebview: Uses the system webview to play video streams, requiring webview version 91 or higher, FSR support.\n\nDifferent rendering engines have their own advantages and disadvantages. Please choose based on the actual performance of the device.',
     'Device testing': 'Device testing',
     'Testing current device and controller':
       'Testing current device and controller',
@@ -211,5 +211,9 @@ export default {
     HoldButtonsSettingsDesc:
       'The auto toggle hold buttons feature allows you to automatically keep a button pressed when you hold it down, until you click the button again. This is useful for game scenarios that require continuous button presses, such as acceleration in racing games or firing in shooting games.',
     'Hold Buttons': 'Hold Buttons',
+    FSR_desc: 'Enable FSR(FidelityFX Super Resolution) to achieve super resolution, which can improve image clarity without increasing bandwidth, but will increase CPU/GPU load',
+    fsr_sharpness_title: 'FSR Sharpness',
+    fsr_sharpness_desc: 'Adjust FSR sharpness',
+    'FSR started': 'FSR started'
   },
 };

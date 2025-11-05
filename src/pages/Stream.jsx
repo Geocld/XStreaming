@@ -1015,6 +1015,9 @@ function StreamScreen({navigation, route}) {
         postData2Webview('sendChatSdpEnd', sdpDetails);
       });
     }
+    if (type === 'FsrStarted') {
+      ToastAndroid.show(t('FSR started'), ToastAndroid.SHORT);
+    }
   };
 
   const handleToggleWebviewPerformance = () => {
