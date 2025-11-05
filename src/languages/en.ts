@@ -211,7 +211,8 @@ export default {
     HoldButtonsSettingsDesc:
       'The auto toggle hold buttons feature allows you to automatically keep a button pressed when you hold it down, until you click the button again. This is useful for game scenarios that require continuous button presses, such as acceleration in racing games or firing in shooting games.',
     'Hold Buttons': 'Hold Buttons',
-    FSR_desc: 'Enable FSR(FidelityFX Super Resolution) to achieve super resolution, which can improve image clarity without increasing bandwidth, but will increase CPU/GPU load',
+    FSR_desc:
+      'Enabling FSR (FidelityFX Super Resolution) can enhance image clarity without increasing bandwidth, but it will increase CPU/GPU load and may cause some devices to overheat. Please use it judiciously.',
     fsr_sharpness_title: 'FSR Sharpness',
     fsr_sharpness_desc: 'Adjust FSR sharpness',
     'FSR started': 'FSR started'

@@ -328,7 +328,8 @@ export default {
     HoldButtonsSettingsDesc:
       '自動保持按鍵功能可以讓你在按住某個按鍵時，自動保持該按鍵為按下狀態，直到你再次點擊該按鍵。適用於需要持續按住某個按鍵的遊戲場景，例如競速遊戲中的加速，射擊遊戲中的開火等。',
     'Hold Buttons': '保持按鍵',
-    FSR_desc: '啟用FSR(FidelityFX Super Resolution)實現超分辨率，可以在不增加帶寬的條件下提升畫面清晰度，但會增加CPU/GPU負載',
+    FSR_desc:
+      '啟用 FSR（FidelityFX 超級解析度）可在不增加帶寬的情況下提升畫面清晰度，但會增加 CPU/GPU 負載，可能導致部分裝置過熱，請酌情使用。',
     fsr_sharpness_title: 'FSR銳化',
     fsr_sharpness_desc: '調整FSR銳化',
     'FSR started': 'FSR已啟動'
