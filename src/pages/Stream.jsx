@@ -1266,7 +1266,7 @@ function StreamScreen({navigation, route}) {
                       />
                     )}
 
-                  {connectState === CONNECTED && (
+                  {connectState === CONNECTED && !settings.fsr && (
                     <List.Item
                       title={t('Display settings')}
                       background={background}
