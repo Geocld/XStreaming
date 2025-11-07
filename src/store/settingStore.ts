@@ -53,6 +53,7 @@ export type Settings = {
   right_trigger_type: number;
   right_trigger_effects: [];
   display_options: DisplayOptions;
+  fsr_display_options: DisplayOptions;
   hold_buttons: [];
   ipv6: boolean;
   check_update: boolean;
@@ -64,7 +65,6 @@ export type Settings = {
   theme: string;
   show_menu: boolean;
   fsr: boolean;
-  fsr_sharpness: number;
   debug: boolean;
 };
 
@@ -122,11 +122,16 @@ const defaultSettings: Settings = {
     contrast: 100,
     brightness: 100,
   },
+  fsr_display_options: {
+    sharpness: 2,
+    saturation: 5,
+    contrast: 5,
+    brightness: 5,
+  },
   hold_buttons: [],
   theme: 'dark',
   show_menu: false,
   fsr: false,
-  fsr_sharpness: 2,
   debug: false,
 };
 

@@ -36,6 +36,7 @@ import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import PerfPanel from '../components/PerfPanel';
 import Display from '../components/Display';
+import FSRDisplay from '../components/FSRDisplay';
 import Audio from '../components/Audio';
 
 const log = debugFactory('StreamScreen');
@@ -91,6 +92,7 @@ function StreamScreen({navigation, route}) {
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [showDisplayModal, setShowDisplayModal] = React.useState(false);
+  const [showFSRDisplayModal, setShowFSRDisplayModal] = React.useState(false);
   const [showAudioModal, setShowAudioModal] = React.useState(false);
   const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
@@ -1126,6 +1128,15 @@ function StreamScreen({navigation, route}) {
     [settings],
   );
 
+  const handleFSRDisplayOptionsChange = React.useCallback(
+    options => {
+      postData2Webview('adjustSharpness', options.sharpness);
+      settings.fsr_display_options = options;
+      saveSettings(settings);
+    },
+    [settings],
+  );
+
   const handleAudioChange = React.useCallback(value => {
     postData2Webview('adjustVolume', value);
     setVolume(value);
@@ -1178,6 +1189,24 @@ function StreamScreen({navigation, route}) {
               <Display
                 options={settings.display_options}
                 onChange={handleDisplayOptionsChange}
+              />
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+
+      <Portal>
+        <Modal
+          visible={showFSRDisplayModal}
+          onDismiss={() => {
+            setShowFSRDisplayModal(false);
+          }}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              <FSRDisplay
+                options={settings.fsr_display_options}
+                onChange={handleFSRDisplayOptionsChange}
               />
             </Card.Content>
           </Card>
@@ -1266,12 +1295,16 @@ function StreamScreen({navigation, route}) {
                       />
                     )}
 
-                  {connectState === CONNECTED && !settings.fsr && (
+                  {connectState === CONNECTED && (
                     <List.Item
                       title={t('Display settings')}
                       background={background}
                       onPress={() => {
-                        setShowDisplayModal(true);
+                        if (settings.fsr) {
+                          setShowFSRDisplayModal(true);
+                        } else {
+                          setShowDisplayModal(true);
+                        }
                         handleCloseModal();
                       }}
                     />
