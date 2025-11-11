@@ -242,6 +242,8 @@ export default {
     Korea2: '韩国2',
     'United States1': '美国1',
     'United States2': '美国2',
+    'South India': '南印度',
+    'Central India': '中印度',
     VeryWeak: '很弱',
     Weak: '弱',
     Normal: '正常',
@@ -366,6 +368,6 @@ export default {
       '启用FSR(FidelityFX Super Resolution)实现超分辨率，可以在不增加带宽的情况下提升画面清晰度，但会增加CPU/GPU负载，可能会导致部分设备发热严重，请酌情使用。',
     fsr_sharpness_title: 'FSR锐化',
     fsr_sharpness_desc: '调整FSR锐化',
-    'FSR started': 'FSR已启动'
+    'FSR started': 'FSR已启动',
   },
 };

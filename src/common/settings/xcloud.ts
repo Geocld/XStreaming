@@ -16,6 +16,8 @@ const xcloud = [
       {value: '200.221.11.101', text: t('Brazil1')},
       {value: '169.150.198.66', text: t('Brazil2')},
       {value: '194.25.0.68', text: t('Europe')},
+      {value: '104.211.224.146', text: t('South India')},
+      {value: '104.211.96.159', text: t('Central India')},
       {value: '138.199.21.239', text: t('Japan1')},
       {value: '210.131.113.123', text: t('Japan2')},
       {value: '168.126.63.1', text: t('Korea1')},

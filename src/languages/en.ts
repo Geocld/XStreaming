@@ -108,6 +108,8 @@ export default {
     Japan: 'Japan',
     Korea: 'Korea',
     'United States': 'United States',
+    'South India': 'South India',
+    'Central India': 'Central India',
     Confirm: 'Confirm',
     Cancel: 'Cancel',
     Back: 'Back',
@@ -215,6 +217,6 @@ export default {
       'Enabling FSR (FidelityFX Super Resolution) can enhance image clarity without increasing bandwidth, but it will increase CPU/GPU load and may cause some devices to overheat. Please use it judiciously.',
     fsr_sharpness_title: 'FSR Sharpness',
     fsr_sharpness_desc: 'Adjust FSR sharpness',
-    'FSR started': 'FSR started'
+    'FSR started': 'FSR started',
   },
 };
