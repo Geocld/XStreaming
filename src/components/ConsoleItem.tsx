@@ -24,6 +24,7 @@ const ConsoleItem = (props: any) => {
         <Image
           source={require('../assets/console/series-x.png')}
           style={{width: '100%', height: width > 600 ? 150 : 130}}
+          resizeMode='contain'
         />
       );
     } else if (type === 'XboxSeriesS') {
@@ -31,6 +32,7 @@ const ConsoleItem = (props: any) => {
         <Image
           source={require('../assets/console/series-s.png')}
           style={{width: '100%', height: width > 600 ? 150 : 130}}
+          resizeMode='contain'
         />
       );
     } else {
