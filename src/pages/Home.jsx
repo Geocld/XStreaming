@@ -238,12 +238,12 @@ function HomeScreen({navigation, route}) {
           _xHomeApiRef.current.getConsoles().then(_consoles => {
             if (!_consoles.length) {
               webApi.getConsoles().then(_consolesV1 => {
-                setConsoles(_consolesV1);
-                // setLoading(false);
+                if (_consolesV1.length) {
+                  setConsoles(_consolesV1);
+                }
               });
             } else {
               setConsoles(_consoles);
-              // setLoading(false);
             }
           });
         } else if (!_isLogined.current) {

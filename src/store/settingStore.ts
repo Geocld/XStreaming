@@ -24,6 +24,8 @@ export type Settings = {
   enable_audio_control: boolean;
   preferred_game_language: string;
   force_region_ip: string;
+  signaling_home_name: string;
+  signaling_cloud_name: string;
   codec: string;
   show_performance: boolean;
   performance_style: boolean;
@@ -81,6 +83,8 @@ const defaultSettings: Settings = {
   enable_audio_control: false,
   preferred_game_language: 'en-US',
   force_region_ip: '',
+  signaling_home_name: '',
+  signaling_cloud_name: '',
   codec: '',
   show_performance: false,
   performance_style: true,

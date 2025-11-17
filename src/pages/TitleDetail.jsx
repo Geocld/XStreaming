@@ -47,16 +47,6 @@ function TitleDetail({navigation, route}) {
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
-    // if (streamingTokens.xCloudToken) {
-    //   const _xCloudApi = new XcloudApi(
-    //     streamingTokens.xCloudToken.getDefaultRegion().baseUri,
-    //     streamingTokens.xCloudToken.data.gsToken,
-    //     'cloud',
-    //   );
-    //   // _xCloudApi.getAlternateIds('9N4096HX1WWQ');
-    //   _xCloudApi.getAlternateIds(titleId);
-    // }
-
     if (isUsbMode) {
       setShowUsbWarnShowModal(true);
     } else {

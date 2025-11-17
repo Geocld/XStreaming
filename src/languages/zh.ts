@@ -106,7 +106,7 @@ export default {
     'Changing the region allows you to use XGPU services without a proxy':
       '修改地区可以免代理使用XGPU服务',
     'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
-      '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项(该选项关闭APP后将重置)',
+      '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项',
     'Prioritize using IPv6 connection': '优先使用Ipv6连接',
     'Preferred language of game': '游戏偏好语言',
     'Set language of cloud game':

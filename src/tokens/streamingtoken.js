@@ -1,4 +1,5 @@
 import Token from './base';
+import {getSettings} from '../store/settingStore';
 
 export default class StreamingToken extends Token {
   constructor(tokenData) {
@@ -43,9 +44,32 @@ export default class StreamingToken extends Token {
   }
 
   getDefaultRegion() {
-    return this.data.offeringSettings.regions.filter(
-      region => region.isDefault,
-    )[0];
+    const _settings = getSettings();
+    let isXHome = false;
+
+    this.data.offeringSettings.regions && this.data.offeringSettings.regions.forEach(region => {
+      if (region.baseUri.indexOf('xhome') > -1) {
+        isXHome = true;
+      }
+    })
+
+    const storeName = isXHome ? _settings.signaling_home_name : _settings.signaling_cloud_name;
+
+    let finalRegion = null;
+    this.data.offeringSettings.regions.forEach(region => {
+      if (region.name === storeName) {
+        finalRegion = region;
+      }
+    })
+
+    if (!finalRegion) {
+      finalRegion = this.data.offeringSettings.regions.filter(
+        region => region.isDefault,
+      )[0]
+    }
+
+    console.log(finalRegion);
+    return finalRegion;
   }
 
   getEnvironments() {

@@ -87,11 +87,26 @@ function SettingDetailScreen({navigation, route}) {
       if (name === 'signaling_home' || name === 'signaling_cloud') {
         const rs =
           name === 'signaling_home' ? regions.current : xgpuRegions.current;
+        const rsName = name === 'signaling_home' ? 'signaling_home_name' : 'signaling_cloud_name';
+        const rsValue = _settings[rsName]
+
+        let _currentVal = '';
+
         rs.forEach(region => {
-          if (region.isDefault) {
-            currentVal = region.name;
+          if (region.name === rsValue) {
+            _currentVal = region.name;
           }
         });
+        
+        if (!_currentVal) {
+          rs.forEach(region => {
+            if (region.isDefault) {
+              _currentVal = region.name;
+            }
+          });
+        }
+
+        currentVal = _currentVal;
       }
 
       setValue(currentVal);
@@ -104,11 +119,14 @@ function SettingDetailScreen({navigation, route}) {
   }, [navigation, route.params?.id]);
 
   const handleSaveSettings = () => {
-    if (settings[current] !== undefined) {
+    if (currentMetas.name === 'signaling_home' || currentMetas.name === 'signaling_cloud') {
+      settings[currentMetas.name === 'signaling_home' ? 'signaling_home_name' : 'signaling_cloud_name'] = value;
+    } else if (settings[current] !== undefined) {
       settings[current] = value;
-      setSettings(settings);
-      saveSettings(settings);
     }
+
+    setSettings(settings);
+    saveSettings(settings);
   };
 
   const handleSave = () => {
@@ -143,6 +161,7 @@ function SettingDetailScreen({navigation, route}) {
           region.isDefault = false;
         }
       });
+      settings.signaling_home_name = value;
     } else if (currentMetas.name === 'signaling_cloud') {
       xgpuRegions.current.forEach(region => {
         if (region.name === value) {
@@ -151,6 +170,8 @@ function SettingDetailScreen({navigation, route}) {
           region.isDefault = false;
         }
       });
+      console.log('value:', value)
+      settings.signaling_cloud_name = value;
     } else if (currentMetas.name === 'bind_usb_device') {
       UsbRumbleManager.setBindUsbDevice(value);
     } else if (currentMetas.name === 'gamepad_kernal') {
