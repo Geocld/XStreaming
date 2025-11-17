@@ -68,7 +68,6 @@ export default class StreamingToken extends Token {
       )[0]
     }
 
-    console.log(finalRegion);
     return finalRegion;
   }
 
