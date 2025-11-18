@@ -2,6 +2,9 @@
 
     <uses-feature android:name="android.hardware.audio.output" />
     <uses-feature android:name="android.hardware.microphone" />
+    <uses-feature
+        android:name="android.hardware.gamepad"
+        android:required="false" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -26,9 +29,16 @@
       android:icon="@mipmap/ic_launcher"
       android:logo="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher"
+      android:isGame="true"
+      android:appCategory="game"
       android:allowBackup="false"
       android:hardwareAccelerated="true"
       android:theme="@style/Theme.AppCompat.NoActionBar">
+
+      <!-- Game Mode configuration -->
+      <meta-data
+            android:name="android.game_mode_config"
+            android:resource="@xml/game_mode_config" />
 
       <service
         android:name=".input.UsbDriverService"
