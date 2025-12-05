@@ -144,6 +144,14 @@ export default class Authentication {
                   saveWebToken(webToken);
                   this._authenticationCompleted(streamingTokens, webToken);
                 });
+              })
+              .catch(e => {
+                clearStreamToken();
+                clearWebToken();
+                this._tokenStore.clear();
+                this._authenticationFailed(
+                  '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+                );
               });
           } else {
             this._xal
@@ -161,6 +169,14 @@ export default class Authentication {
                       saveWebToken(webToken);
                       this._authenticationCompleted(streamingTokens, webToken);
                     });
+                  })
+                  .catch(e => {
+                    clearStreamToken();
+                    clearWebToken();
+                    this._tokenStore.clear();
+                    this._authenticationFailed(
+                      '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+                    );
                   });
               })
               .catch(e => {
@@ -190,6 +206,14 @@ export default class Authentication {
             saveWebToken(webToken);
             this._authenticationCompleted(streamingTokens, webToken);
           });
+        })
+        .catch(e => {
+          clearStreamToken();
+          clearWebToken();
+          this._tokenStore.clear();
+          this._authenticationFailed(
+            '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+          );
         });
       } else {
         this._xal
@@ -205,6 +229,14 @@ export default class Authentication {
                   saveWebToken(webToken);
                   this._authenticationCompleted(streamingTokens, webToken);
                 });
+              })
+              .catch(e => {
+                clearStreamToken();
+                clearWebToken();
+                this._tokenStore.clear();
+                this._authenticationFailed(
+                  '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+                );
               });
           })
           .catch(e => {
