@@ -301,7 +301,7 @@ export default class XcloudApi {
                       },
                     )
                     .then(res2 => {
-                      if (res2.data.exchangeResponse) {
+                      if (res2.data && res2.data.exchangeResponse) {
                         resolve(res2.data);
                         clearInterval(checkInterval);
                       }
