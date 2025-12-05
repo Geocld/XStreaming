@@ -282,7 +282,7 @@ export default class XcloudApi {
             )
             .then(res => {
               log.info('[sendSDPOffer] res.data:', res.data);
-              if (res.data.exchangeResponse) {
+              if (res.data && res.data.exchangeResponse) {
                 resolve(res.data);
               } else {
                 const checkInterval = setInterval(() => {
