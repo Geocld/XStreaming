@@ -403,7 +403,7 @@ export default class XcloudApi {
           const iceResult = iceResponse.data;
           log.info('[checkIceResponse] res:', iceResult);
 
-          if (iceResult === '') {
+          if (iceResult === '' || iceResult === null) {
             setTimeout(() => {
               // Continue check
               this.checkIceResponse()
