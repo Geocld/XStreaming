@@ -122,6 +122,8 @@ function NativeStreamScreen({navigation, route}) {
   const isRequestExit = React.useRef(false);
   const isConnected = React.useRef(false);
 
+  const isTriggerWork = React.useRef(false);
+
   // event
   const usbGpEventListener = React.useRef(undefined);
   const sensorEventListener = React.useRef(undefined);
@@ -378,7 +380,13 @@ function NativeStreamScreen({navigation, route}) {
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
-          // console.log('onTrigger:', event);
+          // Notice: some controllers will emit onTrigger and onGamepadKeyDown at the same time
+
+          if (!isTriggerWork.current && (event.leftTrigger > 0 || event.rightTrigger > 0)) {
+            isTriggerWork.current = true
+          }
+
+          if (!isTriggerWork.current) return
 
           // Short trigger
           if (_settings.short_trigger) {

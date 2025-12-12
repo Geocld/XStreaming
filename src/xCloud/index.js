@@ -354,7 +354,7 @@ export default class XcloudApi {
             )
             .then(res => {
               log.info('[sendSChatSdp] res.data:', res.data);
-              if (res.data.exchangeResponse) {
+              if (res.data && res.data.exchangeResponse) {
                 resolve(res.data);
               } else {
                 const checkInterval = setInterval(() => {
@@ -373,7 +373,7 @@ export default class XcloudApi {
                       },
                     )
                     .then(res2 => {
-                      if (res2.data.exchangeResponse) {
+                      if (res2.data && res2.data.exchangeResponse) {
                         resolve(res2.data);
                         clearInterval(checkInterval);
                       }
@@ -403,9 +403,9 @@ export default class XcloudApi {
           const iceResult = iceResponse.data;
           log.info('[checkIceResponse] res:', iceResult);
 
-          if (iceResult === '' || iceResult === null) {
+           // If result is empty, continue check
+          if (!iceResult) {
             setTimeout(() => {
-              // Continue check
               this.checkIceResponse()
                 .then(state => {
                   resolve(state);

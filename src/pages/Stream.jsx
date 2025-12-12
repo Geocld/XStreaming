@@ -116,6 +116,7 @@ function StreamScreen({navigation, route}) {
   const triggerEventListener = React.useRef(undefined);
   const timer = React.useRef(undefined);
   const isRightstickMoving = React.useRef(false);
+  const isTriggerWork = React.useRef(false);
 
   const usbGpEventListener = React.useRef(undefined);
   const sensorEventListener = React.useRef(undefined);
@@ -387,7 +388,15 @@ function StreamScreen({navigation, route}) {
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
-          console.log('onTrigger:', event);
+          // console.log('onTrigger:', event);
+
+          // Notice: some controllers will emit onTrigger and onGamepadKeyDown at the same time
+          if (!isTriggerWork.current && (event.leftTrigger > 0 || event.rightTrigger > 0)) {
+            isTriggerWork.current = true
+          }
+
+          if (!isTriggerWork.current) return
+          
           // Short trigger
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
