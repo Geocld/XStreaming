@@ -12,22 +12,45 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      # 1. 检出代码
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ios
 
+      # 2. Node.js + Corepack
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # 启用 Corepack，否则 Yarn 会报错
       - name: Enable Corepack
         run: corepack enable
 
+      # 3. Yarn 缓存
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.yarn/cache
+            node_modules
+          key: yarn-cache-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-cache-
+
       - name: Install Yarn dependencies
         run: yarn --frozen-lockfile
+
+      # 4. CocoaPods 缓存
+      - name: Cache CocoaPods
+        uses: actions/cache@v3
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+          key: cocoapods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            cocoapods-cache-
 
       - name: Install CocoaPods
         run: |
@@ -35,6 +58,7 @@ jobs:
           cd ios
           pod install --repo-update
 
+      # 5. 探测 Xcode workspace/project 与 scheme
       - name: Detect Xcode workspace/project and scheme
         id: detect
         working-directory: ios
@@ -53,6 +77,7 @@ jobs:
           echo "project=$PROJECT" >> $GITHUB_OUTPUT
           echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
 
+      # 6. Archive (禁用签名)
       - name: Archive (CODE_SIGNING_ALLOWED=NO)
         working-directory: ios
         run: |
@@ -78,6 +103,7 @@ jobs:
               CODE_SIGNING_ALLOWED=NO
           fi
 
+      # 7. 打包未签名 IPA
       - name: Create unsigned IPA
         working-directory: ios
         run: |
@@ -102,6 +128,7 @@ jobs:
           rm -rf "$TMPDIR"
           echo "Unsigned IPA created: $OUT_DIR/$IPA_NAME"
 
+      # 8. 上传 IPA
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
