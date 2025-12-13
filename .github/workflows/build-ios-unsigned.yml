@@ -1,0 +1,181 @@
+name: Build XStreaming iOS (Unsigned IPA)
+
+# 在 ios 分支 push 或手动触发
+on:
+  push:
+    branches: ["ios"]
+  workflow_dispatch:
+
+jobs:
+  build-unsigned-ipa:
+    name: Build unsigned IPA
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      # 1) 检出 ios 分支代码
+      - name: Checkout repo (ios branch)
+        uses: actions/checkout@v4
+        with:
+          ref: ios
+
+      # 2) Node / Yarn（用于 React Native bundle 阶段）
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      # 3) 安装 Ruby bundler（若项目使用 Gemfile 安装 cocoapods）
+      - name: Install bundler (Ruby)
+        run: |
+          gem install bundler --no-document || true
+          bundle config set --local path 'vendor/bundle' || true
+          bundle install --jobs 4 --retry 3 || true
+
+      # 4) 安装 JS 依赖（根目录）
+      - name: Install JS dependencies
+        run: yarn --frozen-lockfile
+
+      # 5) 安装 CocoaPods（使用 bundle exec pod install，如果没有 Gemfile 会回退到全局 pod install）
+      - name: Install CocoaPods
+        working-directory: ios
+        run: |
+          if [ -f "Gemfile" ]; then
+            echo "Using bundle exec pod install (Gemfile present)"
+            bundle exec pod install --repo-update
+          else
+            echo "No Gemfile: using pod install"
+            gem install cocoapods --no-document || true
+            pod install --repo-update
+          fi
+
+      # 6) 探测 workspace/project 与 scheme，并打印（便于调试）
+      - name: Detect Xcode workspace/project and scheme
+        id: detect
+        working-directory: ios
+        run: |
+          set -e
+          # 优先 workspace（CocoaPods 常用）
+          WORKSPACE=$(ls *.xcworkspace 2>/dev/null | head -n1 || true)
+          PROJECT=$(ls *.xcodeproj 2>/dev/null | head -n1 || true)
+          echo "Detected workspace: $WORKSPACE"
+          echo "Detected project: $PROJECT"
+
+          if [ -n "$WORKSPACE" ]; then
+            # 获取第一个 scheme（解析 xcodebuild -list 输出）
+            SCHEMES=$(xcodebuild -workspace "$WORKSPACE" -list 2>/dev/null | sed -n '/Schemes:/,/^$/p' || true)
+          elif [ -n "$PROJECT" ]; then
+            SCHEMES=$(xcodebuild -project "$PROJECT" -list 2>/dev/null | sed -n '/Schemes:/,/^$/p' || true)
+          else
+            echo "No .xcworkspace or .xcodeproj found in ios/!"
+            exit 1
+          fi
+
+          # 从 Schemes: 段落取第一行非空（trim 空白）
+          SCHEME=$(echo "$SCHEMES" | tail -n +2 | sed -n '1p' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+          if [ -z "$SCHEME" ]; then
+            echo "Could not auto-detect scheme. Full xcodebuild -list output:"
+            if [ -n "$WORKSPACE" ]; then
+              xcodebuild -workspace "$WORKSPACE" -list || true
+            else
+              xcodebuild -project "$PROJECT" -list || true
+            fi
+            exit 1
+          fi
+
+          echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
+          echo "workspace=$WORKSPACE" >> $GITHUB_OUTPUT
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+
+      # 7) Archive (禁用签名)
+      - name: Archive (CODE_SIGNING_ALLOWED=NO)
+        working-directory: ios
+        env:
+          # 防止 xcodebuild 去签名
+          # 注意：有时还需要设置 CODE_SIGNING_ALLOWED=NO 才能完全跳过签名
+          # KEEP build outputs under $RUNNER_WORKSPACE/build
+          BUILD_DIR: ${{ github.workspace }}/build
+        run: |
+          set -e
+          SCHEME="${{ steps.detect.outputs.scheme }}"
+          WORKSPACE="${{ steps.detect.outputs.workspace }}"
+          PROJECT="${{ steps.detect.outputs.project }}"
+          mkdir -p "$BUILD_DIR"
+
+          ARCHIVE_PATH="$BUILD_DIR/${SCHEME}.xcarchive"
+          echo "Archive path: $ARCHIVE_PATH"
+
+          if [ -n "$WORKSPACE" ]; then
+            xcodebuild -workspace "$WORKSPACE" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -sdk iphoneos \
+              -archivePath "$ARCHIVE_PATH" \
+              clean archive \
+              CODE_SIGNING_ALLOWED=NO | tee xcodebuild-archive.log
+          else
+            xcodebuild -project "$PROJECT" \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -sdk iphoneos \
+              -archivePath "$ARCHIVE_PATH" \
+              clean archive \
+              CODE_SIGNING_ALLOWED=NO | tee xcodebuild-archive.log
+          fi
+
+          # 确认 .app 存在
+          APP_PATH=$(find "$ARCHIVE_PATH" -name "*.app" -type d -maxdepth 6 | head -n1 || true)
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app found in archive ($ARCHIVE_PATH). Printing archive tree:"
+            ls -R "$ARCHIVE_PATH" || true
+            exit 1
+          fi
+          echo "Found app: $APP_PATH"
+          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+
+      # 8) 手工打包为未签名 IPA：把 .app 放入 Payload 并 zip
+      - name: Create unsigned IPA
+        working-directory: ios
+        run: |
+          set -e
+          BUILD_DIR="${{ github.workspace }}/build"
+          SCHEME="${{ steps.detect.outputs.scheme }}"
+          ARCHIVE_PATH="$BUILD_DIR/${SCHEME}.xcarchive"
+
+          APP_PATH=$(find "$ARCHIVE_PATH" -name "*.app" -type d -maxdepth 6 | head -n1)
+          if [ -z "$APP_PATH" ]; then
+            echo "App not found for packaging"
+            exit 1
+          fi
+
+          OUT_DIR="$BUILD_DIR/unsigned"
+          mkdir -p "$OUT_DIR"
+          TMPDIR=$(mktemp -d)
+          PAYLOAD="$TMPDIR/Payload"
+          mkdir -p "$PAYLOAD"
+          cp -R "$APP_PATH" "$PAYLOAD/"
+
+          IPA_NAME="${SCHEME}-unsigned-$(date +%Y%m%d%H%M%S).ipa"
+          pushd "$TMPDIR" >/dev/null
+          zip -r "../$OUT_DIR/$IPA_NAME" Payload > /dev/null
+          popd >/dev/null
+
+          # 清理临时目录
+          rm -rf "$TMPDIR"
+
+          echo "Unsigned IPA created: $OUT_DIR/$IPA_NAME"
+          ls -lh "$OUT_DIR/$IPA_NAME"
+          echo "ipa_path=$OUT_DIR/$IPA_NAME" >> $GITHUB_OUTPUT
+
+      # 9) 上传未签名 IPA 作为 artifact
+      - name: Upload unsigned IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: XStreaming-iOS-Unsigned
+          path: ${{ steps.detect.outputs.project && format('{0}', steps.detect.outputs.project) || '' }} # no-op for nicer logs
+          # 直接上传 build/unsigned 目录下任意 ipa
+          # (upload-artifact 支持通配符)
+          path: ${{ github.workspace }}/build/unsigned/*.ipa
