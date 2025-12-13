@@ -12,33 +12,29 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      # 1) 检出 ios 分支代码
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ios
 
-      # 2) 安装 Node.js 和 Yarn
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install Yarn
-        run: npm install -g yarn
+      # 启用 Corepack，否则 Yarn 会报错
+      - name: Enable Corepack
+        run: corepack enable
 
-      # 3) 安装 JS 依赖
-      - name: Install JS dependencies
+      - name: Install Yarn dependencies
         run: yarn --frozen-lockfile
 
-      # 4) 安装 CocoaPods
       - name: Install CocoaPods
         run: |
           sudo gem install cocoapods --no-document
           cd ios
           pod install --repo-update
 
-      # 5) 探测 workspace/project 和 scheme
       - name: Detect Xcode workspace/project and scheme
         id: detect
         working-directory: ios
@@ -57,14 +53,12 @@ jobs:
           echo "project=$PROJECT" >> $GITHUB_OUTPUT
           echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
 
-      # 6) Archive (禁用签名)
       - name: Archive (CODE_SIGNING_ALLOWED=NO)
         working-directory: ios
         run: |
           set -e
           BUILD_DIR=$PWD/build
           mkdir -p "$BUILD_DIR"
-
           ARCHIVE_PATH="$BUILD_DIR/${{ steps.detect.outputs.scheme }}.xcarchive"
           if [ -n "${{ steps.detect.outputs.workspace }}" ]; then
             xcodebuild -workspace "${{ steps.detect.outputs.workspace }}" \
@@ -84,7 +78,6 @@ jobs:
               CODE_SIGNING_ALLOWED=NO
           fi
 
-      # 7) 手工打包未签名 IPA
       - name: Create unsigned IPA
         working-directory: ios
         run: |
@@ -109,7 +102,6 @@ jobs:
           rm -rf "$TMPDIR"
           echo "Unsigned IPA created: $OUT_DIR/$IPA_NAME"
 
-      # 8) 上传 IPA 作为 artifact
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
