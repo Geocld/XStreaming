@@ -21,6 +21,7 @@ const {UsbRumbleManager, FullScreenManager} = NativeModules;
 const log = debugFactory('TitleDetailScreen');
 
 const warnTitles = ['MINECRAFTDUNGEONS', 'MICROSOFTFLIGHTSIMULATOR'];
+const webviewTitles = ['FORTNITE'];
 
 function TitleDetail({navigation, route}) {
   const {t} = useTranslation();
@@ -55,6 +56,7 @@ function TitleDetail({navigation, route}) {
   };
 
   const handleNavigateStream = async () => {
+    const titleId = titleItem.titleId || titleItem.XCloudTitleId;
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
     const usbController = await UsbRumbleManager.getUsbController();
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
@@ -81,14 +83,15 @@ function TitleDetail({navigation, route}) {
       routeName = 'NativeStream';
     }
 
-    if (warnTitles.indexOf(titleItem.titleId) > -1) {
+    // Below titles use webview stream
+    if (warnTitles.indexOf(titleId) > -1 || webviewTitles.indexOf(titleId) > -1) {
       routeName = 'Stream';
     }
 
     navigation.navigate({
       name: routeName,
       params: {
-        sessionId: titleItem.titleId || titleItem.XCloudTitleId,
+        sessionId: titleId,
         settings,
         streamType: 'cloud',
         isUsbMode,
