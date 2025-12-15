@@ -77,10 +77,11 @@ function HomeScreen({navigation, route}) {
 
     const _settings = getSettings();
     const webviewVersion = FullScreenManager.getWebViewVersion();
+    const deviceInfos = FullScreenManager.getDeviceInfos();
     if (webviewVersion) {
       const verArr = webviewVersion.split('.');
       const mainVer = verArr[0];
-      if (mainVer < 91) {
+      if (deviceInfos.androidVer < 12 && mainVer < 91) {
         _settings.render_engine = 'native';
         saveSettings(_settings);
       }
@@ -370,13 +371,15 @@ function HomeScreen({navigation, route}) {
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
     const webviewVersion = FullScreenManager.getWebViewVersion();
+    const deviceInfos = FullScreenManager.getDeviceInfos();
+
     let isLagecy = false;
     if (webviewVersion) {
       const verArr = webviewVersion.split('.');
       const mainVer = verArr[0];
 
       // webview version is below 91
-      if (mainVer < 91) {
+      if (deviceInfos.androidVer < 12 && mainVer < 91) {
         isLagecy = true;
       }
     }

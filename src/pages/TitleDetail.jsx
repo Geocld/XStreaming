@@ -62,13 +62,14 @@ function TitleDetail({navigation, route}) {
     const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
     const webviewVersion = FullScreenManager.getWebViewVersion();
+    const deviceInfos = FullScreenManager.getDeviceInfos();
     let isLagecy = false;
     if (webviewVersion) {
       const verArr = webviewVersion.split('.');
       const mainVer = verArr[0];
 
       // webview version is below 91
-      if (mainVer < 91) {
+      if (deviceInfos.androidVer < 12 && mainVer < 91) {
         isLagecy = true;
       }
     }
@@ -87,6 +88,8 @@ function TitleDetail({navigation, route}) {
     if (warnTitles.indexOf(titleId) > -1 || webviewTitles.indexOf(titleId) > -1) {
       routeName = 'Stream';
     }
+
+    return
 
     navigation.navigate({
       name: routeName,
