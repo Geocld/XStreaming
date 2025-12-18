@@ -21,7 +21,7 @@ const {UsbRumbleManager, FullScreenManager} = NativeModules;
 const log = debugFactory('TitleDetailScreen');
 
 const warnTitles = ['MINECRAFTDUNGEONS', 'MICROSOFTFLIGHTSIMULATOR'];
-const webviewTitles = ['FORTNITE'];
+const webviewTitles = [];
 
 function TitleDetail({navigation, route}) {
   const {t} = useTranslation();
@@ -88,8 +88,6 @@ function TitleDetail({navigation, route}) {
     if (warnTitles.indexOf(titleId) > -1 || webviewTitles.indexOf(titleId) > -1) {
       routeName = 'Stream';
     }
-
-    return
 
     navigation.navigate({
       name: routeName,

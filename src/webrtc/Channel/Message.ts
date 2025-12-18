@@ -57,52 +57,52 @@ export default class MessageChannel extends BaseChannel {
       );
       this.send(uiConfig);
 
-      // const clientConfig = JSON.stringify(
-      //   this.generateMessage(
-      //     '/streaming/properties/clientappinstallidchanged',
-      //     {clientAppInstallId: '4b8f472d-2c82-40e8-895d-bcd6a6ec7e9b'},
-      //   ),
-      // );
-      // this.send(clientConfig);
+      const clientConfig = JSON.stringify(
+        this.generateMessage(
+          '/streaming/properties/clientappinstallidchanged',
+          {clientAppInstallId: '4b8f472d-2c82-40e8-895d-bcd6a6ec7e9b'},
+        ),
+      );
+      this.send(clientConfig);
 
-      // const orientationConfig = JSON.stringify(
-      //   this.generateMessage('/streaming/characteristics/orientationchanged', {
-      //     orientation: 0,
-      //   }),
-      // );
-      // this.send(orientationConfig);
+      const orientationConfig = JSON.stringify(
+        this.generateMessage('/streaming/characteristics/orientationchanged', {
+          orientation: 0,
+        }),
+      );
+      this.send(orientationConfig);
 
-      // const touchConfig = JSON.stringify(
-      //   this.generateMessage(
-      //     '/streaming/characteristics/touchinputenabledchanged',
-      //     {touchInputEnabled: false},
-      //   ),
-      // );
-      // this.send(touchConfig);
+      const touchConfig = JSON.stringify(
+        this.generateMessage(
+          '/streaming/characteristics/touchinputenabledchanged',
+          {touchInputEnabled: false},
+        ),
+      );
+      this.send(touchConfig);
 
-      // const deviceConfig = JSON.stringify(
-      //   this.generateMessage(
-      //     '/streaming/characteristics/clientdevicecapabilities',
-      //     {},
-      //   ),
-      // );
-      // this.send(deviceConfig);
+      const deviceConfig = JSON.stringify(
+        this.generateMessage(
+          '/streaming/characteristics/clientdevicecapabilities',
+          {},
+        ),
+      );
+      this.send(deviceConfig);
 
-      // const dimensionsConfig = JSON.stringify(
-      //   this.generateMessage('/streaming/characteristics/dimensionschanged', {
-      //     horizontal: 1920,
-      //     vertical: 1080,
-      //     preferredWidth: 1920,
-      //     preferredHeight: 1080,
-      //     safeAreaLeft: 0,
-      //     safeAreaTop: 0,
-      //     safeAreaRight: 1920,
-      //     safeAreaBottom: 1080,
-      //     supportsCustomResolution: true,
-      //   }),
-      // );
-      // console.log('send dimensionsConfig:', dimensionsConfig);
-      // this.send(dimensionsConfig);
+      const dimensionsConfig = JSON.stringify(
+        this.generateMessage('/streaming/characteristics/dimensionschanged', {
+          horizontal: 1920,
+          vertical: 1080,
+          preferredWidth: 1920,
+          preferredHeight: 1080,
+          safeAreaLeft: 0,
+          safeAreaTop: 0,
+          safeAreaRight: 1920,
+          safeAreaBottom: 1080,
+          supportsCustomResolution: true,
+        }),
+      );
+      console.log('send dimensionsConfig:', dimensionsConfig);
+      this.send(dimensionsConfig);
     }
   }
 
