@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   NativeModules,
   ToastAndroid,
+  Linking,
 } from 'react-native';
 import {Button, Text, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from '../components/Spinner';
@@ -38,6 +39,8 @@ const log = debugFactory('HomeScreen');
 
 const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
+const HARMOBY_URL = 'https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh'
+
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
   const [loading, setLoading] = React.useState(false);
@@ -47,6 +50,7 @@ function HomeScreen({navigation, route}) {
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
+  const [showHarmonyModal, setShowHarmonyModal] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
   const [showLogin, setShowLogin] = React.useState(false);
 
@@ -85,6 +89,15 @@ function HomeScreen({navigation, route}) {
         _settings.render_engine = 'native';
         saveSettings(_settings);
       }
+    }
+
+    // HarmonyOS modal
+    if (deviceInfos && 
+      deviceInfos.factor.indexOf('HUAWEI') > -1 &&  
+      _settings.locale === 'zh' &&
+      _settings.show_harmony_modal
+    ) {
+      setShowHarmonyModal(true);
     }
 
     const updateLayout = () => {
@@ -447,6 +460,47 @@ function HomeScreen({navigation, route}) {
     );
   };
 
+  const renderHarmonyModal = () => {
+    if (!showHarmonyModal) {
+      return null;
+    }
+    return (
+      <Portal>
+        <Modal
+          visible={true}
+          onDismiss={() => {
+            setShowHarmonyModal(false);
+          }}
+          contentContainerStyle={{marginLeft: '4%', marginRight: '4%'}}>
+          <Card>
+            <Card.Content>
+              <Text>XStreaming鸿蒙版已正式发布App Gallery，如您的设备系统为HarmonyOS 5以上，您可以安装原生版本以获得更好的串流体验(点击立即下载或应用商店搜索"爱斯追鸣"进行安装)。</Text>
+
+              <Button
+                mode="text"
+                onPress={() => {
+                  let _settings = getSettings();
+                  _settings.show_harmony_modal = false;
+                  saveSettings(_settings);
+                  setShowHarmonyModal(false);
+                }}>
+                不再提示
+              </Button>
+              <Button
+                mode="elevated"
+                onPress={() => {
+                  Linking.openURL(HARMOBY_URL);
+                  setShowHarmonyModal(false);
+                }}>
+                去安装
+              </Button>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+    );
+  };
+
   const handleLogin = () => {
     navigation.navigate('Login', {
       authUrl: _redirect.current.sisuAuth.MsaOauthRedirect,
@@ -574,6 +628,8 @@ function HomeScreen({navigation, route}) {
       <Spinner loading={loading} text={loadingText} />
 
       {renderUsbWarningModal()}
+
+      {renderHarmonyModal()}
 
       {renderContent()}
     </>

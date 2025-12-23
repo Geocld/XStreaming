@@ -32,6 +32,7 @@ export type Settings = {
   vibration: boolean;
   vibration_mode: string;
   bind_usb_device: boolean;
+  show_harmony_modal: boolean;
   rumble_intensity: number;
   gamepad_kernal: string;
   dead_zone: number;
@@ -91,6 +92,7 @@ const defaultSettings: Settings = {
   vibration: true,
   vibration_mode: 'Native',
   bind_usb_device: false,
+  show_harmony_modal: true,
   rumble_intensity: 3,
   gamepad_kernal: 'Native',
   dead_zone: 0.1,
