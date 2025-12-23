@@ -20,6 +20,20 @@ export default class ControlChannel extends BaseChannel {
     this._client._inputDriver.start();
 
     this.sendGamepadAdded(0);
+
+    this._keyframeInterval = setInterval(() => {
+      this.requestKeyframeRequest(true);
+    }, 5 * 1000);
+  }
+
+  requestKeyframeRequest(ifrRequested = false) {
+    console.log('Channel/Control.ts - requestKeyframeRequest');
+    const keyframeRequest = JSON.stringify({
+      message: 'videoKeyframeRequested',
+      ifrRequested: ifrRequested,
+    })
+
+    this.send(keyframeRequest)
   }
 
   sendGamepadAdded(gamepadIndex: number) {
@@ -52,5 +66,6 @@ export default class ControlChannel extends BaseChannel {
 
   onClose(event: any) {
     super.onClose(event);
+    this._keyframeInterval && clearInterval(this._keyframeInterval)
   }
 }

@@ -11,10 +11,13 @@ export default class BaseChannel {
     state: [],
   };
 
+  _keyframeInterval: any
+
   constructor(channelName: string, client: any) {
     this._channelName = channelName;
     this._client = client;
     this._state = 'new';
+    this._keyframeInterval = null;
   }
 
   // Events
