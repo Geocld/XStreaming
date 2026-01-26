@@ -7,13 +7,14 @@ import {
   Modal,
   Card,
   HelperText,
+  FAB,
 } from 'react-native-paper';
 import Spinner from '../components/Spinner';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {getSettings} from '../store/settingStore';
+import {getXcloudData, saveXcloudData} from '../store/xcloudStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
-import XcloudApi from '../xCloud';
 import games from '../mock/games.json';
 
 const {UsbRumbleManager, FullScreenManager} = NativeModules;
@@ -25,8 +26,10 @@ const webviewTitles = [];
 
 function TitleDetail({navigation, route}) {
   const {t} = useTranslation();
+  const dispatch = useDispatch();
   const [titleItem, setTitleItem] = React.useState(null);
   const [settings, setSettings] = React.useState({});
+  const [starTitles, setStarTitles] = React.useState([]);
   const streamingTokens = useSelector(state => state.streamingTokens);
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
 
@@ -37,6 +40,13 @@ function TitleDetail({navigation, route}) {
     }
     const _settings = getSettings();
     setSettings(_settings);
+
+    const cacheData = getXcloudData();
+
+    if (cacheData) {
+      setStarTitles(cacheData.starTitles || []);
+    }
+
     navigation.setOptions({
       title: route.params?.titleItem.ProductTitle || '',
     });
@@ -143,16 +153,40 @@ function TitleDetail({navigation, route}) {
     );
   };
 
+  const handleToggleStar = () => {
+    if (!titleItem) {
+      return;
+    }
+    const cacheData = getXcloudData();
+
+    const newStarTitles = starTitles.includes(titleItem.XCloudTitleId) 
+      ? starTitles.filter(id => id !== titleItem.XCloudTitleId)
+      : [...starTitles, titleItem.XCloudTitleId];
+    setStarTitles(newStarTitles);
+
+    dispatch({
+      type: 'SET_STARS',
+      payload: newStarTitles,
+    });
+    
+    if (cacheData) {
+      cacheData.starTitles = newStarTitles;
+      saveXcloudData(cacheData);
+    }
+  }
+
   let isByorg = false;
   if (
     titleItem &&
-    !titleItem.XCloudTitleId &&
     titleItem.details &&
-    titleItem.details.programs
+    !titleItem.details.hasEntitlement
   ) {
-    if (titleItem.details.programs.indexOf('BYOG') > -1) {
-      isByorg = true;
-    }
+    isByorg = true;
+  }
+
+  let isStar = false;
+  if (titleItem && (starTitles.includes(titleItem.XCloudTitleId) || starTitles.includes(titleItem.titleId))) {
+    isStar = true;
   }
 
   let description = '';
@@ -187,6 +221,12 @@ function TitleDetail({navigation, route}) {
                 {titleItem.ProductTitle}
               </Text>
               <Text variant="titleMedium">{titleItem.PublisherName}</Text>
+
+              <FAB
+                icon={isStar ? 'cards-heart' : 'cards-heart-outline'}
+                style={styles.fab}
+                onPress={handleToggleStar}
+              />
             </View>
 
             {isByorg && (
@@ -287,6 +327,12 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    top: -80,
   },
 });
 

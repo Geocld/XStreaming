@@ -7,6 +7,7 @@ const initialState = {
   authentication: null,
   redirect: {},
   profile: {},
+  stars: [],
 };
 
 const reducer = (state = initialState, action: any) => {
@@ -23,6 +24,8 @@ const reducer = (state = initialState, action: any) => {
       return {...state, profile: action.payload};
     case 'SET_LOGIN':
       return {...state, isLogined: action.payload};
+    case 'SET_STARS':
+      return {...state, stars: action.payload};
     default:
       return state;
   }

@@ -49,6 +49,7 @@ export default {
     Recently: '最近遊玩',
     Newest: '新入庫',
     Own: '自有庫',
+    Stars: '收藏',
     All: '全部',
     Search: '搜索',
     Unlocked: '已解鎖',

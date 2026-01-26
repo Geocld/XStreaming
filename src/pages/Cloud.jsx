@@ -16,7 +16,7 @@ import {
   Card,
 } from 'react-native-paper';
 import Spinner from '../components/Spinner';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import TitleItem from '../components/TitleItem';
 import XcloudApi from '../xCloud';
 import Empty from '../components/Empty';
@@ -33,7 +33,10 @@ const log = debugFactory('CloudScreen');
 
 function CloudScreen({navigation, route}) {
   const {t, i18n} = useTranslation();
+  const dispatch = useDispatch();
   const streamingTokens = useSelector(state => state.streamingTokens);
+  const starTitles = useSelector(state => state.stars || []);
+  console.log('starTitles:', starTitles)
 
   const currentLanguage = i18n.language;
 
@@ -51,7 +54,6 @@ function CloudScreen({navigation, route}) {
   const [newTitles, setNewTitles] = React.useState([]);
   const [titlesMap, setTitlesMap] = React.useState({});
   const [recentTitles, setRecentTitles] = React.useState([]);
-  const [orgTitles, setOrgTitles] = React.useState([]);
   const [keyword, setKeyword] = React.useState('');
   const flatListRef = React.useRef(null);
   const isFetchGame = React.useRef(false);
@@ -66,6 +68,7 @@ function CloudScreen({navigation, route}) {
     if (!streamingTokens.xCloudToken) {
       setIsLimited(true);
     }
+
     const fetchGames = (silent = false) => {
       if (silent) {
         log.info('Fetch games silent');
@@ -80,34 +83,17 @@ function CloudScreen({navigation, route}) {
         !silent && setLoading(true);
         _xCloudApi.getTitles().then(res => {
           // log.info('_xCloudApi.getTitles res: ', titles);
-          if (res.results) {
+          if (res.results && res.results.length > 0) {
             _xCloudApi.getGamePassProducts(res.results).then(_titles => {
               setTitles(_titles);
 
               const _titleMap = {};
-              const _orgTitles = [];
-
-              const _orgMap = {};
 
               _titles.forEach(item => {
                 _titleMap[item.productId] = item;
-
-                // Get org games
-                if (
-                  !item.XCloudTitleId &&
-                  item.details &&
-                  item.details.programs &&
-                  item.details.programs.indexOf('BYOG') > -1
-                ) {
-                  if (!_orgMap[item.ProductTitle]) {
-                    _orgTitles.push(item);
-                    _orgMap[item.ProductTitle] = true;
-                  }
-                }
               });
 
               setTitlesMap(_titleMap);
-              setOrgTitles(_orgTitles);
 
               // Get new games
               _xCloudApi.getNewTitles().then(newTitleRes => {
@@ -144,11 +130,12 @@ function CloudScreen({navigation, route}) {
                   isFetchGame.current = true;
 
                   // update cache
+                  const cacheData = getXcloudData();
                   saveXcloudData({
+                    ...cacheData,
                     titles: _titles,
                     titleMap: _titleMap,
                     newTitles: _newTitles,
-                    orgTitles: _orgTitles,
                     recentTitles: _recentTitles,
                   });
                 });
@@ -158,6 +145,7 @@ function CloudScreen({navigation, route}) {
         });
       }
     };
+
     if (!isFetchGame.current) {
       // Get xcloud data from cache
       const cacheData = getXcloudData();
@@ -167,7 +155,7 @@ function CloudScreen({navigation, route}) {
           titles: _titles,
           titleMap: _titleMap,
           newTitles: _newTitles,
-          orgTitles: _orgTitles,
+          starTitles: _starTitles,
           recentTitles: _recentTitles,
         } = cacheData;
 
@@ -176,8 +164,12 @@ function CloudScreen({navigation, route}) {
         setTitles(_titles);
         setTitlesMap(_titleMap);
         setNewTitles(_newTitles);
-        setOrgTitles(_orgTitles);
         setRecentTitles(_recentTitles);
+
+        dispatch({
+          type: 'SET_STARS',
+          payload: _starTitles,
+        });
 
         // Update silent
         fetchGames(true);
@@ -290,8 +282,8 @@ function CloudScreen({navigation, route}) {
 
   /**
    * 0 - recent
-   * 1 - new
-   * 2 - own
+   * 1 - star
+   * 2 - newest
    * 3 - all
    */
   switch (current) {
@@ -299,10 +291,17 @@ function CloudScreen({navigation, route}) {
       currentTitles.current = recentTitles;
       break;
     case 1:
-      currentTitles.current = newTitles;
+      const _starTitles = [];
+      titles.forEach(item => {
+        // Get star games
+        if (starTitles.includes(item.XCloudTitleId) || starTitles.includes(item.titleId)) {
+          _starTitles.push(item);
+        }
+      });
+      currentTitles.current = _starTitles;
       break;
     case 2:
-      currentTitles.current = orgTitles;
+      currentTitles.current = newTitles;
       break;
     case 3:
       currentTitles.current = titles;
@@ -348,11 +347,11 @@ function CloudScreen({navigation, route}) {
                       },
                       {
                         value: 1,
-                        label: t('Newest'),
+                        label: t('Stars'),
                       },
                       {
                         value: 2,
-                        label: t('Own'),
+                        label: t('Newest'),
                       },
                       {value: 3, label: t('All')},
                     ]}

@@ -9,13 +9,14 @@ const STORE_KEY = 'user.xcloud';
 //   titles: [],
 //   titleMap: {},
 //   newTitles: [],
-//   orgTitles: [],
 //   recentTitles: [],
+//   starTitles: [],
 //   cacheTime: 1755052925902
 // };
 
 export const saveXcloudData = (data: any) => {
   log.info('saveXcloudData');
+  data = Object.assign({}, data);
   data.cacheTime = new Date().getTime();
   try {
     storage.set(STORE_KEY, JSON.stringify(data));
@@ -38,7 +39,8 @@ export const getXcloudData = (): any => {
 };
 
 export const clearXcloudData = () => {
-  storage.set(STORE_KEY, JSON.stringify({}));
+  const starTitles = getXcloudData()?.starTitles || [];
+  storage.set(STORE_KEY, JSON.stringify({ starTitles }));
 };
 
 export const isxCloudDataValid = (data: any) => {
