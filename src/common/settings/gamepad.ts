@@ -96,7 +96,7 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
   {
     name: 'dead_zone',
     type: 'slider',
-    min: 0.1,
+    min: 0,
     max: 0.9,
     step: 0.01,
     title: t('Joystick dead zone'),
