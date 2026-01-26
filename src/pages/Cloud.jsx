@@ -36,7 +36,6 @@ function CloudScreen({navigation, route}) {
   const dispatch = useDispatch();
   const streamingTokens = useSelector(state => state.streamingTokens);
   const starTitles = useSelector(state => state.stars || []);
-  console.log('starTitles:', starTitles)
 
   const currentLanguage = i18n.language;
 
