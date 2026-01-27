@@ -194,7 +194,12 @@ function CloudScreen({navigation, route}) {
     return () => {
       subscription?.remove();
     };
-  }, [route.params?.keyword, streamingTokens.xCloudToken, navigation]);
+  }, [
+    route.params?.keyword,
+    streamingTokens.xCloudToken,
+    navigation,
+    dispatch,
+  ]);
 
   const handleViewDetail = titleItem => {
     navigation.navigate('TitleDetail', {titleItem});
@@ -293,7 +298,10 @@ function CloudScreen({navigation, route}) {
       const _starTitles = [];
       titles.forEach(item => {
         // Get star games
-        if (starTitles.includes(item.XCloudTitleId) || starTitles.includes(item.titleId)) {
+        if (
+          starTitles.includes(item.XCloudTitleId) ||
+          starTitles.includes(item.titleId)
+        ) {
           _starTitles.push(item);
         }
       });

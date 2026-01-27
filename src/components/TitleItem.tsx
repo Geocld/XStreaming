@@ -27,6 +27,9 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
     if (!titleItem) {
       return null;
     }
+    if (!titleItem.Image_Tile && !titleItem.Image_Poster) {
+      return null;
+    }
     const url = titleItem.Image_Tile
       ? titleItem.Image_Tile.URL
       : titleItem.Image_Poster.URL;

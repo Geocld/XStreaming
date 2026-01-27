@@ -31,9 +31,9 @@ export default class ControlChannel extends BaseChannel {
     const keyframeRequest = JSON.stringify({
       message: 'videoKeyframeRequested',
       ifrRequested: ifrRequested,
-    })
+    });
 
-    this.send(keyframeRequest)
+    this.send(keyframeRequest);
   }
 
   sendGamepadAdded(gamepadIndex: number) {
@@ -66,6 +66,6 @@ export default class ControlChannel extends BaseChannel {
 
   onClose(event: any) {
     super.onClose(event);
-    this._keyframeInterval && clearInterval(this._keyframeInterval)
+    this._keyframeInterval && clearInterval(this._keyframeInterval);
   }
 }

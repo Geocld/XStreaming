@@ -95,7 +95,10 @@ function TitleDetail({navigation, route}) {
     }
 
     // Below titles use webview stream
-    if (warnTitles.indexOf(titleId) > -1 || webviewTitles.indexOf(titleId) > -1) {
+    if (
+      warnTitles.indexOf(titleId) > -1 ||
+      webviewTitles.indexOf(titleId) > -1
+    ) {
       routeName = 'Stream';
     }
 
@@ -159,7 +162,7 @@ function TitleDetail({navigation, route}) {
     }
     const cacheData = getXcloudData();
 
-    const newStarTitles = starTitles.includes(titleItem.XCloudTitleId) 
+    const newStarTitles = starTitles.includes(titleItem.XCloudTitleId)
       ? starTitles.filter(id => id !== titleItem.XCloudTitleId)
       : [...starTitles, titleItem.XCloudTitleId];
     setStarTitles(newStarTitles);
@@ -168,24 +171,24 @@ function TitleDetail({navigation, route}) {
       type: 'SET_STARS',
       payload: newStarTitles,
     });
-    
+
     if (cacheData) {
       cacheData.starTitles = newStarTitles;
       saveXcloudData(cacheData);
     }
-  }
+  };
 
   let isByorg = false;
-  if (
-    titleItem &&
-    titleItem.details &&
-    !titleItem.details.hasEntitlement
-  ) {
+  if (titleItem && titleItem.details && !titleItem.details.hasEntitlement) {
     isByorg = true;
   }
 
   let isStar = false;
-  if (titleItem && (starTitles.includes(titleItem.XCloudTitleId) || starTitles.includes(titleItem.titleId))) {
+  if (
+    titleItem &&
+    (starTitles.includes(titleItem.XCloudTitleId) ||
+      starTitles.includes(titleItem.titleId))
+  ) {
     isStar = true;
   }
 
@@ -245,15 +248,17 @@ function TitleDetail({navigation, route}) {
               </View>
             ) : null}
 
-            <View style={styles.tagsWrap}>
-              {titleItem.LocalizedCategories.map(item => {
-                return (
-                  <View style={styles.tagContainer} key={item}>
-                    <Text variant="titleSmall">{item}</Text>
-                  </View>
-                );
-              })}
-            </View>
+            {titleItem.LocalizedCategories && (
+              <View style={styles.tagsWrap}>
+                {titleItem.LocalizedCategories.map(item => {
+                  return (
+                    <View style={styles.tagContainer} key={item}>
+                      <Text variant="titleSmall">{item}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
 
             <View style={styles.description}>
               <Text variant="titleSmall">{description}</Text>

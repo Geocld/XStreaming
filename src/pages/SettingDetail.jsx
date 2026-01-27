@@ -87,8 +87,11 @@ function SettingDetailScreen({navigation, route}) {
       if (name === 'signaling_home' || name === 'signaling_cloud') {
         const rs =
           name === 'signaling_home' ? regions.current : xgpuRegions.current;
-        const rsName = name === 'signaling_home' ? 'signaling_home_name' : 'signaling_cloud_name';
-        const rsValue = _settings[rsName]
+        const rsName =
+          name === 'signaling_home'
+            ? 'signaling_home_name'
+            : 'signaling_cloud_name';
+        const rsValue = _settings[rsName];
 
         let _currentVal = '';
 
@@ -97,7 +100,7 @@ function SettingDetailScreen({navigation, route}) {
             _currentVal = region.name;
           }
         });
-        
+
         if (!_currentVal) {
           rs.forEach(region => {
             if (region.isDefault) {
@@ -119,8 +122,15 @@ function SettingDetailScreen({navigation, route}) {
   }, [navigation, route.params?.id]);
 
   const handleSaveSettings = () => {
-    if (currentMetas.name === 'signaling_home' || currentMetas.name === 'signaling_cloud') {
-      settings[currentMetas.name === 'signaling_home' ? 'signaling_home_name' : 'signaling_cloud_name'] = value;
+    if (
+      currentMetas.name === 'signaling_home' ||
+      currentMetas.name === 'signaling_cloud'
+    ) {
+      settings[
+        currentMetas.name === 'signaling_home'
+          ? 'signaling_home_name'
+          : 'signaling_cloud_name'
+      ] = value;
     } else if (settings[current] !== undefined) {
       settings[current] = value;
     }
@@ -170,7 +180,7 @@ function SettingDetailScreen({navigation, route}) {
           region.isDefault = false;
         }
       });
-      console.log('value:', value)
+      console.log('value:', value);
       settings.signaling_cloud_name = value;
     } else if (currentMetas.name === 'bind_usb_device') {
       UsbRumbleManager.setBindUsbDevice(value);

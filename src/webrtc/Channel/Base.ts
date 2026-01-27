@@ -11,7 +11,7 @@ export default class BaseChannel {
     state: [],
   };
 
-  _keyframeInterval: any
+  _keyframeInterval: any;
 
   constructor(channelName: string, client: any) {
     this._channelName = channelName;

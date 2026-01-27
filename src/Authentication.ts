@@ -199,22 +199,24 @@ export default class Authentication {
         23 * 60 * 60 * 1000
       ) {
         log.info('[startSilentFlow] skip refreshTokens');
-        this._xal.getStreamingToken(this._tokenStore).then(streamingTokens => {
-          // console.log('streamingTokens:', JSON.stringify(streamingTokens));
-          this._xal.getWebToken(this._tokenStore).then(webToken => {
-            saveStreamToken(streamingTokens);
-            saveWebToken(webToken);
-            this._authenticationCompleted(streamingTokens, webToken);
+        this._xal
+          .getStreamingToken(this._tokenStore)
+          .then(streamingTokens => {
+            // console.log('streamingTokens:', JSON.stringify(streamingTokens));
+            this._xal.getWebToken(this._tokenStore).then(webToken => {
+              saveStreamToken(streamingTokens);
+              saveWebToken(webToken);
+              this._authenticationCompleted(streamingTokens, webToken);
+            });
+          })
+          .catch(e => {
+            clearStreamToken();
+            clearWebToken();
+            this._tokenStore.clear();
+            this._authenticationFailed(
+              '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+            );
           });
-        })
-        .catch(e => {
-          clearStreamToken();
-          clearWebToken();
-          this._tokenStore.clear();
-          this._authenticationFailed(
-            '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
-          );
-        });
       } else {
         this._xal
           .refreshTokens(this._tokenStore)

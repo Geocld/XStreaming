@@ -40,7 +40,7 @@ export const getXcloudData = (): any => {
 
 export const clearXcloudData = () => {
   const starTitles = getXcloudData()?.starTitles || [];
-  storage.set(STORE_KEY, JSON.stringify({ starTitles }));
+  storage.set(STORE_KEY, JSON.stringify({starTitles}));
 };
 
 export const isxCloudDataValid = (data: any) => {

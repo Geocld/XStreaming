@@ -39,7 +39,8 @@ const log = debugFactory('HomeScreen');
 
 const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
-const HARMOBY_URL = 'https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh'
+const HARMOBY_URL =
+  'https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh';
 
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -92,8 +93,9 @@ function HomeScreen({navigation, route}) {
     }
 
     // HarmonyOS modal
-    if (deviceInfos && 
-      deviceInfos.factor.indexOf('HUAWEI') > -1 &&  
+    if (
+      deviceInfos &&
+      deviceInfos.factor.indexOf('HUAWEI') > -1 &&
       _settings.locale === 'zh' &&
       _settings.show_harmony_modal
     ) {
@@ -474,7 +476,10 @@ function HomeScreen({navigation, route}) {
           contentContainerStyle={{marginLeft: '4%', marginRight: '4%'}}>
           <Card>
             <Card.Content>
-              <Text>XStreaming鸿蒙版已正式发布App Gallery，如您的设备系统为HarmonyOS 5以上，您可以安装原生版本以获得更好的串流体验(点击立即下载或应用商店搜索"爱斯追鸣"进行安装)。</Text>
+              <Text>
+                XStreaming鸿蒙版已正式发布App Gallery，如您的设备系统为HarmonyOS
+                5以上，您可以安装原生版本以获得更好的串流体验(点击立即下载或应用商店搜索"爱斯追鸣"进行安装)。
+              </Text>
 
               <Button
                 mode="text"

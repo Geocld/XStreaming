@@ -1,6 +1,6 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView} from 'react-native';
-import {Text, Button, IconButton} from 'react-native-paper';
+import {StyleSheet, View} from 'react-native';
+import {Text, IconButton} from 'react-native-paper';
 import Slider from '@react-native-community/slider';
 import {useTranslation} from 'react-i18next';
 
@@ -53,7 +53,7 @@ const FSRDisplay: React.FC<Props> = ({options, onChange}) => {
                 }
               }}
             />
-            <Text variant="titleMedium">{ innerOptions.sharpness }</Text>
+            <Text variant="titleMedium">{innerOptions.sharpness}</Text>
             <IconButton
               icon="plus"
               size={20}

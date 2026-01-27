@@ -425,15 +425,13 @@ function SettingsScreen({navigation}) {
             />
           )}
 
-          {
-            __DEV__ && (
-              <SettingItem
-                title={'DEBUG'}
-                description={'Enter debug'}
-                onPress={() => handleItemPress('debug')}
-              />
-            )
-          }
+          {__DEV__ && (
+            <SettingItem
+              title={'DEBUG'}
+              description={'Enter debug'}
+              onPress={() => handleItemPress('debug')}
+            />
+          )}
 
           <SettingItem
             title={t('HistoryTitle')}
