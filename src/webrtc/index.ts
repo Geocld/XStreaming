@@ -3,6 +3,7 @@ import {
   RTCSessionDescription,
   RTCIceCandidate,
 } from 'react-native-webrtc';
+import * as sdpTransform from 'sdp-transform';
 
 import InputChannel from './Channel/Input';
 import ControlChannel from './Channel/Control';
@@ -205,6 +206,8 @@ class webRTCClient {
           },
         })
         .then(offer => {
+          const newSDP = this.forceStereoAudio(offer.sdp);
+          offer.sdp = newSDP;
           this._webrtcClient?.setLocalDescription(offer).then(() => {
             resolve(offer);
           });
@@ -596,6 +599,32 @@ class webRTCClient {
   _rumbleHandler: any;
   setRumbleHandler(listener: any) {
     this._rumbleHandler = listener;
+  }
+
+  forceStereoAudio(sdp: string): string {
+    const parsedSDP = sdpTransform.parse(sdp);
+    const audioMedia = parsedSDP.media.find((m: any) => m.type === 'audio');
+    if (!audioMedia) {
+      throw Error('no audio media in SDP');
+    }
+    const opusCodec = audioMedia.rtp.find((c: any) => c.codec === 'opus');
+    if (!opusCodec) {
+      throw Error('no opus codec in SDP');
+    }
+    const opusFMTP = audioMedia.fmtp.find(
+      (c: any) => c.payload === opusCodec.payload,
+    );
+    if (!opusFMTP) {
+      throw Error('no opus fmtp in SDP');
+    }
+    const opusParams = sdpTransform.parseParams(opusFMTP.config);
+    opusParams.stereo = 1;
+    const newParams = Object.entries(opusParams)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(';');
+    opusFMTP.config = newParams;
+    console.log('forceStereoAudio success...');
+    return sdpTransform.write(parsedSDP);
   }
 }
 

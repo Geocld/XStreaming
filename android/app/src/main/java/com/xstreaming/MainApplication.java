@@ -81,7 +81,7 @@ public class MainApplication extends Application implements ReactApplication {
     WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
     AudioAttributes audioAttributes = new AudioAttributes.Builder()
           .setUsage(AudioAttributes.USAGE_MEDIA)
-          .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
           .build();
 
 //    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
