@@ -35,6 +35,8 @@ import {
   isConsolesDataValid,
 } from '../store/consolesStore';
 
+import Msal from '../xal/msal';
+
 const log = debugFactory('HomeScreen');
 
 const {UsbRumbleManager, FullScreenManager} = NativeModules;
@@ -284,6 +286,10 @@ function HomeScreen({navigation, route}) {
                       payload: redirectObj,
                     });
                     setShowLogin(true);
+                  })
+                  .catch(e => {
+                    // TODO: rollback to MSAL auth
+                    setLoading(false);
                   });
               }
             })

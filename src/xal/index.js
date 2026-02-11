@@ -46,6 +46,7 @@ export default class Xal {
             console.log('device token get error, retry...');
             return this.getDeviceTokenHack().then(resolve).catch(reject);
           } else {
+            console.log('getDeviceTokenHack failed:', error);
             reject(error);
           }
         });

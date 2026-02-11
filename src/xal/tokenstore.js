@@ -118,4 +118,14 @@ export default class TokenStore {
 
     return true;
   }
+
+  getAuthenticationMethod() {
+    if (this._sisuToken) {
+      return 'xal';
+    } else if (this._userToken) {
+      return 'msal';
+    } else {
+      return 'none';
+    }
+  }
 }

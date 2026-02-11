@@ -150,7 +150,8 @@ export default class Authentication {
                 clearWebToken();
                 this._tokenStore.clear();
                 this._authenticationFailed(
-                  '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+                  '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
+                    e.message,
                 );
               });
           } else {
@@ -175,7 +176,8 @@ export default class Authentication {
                     clearWebToken();
                     this._tokenStore.clear();
                     this._authenticationFailed(
-                      '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+                      '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
+                        e.message,
                     );
                   });
               })
@@ -214,7 +216,8 @@ export default class Authentication {
             clearWebToken();
             this._tokenStore.clear();
             this._authenticationFailed(
-              '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+              '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
+                e.message,
             );
           });
       } else {
@@ -237,7 +240,8 @@ export default class Authentication {
                 clearWebToken();
                 this._tokenStore.clear();
                 this._authenticationFailed(
-                  '[getStreamingToken()] 登录失败，请重新登录:' + e.message,
+                  '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
+                    e.message,
                 );
               });
           })
