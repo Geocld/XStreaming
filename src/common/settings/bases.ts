@@ -37,6 +37,16 @@ const bases = [
     ],
   },
   {
+    name: 'use_msal_login',
+    type: 'radio',
+    title: t('useMsalLoginTitle'),
+    description: t('useMsalLoginDesc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
     name: 'preferred_game_language',
     type: 'radio',
     title: t('Preferred language of game'),

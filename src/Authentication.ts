@@ -75,22 +75,6 @@ export default class Authentication {
     ) {
       const {xHomeToken, xCloudToken} = _streamToken;
 
-      // console.log('[startSilentFlow] xHomeToken:', xHomeToken);
-      // console.log(
-      //   '[startSilentFlow] isStreamTokenValid(xHomeToken):',
-      //   isStreamTokenValid(xHomeToken),
-      // );
-      // console.log('[startSilentFlow] xCloudToken:', xCloudToken);
-      // console.log(
-      //   '[startSilentFlow] isStreamTokenValid(xCloudToken):',
-      //   isStreamTokenValid(xCloudToken),
-      // );
-      // // console.log('_webToken:', _webToken);
-      // console.log(
-      //   '[startSilentFlow] isWebTokenValid(_webToken):',
-      //   isWebTokenValid(_webToken),
-      // );
-
       if (xHomeToken || xCloudToken) {
         if (
           xHomeToken &&
@@ -152,6 +136,7 @@ export default class Authentication {
                 this._authenticationFailed(
                   '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
                     e.message,
+                  true,
                 );
               });
           } else {
@@ -178,6 +163,7 @@ export default class Authentication {
                     this._authenticationFailed(
                       '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
                         e.message,
+                      true,
                     );
                   });
               })
@@ -188,7 +174,8 @@ export default class Authentication {
                 clearWebToken();
                 this._tokenStore.clear();
                 this._authenticationFailed(
-                  '[startSilentFlow() - 145] refreshTokens error:' + e.message,
+                  '[startSilentFlow() - 177] refreshTokens error:' + e.message,
+                  true,
                 );
               });
           }
@@ -218,6 +205,7 @@ export default class Authentication {
             this._authenticationFailed(
               '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
                 e.message,
+              true,
             );
           });
       } else {
@@ -242,6 +230,7 @@ export default class Authentication {
                 this._authenticationFailed(
                   '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
                     e.message,
+                  true,
                 );
               });
           })
@@ -252,7 +241,8 @@ export default class Authentication {
             clearWebToken();
             this._tokenStore.clear();
             this._authenticationFailed(
-              '[startSilentFlow() - 189] refreshTokens error:' + e.message,
+              '[startSilentFlow() - 245] refreshTokens error:' + e.message,
+              true,
             );
           });
       }

@@ -5,6 +5,7 @@ export default {
     Host: '主机',
     Settings: '设置',
     Login: '登录',
+    AuthLogin: '授权码登录',
     About: '关于',
     Profile: '个人信息',
     Feedback: '交流及支持',
@@ -19,6 +20,10 @@ export default {
     'Login successful, refreshing login credentials...':
       '登录成功，正在刷新登录凭证...',
     'Checking login status...': '正在检查登录...',
+    MsalAuthTip:
+      '扫描二维码或点击连接跳转到浏览器，在限定时间内输入下方授权码登录',
+    MsalAuthTimeout: '授权码已过期，请刷新',
+    Copied: '已复制',
     NoConsoles:
       '账号下没有找到主机，如果你有xbox主机，请确保主机开启了远程游玩功能，并且使用官方xbox App可以查看到该主机。',
     Warning: '提示',
@@ -31,6 +36,7 @@ export default {
     'Login has expired or not logged in, please log in again':
       '登录已失效或未登录，请重新登录',
     AuthFailDesc: '认证失败，请重新登录，错误:',
+    XalAuthFailDesc: 'XAL认证失败，请尝试MSAL登录，错误:',
     'Loading...': '加载中...',
     'Start stream': '开始串流',
     'Power on and start stream': '开机串流',
@@ -370,5 +376,7 @@ export default {
     fsr_sharpness_title: 'FSR锐化',
     fsr_sharpness_desc: '调整FSR锐化',
     'FSR started': 'FSR已启动',
+    useMsalLoginTitle: '授权码登录',
+    useMsalLoginDesc: '强制使用授权码登录，无法正常登录时请尝试开启此选项',
   },
 };

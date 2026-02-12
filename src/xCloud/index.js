@@ -191,19 +191,39 @@ export default class XcloudApi {
               break;
             case 'ReadyToConnect':
               // Do MSAL Auth
-              this.authentication._xal
-                .getMsalToken(this.authentication._tokenStore)
-                .then(msalToken => {
-                  this.sendMSALAuth(msalToken.data.lpt).then(() => {
-                    this.waitState()
-                      .then(state => {
-                        resolve(state);
-                      })
-                      .catch(error => {
-                        reject(error);
-                      });
+              this.authentication._tokenStore.load();
+              if (
+                this.authentication._tokenStore.getAuthenticationMethod() ===
+                'msal'
+              ) {
+                this.authentication._msal
+                  .getMsalToken(this.authentication._tokenStore)
+                  .then(msalToken => {
+                    this.sendMSALAuth(msalToken.data.lpt).then(() => {
+                      this.waitState()
+                        .then(state => {
+                          resolve(state);
+                        })
+                        .catch(error => {
+                          reject(error);
+                        });
+                    });
                   });
-                });
+              } else {
+                this.authentication._xal
+                  .getMsalToken(this.authentication._tokenStore)
+                  .then(msalToken => {
+                    this.sendMSALAuth(msalToken.data.lpt).then(() => {
+                      this.waitState()
+                        .then(state => {
+                          resolve(state);
+                        })
+                        .catch(error => {
+                          reject(error);
+                        });
+                    });
+                  });
+              }
               break;
             case 'Failed':
               reject('Streaming failed: ' + _state.errorDetails.message);

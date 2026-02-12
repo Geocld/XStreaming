@@ -6,6 +6,7 @@ export default {
     Settings: '設置',
     More: '更多',
     Login: '登錄',
+    AuthLogin: '授權碼登錄',
     About: '關於',
     Feedback: '交流及支持',
     Version: '版本',
@@ -19,6 +20,10 @@ export default {
     'Login successful, refreshing loginShow: credentials...':
       '登錄成功，正在刷新登錄憑證...',
     'Checking login status...': '正在檢查登錄...',
+    MsalAuthTip:
+      '掃描二維碼或點擊連接跳轉到瀏覽器，在限定時間內輸入下方授權碼登錄',
+    MsalAuthTimeout: '授權碼已過期，請刷新',
+    Copied: '已複製',
     Warning: '提示',
     WaitingForServerToRegister:
       '無法在主機上建立串流，原因是主機沒有連接到Xbox伺服器。當你看到這個錯誤時，並非XStreaming發生錯誤，這通常發生在主機系統異常、主機正在更新或主機未登入帳號時。請嘗試長按電源鍵或斷開電源（斷開至少10秒）重啟主機以修復此問題。',
@@ -29,6 +34,7 @@ export default {
     'Login has expired or not logged in, please log in again':
       '登錄已失效或未登錄，請重新登錄',
     AuthFailDesc: '认证失败，請重新登錄，错误:',
+    XalAuthFailDesc: 'XAL认证失败，请尝试MSAL登录，错误:',
     'Loading...': '加載中...',
     'Start stream': '開始串流',
     'Power on and start stream': '開機並串流',
@@ -336,5 +342,7 @@ export default {
     fsr_sharpness_title: 'FSR銳化',
     fsr_sharpness_desc: '調整FSR銳化',
     'FSR started': 'FSR已啟動',
+    useMsalLoginTitle: '授權碼登錄',
+    useMsalLoginDesc: '強制使用授權碼登錄，無法正常登錄時請嘗試開啟此選項',
   },
 };

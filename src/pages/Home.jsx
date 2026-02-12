@@ -21,6 +21,7 @@ import HomeItem from '../components/HomeItem';
 import {getSettings, saveSettings} from '../store/settingStore';
 
 import Authentication from '../Authentication';
+import MsalAuthentication from '../MsalAuthentication';
 import WebApi from '../web';
 
 import {useSelector, useDispatch} from 'react-redux';
@@ -34,8 +35,7 @@ import {
   getConsolesData,
   isConsolesDataValid,
 } from '../store/consolesStore';
-
-import Msal from '../xal/msal';
+import MsalAuth from '../components/MsalAuth';
 
 const log = debugFactory('HomeScreen');
 
@@ -43,6 +43,8 @@ const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
 const HARMOBY_URL =
   'https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh';
+
+const MSAL = 'msal';
 
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -56,6 +58,10 @@ function HomeScreen({navigation, route}) {
   const [showHarmonyModal, setShowHarmonyModal] = React.useState(false);
   const [numColumns, setNumColumns] = React.useState(2);
   const [showLogin, setShowLogin] = React.useState(false);
+  const [showMsalLogin, setShowMsalLogin] = React.useState(false);
+  const [showMsal, setShowMsal] = React.useState(false);
+  const [msalBtnLoading, setMsalBtnLoading] = React.useState(false);
+  const [msalData, setMsalData] = React.useState(null);
 
   const authentication = useSelector(state => state.authentication);
   const _authentication = React.useRef(authentication);
@@ -130,81 +136,93 @@ function HomeScreen({navigation, route}) {
       );
       return;
     } else {
-      if (!_authentication.current) {
-        log.info('Authentication initial.');
+      // Auth completed callback
+      const authenticationCompleted = async (_streamingTokens, _webToken) => {
+        log.info('Authentication completed');
+        webTokenRef.current = _webToken;
+        // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
+        dispatch({
+          type: 'SET_STREAMING_TOKEN',
+          payload: _streamingTokens,
+        });
+        dispatch({
+          type: 'SET_WEB_TOKEN',
+          payload: _webToken,
+        });
+        dispatch({
+          type: 'SET_LOGIN',
+          payload: true,
+        });
+        _isLogined.current = true;
+        setShowLogin(false);
+        setShowMsalLogin(false);
+        setShowMsal(false);
 
-        // Auth completed callback
-        const authenticationCompleted = async (_streamingTokens, _webToken) => {
-          log.info('Authentication completed');
-          webTokenRef.current = _webToken;
-          // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
-          dispatch({
-            type: 'SET_STREAMING_TOKEN',
-            payload: _streamingTokens,
-          });
-          dispatch({
-            type: 'SET_WEB_TOKEN',
-            payload: _webToken,
-          });
-          dispatch({
-            type: 'SET_LOGIN',
-            payload: true,
-          });
-          _isLogined.current = true;
-          setShowLogin(false);
+        setLoading(true);
+        const webApi = new WebApi(_webToken);
 
-          setLoading(true);
-          const webApi = new WebApi(_webToken);
+        try {
+          setLoadingText(t('Fetching consoles...'));
 
-          // setLoadingText(t('Fetching user info...'));
-          try {
-            // const _profile = await webApi.getUserProfileV2();
-            // setProfile(_profile);
-            // dispatch({
-            //   type: 'SET_PROFILE',
-            //   payload: _profile,
-            // });
-            setLoadingText(t('Fetching consoles...'));
+          const _xHomeApi = new XcloudApi(
+            _streamingTokens.xHomeToken.getDefaultRegion().baseUri,
+            _streamingTokens.xHomeToken.data.gsToken,
+            'home',
+            () => {},
+          );
+          _xHomeApiRef.current = _xHomeApi;
 
-            const _xHomeApi = new XcloudApi(
-              _streamingTokens.xHomeToken.getDefaultRegion().baseUri,
-              _streamingTokens.xHomeToken.data.gsToken,
-              'home',
-              () => {},
-            );
-            _xHomeApiRef.current = _xHomeApi;
+          const cacheData = getConsolesData();
 
-            const cacheData = getConsolesData();
-
-            if (
-              cacheData &&
-              isConsolesDataValid(cacheData) &&
-              cacheData.consoles
-            ) {
-              setConsoles(cacheData.consoles);
-              setLoading(false);
-            }
-
-            let _consoles = await _xHomeApi.getConsoles();
-
-            if (!_consoles.length) {
-              _consoles = await webApi.getConsoles();
-            }
-
-            if (_consoles.length > 0) {
-              setConsoles(_consoles);
-              saveConsolesData({
-                consoles: _consoles,
-              });
-            }
-          } catch (e) {
-            Alert.alert(t('Error'), e);
+          if (
+            cacheData &&
+            isConsolesDataValid(cacheData) &&
+            cacheData.consoles
+          ) {
+            setConsoles(cacheData.consoles);
+            setLoading(false);
           }
-          setLoading(false);
-        };
 
-        // Auth failed callback
-        const authenticationFailed = msg => {
+          let _consoles = await _xHomeApi.getConsoles();
+
+          if (!_consoles.length) {
+            _consoles = await webApi.getConsoles();
+          }
+
+          if (_consoles.length > 0) {
+            setConsoles(_consoles);
+            saveConsolesData({
+              consoles: _consoles,
+            });
+          }
+        } catch (e) {
+          Alert.alert(t('Error'), e);
+        }
+        setLoading(false);
+      };
+
+      // Auth failed callback
+      const authenticationFailed = (msg, rollback = false) => {
+        if (rollback) {
+          // Rollback to MSAL auth
+          Alert.alert(t('Error'), t('XalAuthFailDesc') + msg, [
+            {
+              text: t('Confirm'),
+              style: 'default',
+              onPress: () => {
+                _authentication.current = new MsalAuthentication(
+                  authenticationCompleted,
+                  authenticationFailed,
+                );
+                dispatch({
+                  type: 'SET_AUTHENTICATION',
+                  payload: _authentication.current,
+                });
+                setShowMsalLogin(true);
+              },
+            },
+          ]);
+        } else {
           Alert.alert(t('Error'), t('AuthFailDesc') + msg, [
             {
               text: t('Confirm'),
@@ -215,12 +233,28 @@ function HomeScreen({navigation, route}) {
               },
             },
           ]);
-        };
+        }
+      };
+
+      if (!_authentication.current) {
+        log.info('Authentication initial.');
 
         _authentication.current = new Authentication(
           authenticationCompleted,
           authenticationFailed,
         );
+        _authentication.current._tokenStore.load();
+
+        if (
+          _settings.use_msal_login ||
+          _authentication.current._tokenStore.getAuthenticationMethod() === MSAL
+        ) {
+          log.info('Using MSAL authentication method.');
+          _authentication.current = new MsalAuthentication(
+            authenticationCompleted,
+            authenticationFailed,
+          );
+        }
         dispatch({
           type: 'SET_AUTHENTICATION',
           payload: _authentication.current,
@@ -230,7 +264,7 @@ function HomeScreen({navigation, route}) {
       if (_isFocused.current) {
         log.info('HomeScreen isFocused:', _isFocused.current);
 
-        // Return from Login screen
+        // Return from Login screen(XAL auth)
         if (route.params?.xalUrl) {
           if (!_isLogined.current) {
             log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
@@ -270,31 +304,58 @@ function HomeScreen({navigation, route}) {
           _authentication.current
             .checkAuthentication()
             .then(isAuth => {
-              dispatch({
-                type: 'SET_AUTHENTICATION',
-                payload: _authentication.current,
-              });
               if (!isAuth) {
-                _authentication.current._xal
-                  .getRedirectUri()
-                  .then(redirectObj => {
-                    setLoading(false);
-                    log.info('Redirect:', redirectObj);
-                    _redirect.current = redirectObj;
-                    dispatch({
-                      type: 'SET_REDIRECT',
-                      payload: redirectObj,
+                if (_settings.use_msal_login) {
+                  setLoading(false);
+                  setShowLogin(false);
+                  setShowMsalLogin(true);
+                  setShowMsal(false);
+                } else {
+                  _authentication.current._xal
+                    .getRedirectUri()
+                    .then(redirectObj => {
+                      setLoading(false);
+                      log.info('Redirect:', redirectObj);
+                      _redirect.current = redirectObj;
+                      dispatch({
+                        type: 'SET_REDIRECT',
+                        payload: redirectObj,
+                      });
+                      setShowLogin(true);
+                      setShowMsalLogin(false);
+                      setShowMsal(false);
+                    })
+                    .catch(e => {
+                      _authentication.current = new MsalAuthentication(
+                        authenticationCompleted,
+                        authenticationFailed,
+                      );
+                      dispatch({
+                        type: 'SET_AUTHENTICATION',
+                        payload: _authentication.current,
+                      });
+                      setLoading(false);
+                      setShowLogin(false);
+                      setShowMsalLogin(true);
+                      setShowMsal(false);
                     });
-                    setShowLogin(true);
-                  })
-                  .catch(e => {
-                    // TODO: rollback to MSAL auth
-                    setLoading(false);
-                  });
+                }
               }
             })
             .catch(e => {
               Alert.alert(t('Error'), e);
+              _authentication.current = new MsalAuthentication(
+                authenticationCompleted,
+                authenticationFailed,
+              );
+              dispatch({
+                type: 'SET_AUTHENTICATION',
+                payload: _authentication.current,
+              });
+              setLoading(false);
+              setShowLogin(false);
+              setShowMsalLogin(true);
+              setShowMsal(false);
             });
         }
       }
@@ -484,7 +545,7 @@ function HomeScreen({navigation, route}) {
             <Card.Content>
               <Text>
                 XStreaming鸿蒙版已正式发布App Gallery，如您的设备系统为HarmonyOS
-                5以上，您可以安装原生版本以获得更好的串流体验(点击立即下载或应用商店搜索"爱斯追鸣"进行安装)。
+                5以上，您可以安装原生版本以获得更好的串流体验(点击立即下载或应用商店搜索"XStreaming"进行安装)。
               </Text>
 
               <Button
@@ -518,12 +579,65 @@ function HomeScreen({navigation, route}) {
     });
   };
 
+  const handleMsalLogin = () => {
+    setMsalBtnLoading(true);
+    _authentication.current
+      .getMsalDeviceCode()
+      .then(data => {
+        log.info('MSAL device code response:', data);
+        _authentication.current.doPollForDeviceCodeAuth(data.device_code);
+        setMsalData(data);
+        setShowMsalLogin(false);
+        setShowMsal(true);
+        setMsalBtnLoading(false);
+      })
+      .catch(e => {
+        log.error('MSAL device code error:', e);
+        Alert.alert(t('Error'), 'MSAL device code error' + e, [
+          {
+            text: t('Confirm'),
+            style: 'default',
+            onPress: () => {
+              setMsalBtnLoading(false);
+            },
+          },
+        ]);
+      });
+  };
+
   const renderLogin = () => {
     return (
       <View>
         <Text style={styles.title}>{t('NoLogin')}</Text>
         <Button mode="outlined" onPress={handleLogin}>
           &nbsp;{t('Login')}&nbsp;
+        </Button>
+
+        <Button
+          style={styles.mt10}
+          mode="text"
+          onPress={() => navigation.navigate('Settings')}>
+          &nbsp;{t('Settings')}&nbsp;
+        </Button>
+      </View>
+    );
+  };
+
+  const renderMsalLogin = () => {
+    return (
+      <View>
+        <Button
+          mode="outlined"
+          loading={msalBtnLoading}
+          onPress={handleMsalLogin}>
+          &nbsp;{t('AuthLogin')}&nbsp;
+        </Button>
+
+        <Button
+          style={styles.mt10}
+          mode="text"
+          onPress={() => navigation.navigate('Settings')}>
+          &nbsp;{t('Settings')}&nbsp;
         </Button>
       </View>
     );
@@ -535,6 +649,14 @@ function HomeScreen({navigation, route}) {
     }
     if (showLogin) {
       return <View style={styles.centerContainer}>{renderLogin()}</View>;
+    } else if (showMsalLogin) {
+      return <View style={styles.centerContainer}>{renderMsalLogin()}</View>;
+    } else if (showMsal) {
+      return (
+        <View style={styles.centerContainer}>
+          <MsalAuth data={msalData} />
+        </View>
+      );
     } else {
       return (
         <SafeAreaView style={styles.container}>
@@ -715,6 +837,9 @@ const styles = StyleSheet.create({
     width: '15%',
     marginRight: 20,
     marginBottom: 10,
+  },
+  mt10: {
+    marginTop: 10,
   },
 });
 

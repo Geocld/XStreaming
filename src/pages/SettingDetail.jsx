@@ -7,6 +7,7 @@ import {
   ToastAndroid,
 } from 'react-native';
 import {Button, RadioButton, Text, Divider} from 'react-native-paper';
+import CookieManager from '@react-native-cookies/cookies';
 import {useTranslation} from 'react-i18next';
 import RNRestart from 'react-native-restart';
 import Slider from '@react-native-community/slider';
@@ -41,6 +42,7 @@ function SettingDetailScreen({navigation, route}) {
   const regions = React.useRef([]);
   const xgpuRegions = React.useRef([]);
 
+  const authentication = useSelector(state => state.authentication);
   const streamingTokens = useSelector(state => state.streamingTokens);
   regions.current = streamingTokens.xHomeToken?.getRegions() || [];
 
@@ -149,6 +151,16 @@ function SettingDetailScreen({navigation, route}) {
       clearXcloudData();
       clearConsolesData();
       handleSaveSettings();
+      setTimeout(() => {
+        restart();
+      }, 500);
+    } else if (current === 'use_msal_login') {
+      clearStreamToken();
+      clearWebToken();
+      clearXcloudData();
+      clearConsolesData();
+      authentication._tokenStore.clear();
+      CookieManager.clearAll();
       setTimeout(() => {
         restart();
       }, 500);

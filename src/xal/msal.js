@@ -3,6 +3,7 @@ import UserToken from '../tokens/usertoken';
 import MsalToken from '../tokens/msaltoken';
 import XstsToken from '../tokens/xststoken';
 import StreamingToken from '../tokens/streamingtoken';
+import {getSettings} from '../store/settingStore';
 
 class TokenRefreshError {
   name = 'TokenRefreshError';
@@ -24,6 +25,11 @@ export default class Msal {
     this._tokenStore = tokenStore;
   }
 
+  getForceIp() {
+    const _settings = getSettings();
+    return _settings.force_region_ip.trim();
+  }
+
   /**
    * Creates a new device code authentication request.
    */
@@ -32,14 +38,20 @@ export default class Msal {
     data.append('client_id', this._clientId);
     data.append('scope', 'xboxlive.signin openid profile offline_access');
 
+    const forceIp = this.getForceIp();
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    if (forceIp.length > 0) {
+      headers['X-Forwarded-For'] = forceIp;
+    }
+
     return axios
       .post(
         'https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode',
         data.toString(),
         {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+          headers,
         },
       )
       .then(response => {
@@ -64,14 +76,20 @@ export default class Msal {
     data.append('client_id', this._clientId);
     data.append('device_code', deviceCode);
 
+    const forceIp = this.getForceIp();
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    if (forceIp.length > 0) {
+      headers['X-Forwarded-For'] = forceIp;
+    }
+
     try {
       const response = await axios.post(
         'https://login.microsoftonline.com/consumers/oauth2/v2.0/token',
         data.toString(),
         {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+          headers,
         },
       );
 
@@ -112,11 +130,19 @@ export default class Msal {
       data.append('grant_type', 'refresh_token');
       data.append('refresh_token', refreshToken);
 
+      const forceIp = this.getForceIp();
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+      if (forceIp.length > 0) {
+        headers['X-Forwarded-For'] = forceIp;
+      }
+
       const response = await axios.post(
         'https://login.live.com/oauth20_token.srf',
         data.toString(),
         {
-          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          headers,
         },
       );
 
@@ -164,6 +190,11 @@ export default class Msal {
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
       };
 
+      const forceIp = this.getForceIp();
+      if (forceIp.length > 0) {
+        headers['X-Forwarded-For'] = forceIp;
+      }
+
       const response = await axios.post(url, payload, {headers});
 
       return new XstsToken(response.data);
@@ -193,6 +224,11 @@ export default class Msal {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Cache-Control': 'no-store, must-revalidate, no-cache',
       };
+
+      const forceIp = this.getForceIp();
+      if (forceIp.length > 0) {
+        headers['X-Forwarded-For'] = forceIp;
+      }
       const body = new URLSearchParams(payload).toString();
 
       const response = await axios.post(url, body, {headers});
@@ -246,6 +282,11 @@ export default class Msal {
         Origin: 'https://www.xbox.com',
         Referer: 'https://www.xbox.com/',
       };
+
+      const forceIp = this.getForceIp();
+      if (forceIp.length > 0) {
+        headers['X-Forwarded-For'] = forceIp;
+      }
 
       const response = await axios.post(url, payload, {headers});
 
@@ -351,6 +392,11 @@ export default class Msal {
         'Cache-Control': 'no-store, must-revalidate, no-cache',
         'x-gssv-client': 'XboxComBrowser',
       };
+
+      const forceIp = this.getForceIp();
+      if (forceIp.length > 0) {
+        headers['X-Forwarded-For'] = forceIp;
+      }
 
       const response = await axios.post(url, payload, {headers});
 

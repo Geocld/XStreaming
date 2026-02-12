@@ -3,6 +3,7 @@ export default {
     Consoles: 'Consoles',
     Xcloud: 'xCloud',
     Host: 'Host',
+    AuthLogin: 'Auth code Login',
     Settings: 'Settings',
     NoLogin: 'Not logged in, please login',
     'Fetching user info...': 'Fetching user info...',
@@ -10,6 +11,10 @@ export default {
     'Login successful, refreshing login credentials...':
       'The login was successful, refreshing login credentials...',
     'Checking login status...': 'Checking login status...',
+    MsalAuthTip:
+      'Scan the QR code or click the link to open the browser, and enter the authorization code below to log in within the specified time',
+    MsalAuthTimeout: 'The authorization code has expired, please refresh',
+    Copied: 'Copied',
     Warning: 'Warning',
     WaitingForServerToRegister:
       'Unable to establish streaming on the console because the console is not connected to the Xbox servers. When you see this error, it is not an issue with XStreaming. This usually occurs when the console system is abnormal, the console is updating, or the console is not logged into an account. Please try holding down the power button or disconnecting the power (disconnect for at least 10 seconds) to restart the console and resolve this issue.',
@@ -20,6 +25,7 @@ export default {
     'Login has expired or not logged in, please login again':
       'Login has expired or not logged in, please login again',
     AuthFailDesc: 'Login failed, please login again, error:',
+    XalAuthFailDesc: 'XAL authentication failed, please try MSAL login, error:',
     'Loading...': 'Loading...',
     'Start stream': 'Start stream',
     'Power on and start stream': 'Power on start stream',
@@ -218,5 +224,8 @@ export default {
     fsr_sharpness_title: 'FSR Sharpness',
     fsr_sharpness_desc: 'Adjust FSR sharpness',
     'FSR started': 'FSR started',
+    useMsalLoginTitle: 'MSAL Code Login',
+    useMsalLoginDesc:
+      'Force using authorization code login, try enabling this option if you cannot login normally',
   },
 };

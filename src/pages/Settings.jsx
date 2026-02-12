@@ -48,6 +48,7 @@ function SettingsScreen({navigation}) {
   const [loading, setLoading] = React.useState(false);
 
   const sisuToken = authentication._tokenStore.getSisuToken();
+  const userToken = authentication._tokenStore.getUserToken();
 
   let isAuthed = false;
   let user = '';
@@ -60,6 +61,10 @@ function SettingsScreen({navigation}) {
         user = sisuToken.data.AuthorizationToken.DisplayClaims.xui[0].mgt;
       } catch (e) {}
     }
+  }
+
+  if (userToken && userToken.data && userToken.data.access_token) {
+    isAuthed = true;
   }
 
   React.useEffect(() => {
@@ -447,7 +452,7 @@ function SettingsScreen({navigation}) {
           {isAuthed ? (
             <SettingItem
               title={t('Logout')}
-              description={`${t('Current user')}: ${user}`}
+              description={user ? `${t('Current user')}: ${user}` : ''}
               onPress={() => handleItemPress('logout')}
             />
           ) : null}
@@ -458,7 +463,7 @@ function SettingsScreen({navigation}) {
             {t('Version')}: v{pkg.version}
           </Text>
           <Text style={styles.versionText} variant="titleSmall">
-            © 2024-2025 Geocld
+            © 2024-{new Date().getFullYear()} Geocld
           </Text>
         </View>
       </ScrollView>
