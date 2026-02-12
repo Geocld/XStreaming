@@ -20,7 +20,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-<!--    <uses-permission android:name="android.permission.RECORD_AU-DIO" />-->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
       android:name=".MainApplication"
@@ -33,6 +33,7 @@
       android:appCategory="game"
       android:allowBackup="false"
       android:hardwareAccelerated="true"
+      android:allowAudioPlaybackCapture="true"
       android:theme="@style/Theme.AppCompat.NoActionBar">
 
       <!-- Game Mode configuration -->
