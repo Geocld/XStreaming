@@ -12,7 +12,7 @@ function AboutZhScreen() {
         </View>
         <View>
           <Text variant="titleMedium">
-            XStreaming是一款开源的Xbox/云游戏串流移动端客户端,你可以使用XStreaming在任何地方连接Xbox主机和游玩xCloud，支持Android/iOS/Windows/MacOS/SteamOS
+            XStreaming是一款开源的Xbox/云游戏串流移动端客户端,你可以使用XStreaming在任何地方连接Xbox主机和游玩xCloud，支持Android/iOS/Windows/MacOS/SteamOS/HarmonyOS
           </Text>
         </View>
       </View>
@@ -31,7 +31,7 @@ function AboutZhScreen() {
           </LinkText>
         </View>
 
-        <View style={{marginTop: 15}}>
+        <View style={styles.mt15}>
           <Text variant="titleMedium">
             桌面端 XStreaming-desktop(Windows/MacOS/SteamOS):
           </Text>
@@ -42,12 +42,24 @@ function AboutZhScreen() {
           </LinkText>
         </View>
 
-        <View style={{marginTop: 15}}>
+        <View style={styles.mt15}>
           <Text variant="titleMedium">iOS(PeaSyo):</Text>
         </View>
         <View>
           <LinkText url={'https://apps.apple.com/us/app/peasyo/id6743263824'}>
             https://apps.apple.com/us/app/peasyo/id6743263824
+          </LinkText>
+        </View>
+
+        <View style={styles.mt15}>
+          <Text variant="titleMedium">鸿蒙:</Text>
+        </View>
+        <View>
+          <LinkText
+            url={
+              'https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh'
+            }>
+            https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh
           </LinkText>
         </View>
       </View>
@@ -97,6 +109,9 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 10,
+  },
+  mt15: {
+    marginTop: 15,
   },
 });
 

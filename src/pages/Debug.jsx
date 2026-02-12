@@ -174,6 +174,14 @@ function DebugScreen({navigation, route}) {
         }}
       />
 
+      {/* <SettingItem
+        title={'Audio track'}
+        description={''}
+        onPress={() => {
+          ScreenAudioRecorder.start();
+        }}
+      /> */}
+
       <View style={styles.analogStick}>
         <AnalogStick
           style={styles.analogStick}
