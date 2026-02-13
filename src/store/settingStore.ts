@@ -22,6 +22,8 @@ export type Settings = {
   audio_bitrate_mode: string;
   audio_bitrate: number | string;
   enable_audio_control: boolean;
+  enable_audio_rumble: boolean;
+  audio_rumble_threshold: number;
   preferred_game_language: string;
   force_region_ip: string;
   signaling_home_name: string;
@@ -83,6 +85,8 @@ const defaultSettings: Settings = {
   audio_bitrate_mode: 'auto',
   audio_bitrate: 20,
   enable_audio_control: false,
+  enable_audio_rumble: false,
+  audio_rumble_threshold: 70,
   preferred_game_language: 'en-US',
   force_region_ip: '',
   signaling_home_name: '',

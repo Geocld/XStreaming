@@ -159,6 +159,12 @@ export default {
     Audio_volume_title: 'Volume Control',
     Audio_volume_desc:
       'If the default maximum volume does not meet your expectations, you can choose to amplify the audio source here (Note: excessive volume may affect your hearing!)',
+    Audio_rumble_title: 'Audio Rumble(Experimental)',
+    Audio_rumble_desc:
+      'Enable this option if you want the controller to vibrate when the audio exceeds a certain threshold(Need switch the rendering engine to WebView, and the gamepad kernel to Web)',
+    Audio_rumble_threshold_title: 'Audio Rumble Threshold',
+    Audio_rumble_threshold_desc:
+      'Combine with audio rumble, the controller will vibrate when the audio exceeds this threshold',
     'NAT failed':
       'NAT failed. If you are attempting remote streaming, please ensure your router is properly configured and port forwarding is set up. If you cannot resolve remote streaming issues, please use the official Xbox app.',
     'Reconnected failed':

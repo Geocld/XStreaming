@@ -623,7 +623,6 @@ class webRTCClient {
       .map(([k, v]) => `${k}=${v}`)
       .join(';');
     opusFMTP.config = newParams;
-    console.log('forceStereoAudio success...');
     return sdpTransform.write(parsedSDP);
   }
 }
