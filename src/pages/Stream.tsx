@@ -196,6 +196,7 @@ function StreamScreen({navigation, route}) {
 
     const stopVibrate = () => {
       GamepadManager.vibrate(10, 0, 0, 0, 0, 3);
+      setIsRumbling(false);
     };
 
     const resetButtonState = () => {
@@ -995,7 +996,7 @@ function StreamScreen({navigation, route}) {
         }
       }
     }
-    if (type === 'audioVibration') {
+    if (type === 'audioVibration' && !isRumbling) {
       GamepadManager.vibrate(30, 10, 0, 0, 0, settings.rumble_intensity || 3);
     }
     if (type === 'performance') {

@@ -19,6 +19,11 @@ import {getServerData} from '../store/serverStore';
 
 globalThis._lastStat = null;
 
+type AudioEnergySnapshot = {
+  totalAudioEnergy: number;
+  totalSamplesReceived: number;
+};
+
 class webRTCClient {
   _webrtcClient: RTCPeerConnection | undefined;
   _iceCandidates: Array<RTCIceCandidate> = [];
@@ -104,13 +109,18 @@ class webRTCClient {
     RightThumbYAxis: 0.0,
   };
   _polling_rate = 62.5;
+  _audioLevel = 0;
+  _audioEnergySnapshot: AudioEnergySnapshot | null = null;
+  _hasAudioLevelSample = false;
 
   constructor() {
     console.log('xstreaming Player loaded!');
+    this._resetAudioLevelTracking();
   }
 
   init() {
     const settings = getSettings();
+    this._resetAudioLevelTracking();
 
     // Use custom STUN/TURN server
     if (
@@ -270,6 +280,7 @@ class webRTCClient {
     if (!this._isResetting) {
       this._isResetting = true;
       this._webrtcClient?.close();
+      this._resetAudioLevelTracking();
 
       for (const name in this._webrtcChannelProcessors) {
         this._webrtcChannelProcessors[name].destroy();
@@ -467,6 +478,30 @@ class webRTCClient {
     this._gpState = gpState;
   }
 
+  getAudioVolume() {
+    return new Promise(resolve => {
+      let volume = 0;
+      if (this._webrtcClient) {
+        this._webrtcClient.getStats().then(stats => {
+          stats.forEach((stat: any) => {
+            if (
+              stat.type === 'inbound-rtp' &&
+              (stat.kind === 'audio' || stat.mediaType === 'audio')
+            ) {
+              const updatedLevel = this._updateAudioLevelFromStat(stat);
+              if (typeof updatedLevel === 'number') {
+                volume = Math.round(updatedLevel * 100);
+              } else if (this._hasAudioLevelSample) {
+                volume = Math.round(this._audioLevel * 100);
+              }
+            }
+          });
+          resolve(volume);
+        });
+      }
+    });
+  }
+
   getStreamState() {
     return new Promise(resove => {
       const performances = {
@@ -482,7 +517,10 @@ class webRTCClient {
       if (this._webrtcClient) {
         this._webrtcClient.getStats().then(stats => {
           stats.forEach((stat: any) => {
-            if (stat.type === 'inbound-rtp' && stat.kind === 'video') {
+            if (
+              stat.type === 'inbound-rtp' &&
+              (stat.kind === 'video' || stat.mediaType === 'video')
+            ) {
               if (stat.frameWidth && stat.frameHeight) {
                 performances.resolution = `${stat.frameWidth} X ${stat.frameHeight}`;
               }
@@ -624,6 +662,82 @@ class webRTCClient {
       .join(';');
     opusFMTP.config = newParams;
     return sdpTransform.write(parsedSDP);
+  }
+
+  _resetAudioLevelTracking() {
+    this._audioEnergySnapshot = null;
+    this._audioLevel = 0;
+    this._hasAudioLevelSample = false;
+  }
+
+  _updateAudioLevelFromStat(stat: any) {
+    let newLevel: number | undefined;
+    if (typeof stat.audioLevel === 'number') {
+      newLevel = this._clampAudioLevel(stat.audioLevel);
+    } else if (
+      typeof stat.totalAudioEnergy === 'number' &&
+      typeof stat.totalSamplesReceived === 'number'
+    ) {
+      const previousSample = this._audioEnergySnapshot;
+      const nextSample: AudioEnergySnapshot = {
+        totalAudioEnergy: stat.totalAudioEnergy,
+        totalSamplesReceived: stat.totalSamplesReceived,
+      };
+      if (
+        previousSample &&
+        nextSample.totalSamplesReceived > previousSample.totalSamplesReceived
+      ) {
+        const energyDiff =
+          nextSample.totalAudioEnergy - previousSample.totalAudioEnergy;
+        const samplesDiff =
+          nextSample.totalSamplesReceived - previousSample.totalSamplesReceived;
+        if (samplesDiff > 0 && energyDiff >= 0) {
+          const energyPerSample = energyDiff / samplesDiff;
+          newLevel = this._clampAudioLevel(Math.sqrt(energyPerSample));
+        }
+      }
+      this._audioEnergySnapshot = nextSample;
+    }
+
+    if (typeof newLevel === 'number') {
+      this._audioLevel = newLevel;
+      this._hasAudioLevelSample = true;
+    }
+
+    return newLevel;
+  }
+
+  _clampAudioLevel(value: number) {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+    if (value < 0) {
+      return 0;
+    }
+    if (value > 1) {
+      return 1;
+    }
+    return value;
+  }
+
+  async sampleAudioLevel() {
+    if (!this._webrtcClient) {
+      return 0;
+    }
+    const stats = await this._webrtcClient.getStats();
+    stats.forEach((stat: any) => {
+      if (
+        stat.type === 'inbound-rtp' &&
+        (stat.kind === 'audio' || stat.mediaType === 'audio')
+      ) {
+        this._updateAudioLevelFromStat(stat);
+      }
+    });
+    return this._audioLevel;
+  }
+
+  getAudioLevel() {
+    return this._audioLevel;
   }
 }
 

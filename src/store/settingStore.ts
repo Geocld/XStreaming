@@ -86,7 +86,7 @@ const defaultSettings: Settings = {
   audio_bitrate: 20,
   enable_audio_control: false,
   enable_audio_rumble: false,
-  audio_rumble_threshold: 70,
+  audio_rumble_threshold: 20,
   preferred_game_language: 'en-US',
   force_region_ip: '',
   signaling_home_name: '',

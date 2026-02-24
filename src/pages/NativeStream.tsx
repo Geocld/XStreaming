@@ -109,6 +109,7 @@ function NativeStreamScreen({navigation, route}) {
   // const [openMicro, setOpenMicro] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
+  const isRumbling = React.useRef(false);
 
   // webrtc
   const [webrtcClient, setWebrtcClient] = React.useState<any>(undefined);
@@ -127,6 +128,7 @@ function NativeStreamScreen({navigation, route}) {
   const isRightstickMoving = React.useRef(false);
   const timer = React.useRef<any>(undefined);
   const frameTimer = React.useRef<any>(undefined);
+  const audioRumbleTimer = React.useRef<any>(undefined);
   const isRequestExit = React.useRef(false);
   const isConnected = React.useRef(false);
 
@@ -189,6 +191,7 @@ function NativeStreamScreen({navigation, route}) {
 
     const stopVibrate = () => {
       GamepadManager.vibrate(10, 0, 0, 0, 0, 3);
+      isRumbling.current = false;
     };
 
     const resetButtonState = () => {
@@ -723,6 +726,23 @@ function NativeStreamScreen({navigation, route}) {
               });
             }, 1000);
           }
+
+          if (!audioRumbleTimer.current && _settings.enable_audio_rumble) {
+            audioRumbleTimer.current = setInterval(() => {
+              webrtcClient.getAudioVolume().then(vol => {
+                if (vol >= _settings.audio_rumble_threshold) {
+                  GamepadManager.vibrate(
+                    30,
+                    10,
+                    0,
+                    0,
+                    0,
+                    _settings.rumble_intensity || 3,
+                  );
+                }
+              });
+            }, 16);
+          }
         } else if (state === CLOSED) {
           if (isRequestExit.current) {
             return;
@@ -845,6 +865,7 @@ function NativeStreamScreen({navigation, route}) {
           if (strongMagnitude > 100) {
             strongMagnitude = 100;
           }
+          isRumbling.current = true;
           GamepadManager.vibrate(
             10000,
             weakMagnitude,
@@ -856,6 +877,7 @@ function NativeStreamScreen({navigation, route}) {
 
           if (rumbleData.duration < 20) {
             setTimeout(() => {
+              isRumbling.current = false;
               GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
             }, 300);
           }
@@ -1144,6 +1166,10 @@ function NativeStreamScreen({navigation, route}) {
       if (performanceInterval.current) {
         clearInterval(performanceInterval.current);
         performanceInterval.current = null;
+      }
+      if (audioRumbleTimer.current) {
+        clearInterval(audioRumbleTimer.current);
+        audioRumbleTimer.current = null;
       }
       GamepadManager.setCurrentScreen('');
       SensorModule.stopSensor();
