@@ -6,7 +6,7 @@ import {useTranslation} from 'react-i18next';
 
 type Props = {
   value: any;
-  onChange: (value: any) => {};
+  onChange: (value: any) => any;
 };
 
 const Audio: React.FC<Props> = ({value, onChange}) => {

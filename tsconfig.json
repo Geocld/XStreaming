@@ -1,3 +1,8 @@
 {
-  "extends": "@tsconfig/react-native/tsconfig.json"
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "compilerOptions": {
+    "useUnknownInCatchVariables": false,
+    "noImplicitAny": false
+  },
+  "exclude": ["node_modules", "src/mock/data.js"]
 }

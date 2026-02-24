@@ -6,7 +6,7 @@ import {getSettings} from '../store/settingStore';
 
 type Props = {
   title: string;
-  description: string;
+  description?: string;
   onPress: () => void;
 };
 
@@ -28,7 +28,7 @@ const SettingItem: React.FC<Props> = ({title, description, onPress}) => {
         title={title}
         description={description}
         descriptionNumberOfLines={4}
-        right={props => (
+        right={() => (
           <Ionicons
             name={'chevron-forward-outline'}
             size={20}

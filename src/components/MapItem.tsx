@@ -10,7 +10,7 @@ const arrow =
 
 type Props = {
   mapItem: any;
-  onPress: (titleItem: any) => {};
+  onPress: (titleItem: any) => any;
 };
 
 const MapItem: React.FC<Props> = ({mapItem, onPress}) => {

@@ -5,10 +5,10 @@ import {Wander} from 'react-native-animated-spinkit';
 
 type Props = {
   loading: boolean;
-  cancelable: boolean;
-  text: string;
-  closeCb: any;
-  onChange: (value: any) => {};
+  cancelable?: boolean;
+  text?: string;
+  closeCb?: () => void;
+  onChange?: (value: any) => void;
 };
 
 const COLOR = '#107C10';
@@ -16,7 +16,7 @@ const COLOR = '#107C10';
 const Loading: React.FC<Props> = ({
   loading,
   cancelable = false,
-  text,
+  text = '',
   closeCb,
 }) => {
   return (

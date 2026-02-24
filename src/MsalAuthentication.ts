@@ -28,10 +28,8 @@ export default class MsalAuthentication {
       );
       if (this._tokenStore.hasValidAuthTokens()) {
         // Deprecate xal token.
-        if (
-          this._tokenStore.getUserToken() !== undefined &&
-          this._tokenStore.getUserToken().data.scope !== 'XboxLive.signin'
-        ) {
+        const existingToken = this._tokenStore.getUserToken();
+        if (existingToken && existingToken.data.scope !== 'XboxLive.signin') {
           log.info(
             '[checkAuthentication()] Deprecating old XAL token scope. Starting auth flow to get new tokens.',
           );

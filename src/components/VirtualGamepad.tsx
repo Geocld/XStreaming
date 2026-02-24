@@ -6,9 +6,9 @@ import {getSettings} from '../store/settingStore';
 
 type Props = {
   opacity: number;
-  onPressIn: (name: string) => {};
-  onPressOut: (name: string) => {};
-  onStickMove: (id: string, position: any) => {};
+  onPressIn: (name: string) => any;
+  onPressOut: (name: string) => any;
+  onStickMove: (id: string, position: any) => any;
 };
 
 const VirtualGamepad: React.FC<Props> = ({

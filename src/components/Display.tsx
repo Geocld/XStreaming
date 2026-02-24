@@ -6,7 +6,7 @@ import {useTranslation} from 'react-i18next';
 
 type Props = {
   options: any;
-  onChange: (value: any) => {};
+  onChange: (value: any) => any;
 };
 const defaultValue = {
   sharpness: 5,

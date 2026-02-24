@@ -7,16 +7,8 @@ import RNRestart from 'react-native-restart';
 import LinkText from '../components/LinkText';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-type MsalData = {
-  user_code: string;
-  device_code: string;
-  verification_uri: string;
-  expires_in: number;
-  interval: number;
-};
-
 type Props = {
-  data: MsalData;
+  data: any;
 };
 
 const formatSeconds = (seconds: number) => {
@@ -68,7 +60,9 @@ const MsalAuth: React.FC<Props> = ({data}) => {
 
       {countdown > 0 ? (
         <View>
-          <Text variant="labelSmall">{formatSeconds(countdown)}</Text>
+          <Text variant="labelSmall" style={styles.center}>
+            {formatSeconds(countdown)}
+          </Text>
           <Button
             style={styles.mt10}
             mode="outlined"
