@@ -1106,12 +1106,12 @@ function NativeStreamScreen({navigation, route}) {
                 msg =
                   `[StartSession](${
                     route.params?.streamType === 'cloud' ? 'Cloud' : 'Home'
-                  }) Fail:` + error;
+                  }) - (${route.params?.sessionId}) Fail:` + error;
               } else {
                 msg =
                   `[StartSession](${
                     route.params?.streamType === 'cloud' ? 'Cloud' : 'Home'
-                  }) Fail:` + e;
+                  }) - (${route.params?.sessionId}) Fail:` + e;
               }
             }
             Alert.alert(t('Warning'), msg, [
