@@ -1,6 +1,8 @@
 import Msal from './xal/msal';
 import TokenStore from './xal/tokenstore';
 import {debugFactory} from './utils/debug';
+import {clearStreamToken} from './store/streamTokenStore';
+import {clearWebToken} from './store/webTokenStore';
 
 const log = debugFactory('MsalAuthentication.ts');
 
@@ -80,15 +82,23 @@ export default class MsalAuthentication {
           })
           .catch(error => {
             log.info('[getTokens()] Failed to retrieve web tokens:' + error);
+            clearStreamToken();
+            clearWebToken();
+            this._tokenStore.clear();
             this._authenticationFailed(
-              '[getTokens()] Failed to retrieve web token:' + error.message,
+              '[MSAL getTokens()] Failed to retrieve web token:' +
+                error.message,
             );
           });
       })
       .catch(err => {
         log.info('[getTokens()] Failed to retrieve streaming tokens:' + err);
+        clearStreamToken();
+        clearWebToken();
+        this._tokenStore.clear();
         this._authenticationFailed(
-          '[getTokens()] Failed to retrieve streaming tokens:' + err.message,
+          '[MSAL getTokens()] Failed to retrieve streaming tokens:' +
+            err.message,
         );
       });
   }
@@ -132,8 +142,11 @@ export default class MsalAuthentication {
           '[doPollForDeviceCodeAuth()] Error during devicecode polling auth:' +
             error.message,
         );
+        clearStreamToken();
+        clearWebToken();
+        this._tokenStore.clear();
         this._authenticationFailed(
-          '[doPollForDeviceCodeAuth()] Failed to retrieve device code token:' +
+          '[MSAL doPollForDeviceCodeAuth()] Failed to retrieve device code token:' +
             error.message,
         );
       });
