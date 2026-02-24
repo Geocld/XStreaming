@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.InputDevice;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import android.view.View;
 import android.content.ComponentName;
@@ -28,6 +29,9 @@ import android.view.WindowManager;
 import com.xstreaming.input.UsbDriverService;
 import com.xstreaming.input.ControllerHandler;
 import com.xstreaming.utils.Vector2d;
+
+import java.util.ArrayList;
+import java.util.List;
 
 class Dpad {
   final static int UP       = 19;
@@ -113,15 +117,30 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     return "xstreaming";
   }
 
-  private void handleSendDpadDownEvent(int keyCode) {
+  private void handleSendDpadDownEvent(List<Integer> keyCodes) {
     WritableMap params = Arguments.createMap();
-    params.putInt("dpadIdx", keyCode);
+    WritableArray dpadList = Arguments.createArray();
+    for (Integer code : keyCodes) {
+      dpadList.pushInt(code);
+    }
+
+    int primaryCode = keyCodes.isEmpty() ? -1 : keyCodes.get(0);
+    params.putInt("dpadIdx", primaryCode);
+    params.putArray("dpadIdxList", dpadList);
     sendEvent("onDpadKeyDown", params);
+  }
+
+  private void handleSendDpadDownEvent(int keyCode) {
+    List<Integer> keyCodes = new ArrayList<>();
+    keyCodes.add(keyCode);
+    handleSendDpadDownEvent(keyCodes);
   }
 
   private void handleSendDpadUpEvent() {
     WritableMap params = Arguments.createMap();
+    WritableArray dpadList = Arguments.createArray();
     params.putInt("dpadIdx", -1);
+    params.putArray("dpadIdxList", dpadList);
     sendEvent("onDpadKeyUp", params);
   }
 
@@ -275,18 +294,29 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     }
 
     // DPAD
-    Dpad dpad = new Dpad();
-    if (Dpad.isDpadDevice(event)) {
-      int dpadIdx = dpad.getDirectionPressed(event);
-      if (dpadIdx != -1) {
-        Log.d("MainActivity1", "DPAD press:" + dpadIdx);
-        WritableMap params = Arguments.createMap();
-        params.putInt("dpadIdx", dpadIdx);
-        sendEvent("onDpadKeyDown", params);
+    if (Dpad.isDpadDevice(event) && event instanceof MotionEvent) {
+      MotionEvent motionEvent = (MotionEvent) event;
+      float xaxis = motionEvent.getAxisValue(MotionEvent.AXIS_HAT_X);
+      float yaxis = motionEvent.getAxisValue(MotionEvent.AXIS_HAT_Y);
+      List<Integer> pressedDirections = new ArrayList<>();
+
+      if (Float.compare(xaxis, -1.0f) == 0) {
+        pressedDirections.add(KeyEvent.KEYCODE_DPAD_LEFT);
+      } else if (Float.compare(xaxis, 1.0f) == 0) {
+        pressedDirections.add(KeyEvent.KEYCODE_DPAD_RIGHT);
+      }
+
+      if (Float.compare(yaxis, -1.0f) == 0) {
+        pressedDirections.add(KeyEvent.KEYCODE_DPAD_UP);
+      } else if (Float.compare(yaxis, 1.0f) == 0) {
+        pressedDirections.add(KeyEvent.KEYCODE_DPAD_DOWN);
+      }
+
+      if (!pressedDirections.isEmpty()) {
+        Log.d("MainActivity1", "DPAD press:" + pressedDirections);
+        handleSendDpadDownEvent(pressedDirections);
       } else {
-        WritableMap params = Arguments.createMap();
-        params.putInt("dpadIdx", -1);
-        sendEvent("onDpadKeyUp", params);
+        handleSendDpadUpEvent();
       }
     }
 

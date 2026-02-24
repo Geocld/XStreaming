@@ -338,22 +338,35 @@ function NativeStreamScreen({navigation, route}) {
         },
       );
 
+      const syncDpadState = pressedKeys => {
+        const activeKeys = new Set(pressedKeys ?? []);
+        const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
+        ['DPadUp', 'DPadDown', 'DPadLeft', 'DPadRight'].forEach(direction => {
+          const keyCode = _gpMaping[direction];
+          const keyName = gpMaping[keyCode];
+          if (!keyName) {
+            return;
+          }
+          gpState[keyName] = activeKeys.has(keyCode) ? 1 : 0;
+        });
+      };
+
       dpDownEventListener.current = eventEmitter.addListener(
         'onDpadKeyDown',
         event => {
-          const keyCode = event.dpadIdx;
-          gpState[gpMaping[keyCode]] = 1;
+          const pressedKeys = Array.isArray(event.dpadIdxList)
+            ? event.dpadIdxList
+            : event.dpadIdx >= 0
+            ? [event.dpadIdx]
+            : [];
+          syncDpadState(pressedKeys);
         },
       );
 
       dpUpEventListener.current = eventEmitter.addListener(
         'onDpadKeyUp',
-        event => {
-          const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
-          gpState[gpMaping[_gpMaping.DPadUp]] = 0;
-          gpState[gpMaping[_gpMaping.DPadDown]] = 0;
-          gpState[gpMaping[_gpMaping.DPadLeft]] = 0;
-          gpState[gpMaping[_gpMaping.DPadRight]] = 0;
+        () => {
+          syncDpadState([]);
         },
       );
 

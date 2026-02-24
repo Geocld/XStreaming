@@ -47,11 +47,6 @@
         android:name=".input.UsbDriverService"
         android:label="Usb Driver Service" />
 
-<!--      <service-->
-<!--        android:name=".ScreenAudioRecorderService"-->
-<!--        android:foregroundServiceType="mediaProjection"-->
-<!--        android:label="audio rumble" />-->
-
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
