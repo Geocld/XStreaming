@@ -24,6 +24,13 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 
 > XStreaming代码是完全开源的，你可以直接从源码构建自己的iOS版本，只需在`ios`分支获取代码即可编译。
 
+## 鸿蒙
+`XStreaming` 已上架华为App Gallery，支持HarmonyOS 5及以上系统，你现在就可以免费下载!
+
+<a href="https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh" target="_blank">
+    <img alt="Explore on App Gallery" src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/Huawei_AppGallery.png" style="height: 64px">
+</a>
+
 ## Windows/MacOS/Linux(steamOS)
 
 如果你在找 Windows/MacOS/Linux(steamOS) 平台的xbox串流应用, 请使用 [XStreaming-desktop](https://github.com/Geocld/XStreaming-desktop) 或 [Greenlight](https://github.com/unknownskl/greenlight).

@@ -26,6 +26,14 @@ XStreaming is an open-source mobile client for xCloud and Xbox home streaming, g
 
 > XStreaming's code is fully open-source. You can build your own iOS version directly from the source code—simply fetch the code from the `ios` branch and compile it.
 
+## HarmonyOS
+`XStreaming` is now available on the HUAWEI App Gallery!
+
+<a href="https://appgallery.huawei.com/app/detail?id=com.lijiahao.xstreamingoh" target="_blank">
+    <img alt="Explore on App Gallery" src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/Huawei_AppGallery.png" style="height: 64px">
+</a>
+
+
 ## Windows/MacOS/Linux(steamOS)
 
 If you are looking for Windows/MacOS/Linux(steamOS) Xbox streaming application, you can use [XStreaming-desktop](https://github.com/Geocld/XStreaming-desktop) or [Greenlight](https://github.com/unknownskl/greenlight).
