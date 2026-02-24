@@ -21,7 +21,7 @@ export default {
       '登錄成功，正在刷新登錄憑證...',
     'Checking login status...': '正在檢查登錄...',
     MsalAuthTip:
-      '掃描二維碼或點擊連接跳轉到瀏覽器，在限定時間內輸入下方授權碼登錄',
+      '掃描二維碼或點擊連接跳轉到瀏覽器，在限定時間內輸入下方授權碼登錄，完成授權後點擊下方完成按鈕',
     MsalAuthTimeout: '授權碼已過期，請刷新',
     Copied: '已複製',
     Warning: '提示',
@@ -349,5 +349,6 @@ export default {
     'FSR started': 'FSR已啟動',
     useMsalLoginTitle: '授權碼登錄',
     useMsalLoginDesc: '強制使用授權碼登錄，無法正常登錄時請嘗試開啟此選項',
+    Completed: '完成',
   },
 };

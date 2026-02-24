@@ -21,7 +21,7 @@ export default {
       '登录成功，正在刷新登录凭证...',
     'Checking login status...': '正在检查登录...',
     MsalAuthTip:
-      '扫描二维码或点击连接跳转到浏览器，在限定时间内输入下方授权码登录',
+      '扫描二维码或点击连接跳转到浏览器，在限定时间内输入下方授权码登录，完成授权后点击下方完成按钮',
     MsalAuthTimeout: '授权码已过期，请刷新',
     Copied: '已复制',
     NoConsoles:
@@ -383,5 +383,6 @@ export default {
     'FSR started': 'FSR已启动',
     useMsalLoginTitle: '授权码登录',
     useMsalLoginDesc: '强制使用授权码登录，无法正常登录时请尝试开启此选项',
+    Completed: '完成',
   },
 };

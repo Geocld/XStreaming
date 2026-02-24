@@ -12,7 +12,7 @@ export default {
       'The login was successful, refreshing login credentials...',
     'Checking login status...': 'Checking login status...',
     MsalAuthTip:
-      'Scan the QR code or click the link to open the browser, and enter the authorization code below to log in within the specified time',
+      'Scan the QR code or click the link to open the browser, and enter the authorization code below to log in within the specified time, after completing the authorization, click the complete button below',
     MsalAuthTimeout: 'The authorization code has expired, please refresh',
     Copied: 'Copied',
     Warning: 'Warning',

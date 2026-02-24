@@ -28,6 +28,7 @@ const formatSeconds = (seconds: number) => {
 const MsalAuth: React.FC<Props> = ({data}) => {
   const {t} = useTranslation();
   const [countdown, setCountdown] = React.useState(data.expires_in);
+  const [msalBtnLoading, setMsalBtnLoading] = React.useState(false);
 
   React.useEffect(() => {
     if (countdown <= 0) {
@@ -66,7 +67,16 @@ const MsalAuth: React.FC<Props> = ({data}) => {
       )}
 
       {countdown > 0 ? (
-        <Text variant="labelSmall">{formatSeconds(countdown)}</Text>
+        <View>
+          <Text variant="labelSmall">{formatSeconds(countdown)}</Text>
+          <Button
+            style={styles.mt10}
+            mode="outlined"
+            loading={msalBtnLoading}
+            onPress={() => setMsalBtnLoading(true)}>
+            &nbsp;{t('Completed')}&nbsp;
+          </Button>
+        </View>
       ) : (
         <View>
           <Text variant="labelSmall" style={styles.red}>
