@@ -275,7 +275,7 @@ export default {
       '如果預設音量最大值達不到預期，可以在此處選擇放大音源（注意過大的音量會影響聽力！）',
     Audio_rumble_title: '音频振动(实验性)',
     Audio_rumble_desc:
-      '开启后控制器会在音频超过某个阈值时振动(需将渲染引擎切换为Webview, 手柄内核切换为Web)',
+      '开启后控制器会在音频超过某个阈值时振动(需将渲染引擎切换为Webview)',
     Audio_rumble_threshold_title: '音频振动阈值',
     Audio_rumble_threshold_desc: '配合音频振动使用，超过该阈值时控制器会振动',
     'Short Trigger': '短扳機',

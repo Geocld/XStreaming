@@ -110,6 +110,7 @@ function StreamScreen({navigation, route}) {
   const [messageSending, setMessageSending] = React.useState(false);
   const [volume, setVolume] = React.useState(1);
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
+  const [isRumbling, setIsRumbling] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   // const [openMicro, setOpenMicro] = React.useState(false);
@@ -976,6 +977,7 @@ function StreamScreen({navigation, route}) {
         if (strongMagnitude > 100) {
           strongMagnitude = 100;
         }
+        setIsRumbling(true);
         GamepadManager.vibrate(
           10000,
           weakMagnitude,
@@ -987,10 +989,14 @@ function StreamScreen({navigation, route}) {
 
         if (rumbleData.duration < 20) {
           setTimeout(() => {
+            setIsRumbling(false);
             GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
           }, 300);
         }
       }
+    }
+    if (type === 'audioVibration') {
+      GamepadManager.vibrate(30, 10, 0, 0, 0, settings.rumble_intensity || 3);
     }
     if (type === 'performance') {
       const oldPerf = performance;

@@ -161,7 +161,7 @@ export default {
       'If the default maximum volume does not meet your expectations, you can choose to amplify the audio source here (Note: excessive volume may affect your hearing!)',
     Audio_rumble_title: 'Audio Rumble(Experimental)',
     Audio_rumble_desc:
-      'Enable this option if you want the controller to vibrate when the audio exceeds a certain threshold(Need switch the rendering engine to WebView, and the gamepad kernel to Web)',
+      'Enable this option if you want the controller to vibrate when the audio exceeds a certain threshold(Need switch the rendering engine to WebView)',
     Audio_rumble_threshold_title: 'Audio Rumble Threshold',
     Audio_rumble_threshold_desc:
       'Combine with audio rumble, the controller will vibrate when the audio exceeds this threshold',
