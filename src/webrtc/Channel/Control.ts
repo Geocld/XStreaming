@@ -10,6 +10,11 @@ export default class ControlChannel extends BaseChannel {
   }
 
   start() {
+    if (this._keyframeInterval) {
+      clearInterval(this._keyframeInterval);
+      this._keyframeInterval = null;
+    }
+
     const authRequest = JSON.stringify({
       message: 'authorizationRequest',
       accessKey: '4BDB3609-C1F1-4195-9B37-FEFF45DA8B8E',
@@ -67,5 +72,14 @@ export default class ControlChannel extends BaseChannel {
   onClose(event: any) {
     super.onClose(event);
     clearInterval(this._keyframeInterval);
+    this._keyframeInterval = null;
+  }
+
+  destroy() {
+    if (this._keyframeInterval) {
+      clearInterval(this._keyframeInterval);
+      this._keyframeInterval = null;
+    }
+    super.destroy();
   }
 }
