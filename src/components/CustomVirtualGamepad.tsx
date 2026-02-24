@@ -11,6 +11,7 @@ type Props = {
   onPressIn: (name: string) => any;
   onPressOut: (name: string) => any;
   onStickMove: (id: string, position: any) => any;
+  refreshKey?: number;
 };
 
 const CustomVirtualGamepad: React.FC<Props> = ({
@@ -19,6 +20,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
   onPressIn,
   onPressOut,
   onStickMove,
+  refreshKey = 0,
 }) => {
   const [buttons, setButtons] = React.useState<any>([]);
   const localSettings = getLocalSettings();
@@ -168,7 +170,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     } else {
       setButtons(_buttons);
     }
-  }, [title]);
+  }, [title, refreshKey]);
 
   const handlePressIn = (name: string) => {
     onPressIn && onPressIn(name);

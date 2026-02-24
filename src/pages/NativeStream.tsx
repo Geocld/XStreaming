@@ -25,7 +25,8 @@ import Spinner from '../components/Spinner';
 import {useSelector} from 'react-redux';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
-import {getSettings} from '../store/settingStore';
+import {getSettings, saveSettings} from '../store/settingStore';
+import {saveSettings as saveGamepadLayout} from '../store/gamepadStore';
 import {useTranslation} from 'react-i18next';
 import webRTCClient from '../webrtc';
 import {debugFactory} from '../utils/debug';
@@ -33,6 +34,9 @@ import {GAMEPAD_MAPING} from '../common';
 import {XBOX_360_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
+import VirtualGamepadEditor, {
+  ButtonConfig,
+} from '../components/VirtualGamepadEditor';
 import PerfPanel from '../components/PerfPanel';
 
 const log = debugFactory('NativeStreamScreen');
@@ -41,6 +45,7 @@ const CONNECTED = 'connected';
 const CLOSED = 'closed';
 const FAILED = 'failed';
 const DUALSENSE = 'DualSenseController';
+const LIVE_GAMEPAD_PROFILE = 'LiveLayout';
 
 const {
   FullScreenManager,
@@ -98,6 +103,9 @@ function NativeStreamScreen({navigation, route}) {
   const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
+  const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
+  const [editorProfile, setEditorProfile] = React.useState('');
+  const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   // const [openMicro, setOpenMicro] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
@@ -1288,6 +1296,28 @@ function NativeStreamScreen({navigation, route}) {
   //   handleCloseModal();
   // };
 
+  const getActiveProfileName = React.useCallback(() => {
+    return settings.custom_virtual_gamepad || LIVE_GAMEPAD_PROFILE;
+  }, [settings.custom_virtual_gamepad]);
+
+  const handleOpenGamepadEditor = () => {
+    setEditorProfile(getActiveProfileName());
+    setShowGamepadEditor(true);
+  };
+
+  const handleSaveGamepadLayout = (layout: ButtonConfig[]) => {
+    const profileName = editorProfile || getActiveProfileName();
+    saveGamepadLayout(profileName, layout);
+    if (!settings.custom_virtual_gamepad) {
+      settings.custom_virtual_gamepad = profileName;
+    }
+    saveSettings(settings);
+    setSettings({...settings});
+    setGamepadLayoutVersion(prev => prev + 1);
+    setShowVirtualGamepad(true);
+    setShowGamepadEditor(false);
+  };
+
   const renderVirtualGamepad = () => {
     if (!showVirtualGamepad) {
       return null;
@@ -1301,6 +1331,7 @@ function NativeStreamScreen({navigation, route}) {
           onPressIn={handleButtonPressIn}
           onPressOut={handleButtonPressOut}
           onStickMove={handleStickMove}
+          refreshKey={gamepadLayoutVersion}
         />
       );
     } else {
@@ -1350,6 +1381,17 @@ function NativeStreamScreen({navigation, route}) {
                       onPress={() => {
                         setShowVirtualGamepad(!showVirtualGamepad);
                         handleCloseModal();
+                      }}
+                    />
+                  )}
+
+                  {connectState === CONNECTED && showVirtualGamepad && (
+                    <List.Item
+                      title={t('Customize buttons of virtual gamepad')}
+                      background={background}
+                      onPress={() => {
+                        handleCloseModal();
+                        handleOpenGamepadEditor();
                       }}
                     />
                   )}
@@ -1519,6 +1561,13 @@ function NativeStreamScreen({navigation, route}) {
       {renderPerformancePanel()}
 
       {renderVirtualGamepad()}
+
+      <VirtualGamepadEditor
+        visible={showGamepadEditor}
+        profileName={editorProfile || getActiveProfileName()}
+        onSave={handleSaveGamepadLayout}
+        onCancel={() => setShowGamepadEditor(false)}
+      />
 
       {renderOptionsModal()}
 

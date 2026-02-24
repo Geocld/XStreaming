@@ -66,6 +66,6 @@ export default class ControlChannel extends BaseChannel {
 
   onClose(event: any) {
     super.onClose(event);
-    this._keyframeInterval && clearInterval(this._keyframeInterval);
+    clearInterval(this._keyframeInterval);
   }
 }

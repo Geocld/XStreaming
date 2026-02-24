@@ -26,6 +26,7 @@ import RNRestart from 'react-native-restart';
 import XcloudApi from '../xCloud';
 import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {saveSettings as saveGamepadLayout} from '../store/gamepadStore';
 import {getServerData} from '../store/serverStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
@@ -34,6 +35,9 @@ import WebApi from '../web';
 import {XBOX_360_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
+import VirtualGamepadEditor, {
+  ButtonConfig,
+} from '../components/VirtualGamepadEditor';
 import PerfPanel from '../components/PerfPanel';
 import Display from '../components/Display';
 import FSRDisplay from '../components/FSRDisplay';
@@ -43,6 +47,7 @@ const log = debugFactory('StreamScreen');
 
 const CONNECTED = 'connected';
 const DUALSENSE = 'DualSenseController';
+const LIVE_GAMEPAD_PROFILE = 'LiveLayout';
 
 const {
   FullScreenManager,
@@ -104,6 +109,9 @@ function StreamScreen({navigation, route}) {
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
   const [volume, setVolume] = React.useState(1);
+  const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
+  const [editorProfile, setEditorProfile] = React.useState('');
+  const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   // const [openMicro, setOpenMicro] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
@@ -1173,6 +1181,28 @@ function StreamScreen({navigation, route}) {
     setVolume(value);
   }, []);
 
+  const getActiveProfileName = React.useCallback(() => {
+    return settings.custom_virtual_gamepad || LIVE_GAMEPAD_PROFILE;
+  }, [settings.custom_virtual_gamepad]);
+
+  const handleOpenGamepadEditor = () => {
+    setEditorProfile(getActiveProfileName());
+    setShowGamepadEditor(true);
+  };
+
+  const handleSaveGamepadLayout = (layout: ButtonConfig[]) => {
+    const profileName = editorProfile || getActiveProfileName();
+    saveGamepadLayout(profileName, layout);
+    if (!settings.custom_virtual_gamepad) {
+      settings.custom_virtual_gamepad = profileName;
+    }
+    saveSettings(settings);
+    setSettings({...settings});
+    setGamepadLayoutVersion(prev => prev + 1);
+    setShowVirtualGamepad(true);
+    setShowGamepadEditor(false);
+  };
+
   const renderVirtualGamepad = () => {
     if (!showVirtualGamepad) {
       return null;
@@ -1186,6 +1216,7 @@ function StreamScreen({navigation, route}) {
           onPressIn={handleButtonPressIn}
           onPressOut={handleButtonPressOut}
           onStickMove={handleStickMove}
+          refreshKey={gamepadLayoutVersion}
         />
       );
     } else {
@@ -1207,6 +1238,13 @@ function StreamScreen({navigation, route}) {
       )}
 
       {renderVirtualGamepad()}
+
+      <VirtualGamepadEditor
+        visible={showGamepadEditor}
+        profileName={editorProfile || getActiveProfileName()}
+        onSave={handleSaveGamepadLayout}
+        onCancel={() => setShowGamepadEditor(false)}
+      />
 
       <Portal>
         <Modal
@@ -1323,6 +1361,19 @@ function StreamScreen({navigation, route}) {
                         onPress={() => {
                           requestVirtualGamepad();
                           handleCloseModal();
+                        }}
+                      />
+                    )}
+
+                  {connectState === CONNECTED &&
+                    settings.gamepad_kernal === 'Native' &&
+                    showVirtualGamepad && (
+                      <List.Item
+                        title={t('Customize buttons of virtual gamepad')}
+                        background={background}
+                        onPress={() => {
+                          handleCloseModal();
+                          handleOpenGamepadEditor();
                         }}
                       />
                     )}
