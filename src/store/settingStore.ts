@@ -70,6 +70,7 @@ export type Settings = {
   theme: string;
   show_menu: boolean;
   fsr: boolean;
+  coop: boolean;
   use_msal_login: boolean;
   debug: boolean;
 };
@@ -143,6 +144,7 @@ const defaultSettings: Settings = {
   theme: 'dark',
   show_menu: false,
   fsr: false,
+  coop: false,
   use_msal_login: false,
   debug: false,
 };

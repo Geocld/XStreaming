@@ -129,6 +129,7 @@ function StreamScreen({navigation, route}) {
 
   const usbGpEventListener = React.useRef<any>(undefined);
   const sensorEventListener = React.useRef<any>(undefined);
+  const isConnected = React.useRef(false);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
@@ -1031,7 +1032,16 @@ function StreamScreen({navigation, route}) {
       }
       setConnectState(message);
       if (message === CONNECTED) {
-        ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
+        if (!isConnected.current) {
+          ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
+
+          if (settings.coop) {
+            setTimeout(() => {
+              ToastAndroid.show(t('CoopTips'), ToastAndroid.SHORT);
+            }, 3000);
+          }
+        }
+        isConnected.current = true;
       }
       // Alway show virtual gamepad
       if (message === CONNECTED && settings.show_virtual_gamead) {
@@ -1238,6 +1248,10 @@ function StreamScreen({navigation, route}) {
     }
   };
 
+  if (settings.coop) {
+    settings.gamepad_kernal = 'Web';
+  }
+
   return (
     <>
       {showPerformance && settings.gamepad_kernal === 'Native' && (
@@ -1435,10 +1449,14 @@ function StreamScreen({navigation, route}) {
                       title={t('Press Nexus')}
                       background={background}
                       onPress={() => {
-                        gpState.Nexus = 1;
-                        setTimeout(() => {
-                          gpState.Nexus = 0;
-                        }, 120);
+                        if (settings.gamepad_kernal === 'Native') {
+                          gpState.Nexus = 1;
+                          setTimeout(() => {
+                            gpState.Nexus = 0;
+                          }, 120);
+                        } else {
+                          postData2Webview('pressNexus', {});
+                        }
                         handleCloseModal();
                       }}
                     />
@@ -1449,10 +1467,14 @@ function StreamScreen({navigation, route}) {
                         title={t('Long press Nexus')}
                         background={background}
                         onPress={() => {
-                          gpState.Nexus = 1;
-                          setTimeout(() => {
-                            gpState.Nexus = 0;
-                          }, 1000);
+                          if (settings.gamepad_kernal === 'Native') {
+                            gpState.Nexus = 1;
+                            setTimeout(() => {
+                              gpState.Nexus = 0;
+                            }, 1000);
+                          } else {
+                            postData2Webview('longPressNexus', {});
+                          }
                           handleCloseModal();
                         }}
                       />

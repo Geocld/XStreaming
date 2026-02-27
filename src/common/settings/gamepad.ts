@@ -11,6 +11,16 @@ const gamepad = [
     data: [],
   },
   {
+    name: 'coop',
+    type: 'radio',
+    title: t('coop_title'),
+    description: t('coop_desc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
     name: 'gamepad_kernal',
     type: 'radio',
     title: t('Gamepad kernal'),

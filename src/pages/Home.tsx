@@ -476,6 +476,11 @@ function HomeScreen({navigation, route}) {
       routeName = 'NativeStream';
     }
 
+    // Co-op user force to webview engine
+    if (settings.coop) {
+      routeName = 'Stream';
+    }
+
     navigation.navigate({
       name: routeName,
       params: {
