@@ -1277,7 +1277,7 @@ function NativeStreamScreen({navigation, route}) {
       leveledX = leveledX.toFixed(2);
     }
     if (typeof leveledY === 'number') {
-      leveledX = leveledY.toFixed(2);
+      leveledY = leveledY.toFixed(2);
     }
 
     if (id === 'right') {
