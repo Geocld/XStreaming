@@ -277,6 +277,10 @@ function CloudScreen({navigation, route}) {
                 返回XStreaming，此时你就会发现延迟和丢包都下来了（此时你会看到丢帧比较多，不用紧张，这是因为先进了游戏，未加速时的丢帧比较多，该数值是累计的，等加速稳定后这个数据会降下去），
                 云游戏加速成功。
               </Text>
+
+              <Text variant="bodyMedium" style={{marginTop: 10}}>
+                以上指引仅供参考，具体效果以实际为准，如加速器无法加速，请反馈至对应的加速器应用商，请勿反馈至XStreaming。
+              </Text>
             </Card.Content>
           </Card>
         </Modal>
@@ -290,7 +294,7 @@ function CloudScreen({navigation, route}) {
    * 2 - newest
    * 3 - all
    */
-  switch (current) {
+  switch (`${current}`) {
     case '0':
       currentTitles.current = recentTitles;
       break;
@@ -345,7 +349,7 @@ function CloudScreen({navigation, route}) {
               <Appbar.Content
                 title={
                   <SegmentedButtons
-                    value={current}
+                    value={`${current}`}
                     onValueChange={handleSelectCategories}
                     buttons={[
                       {
@@ -434,7 +438,7 @@ function CloudScreen({navigation, route}) {
       {isLimited && (
         <View style={styles.container}>
           <View>
-            <Text style={styles.tips} category="s1">
+            <Text style={styles.tips} variant="bodyLarge">
               {t('NoXGP')}
             </Text>
           </View>

@@ -12,7 +12,7 @@ import {useTranslation} from 'react-i18next';
 
 type Props = {
   titleItem: any;
-  onPress: (titleItem: any) => {};
+  onPress: (titleItem: any) => any;
 };
 
 const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
