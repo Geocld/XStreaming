@@ -579,9 +579,11 @@ function HomeScreen({navigation, route}) {
   };
 
   const handleLogin = () => {
-    navigation.navigate('Login', {
-      authUrl: _redirect.current.sisuAuth.MsaOauthRedirect,
-    });
+    if (_redirect.current && _redirect.current.sisuAuth) {
+      navigation.navigate('Login', {
+        authUrl: _redirect.current.sisuAuth.MsaOauthRedirect,
+      });
+    }
   };
 
   const handleMsalLogin = () => {
