@@ -37,7 +37,7 @@ export default {
     NoConsoles:
       'No consoles found on your account. If you do have an Xbox console then make sure that remote playing is enabled and that the console is visible in the official Xbox App.',
     NoXGP:
-      'You have not activated XGPU or do not have XGPU permission in your region. Please check your account permissions or change the region in settings and try again.',
+      "You don't have XGPU access or your region doesn't have XGPU permissions. Please check your account permissions or change your region in settings and try again. \n If you've already changed your region, please enable \"MSAL Code Login\" in settings to resolve this issue.",
     'Recent Games': 'Recent Games',
     'Recently added': 'Recently added',
     'All Games': 'All Games',
@@ -232,7 +232,7 @@ export default {
     'FSR started': 'FSR started',
     useMsalLoginTitle: 'MSAL Code Login',
     useMsalLoginDesc:
-      'Force using authorization code login, try enabling this option if you cannot login normally',
+      'Force using authorization code login. If you encounter login failures or xCloud gaming issues, please try enabling this option.',
     coop_title: 'Local Co-op',
     coop_desc:
       'Enable local co-op game mode, requires connecting two controllers in advance',

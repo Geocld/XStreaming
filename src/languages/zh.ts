@@ -51,7 +51,7 @@ export default {
     Disconnect: '断开连接',
     'Disconnect and power off': '断开连接并关机',
     NoXGP:
-      '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。',
+      '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。\n如你已修改地区，请在设置中开启授权登录尝试解决。',
     Recently: '最近游玩',
     Newest: '新入库',
     Stars: '收藏',
@@ -381,7 +381,8 @@ export default {
     fsr_sharpness_desc: '调整FSR锐化',
     'FSR started': 'FSR已启动',
     useMsalLoginTitle: '授权码登录',
-    useMsalLoginDesc: '强制使用授权码登录，无法正常登录时请尝试开启此选项',
+    useMsalLoginDesc:
+      '强制使用授权码登录，如遇到无法正常登录或云游戏无法正常使用时请尝试开启此选项',
     Completed: '完成',
     coop_title: '本地双人',
     coop_desc: '启用本地双人游戏模式，需要提前连接两个手柄',

@@ -49,7 +49,7 @@ export default {
     Disconnect: '斷開連接',
     'Disconnect and power off': '斷開連接并關機',
     NoXGP:
-      '你沒有開通XGPU或所在地區沒有XGPU權限，請檢查賬號權限或到設置中修改地區重試。',
+      '您未開通XGPU或所在地區沒有XGPU權限，請檢查帳號權限或到設定中修改地區重試。\n 如您已修改地區，請在設定中開啟授權登入嘗試解決。',
     NoConsoles:
       '账号下没有找到主机，如果你有xbox主机，请确保主机开启了远程游玩功能，并且使用官方xbox App可以查看到该主机。',
     Recently: '最近遊玩',
@@ -347,7 +347,8 @@ export default {
     fsr_sharpness_desc: '調整FSR銳化',
     'FSR started': 'FSR已啟動',
     useMsalLoginTitle: '授權碼登錄',
-    useMsalLoginDesc: '強制使用授權碼登錄，無法正常登錄時請嘗試開啟此選項',
+    useMsalLoginDesc:
+      '強制使用授權碼登入，如遇到無法正常登入或雲遊戲無法正常使用時請嘗試開啟此選項',
     Completed: '完成',
     coop_title: '本地雙人',
     coop_desc: '啟用本地雙人遊戲模式，需要提前連接兩個手柄',
