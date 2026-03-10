@@ -59,6 +59,7 @@ let defaultMaping: any = GAMEPAD_MAPING;
 let triggerMax = 0.8;
 
 const gpState = {
+  GamepadIndex: 0,
   A: 0,
   B: 0,
   X: 0,
@@ -320,8 +321,14 @@ function NativeStreamScreen({navigation, route}) {
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
+          // console.log('onGamepadKeyDown:', event);
+          // e.g. {"controllerIndex": 0, "deviceId": 31, "keyCode": 100}
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
+
+          if (_settings.coop) {
+            gpState.GamepadIndex = event.gamepadIndex;
+          }
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (_settings.short_trigger) {
@@ -336,8 +343,13 @@ function NativeStreamScreen({navigation, route}) {
       gpUpEventListener.current = eventEmitter.addListener(
         'onGamepadKeyUp',
         event => {
+          // console.log('onGamepadKeyUp:', event);
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
+
+          if (_settings.coop) {
+            gpState.GamepadIndex = event.gamepadIndex;
+          }
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (_settings.short_trigger) {
@@ -349,9 +361,13 @@ function NativeStreamScreen({navigation, route}) {
         },
       );
 
-      const syncDpadState = pressedKeys => {
+      const syncDpadState = (pressedKeys, gamepadIndex = 0) => {
         const activeKeys = new Set(pressedKeys ?? []);
         const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
+        if (_settings.coop) {
+          gpState.GamepadIndex = gamepadIndex;
+        }
+
         ['DPadUp', 'DPadDown', 'DPadLeft', 'DPadRight'].forEach(direction => {
           const keyCode = _gpMaping[direction];
           const keyName = gpMaping[keyCode];
@@ -365,25 +381,32 @@ function NativeStreamScreen({navigation, route}) {
       dpDownEventListener.current = eventEmitter.addListener(
         'onDpadKeyDown',
         event => {
+          // console.log('onDpadKeyDown:', event);
           const pressedKeys = Array.isArray(event.dpadIdxList)
             ? event.dpadIdxList
             : event.dpadIdx >= 0
             ? [event.dpadIdx]
             : [];
-          syncDpadState(pressedKeys);
+          syncDpadState(pressedKeys, event.gamepadIndex);
         },
       );
 
       dpUpEventListener.current = eventEmitter.addListener(
         'onDpadKeyUp',
-        () => {
-          syncDpadState([]);
+        event => {
+          // console.log('onDpadKeyUp:', event);
+          syncDpadState([], event.gamepadIndex);
         },
       );
 
       stickEventListener.current = eventEmitter.addListener(
         'onStickMove',
         event => {
+          // console.log('onStickMove:', event);
+          if (_settings.coop) {
+            gpState.GamepadIndex = event.gamepadIndex;
+          }
+
           gpState.LeftThumbXAxis = normaliseAxis(event.leftStickX);
           gpState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
 
@@ -421,18 +444,30 @@ function NativeStreamScreen({navigation, route}) {
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
             if (event.leftTrigger >= triggerMax) {
+              if (_settings.coop) {
+                gpState.GamepadIndex = event.gamepadIndex;
+              }
               gpState.LeftTrigger = 1;
             } else {
               setTimeout(() => {
+                if (_settings.coop) {
+                  gpState.GamepadIndex = event.gamepadIndex;
+                }
                 gpState.LeftTrigger = 0;
               }, 16);
             }
           } else {
             // Line trigger
             if (event.leftTrigger >= 0.05) {
+              if (_settings.coop) {
+                gpState.GamepadIndex = event.gamepadIndex;
+              }
               gpState.LeftTrigger = event.leftTrigger;
             } else {
               setTimeout(() => {
+                if (_settings.coop) {
+                  gpState.GamepadIndex = event.gamepadIndex;
+                }
                 gpState.LeftTrigger = 0;
               }, 16);
             }
@@ -442,18 +477,30 @@ function NativeStreamScreen({navigation, route}) {
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
             if (event.rightTrigger >= triggerMax) {
+              if (_settings.coop) {
+                gpState.GamepadIndex = event.gamepadIndex;
+              }
               gpState.RightTrigger = 1;
             } else {
               setTimeout(() => {
+                if (_settings.coop) {
+                  gpState.GamepadIndex = event.gamepadIndex;
+                }
                 gpState.RightTrigger = 0;
               }, 16);
             }
           } else {
             // Line trigger
             if (event.rightTrigger >= 0.05) {
+              if (_settings.coop) {
+                gpState.GamepadIndex = event.gamepadIndex;
+              }
               gpState.RightTrigger = event.rightTrigger;
             } else {
               setTimeout(() => {
+                if (_settings.coop) {
+                  gpState.GamepadIndex = event.gamepadIndex;
+                }
                 gpState.RightTrigger = 0;
               }, 16);
             }
@@ -461,6 +508,7 @@ function NativeStreamScreen({navigation, route}) {
         },
       );
 
+      // Send gamepad state to webrtc
       timer.current = setInterval(() => {
         webrtcClient && webrtcClient.setGamepadState(gpState);
       }, 1000 / _settings.polling_rate);
@@ -637,6 +685,10 @@ function NativeStreamScreen({navigation, route}) {
 
       webrtcClient.setPollRate(_settings.polling_rate);
 
+      if (_settings.coop) {
+        webrtcClient.setCoop();
+      }
+
       webrtcClient.setTrackHandler(event => {
         const track = event.track;
         if (!remoteStream.current) {
@@ -664,6 +716,12 @@ function NativeStreamScreen({navigation, route}) {
           // Connected
           if (!isConnected.current) {
             ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
+
+            if (_settings.coop) {
+              setTimeout(() => {
+                ToastAndroid.show(t('CoopTips'), ToastAndroid.SHORT);
+              }, 3000);
+            }
           }
           setLoadingText(`${t(CONNECTED)}`);
           setLoading(false);

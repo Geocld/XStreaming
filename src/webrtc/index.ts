@@ -84,6 +84,7 @@ class webRTCClient {
 
   _isResetting = false;
   _gamepad_deadzone = 0.2;
+  _coop = false;
   _custom_gamepad_mapping: any = null;
   _gpState: any = {
     A: 0,
@@ -316,6 +317,10 @@ class webRTCClient {
 
   setSdpHandler(listener: any) {
     this._sdpHandler = listener;
+  }
+
+  setCoop() {
+    this._coop = true;
   }
 
   _gatherIce() {

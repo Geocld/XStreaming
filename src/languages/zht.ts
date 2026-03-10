@@ -350,8 +350,7 @@ export default {
     useMsalLoginDesc: '強制使用授權碼登錄，無法正常登錄時請嘗試開啟此選項',
     Completed: '完成',
     coop_title: '本地雙人',
-    coop_desc:
-      '啟用本地雙人遊戲模式，需要提前連接兩個手柄(啟用雙人模式後將無法使用Native渲染引擎)',
+    coop_desc: '啟用本地雙人遊戲模式，需要提前連接兩個手柄',
     CoopTips: '已进入双人模式',
   },
 };

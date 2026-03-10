@@ -24,7 +24,18 @@ export default class ControlChannel extends BaseChannel {
 
     this._client._inputDriver.start();
 
-    this.sendGamepadAdded(0);
+    this.sendGamepadRemoved(0);
+
+    if (this._client._coop) {
+      this.sendGamepadRemoved(1);
+    }
+
+    setTimeout(() => {
+      this.sendGamepadAdded(0);
+      if (this._client._coop) {
+        this.sendGamepadAdded(1);
+      }
+    }, 500);
 
     this._keyframeInterval = setInterval(() => {
       this.requestKeyframeRequest(true);
@@ -73,12 +84,22 @@ export default class ControlChannel extends BaseChannel {
     super.onClose(event);
     clearInterval(this._keyframeInterval);
     this._keyframeInterval = null;
+    this.sendGamepadRemoved(0);
+
+    if (this._client._coop) {
+      this.sendGamepadRemoved(1);
+    }
   }
 
   destroy() {
     if (this._keyframeInterval) {
       clearInterval(this._keyframeInterval);
       this._keyframeInterval = null;
+    }
+    this.sendGamepadRemoved(0);
+
+    if (this._client._coop) {
+      this.sendGamepadRemoved(1);
     }
     super.destroy();
   }

@@ -1,8 +1,11 @@
 package com.xstreaming;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseBooleanArray;
+import android.util.SparseIntArray;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactActivityDelegate;
@@ -11,6 +14,7 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate;
 import org.devio.rn.splashscreen.SplashScreen;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import android.hardware.input.InputManager;
 import android.view.InputEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -102,11 +106,16 @@ class Dpad {
   }
 }
 
-public class MainActivity extends ReactActivity implements UsbDriverService.UsbDriverStateListener {
+public class MainActivity extends ReactActivity implements UsbDriverService.UsbDriverStateListener, InputManager.InputDeviceListener {
 
   public static MainActivity instance;
 
   private final Vector2d inputVector = new Vector2d();
+
+  private final Object controllerIndexLock = new Object();
+  private final SparseIntArray controllerIndexByDeviceId = new SparseIntArray();
+  private final SparseBooleanArray usedControllerIndices = new SparseBooleanArray();
+  private InputManager inputManager;
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
@@ -117,7 +126,66 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     return "xstreaming";
   }
 
-  private void handleSendDpadDownEvent(List<Integer> keyCodes) {
+  private boolean isGameControllerDevice(InputDevice device) {
+    if (device == null) {
+      return false;
+    }
+    int sources = device.getSources();
+    return ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
+            ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) ||
+            ((sources & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD);
+  }
+
+  private int allocateControllerIndexLocked() {
+    int index = 0;
+    while (usedControllerIndices.get(index, false)) {
+      index++;
+    }
+    usedControllerIndices.put(index, true);
+    return index;
+  }
+
+  private int getOrAssignControllerIndex(int deviceId) {
+    if (deviceId < 0) {
+      return -1;
+    }
+    synchronized (controllerIndexLock) {
+      int existing = controllerIndexByDeviceId.get(deviceId, -1);
+      if (existing >= 0) {
+        return existing;
+      }
+      int index = allocateControllerIndexLocked();
+      controllerIndexByDeviceId.put(deviceId, index);
+      return index;
+    }
+  }
+
+  private void releaseControllerIndex(int deviceId) {
+    if (deviceId < 0) {
+      return;
+    }
+    synchronized (controllerIndexLock) {
+      int index = controllerIndexByDeviceId.get(deviceId, -1);
+      if (index >= 0) {
+        controllerIndexByDeviceId.delete(deviceId);
+        usedControllerIndices.delete(index);
+      }
+    }
+  }
+
+  private void putControllerInfo(WritableMap params, InputEvent event) {
+    int deviceId = event != null ? event.getDeviceId() : -1;
+    InputDevice device = event != null ? event.getDevice() : null;
+
+    params.putInt("deviceId", deviceId);
+    if (isGameControllerDevice(device)) {
+      params.putInt("gamepadIndex", getOrAssignControllerIndex(deviceId));
+    } else {
+      params.putInt("gamepadIndex", -1);
+    }
+  }
+
+  private void handleSendDpadDownEvent(InputEvent event, List<Integer> keyCodes) {
     WritableMap params = Arguments.createMap();
     WritableArray dpadList = Arguments.createArray();
     for (Integer code : keyCodes) {
@@ -127,20 +195,26 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     int primaryCode = keyCodes.isEmpty() ? -1 : keyCodes.get(0);
     params.putInt("dpadIdx", primaryCode);
     params.putArray("dpadIdxList", dpadList);
+    if (event != null) {
+      putControllerInfo(params, event);
+    }
     sendEvent("onDpadKeyDown", params);
   }
 
-  private void handleSendDpadDownEvent(int keyCode) {
+  private void handleSendDpadDownEvent(InputEvent event, int keyCode) {
     List<Integer> keyCodes = new ArrayList<>();
     keyCodes.add(keyCode);
-    handleSendDpadDownEvent(keyCodes);
+    handleSendDpadDownEvent(event, keyCodes);
   }
 
-  private void handleSendDpadUpEvent() {
+  private void handleSendDpadUpEvent(InputEvent event) {
     WritableMap params = Arguments.createMap();
     WritableArray dpadList = Arguments.createArray();
     params.putInt("dpadIdx", -1);
     params.putArray("dpadIdxList", dpadList);
+    if (event != null) {
+      putControllerInfo(params, event);
+    }
     sendEvent("onDpadKeyUp", params);
   }
 
@@ -152,30 +226,30 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       {
         case 546:
           if (type.equals("down")) {
-            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_LEFT);
+            handleSendDpadDownEvent(event, KeyEvent.KEYCODE_DPAD_LEFT);
           } else {
-            handleSendDpadUpEvent();
+            handleSendDpadUpEvent(event);
           }
           return KeyEvent.KEYCODE_DPAD_LEFT;
         case 547:
           if (type.equals("down")) {
-            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_RIGHT);
+            handleSendDpadDownEvent(event, KeyEvent.KEYCODE_DPAD_RIGHT);
           } else {
-            handleSendDpadUpEvent();
+            handleSendDpadUpEvent(event);
           }
           return KeyEvent.KEYCODE_DPAD_RIGHT;
         case 544:
           if (type.equals("down")) {
-            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_UP);
+            handleSendDpadDownEvent(event, KeyEvent.KEYCODE_DPAD_UP);
           } else {
-            handleSendDpadUpEvent();
+            handleSendDpadUpEvent(event);
           }
           return KeyEvent.KEYCODE_DPAD_UP;
         case 545:
           if (type.equals("down")) {
-            handleSendDpadDownEvent(KeyEvent.KEYCODE_DPAD_DOWN);
+            handleSendDpadDownEvent(event, KeyEvent.KEYCODE_DPAD_DOWN);
           } else {
-            handleSendDpadUpEvent();
+            handleSendDpadUpEvent(event);
           }
           return KeyEvent.KEYCODE_DPAD_DOWN;
         case 309: // screenshot
@@ -229,6 +303,7 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       int finalKeyCode = handleRemapping(keyCode, event, "down");
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", finalKeyCode);
+      putControllerInfo(params, event);
 //      Log.d("MainActivity1", "keyCode down:" + keyCode);
       sendEvent("onGamepadKeyDown", params);
       return true;
@@ -246,6 +321,7 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       int finalKeyCode = handleRemapping(keyCode, event, "up");
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", finalKeyCode);
+      putControllerInfo(params, event);
 //      Log.d("MainActivity1", "keyCode up:" + params);
       sendEvent("onGamepadKeyUp", params);
       return true;
@@ -314,9 +390,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
 
       if (!pressedDirections.isEmpty()) {
         Log.d("MainActivity1", "DPAD press:" + pressedDirections);
-        handleSendDpadDownEvent(pressedDirections);
+        handleSendDpadDownEvent(event, pressedDirections);
       } else {
-        handleSendDpadUpEvent();
+        handleSendDpadUpEvent(event);
       }
     }
 
@@ -390,6 +466,7 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       WritableMap triggerParams = Arguments.createMap();
       triggerParams.putDouble("leftTrigger", lTrigger);
       triggerParams.putDouble("rightTrigger", rTrigger);
+      putControllerInfo(triggerParams, event);
       sendEvent("onTrigger", triggerParams);
 
       int deadzonePercentage = 10;
@@ -476,6 +553,7 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
       stickParams.putDouble("leftStickY", leftStickY);
       stickParams.putDouble("rightStickX", rightStickX);
       stickParams.putDouble("rightStickY", rightStickY);
+      putControllerInfo(stickParams, event);
       sendEvent("onStickMove", stickParams);
     }
     return true;
@@ -536,11 +614,58 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
 
     controllerHandler = new ControllerHandler(this);
 
+    inputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+
     // Start the USB driver
     bindService(new Intent(this, UsbDriverService.class),
             usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+
+    if (inputManager != null) {
+      inputManager.registerInputDeviceListener(this, null);
+    }
+
+    // Prime indices for already-connected controllers so index assignment
+    // doesn't depend on which device happens to send the first event.
+    int[] deviceIds = InputDevice.getDeviceIds();
+    for (int deviceId : deviceIds) {
+      InputDevice device = InputDevice.getDevice(deviceId);
+      if (isGameControllerDevice(device)) {
+        getOrAssignControllerIndex(deviceId);
+      }
+    }
+  }
+
+  @Override
+  protected void onPause() {
+    if (inputManager != null) {
+      inputManager.unregisterInputDeviceListener(this);
+    }
+    super.onPause();
+  }
+
+  @Override
+  public void onInputDeviceAdded(int deviceId) {
+    InputDevice device = InputDevice.getDevice(deviceId);
+    if (isGameControllerDevice(device)) {
+      getOrAssignControllerIndex(deviceId);
+    }
+  }
+
+  @Override
+  public void onInputDeviceRemoved(int deviceId) {
+    releaseControllerIndex(deviceId);
+  }
+
+  @Override
+  public void onInputDeviceChanged(int deviceId) {
+    // No-op
   }
 
   /**

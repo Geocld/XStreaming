@@ -102,10 +102,6 @@ function TitleDetail({navigation, route}) {
       routeName = 'Stream';
     }
 
-    if (settings.coop) {
-      routeName = 'Stream';
-    }
-
     navigation.navigate({
       name: routeName,
       params: {

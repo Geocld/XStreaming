@@ -384,8 +384,7 @@ export default {
     useMsalLoginDesc: '强制使用授权码登录，无法正常登录时请尝试开启此选项',
     Completed: '完成',
     coop_title: '本地双人',
-    coop_desc:
-      '启用本地双人游戏模式，需要提前连接两个手柄(启用双人模式后将无法使用Native渲染引擎)',
+    coop_desc: '启用本地双人游戏模式，需要提前连接两个手柄',
     CoopTips: '已进入双人模式',
   },
 };

@@ -235,7 +235,7 @@ export default {
       'Force using authorization code login, try enabling this option if you cannot login normally',
     coop_title: 'Local Co-op',
     coop_desc:
-      'Enable local co-op game mode, requires connecting two controllers in advance (Native rendering engine will not be available after enabling co-op mode)',
+      'Enable local co-op game mode, requires connecting two controllers in advance',
     CoopTips: 'Local co-op mode',
   },
 };
