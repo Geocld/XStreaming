@@ -14,18 +14,12 @@ import com.oney.WebRTCModule.WebRTCModuleOptions;
 import com.xstreaming.touchcontrols.AnalogStickPackage;
 import com.xstreaming.touchcontrols.ButtonViewPackage;
 
-import android.content.Context;
 import android.media.AudioAttributes;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
-import android.media.AudioManager;
-import android.util.Log;
-
-import java.util.HashMap;
 import java.util.List;
 
 public class MainApplication extends Application implements ReactApplication {
-
   private final ReactNativeHost mReactNativeHost =
       new DefaultReactNativeHost(this) {
         @Override
@@ -48,6 +42,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new GamepadSensorPackage());
             packages.add(new AnalogStickPackage());
             packages.add(new ButtonViewPackage());
+            packages.add(new AudioSettingPackage());
           return packages;
         }
 
@@ -79,18 +74,26 @@ public class MainApplication extends Application implements ReactApplication {
 
     // webrtc
     WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
-    AudioAttributes audioAttributes = new AudioAttributes.Builder()
-          .setUsage(AudioAttributes.USAGE_MEDIA)
-          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-          .build();
+    boolean stereoEnabled = AudioConfig.isStereoEnabled(this);
+    if (stereoEnabled) {
+      AudioAttributes audioAttributes = new AudioAttributes.Builder()
+              .setUsage(AudioAttributes.USAGE_MEDIA)
+              .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+              .build();
 
-//    AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-    options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
-            .setAudioAttributes(audioAttributes)
-            .setUseStereoInput(true)
-            .setUseStereoOutput(true)
-            .createAudioDeviceModule();
+      options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
+              .setAudioAttributes(audioAttributes)
+              .setUseStereoInput(true)
+              .setUseStereoOutput(true)
+              .createAudioDeviceModule();
+    } else {
+      options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
+              .setEnableVolumeLogger(false)
+              .setUseLowLatency(true)
+              .setUseStereoInput(false)
+              .setUseStereoOutput(false)
+              .createAudioDeviceModule();
+    }
 
     UMConfigure.preInit(this,"66ab42a4192e0574e75249b9","XStreaming");
     UMConfigure.init(this, "66ab42a4192e0574e75249b9", "XStreaming", UMConfigure.DEVICE_TYPE_PHONE, "");

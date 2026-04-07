@@ -1,5 +1,6 @@
 import {storage} from './mmkv';
 import {debugFactory} from '../utils/debug';
+import {NativeModules} from 'react-native';
 const log = debugFactory('settingStore');
 
 const STORE_KEY = 'user.settings';
@@ -21,6 +22,7 @@ export type Settings = {
   xcloud_bitrate: number | string;
   audio_bitrate_mode: string;
   audio_bitrate: number | string;
+  enable_stereo_audio: boolean;
   enable_audio_control: boolean;
   enable_audio_rumble: boolean;
   audio_rumble_threshold: number;
@@ -85,6 +87,7 @@ const defaultSettings: Settings = {
   xcloud_bitrate: 20,
   audio_bitrate_mode: 'auto',
   audio_bitrate: 20,
+  enable_stereo_audio: true,
   enable_audio_control: false,
   enable_audio_rumble: false,
   audio_rumble_threshold: 20,
@@ -152,8 +155,18 @@ const defaultSettings: Settings = {
 export const saveSettings = (settings: Settings) => {
   log.info('SaveSettings:', settings);
   const totalSettings = Object.assign({}, defaultSettings, settings);
+  const stereoAudioValue = (totalSettings as any).enable_stereo_audio;
+  totalSettings.enable_stereo_audio =
+    stereoAudioValue === true || stereoAudioValue === 'true';
   // AsyncStorage.setItem(STORE_KEY, JSON.stringify(totalSettings));
   storage.set(STORE_KEY, JSON.stringify(totalSettings));
+  try {
+    NativeModules.AudioSettingModule?.setStereoEnabled?.(
+      !!totalSettings.enable_stereo_audio,
+    );
+  } catch (error) {
+    log.warn('setStereoEnabled failed:', error);
+  }
 };
 
 export const getSettings = (): Settings => {

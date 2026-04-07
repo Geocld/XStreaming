@@ -142,6 +142,7 @@ function SettingDetailScreen({navigation, route}) {
   };
 
   const handleSave = () => {
+    let shouldRestart = false;
     if (current === 'locale') {
       handleSaveSettings();
       restart();
@@ -166,6 +167,8 @@ function SettingDetailScreen({navigation, route}) {
       }, 500);
     } else if (current === 'preferred_game_language') {
       clearXcloudData();
+    } else if (current === 'enable_stereo_audio') {
+      shouldRestart = true;
     } else if (current === 'xhome_bitrate_mode') {
       settings.xhome_bitrate_mode = value;
       settings.xhome_bitrate = value2;
@@ -203,6 +206,11 @@ function SettingDetailScreen({navigation, route}) {
     handleSaveSettings();
     ToastAndroid.show(t('Saved'), ToastAndroid.SHORT);
     navigation.goBack();
+    if (shouldRestart) {
+      setTimeout(() => {
+        restart();
+      }, 500);
+    }
   };
 
   const restart = () => {

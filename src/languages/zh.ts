@@ -310,6 +310,8 @@ export default {
     Audio_volume_title: '音量控制',
     Audio_volume_desc:
       '如果默认音量最大值达不到预期，可以在此处选择放大音源(注意过大的音量会影响听力！)',
+    Audio_stereo_title: '立体声输出',
+    Audio_stereo_desc: '如你的设备出现声音延迟，请关闭此选项',
     Audio_rumble_title: '音频振动(实验性)',
     Audio_rumble_desc: '开启后控制器会在音频超过某个阈值时振动',
     Audio_rumble_threshold_title: '音频振动阈值',

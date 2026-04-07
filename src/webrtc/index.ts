@@ -217,8 +217,13 @@ class webRTCClient {
           },
         })
         .then(offer => {
-          const newSDP = this.forceStereoAudio(offer.sdp);
-          offer.sdp = newSDP;
+          const settings = getSettings();
+          const stereoAudioEnabled =
+            (settings as any).enable_stereo_audio === true ||
+            (settings as any).enable_stereo_audio === 'true';
+          if (stereoAudioEnabled) {
+            offer.sdp = this.forceStereoAudio(offer.sdp);
+          }
           this._webrtcClient?.setLocalDescription(offer).then(() => {
             resolve(offer);
           });

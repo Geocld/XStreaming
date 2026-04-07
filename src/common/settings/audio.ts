@@ -14,6 +14,16 @@ const audio = [
     ],
   },
   {
+    name: 'enable_stereo_audio',
+    type: 'radio',
+    title: t('Audio_stereo_title'),
+    description: t('Audio_stereo_desc'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
+  },
+  {
     name: 'enable_audio_control',
     type: 'radio',
     title: t('Audio_volume_title'),

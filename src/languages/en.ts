@@ -159,6 +159,9 @@ export default {
     Audio_volume_title: 'Volume Control',
     Audio_volume_desc:
       'If the default maximum volume does not meet your expectations, you can choose to amplify the audio source here (Note: excessive volume may affect your hearing!)',
+    Audio_stereo_title: 'Stereo Output',
+    Audio_stereo_desc:
+      'If your device has audio delay, please disable this option.',
     Audio_rumble_title: 'Audio Rumble(Experimental)',
     Audio_rumble_desc:
       'Enable this option if you want the controller to vibrate when the audio exceeds a certain threshold',
