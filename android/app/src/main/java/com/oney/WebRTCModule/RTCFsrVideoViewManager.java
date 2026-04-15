@@ -37,6 +37,11 @@ public class RTCFsrVideoViewManager extends SimpleViewManager<RTCFsrVideoView> {
         view.setZOrder(zOrder);
     }
 
+    @ReactProp(name = "videoFormat")
+    public void setVideoFormat(RTCFsrVideoView view, String videoFormat) {
+        view.setVideoFormat(videoFormat);
+    }
+
     @ReactProp(name = "fsrEnabled", defaultBoolean = true)
     public void setFsrEnabled(RTCFsrVideoView view, boolean enabled) {
         view.setFsrEnabled(enabled);

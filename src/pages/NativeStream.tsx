@@ -1644,6 +1644,7 @@ function NativeStreamScreen({navigation, route}) {
             zOrder={9}
             objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
             streamURL={remote}
+            videoFormat={settings.video_format || ''}
             fsrEnabled={true}
             fsrSharpness={fsrSharpness}
           />
@@ -1653,6 +1654,7 @@ function NativeStreamScreen({navigation, route}) {
             zOrder={9}
             objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
             streamURL={remote}
+            videoFormat={settings.video_format || ''}
           />
         ))}
 

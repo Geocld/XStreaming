@@ -42,10 +42,11 @@ If you are looking for Windows/MacOS/Linux(steamOS) Xbox streaming application, 
 
 - Stream video and audio from the Xbox One and Xbox Series S/X
 - Support for 1080P/1080P(HQ) resolution
+- AMD FidelityFX super resolution v1 [FSR 1]
 - Support for virtual\OTG\bluetooth gamepad controls
 - Support controller rumble
 - Support Android TV
-- Support rumble on xCloud without any proxy in some regions.
+- Support rumble on xCloud without any proxy in some regions
 - Dual render engines
 - Archivements system
 - IPv6

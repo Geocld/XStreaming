@@ -12,6 +12,7 @@ type Props = ViewProps & {
   objectFit?: 'contain' | 'cover';
   mirror?: boolean;
   zOrder?: number;
+  videoFormat?: string;
   fsrEnabled?: boolean;
   fsrSharpness?: number;
 };

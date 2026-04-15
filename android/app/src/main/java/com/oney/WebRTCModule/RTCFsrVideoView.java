@@ -22,6 +22,7 @@ import org.webrtc.RendererCommon.ScalingType;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoTrack;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,8 +33,16 @@ import java.util.Objects;
 public class RTCFsrVideoView extends ViewGroup {
     private static final ScalingType DEFAULT_SCALING_TYPE = ScalingType.SCALE_ASPECT_FIT;
     private static final String TAG = WebRTCModule.TAG;
+    private static final int VIDEO_FORMAT_MODE_AUTO = 0;
+    private static final int VIDEO_FORMAT_MODE_STRETCH = 1;
+    private static final int VIDEO_FORMAT_MODE_ZOOM = 2;
+    private static final int VIDEO_FORMAT_MODE_FIXED_RATIO = 3;
 
     private static int surfaceViewRendererInstances;
+    private static final Object EGL_LAYOUT_ASPECT_REFLECTION_LOCK = new Object();
+    private static Field surfaceViewRendererEglRendererField;
+    private static Method eglRendererSetLayoutAspectRatioMethod;
+    private static boolean eglLayoutAspectReflectionReady;
 
     private final Object layoutSyncRoot = new Object();
     private final SurfaceViewRenderer surfaceViewRenderer;
@@ -44,6 +53,10 @@ public class RTCFsrVideoView extends ViewGroup {
     private boolean mirror;
     private boolean rendererAttached;
     private ScalingType scalingType;
+    private int videoFormatMode = VIDEO_FORMAT_MODE_AUTO;
+    private float videoFormatAspectRatio;
+    private String videoFormat = "";
+    private boolean eglLayoutAspectReflectionFailed;
     private String streamURL;
     private VideoTrack videoTrack;
 
@@ -169,47 +182,54 @@ public class RTCFsrVideoView extends ViewGroup {
             int frameRotation;
             int frameWidth;
             ScalingType scalingType;
+            int videoFormatMode;
+            float videoFormatAspectRatio;
 
             synchronized (layoutSyncRoot) {
                 frameHeight = this.frameHeight;
                 frameRotation = this.frameRotation;
                 frameWidth = this.frameWidth;
                 scalingType = this.scalingType;
+                videoFormatMode = this.videoFormatMode;
+                videoFormatAspectRatio = this.videoFormatAspectRatio;
             }
 
-            switch (scalingType) {
-                case SCALE_ASPECT_FILL:
-                    r = width;
-                    l = 0;
-                    b = height;
-                    t = 0;
-                    break;
-                case SCALE_ASPECT_FIT:
-                default:
-                    if (frameHeight == 0 || frameWidth == 0) {
-                        l = t = r = b = 0;
-                    } else {
-                        float frameAspectRatio =
-                                (frameRotation % 180 == 0)
-                                        ? frameWidth / (float) frameHeight
-                                        : frameHeight / (float) frameWidth;
-                        Point frameDisplaySize = RendererCommon.getDisplaySize(
-                                scalingType,
-                                frameAspectRatio,
-                                width,
-                                height
-                        );
+            if (videoFormatMode == VIDEO_FORMAT_MODE_STRETCH) {
+                r = width;
+                l = 0;
+                b = height;
+                t = 0;
+            } else if (frameHeight == 0 || frameWidth == 0) {
+                l = t = r = b = 0;
+            } else {
+                float frameAspectRatio =
+                        (frameRotation % 180 == 0)
+                                ? frameWidth / (float) frameHeight
+                                : frameHeight / (float) frameWidth;
 
-                        l = (width - frameDisplaySize.x) / 2;
-                        t = (height - frameDisplaySize.y) / 2;
-                        r = l + frameDisplaySize.x;
-                        b = t + frameDisplaySize.y;
-                    }
-                    break;
+                float targetAspectRatio = videoFormatMode == VIDEO_FORMAT_MODE_FIXED_RATIO
+                        ? videoFormatAspectRatio
+                        : frameAspectRatio;
+                ScalingType layoutScalingType = videoFormatMode == VIDEO_FORMAT_MODE_ZOOM
+                        ? ScalingType.SCALE_ASPECT_FILL
+                        : scalingType;
+
+                Point frameDisplaySize = RendererCommon.getDisplaySize(
+                        layoutScalingType,
+                        targetAspectRatio,
+                        width,
+                        height
+                );
+
+                l = (width - frameDisplaySize.x) / 2;
+                t = (height - frameDisplaySize.y) / 2;
+                r = l + frameDisplaySize.x;
+                b = t + frameDisplaySize.y;
             }
         }
 
         surfaceViewRenderer.layout(l, t, r, b);
+        applyRendererLayoutAspectRatio(r - l, b - t);
     }
 
     private void removeRendererFromVideoTrack() {
@@ -258,6 +278,132 @@ public class RTCFsrVideoView extends ViewGroup {
         ScalingType scalingType =
                 "cover".equals(objectFit) ? ScalingType.SCALE_ASPECT_FILL : ScalingType.SCALE_ASPECT_FIT;
         setScalingType(scalingType);
+    }
+
+    public void setVideoFormat(String videoFormat) {
+        String normalized = videoFormat == null ? "" : videoFormat.trim();
+        if (Objects.equals(this.videoFormat, normalized)) {
+            return;
+        }
+
+        this.videoFormat = normalized;
+
+        synchronized (layoutSyncRoot) {
+            if (normalized.isEmpty()) {
+                videoFormatMode = VIDEO_FORMAT_MODE_AUTO;
+                videoFormatAspectRatio = 0f;
+            } else if ("Stretch".equals(normalized)) {
+                videoFormatMode = VIDEO_FORMAT_MODE_STRETCH;
+                videoFormatAspectRatio = 0f;
+            } else if ("Zoom".equals(normalized)) {
+                videoFormatMode = VIDEO_FORMAT_MODE_ZOOM;
+                videoFormatAspectRatio = 0f;
+            } else {
+                float parsedRatio = parseVideoAspectRatio(normalized);
+                if (parsedRatio > 0f) {
+                    videoFormatMode = VIDEO_FORMAT_MODE_FIXED_RATIO;
+                    videoFormatAspectRatio = parsedRatio;
+                } else {
+                    videoFormatMode = VIDEO_FORMAT_MODE_AUTO;
+                    videoFormatAspectRatio = 0f;
+                }
+            }
+        }
+
+        requestSurfaceViewRendererLayout();
+    }
+
+    private float parseVideoAspectRatio(String format) {
+        switch (format) {
+            case "16:10":
+                return 16f / 10f;
+            case "18:9":
+                return 18f / 9f;
+            case "21:9":
+                return 21f / 9f;
+            case "4:3":
+                return 4f / 3f;
+            default:
+                String[] parts = format.split(":");
+                if (parts.length != 2) {
+                    return 0f;
+                }
+                try {
+                    float width = Float.parseFloat(parts[0]);
+                    float height = Float.parseFloat(parts[1]);
+                    if (width > 0f && height > 0f) {
+                        return width / height;
+                    }
+                } catch (NumberFormatException ignored) {
+                    // Ignore invalid ratio format.
+                }
+                return 0f;
+        }
+    }
+
+    private void applyRendererLayoutAspectRatio(int layoutWidth, int layoutHeight) {
+        float rendererLayoutAspectRatio = 0f;
+        if (layoutWidth > 0 && layoutHeight > 0) {
+            rendererLayoutAspectRatio = layoutWidth / (float) layoutHeight;
+        }
+
+        synchronized (layoutSyncRoot) {
+            if (videoFormatMode == VIDEO_FORMAT_MODE_FIXED_RATIO && frameWidth > 0 && frameHeight > 0) {
+                rendererLayoutAspectRatio = getCurrentFrameAspectRatio(frameWidth, frameHeight, frameRotation);
+            }
+        }
+
+        setSurfaceViewRendererLayoutAspectRatio(rendererLayoutAspectRatio);
+    }
+
+    private float getCurrentFrameAspectRatio(int frameWidth, int frameHeight, int frameRotation) {
+        if (frameWidth <= 0 || frameHeight <= 0) {
+            return 0f;
+        }
+        return (frameRotation % 180 == 0)
+                ? frameWidth / (float) frameHeight
+                : frameHeight / (float) frameWidth;
+    }
+
+    private void setSurfaceViewRendererLayoutAspectRatio(float aspectRatio) {
+        if (!ensureEglLayoutAspectReflectionReady()) {
+            return;
+        }
+
+        try {
+            Object eglRenderer = surfaceViewRendererEglRendererField.get(surfaceViewRenderer);
+            if (eglRenderer != null) {
+                eglRendererSetLayoutAspectRatioMethod.invoke(eglRenderer, aspectRatio);
+            }
+        } catch (Throwable tr) {
+            if (!eglLayoutAspectReflectionFailed) {
+                eglLayoutAspectReflectionFailed = true;
+                Log.w(TAG, "Failed to apply FSR renderer layout aspect ratio override.", tr);
+            }
+        }
+    }
+
+    private boolean ensureEglLayoutAspectReflectionReady() {
+        synchronized (EGL_LAYOUT_ASPECT_REFLECTION_LOCK) {
+            if (eglLayoutAspectReflectionReady) {
+                return true;
+            }
+            try {
+                surfaceViewRendererEglRendererField = SurfaceViewRenderer.class.getDeclaredField("eglRenderer");
+                surfaceViewRendererEglRendererField.setAccessible(true);
+
+                Class<?> eglRendererClass = Class.forName("org.webrtc.EglRenderer");
+                eglRendererSetLayoutAspectRatioMethod = eglRendererClass.getMethod("setLayoutAspectRatio", float.class);
+                eglLayoutAspectReflectionReady = true;
+                return true;
+            } catch (Throwable tr) {
+                if (!eglLayoutAspectReflectionFailed) {
+                    eglLayoutAspectReflectionFailed = true;
+                    Log.w(TAG, "Unable to resolve FSR EglRenderer#setLayoutAspectRatio reflection.", tr);
+                }
+                return false;
+            }
+        }
     }
 
     private void setScalingType(ScalingType scalingType) {

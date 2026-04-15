@@ -16,14 +16,21 @@ const display = [
     ],
   },
   {
+    name: 'fsr',
+    type: 'radio',
+    title: t('FSR'),
+    description: t('FSR_desc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
     name: 'video_format',
     type: 'radio',
     title: t('Video stream format'),
     description: t(
       'Select video stream format, if you want video fullscreen, please select Stretch or Zoom',
-    ),
-    tips: t(
-      'In Native mode, only scaling can be set for the rendering engine.',
     ),
     data: [
       {value: '', text: t('Aspect ratio')},
@@ -79,16 +86,6 @@ const display = [
       // {value: 'video/ulpfec', text: 'ulpfec'},
       // {value: 'video/rtx', text: 'rtx'},
       // {value: 'video/red', text: 'red'},
-    ],
-  },
-  {
-    name: 'fsr',
-    type: 'radio',
-    title: t('FSR'),
-    description: t('FSR_desc'),
-    data: [
-      {value: false, text: t('Disable')},
-      {value: true, text: t('Enable')},
     ],
   },
   // {
