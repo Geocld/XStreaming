@@ -179,7 +179,7 @@ export default {
     renderEngineDesc:
       'You can choose between native/webview rendering engines to play the video stream.',
     renderEngineTips:
-      '\nnative: No dependency on webview, uses native rendering for lower power consumption and better compatibility(recommend).\n\nwebview: Uses the system webview to play video streams, requiring webview version 91 or higher, FSR support.\n\nDifferent rendering engines have their own advantages and disadvantages. Please choose based on the actual performance of the device.',
+      '\nnative: No dependency on webview, uses native rendering for lower power consumption and better compatibility(recommend).\n\nwebview: Uses the system webview to play video streams, requiring webview version 91 or higher.\n\nDifferent rendering engines have their own advantages and disadvantages. Please choose based on the actual performance of the device.',
     'Device testing': 'Device testing',
     'Testing current device and controller':
       'Testing current device and controller',
