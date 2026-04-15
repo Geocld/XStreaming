@@ -38,6 +38,7 @@ import VirtualGamepadEditor, {
   ButtonConfig,
 } from '../components/VirtualGamepadEditor';
 import PerfPanel from '../components/PerfPanel';
+import RTCFsrView from '../components/RTCFsrView';
 
 const log = debugFactory('NativeStreamScreen');
 
@@ -1619,6 +1620,9 @@ function NativeStreamScreen({navigation, route}) {
     }
   };
 
+  const useFsrRenderer = !!settings.fsr;
+  const fsrSharpness = settings.fsr_display_options?.sharpness ?? 2;
+
   return (
     <View style={styles.container}>
       {loading && (
@@ -1633,14 +1637,24 @@ function NativeStreamScreen({navigation, route}) {
         />
       )}
 
-      {remoteStream.current?.toURL() && (
-        <RTCView
-          style={styles.player}
-          zOrder={9}
-          objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
-          streamURL={remote}
-        />
-      )}
+      {remoteStream.current?.toURL() &&
+        (useFsrRenderer ? (
+          <RTCFsrView
+            style={styles.player}
+            zOrder={9}
+            objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
+            streamURL={remote}
+            fsrEnabled={true}
+            fsrSharpness={fsrSharpness}
+          />
+        ) : (
+          <RTCView
+            style={styles.player}
+            zOrder={9}
+            objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
+            streamURL={remote}
+          />
+        ))}
 
       {renderPerformancePanel()}
 

@@ -34,6 +34,8 @@ local.properties
 *.keystore
 !debug.keystore
 
+skills/
+
 # node.js
 #
 node_modules/
