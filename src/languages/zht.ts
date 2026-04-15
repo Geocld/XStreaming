@@ -352,7 +352,7 @@ export default {
     useMsalLoginDesc:
       '強制使用授權碼登入，如遇到無法正常登入或雲遊戲無法正常使用時請嘗試開啟此選項',
     Completed: '完成',
-    coop_title: '本地雙人',
+    coop_title: '本地雙人(实验性)',
     coop_desc: '啟用本地雙人遊戲模式，需要提前連接兩個手柄',
     CoopTips: '已进入双人模式',
   },

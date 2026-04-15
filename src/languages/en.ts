@@ -236,7 +236,7 @@ export default {
     useMsalLoginTitle: 'MSAL Code Login',
     useMsalLoginDesc:
       'Force using authorization code login. If you encounter login failures or xCloud gaming issues, please try enabling this option.',
-    coop_title: 'Local Co-op',
+    coop_title: 'Local Co-op(Experimental)',
     coop_desc:
       'Enable local co-op game mode, requires connecting two controllers in advance',
     CoopTips: 'Local co-op mode',
