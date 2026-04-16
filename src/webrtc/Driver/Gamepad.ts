@@ -94,12 +94,17 @@ export default class GamepadDriver implements Driver {
 
   // Only ran when new gamepad driver is selected
   run() {
-    let gpState = [this._application?._gpState];
+    const currentGpState = this._application?._gpState;
+    const gpStates = Array.isArray(currentGpState)
+      ? currentGpState.filter(state => state !== null && state !== undefined)
+      : currentGpState
+      ? [currentGpState]
+      : [];
 
     if (!this._isVirtualButtonPressing) {
       this._application
         ?.getChannelProcessor('input')
-        .queueGamepadStates(gpState);
+        .queueGamepadStates(gpStates);
     }
 
     // requestAnimationFrame(() => { this.run() })

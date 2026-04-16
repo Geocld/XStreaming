@@ -44,6 +44,7 @@ export default {
     'Search game': '搜索遊戲',
     'Toggle Performance': '顯示/隱藏性能信息',
     'Toggle Virtual Gamepad': '顯示/隱藏虛擬手柄',
+    'Edit Virtual Gamepad': '編輯虛擬手柄',
     'Press Nexus': '按下西瓜鍵',
     'Long press Nexus': '長按西瓜鍵',
     Disconnect: '斷開連接',
@@ -353,7 +354,8 @@ export default {
       '強制使用授權碼登入，如遇到無法正常登入或雲遊戲無法正常使用時請嘗試開啟此選項',
     Completed: '完成',
     coop_title: '本地雙人(實驗性)',
-    coop_desc: '啟用本地雙人遊戲模式，需要提前連接兩個手柄',
+    coop_desc:
+      '啟用本地雙人遊戲模式時，請確保主機端未連接控制器，並連接兩個手把。（注意：並非所有遊戲都支援，請酌情使用）',
     CoopTips: '已进入双人模式',
   },
 };

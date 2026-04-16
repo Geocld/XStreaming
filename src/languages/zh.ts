@@ -157,7 +157,7 @@ export default {
     'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
       '📢自定义虚拟按键位置可能跟实际渲染存在误差，请以实际效果为准',
     'Customize virtual buttons': '自定义虚拟按键',
-    'Customize buttons of virtual gamepad': '编辑/使用自定义虚拟手柄',
+    'Edit Virtual Gamepad': '编辑虚拟手柄',
     'Click on an element to set its size and display':
       '👆点击元素设置元素大小及显示',
     'Drag elements to adjust their position': '✋拖动元素调整位置',
@@ -387,7 +387,8 @@ export default {
       '强制使用授权码登录，如遇到无法正常登录或云游戏无法正常使用时请尝试开启此选项',
     Completed: '完成',
     coop_title: '本地双人(实验性)',
-    coop_desc: '启用本地双人游戏模式，需要提前连接两个手柄',
+    coop_desc:
+      '启用本地双人游戏模式，请保证主机端没有连接控制器且连接两个手柄(注意并非所有游戏生效，请酌情使用)',
     CoopTips: '已进入双人模式',
   },
 };

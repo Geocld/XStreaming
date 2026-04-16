@@ -59,8 +59,26 @@ const {
 let defaultMaping: any = GAMEPAD_MAPING;
 let triggerMax = 0.8;
 
-const gpState = {
-  GamepadIndex: 0,
+const GAMEPAD_DIGITAL_KEYS = [
+  'A',
+  'B',
+  'X',
+  'Y',
+  'LeftShoulder',
+  'RightShoulder',
+  'View',
+  'Menu',
+  'LeftThumb',
+  'RightThumb',
+  'DPadUp',
+  'DPadDown',
+  'DPadLeft',
+  'DPadRight',
+  'Nexus',
+];
+
+const createGamepadState = (gamepadIndex = 0) => ({
+  GamepadIndex: gamepadIndex,
   A: 0,
   B: 0,
   X: 0,
@@ -78,12 +96,41 @@ const gpState = {
   DPadLeft: 0,
   DPadRight: 0,
   Nexus: 0,
-
   LeftThumbXAxis: 0.0,
   LeftThumbYAxis: 0.0,
   RightThumbXAxis: 0.0,
   RightThumbYAxis: 0.0,
+});
+
+const resetGamepadState = (
+  state: any,
+  gamepadIndex = state.GamepadIndex ?? 0,
+) => {
+  state.GamepadIndex = gamepadIndex;
+  state.A = 0;
+  state.B = 0;
+  state.X = 0;
+  state.Y = 0;
+  state.LeftShoulder = 0;
+  state.RightShoulder = 0;
+  state.LeftTrigger = 0;
+  state.RightTrigger = 0;
+  state.View = 0;
+  state.Menu = 0;
+  state.LeftThumb = 0;
+  state.RightThumb = 0;
+  state.DPadUp = 0;
+  state.DPadDown = 0;
+  state.DPadLeft = 0;
+  state.DPadRight = 0;
+  state.Nexus = 0;
+  state.LeftThumbXAxis = 0.0;
+  state.LeftThumbYAxis = 0.0;
+  state.RightThumbXAxis = 0.0;
+  state.RightThumbYAxis = 0.0;
 };
+
+const gpState = createGamepadState(0);
 
 function NativeStreamScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -147,6 +194,15 @@ function NativeStreamScreen({navigation, route}) {
 
     const _settings = getSettings();
     setSettings(_settings);
+    resetGamepadState(gpState, 0);
+    const coopDeviceIndexMap = new Map<number, number>();
+    const coopGpStates = _settings.coop
+      ? [gpState, createGamepadState(1)]
+      : null;
+    if (coopGpStates) {
+      resetGamepadState(coopGpStates[0], 0);
+      resetGamepadState(coopGpStates[1], 1);
+    }
 
     const sweap = obj => {
       return Object.fromEntries(
@@ -196,25 +252,32 @@ function NativeStreamScreen({navigation, route}) {
       isRumbling.current = false;
     };
 
+    const resolveGamepadState = (rawGamepadIndex = 0) => {
+      if (!_settings.coop || !coopGpStates) {
+        return gpState;
+      }
+
+      const deviceIndex =
+        typeof rawGamepadIndex === 'number' ? rawGamepadIndex : -1;
+      if (deviceIndex < 0) {
+        return null;
+      }
+      if (!coopDeviceIndexMap.has(deviceIndex)) {
+        if (coopDeviceIndexMap.size >= coopGpStates.length) {
+          return null;
+        }
+        coopDeviceIndexMap.set(deviceIndex, coopDeviceIndexMap.size);
+      }
+
+      const playerIndex = coopDeviceIndexMap.get(deviceIndex);
+      if (playerIndex === undefined) {
+        return null;
+      }
+      return coopGpStates[playerIndex];
+    };
+
     const resetButtonState = () => {
-      const keys = [
-        'A',
-        'B',
-        'X',
-        'Y',
-        'LeftShoulder',
-        'RightShoulder',
-        'View',
-        'Menu',
-        'LeftThumb',
-        'RightThumb',
-        'DPadUp',
-        'DPadDown',
-        'DPadLeft',
-        'DPadRight',
-        'Nexus',
-      ];
-      keys.forEach(k => {
+      GAMEPAD_DIGITAL_KEYS.forEach(k => {
         gpState[k] = 0;
       });
     };
@@ -231,24 +294,7 @@ function NativeStreamScreen({navigation, route}) {
     };
 
     const setGpState = combinedKeys => {
-      const keys = [
-        'A',
-        'B',
-        'X',
-        'Y',
-        'LeftShoulder',
-        'RightShoulder',
-        'View',
-        'Menu',
-        'LeftThumb',
-        'RightThumb',
-        'DPadUp',
-        'DPadDown',
-        'DPadLeft',
-        'DPadRight',
-        'Nexus',
-      ];
-      keys.forEach(k => {
+      GAMEPAD_DIGITAL_KEYS.forEach(k => {
         if (combinedKeys.includes(k)) {
           gpState[k] = 1;
         } else {
@@ -326,17 +372,20 @@ function NativeStreamScreen({navigation, route}) {
           // e.g. {"controllerIndex": 0, "deviceId": 31, "keyCode": 100}
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
-
-          if (_settings.coop) {
-            gpState.GamepadIndex = event.gamepadIndex;
+          if (!keyName) {
+            return;
+          }
+          const targetState = resolveGamepadState(event.gamepadIndex);
+          if (!targetState) {
+            return;
           }
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (_settings.short_trigger) {
-              gpState[keyName] = 1;
+              targetState[keyName] = 1;
             }
           } else {
-            gpState[keyName] = 1;
+            targetState[keyName] = 1;
           }
         },
       );
@@ -347,17 +396,20 @@ function NativeStreamScreen({navigation, route}) {
           // console.log('onGamepadKeyUp:', event);
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
-
-          if (_settings.coop) {
-            gpState.GamepadIndex = event.gamepadIndex;
+          if (!keyName) {
+            return;
+          }
+          const targetState = resolveGamepadState(event.gamepadIndex);
+          if (!targetState) {
+            return;
           }
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (_settings.short_trigger) {
-              gpState[keyName] = 0;
+              targetState[keyName] = 0;
             }
           } else {
-            gpState[keyName] = 0;
+            targetState[keyName] = 0;
           }
         },
       );
@@ -365,8 +417,9 @@ function NativeStreamScreen({navigation, route}) {
       const syncDpadState = (pressedKeys, gamepadIndex = 0) => {
         const activeKeys = new Set(pressedKeys ?? []);
         const _gpMaping = _settings.native_gamepad_maping ?? defaultMaping;
-        if (_settings.coop) {
-          gpState.GamepadIndex = gamepadIndex;
+        const targetState = resolveGamepadState(gamepadIndex);
+        if (!targetState) {
+          return;
         }
 
         ['DPadUp', 'DPadDown', 'DPadLeft', 'DPadRight'].forEach(direction => {
@@ -375,7 +428,7 @@ function NativeStreamScreen({navigation, route}) {
           if (!keyName) {
             return;
           }
-          gpState[keyName] = activeKeys.has(keyCode) ? 1 : 0;
+          targetState[keyName] = activeKeys.has(keyCode) ? 1 : 0;
         });
       };
 
@@ -404,12 +457,13 @@ function NativeStreamScreen({navigation, route}) {
         'onStickMove',
         event => {
           // console.log('onStickMove:', event);
-          if (_settings.coop) {
-            gpState.GamepadIndex = event.gamepadIndex;
+          const targetState = resolveGamepadState(event.gamepadIndex);
+          if (!targetState) {
+            return;
           }
 
-          gpState.LeftThumbXAxis = normaliseAxis(event.leftStickX);
-          gpState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
+          targetState.LeftThumbXAxis = normaliseAxis(event.leftStickX);
+          targetState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
 
           if (
             Math.abs(event.rightStickX) > 0.1 ||
@@ -420,14 +474,19 @@ function NativeStreamScreen({navigation, route}) {
             isRightstickMoving.current = false;
           }
 
-          gpState.RightThumbXAxis = normaliseAxis(event.rightStickX);
-          gpState.RightThumbYAxis = normaliseAxis(event.rightStickY);
+          targetState.RightThumbXAxis = normaliseAxis(event.rightStickX);
+          targetState.RightThumbYAxis = normaliseAxis(event.rightStickY);
         },
       );
 
       triggerEventListener.current = eventEmitter.addListener(
         'onTrigger',
         event => {
+          const targetState = resolveGamepadState(event.gamepadIndex);
+          if (!targetState) {
+            return;
+          }
+
           // Notice: some controllers will emit onTrigger and onGamepadKeyDown at the same time
 
           if (
@@ -445,31 +504,19 @@ function NativeStreamScreen({navigation, route}) {
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
             if (event.leftTrigger >= triggerMax) {
-              if (_settings.coop) {
-                gpState.GamepadIndex = event.gamepadIndex;
-              }
-              gpState.LeftTrigger = 1;
+              targetState.LeftTrigger = 1;
             } else {
               setTimeout(() => {
-                if (_settings.coop) {
-                  gpState.GamepadIndex = event.gamepadIndex;
-                }
-                gpState.LeftTrigger = 0;
+                targetState.LeftTrigger = 0;
               }, 16);
             }
           } else {
             // Line trigger
             if (event.leftTrigger >= 0.05) {
-              if (_settings.coop) {
-                gpState.GamepadIndex = event.gamepadIndex;
-              }
-              gpState.LeftTrigger = event.leftTrigger;
+              targetState.LeftTrigger = event.leftTrigger;
             } else {
               setTimeout(() => {
-                if (_settings.coop) {
-                  gpState.GamepadIndex = event.gamepadIndex;
-                }
-                gpState.LeftTrigger = 0;
+                targetState.LeftTrigger = 0;
               }, 16);
             }
           }
@@ -478,31 +525,19 @@ function NativeStreamScreen({navigation, route}) {
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
             if (event.rightTrigger >= triggerMax) {
-              if (_settings.coop) {
-                gpState.GamepadIndex = event.gamepadIndex;
-              }
-              gpState.RightTrigger = 1;
+              targetState.RightTrigger = 1;
             } else {
               setTimeout(() => {
-                if (_settings.coop) {
-                  gpState.GamepadIndex = event.gamepadIndex;
-                }
-                gpState.RightTrigger = 0;
+                targetState.RightTrigger = 0;
               }, 16);
             }
           } else {
             // Line trigger
             if (event.rightTrigger >= 0.05) {
-              if (_settings.coop) {
-                gpState.GamepadIndex = event.gamepadIndex;
-              }
-              gpState.RightTrigger = event.rightTrigger;
+              targetState.RightTrigger = event.rightTrigger;
             } else {
               setTimeout(() => {
-                if (_settings.coop) {
-                  gpState.GamepadIndex = event.gamepadIndex;
-                }
-                gpState.RightTrigger = 0;
+                targetState.RightTrigger = 0;
               }, 16);
             }
           }
@@ -511,7 +546,13 @@ function NativeStreamScreen({navigation, route}) {
 
       // Send gamepad state to webrtc
       timer.current = setInterval(() => {
-        webrtcClient && webrtcClient.setGamepadState(gpState);
+        if (webrtcClient) {
+          if (_settings.coop && coopGpStates) {
+            webrtcClient.setGamepadState(coopGpStates);
+          } else {
+            webrtcClient.setGamepadState(gpState);
+          }
+        }
       }, 1000 / _settings.polling_rate);
     }
 
@@ -918,28 +959,50 @@ function NativeStreamScreen({navigation, route}) {
           let strongMagnitude = rumbleData.strongMagnitude * 100;
           let leftTrigger = rumbleData.leftTrigger * 100;
           let rightTrigger = rumbleData.rightTrigger * 100;
+          const duration = Math.max(
+            0,
+            Math.min(10000, Math.floor(rumbleData.duration || 0)),
+          );
           if (weakMagnitude > 100) {
             weakMagnitude = 100;
           }
           if (strongMagnitude > 100) {
             strongMagnitude = 100;
           }
+          if (leftTrigger > 100) {
+            leftTrigger = 100;
+          }
+          if (rightTrigger > 100) {
+            rightTrigger = 100;
+          }
+
+          const shouldStop =
+            weakMagnitude <= 0 &&
+            strongMagnitude <= 0 &&
+            leftTrigger <= 0 &&
+            rightTrigger <= 0;
+          if (shouldStop) {
+            isRumbling.current = false;
+            GamepadManager.vibrate(
+              0,
+              0,
+              0,
+              0,
+              0,
+              _settings.rumble_intensity || 3,
+            );
+            return;
+          }
+
           isRumbling.current = true;
           GamepadManager.vibrate(
-            10000,
+            duration > 0 ? duration : 30,
             weakMagnitude,
             strongMagnitude,
             leftTrigger,
             rightTrigger,
             _settings.rumble_intensity || 3,
           );
-
-          if (rumbleData.duration < 20) {
-            setTimeout(() => {
-              isRumbling.current = false;
-              GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
-            }, 300);
-          }
         }
       });
 
@@ -1472,7 +1535,7 @@ function NativeStreamScreen({navigation, route}) {
 
                   {connectState === CONNECTED && showVirtualGamepad && (
                     <List.Item
-                      title={t('Customize buttons of virtual gamepad')}
+                      title={t('Edit Virtual Gamepad')}
                       background={background}
                       onPress={() => {
                         handleCloseModal();

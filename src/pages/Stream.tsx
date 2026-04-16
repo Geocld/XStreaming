@@ -973,28 +973,43 @@ function StreamScreen({navigation, route}) {
         let strongMagnitude = rumbleData.strongMagnitude * 100;
         let leftTrigger = rumbleData.leftTrigger * 100;
         let rightTrigger = rumbleData.rightTrigger * 100;
+        const duration = Math.max(
+          0,
+          Math.min(10000, Math.floor(rumbleData.duration || 0)),
+        );
         if (weakMagnitude > 100) {
           weakMagnitude = 100;
         }
         if (strongMagnitude > 100) {
           strongMagnitude = 100;
         }
+        if (leftTrigger > 100) {
+          leftTrigger = 100;
+        }
+        if (rightTrigger > 100) {
+          rightTrigger = 100;
+        }
+
+        const shouldStop =
+          weakMagnitude <= 0 &&
+          strongMagnitude <= 0 &&
+          leftTrigger <= 0 &&
+          rightTrigger <= 0;
+        if (shouldStop) {
+          setIsRumbling(false);
+          GamepadManager.vibrate(0, 0, 0, 0, 0, settings.rumble_intensity || 3);
+          return;
+        }
+
         setIsRumbling(true);
         GamepadManager.vibrate(
-          10000,
+          duration > 0 ? duration : 30,
           weakMagnitude,
           strongMagnitude,
           leftTrigger,
           rightTrigger,
           settings.rumble_intensity || 3,
         );
-
-        if (rumbleData.duration < 20) {
-          setTimeout(() => {
-            setIsRumbling(false);
-            GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
-          }, 300);
-        }
       }
     }
     if (type === 'audioVibration' && !isRumbling) {

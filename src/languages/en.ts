@@ -238,7 +238,7 @@ export default {
       'Force using authorization code login. If you encounter login failures or xCloud gaming issues, please try enabling this option.',
     coop_title: 'Local Co-op(Experimental)',
     coop_desc:
-      'Enable local co-op game mode, requires connecting two controllers in advance',
+      'Enable local co-op game mode, please make sure no controller is connected to the host device and connect two gamepads. (Note: This may not work for all games, so please use it as needed.)',
     CoopTips: 'Local co-op mode',
   },
 };

@@ -107,23 +107,36 @@ public class GamepadManager extends ReactContextBaseJavaModule {
             }
         }
 
-        // If we reach this point, we don't have amplitude controls available, so
-        // we must emulate it by PWMing the vibration. Ick.
-        long pwmPeriod = 20;
-        long onTime = (long)((simulatedAmplitude / 255.0) * pwmPeriod);
-        long offTime = pwmPeriod - onTime;
-
+        // No amplitude control available: use duration-based one-shot vibration.
+        // This keeps rumble length predictable across different controller drivers.
+        int safeDuration = Math.max(1, duration);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             VibrationAttributes vibrationAttributes = new VibrationAttributes.Builder()
                     .setUsage(VibrationAttributes.USAGE_MEDIA)
                     .build();
-            vibrator.vibrate(VibrationEffect.createWaveform(new long[]{0, onTime * 100, offTime * 100}, 0), vibrationAttributes);
+            vibrator.vibrate(
+                    VibrationEffect.createOneShot(
+                            safeDuration,
+                            VibrationEffect.DEFAULT_AMPLITUDE
+                    ),
+                    vibrationAttributes
+            );
         }
         else {
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME)
                     .build();
-            vibrator.vibrate(new long[]{0, onTime * 100, offTime * 100}, 0, audioAttributes);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                        VibrationEffect.createOneShot(
+                                safeDuration,
+                                VibrationEffect.DEFAULT_AMPLITUDE
+                        ),
+                        audioAttributes
+                );
+            } else {
+                vibrator.vibrate(safeDuration);
+            }
         }
     }
 
@@ -203,21 +216,18 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         short _rightTrigger = (short) rightTrigger;
 
         Vibrator deviceVibrator = (Vibrator) reactContext.getSystemService(Context.VIBRATOR_SERVICE);
-        Vibrator vibrator = null;
 
         // Try to use the InputDevice's associated vibrators first
         int[] ids = InputDevice.getDeviceIds();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            VibratorManager vibratorManager = null;
-            boolean quadVibrators = false;
-            boolean isGamepad = false;
             boolean hasRealGamepad = false;
 
             for (int id : ids) {
                 InputDevice dev = InputDevice.getDevice(id);
                 if (dev == null) { continue; }
 
+                boolean isGamepad = false;
                 if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
                         (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
                     // This is a gamepad
@@ -237,6 +247,9 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
                 Log.d("GamepadManager", "isGameControllerDevice:" + dev.getName());
 
+                VibratorManager vibratorManager = null;
+                Vibrator vibrator = null;
+                boolean quadVibrators = false;
                 boolean hasQuadAmplitudeControlledRumbleVibrators = true;
                 boolean hasDualAmplitudeControlledRumbleVibrators = true;
 
@@ -296,7 +309,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                         // If they're all zero, we can just call cancel().
                         if (_lowFreqMotor == 0 && _highFreqMotor == 0 && _leftTrigger == 0 && _rightTrigger == 0) {
                             vibratorManager.cancel();
-                            return;
+                            continue;
                         }
 
                         // This is a guess based upon the behavior of FF_RUMBLE, but untested due to lack of Linux
@@ -340,10 +353,10 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                     }
                     // rumbleDualVibrators
                     else {
-                        // If they're both zero, we can just call cancel().
-                        if (lowFreqMotor == 0 && highFreqMotor == 0) {
+                        // If all are zero, we can just call cancel().
+                        if (_lowFreqMotor == 0 && _highFreqMotor == 0 && _leftTrigger == 0 && _rightTrigger == 0) {
                             vibratorManager.cancel();
-                            return;
+                            continue;
                         }
 
                         // There's no documentation that states that vibrators for FF_RUMBLE input devices will
@@ -409,13 +422,14 @@ public class GamepadManager extends ReactContextBaseJavaModule {
             }
 
         } else {
-            boolean isGamepad = false;
+            Vibrator vibrator = null;
             Log.d("GamepadManager", "Old sdk entrying...");
             for (int id : ids) {
                 InputDevice dev = InputDevice.getDevice(id);
 
                 if (dev == null) { continue; }
 
+                boolean isGamepad = false;
                 if ((dev.getSources() & InputDevice.SOURCE_JOYSTICK) != 0 ||
                         (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0) {
                     // This is a gamepad
@@ -423,7 +437,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 }
 
                 if (!isGamepad) {
-                    return;
+                    continue;
                 }
 
                 if (dev.getVibrator().hasVibrator()) {
