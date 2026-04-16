@@ -15,7 +15,7 @@ index 387d9fd..5535b10 100644
       * Sets the z-order of a specific {@link WebRTCView} in the stacking space of
       * all {@code WebRTCView}s. For more details, refer to the documentation of
 diff --git a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java
-index 95ede81..03e4d83 100644
+index 95ede81..00f5800 100644
 --- a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java
 +++ b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCView.java
 @@ -21,6 +21,7 @@ import org.webrtc.RendererCommon.ScalingType;
@@ -137,7 +137,7 @@ index 95ede81..03e4d83 100644
      }
  
      /**
-@@ -402,6 +413,132 @@ public class WebRTCView extends ViewGroup {
+@@ -402,6 +413,151 @@ public class WebRTCView extends ViewGroup {
          setScalingType(scalingType);
      }
  
@@ -208,10 +208,29 @@ index 95ede81..03e4d83 100644
 +            rendererLayoutAspectRatio = layoutWidth / (float) layoutHeight;
 +        }
 +
++        int currentVideoFormatMode;
++        int currentFrameWidth;
++        int currentFrameHeight;
++        int currentFrameRotation;
 +        synchronized (layoutSyncRoot) {
-+            if (videoFormatMode == VIDEO_FORMAT_MODE_FIXED_RATIO && frameWidth > 0 && frameHeight > 0) {
-+                rendererLayoutAspectRatio = getCurrentFrameAspectRatio(frameWidth, frameHeight, frameRotation);
-+            }
++            currentVideoFormatMode = videoFormatMode;
++            currentFrameWidth = frameWidth;
++            currentFrameHeight = frameHeight;
++            currentFrameRotation = frameRotation;
++        }
++
++        if (currentVideoFormatMode == VIDEO_FORMAT_MODE_STRETCH) {
++            rendererLayoutAspectRatio = (currentFrameWidth > 0 && currentFrameHeight > 0)
++                    ? getCurrentFrameAspectRatio(currentFrameWidth, currentFrameHeight, currentFrameRotation)
++                    : 0f;
++        } else if (currentVideoFormatMode == VIDEO_FORMAT_MODE_FIXED_RATIO
++                && currentFrameWidth > 0
++                && currentFrameHeight > 0) {
++            rendererLayoutAspectRatio = getCurrentFrameAspectRatio(
++                    currentFrameWidth,
++                    currentFrameHeight,
++                    currentFrameRotation
++            );
 +        }
 +
 +        setSurfaceViewRendererLayoutAspectRatio(rendererLayoutAspectRatio);

@@ -67,7 +67,10 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
           </Text>
         </View>
         <View>
-          <Text style={styles.text}>{settings.fsr ? 'FSR | ' : ''}</Text>
+          <Text style={styles.text}>
+            {settings.fsr ? 'FSR' : ''}
+            {isHorizon ? '| ' : ''}
+          </Text>
         </View>
         <View>
           <Text style={styles.text}>

@@ -347,10 +347,29 @@ public class RTCFsrVideoView extends ViewGroup {
             rendererLayoutAspectRatio = layoutWidth / (float) layoutHeight;
         }
 
+        int currentVideoFormatMode;
+        int currentFrameWidth;
+        int currentFrameHeight;
+        int currentFrameRotation;
         synchronized (layoutSyncRoot) {
-            if (videoFormatMode == VIDEO_FORMAT_MODE_FIXED_RATIO && frameWidth > 0 && frameHeight > 0) {
-                rendererLayoutAspectRatio = getCurrentFrameAspectRatio(frameWidth, frameHeight, frameRotation);
-            }
+            currentVideoFormatMode = videoFormatMode;
+            currentFrameWidth = frameWidth;
+            currentFrameHeight = frameHeight;
+            currentFrameRotation = frameRotation;
+        }
+
+        if (currentVideoFormatMode == VIDEO_FORMAT_MODE_STRETCH) {
+            rendererLayoutAspectRatio = (currentFrameWidth > 0 && currentFrameHeight > 0)
+                    ? getCurrentFrameAspectRatio(currentFrameWidth, currentFrameHeight, currentFrameRotation)
+                    : 0f;
+        } else if (currentVideoFormatMode == VIDEO_FORMAT_MODE_FIXED_RATIO
+                && currentFrameWidth > 0
+                && currentFrameHeight > 0) {
+            rendererLayoutAspectRatio = getCurrentFrameAspectRatio(
+                    currentFrameWidth,
+                    currentFrameHeight,
+                    currentFrameRotation
+            );
         }
 
         setSurfaceViewRendererLayoutAspectRatio(rendererLayoutAspectRatio);
