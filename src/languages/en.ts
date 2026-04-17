@@ -240,5 +240,7 @@ export default {
     coop_desc:
       'Enable local co-op game mode, please make sure no controller is connected to the host device and connect two gamepads. (Note: This may not work for all games, so please use it as needed.)',
     CoopTips: 'Local co-op mode',
+    Microphone_title: 'Enable Microphone(Experimental)',
+    Microphone_desc: 'The quick menu will be able to set microphone on/off',
   },
 };

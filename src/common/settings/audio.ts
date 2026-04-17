@@ -53,6 +53,16 @@ const audio = [
     description: t('Audio_rumble_threshold_desc'),
     data: [],
   },
+  {
+    name: 'enable_microphone',
+    type: 'radio',
+    title: t('Microphone_title'),
+    description: t('Microphone_desc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
 ];
 
 export default audio;

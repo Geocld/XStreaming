@@ -74,6 +74,7 @@ export type Settings = {
   fsr: boolean;
   coop: boolean;
   use_msal_login: boolean;
+  enable_microphone: boolean;
   debug: boolean;
 };
 
@@ -149,6 +150,7 @@ const defaultSettings: Settings = {
   fsr: false,
   coop: false,
   use_msal_login: false,
+  enable_microphone: false,
   debug: false,
 };
 

@@ -1441,7 +1441,7 @@ function StreamScreen({navigation, route}) {
                       />
                     )}
 
-                  {connectState === CONNECTED && (
+                  {connectState === CONNECTED && settings.enable_microphone && (
                     <List.Item
                       title={
                         openMicro ? t('Close Microphone') : t('Open Microphone')

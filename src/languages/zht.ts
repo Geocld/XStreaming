@@ -357,5 +357,7 @@ export default {
     coop_desc:
       '啟用本地雙人遊戲模式時，請確保主機端未連接控制器，並連接兩個手把。（注意：並非所有遊戲都支援，請酌情使用）',
     CoopTips: '已进入双人模式',
+    Microphone_title: '開啟麥克風(實驗性)',
+    Microphone_desc: '快捷菜单将可以设置开启/关闭麦克风',
   },
 };

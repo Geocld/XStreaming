@@ -1688,15 +1688,25 @@ function NativeStreamScreen({navigation, route}) {
     handleExit(off);
   };
 
-  const handleToggleMic = () => {
+  const handleToggleMic = async () => {
     if (!webrtcClient) {
       return;
     }
-    if (webrtcClient.getChannelProcessor('chat').isPaused === true) {
-      webrtcClient.getChannelProcessor('chat').startMic();
-      setOpenMicro(true);
+
+    const chatChannel = webrtcClient.getChannelProcessor('chat');
+
+    if (chatChannel.isPaused === true) {
+      const started = await chatChannel.startMic();
+      setOpenMicro(Boolean(started));
+
+      if (!started) {
+        Alert.alert(
+          t('Warning'),
+          'Failed to open microphone. Please check microphone permission.',
+        );
+      }
     } else {
-      webrtcClient.getChannelProcessor('chat').stopMic();
+      chatChannel.stopMic();
       setOpenMicro(false);
     }
 
@@ -1803,7 +1813,7 @@ function NativeStreamScreen({navigation, route}) {
                     />
                   )}
 
-                  {connectState === CONNECTED && (
+                  {connectState === CONNECTED && settings.enable_microphone && (
                     <List.Item
                       title={
                         openMicro ? t('Close Microphone') : t('Open Microphone')

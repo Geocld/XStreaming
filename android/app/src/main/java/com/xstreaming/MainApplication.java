@@ -84,7 +84,8 @@ public class MainApplication extends Application implements ReactApplication {
 
       options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
               .setAudioAttributes(audioAttributes)
-              .setUseStereoInput(true)
+              // Keep capture mono for compatibility with Android microphone devices.
+              .setUseStereoInput(false)
               .setUseStereoOutput(true)
               .createAudioDeviceModule();
     } else {

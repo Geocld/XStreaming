@@ -4,6 +4,42 @@ import {mediaDevices} from 'react-native-webrtc';
 export default class ChatChannel extends BaseChannel {
   isCapturing = false;
   isPaused = true;
+  private micStream: any = null;
+
+  private async getMicStream() {
+    return mediaDevices.getUserMedia({
+      audio: true,
+      video: false,
+    });
+  }
+
+  private getAudioSender() {
+    const peer = this._client._webrtcClient;
+    if (!peer) {
+      return null;
+    }
+
+    const transceivers = peer.getTransceivers?.() || [];
+    for (const transceiver of transceivers) {
+      const receiverKind = transceiver?.receiver?.track?.kind;
+      const senderKind = transceiver?.sender?.track?.kind;
+      if (receiverKind === 'audio' || senderKind === 'audio') {
+        return transceiver.sender;
+      }
+    }
+
+    const senders = peer.getSenders?.() || [];
+    return senders.find(sender => sender?.track?.kind === 'audio') || null;
+  }
+
+  private stopLocalMicStream() {
+    if (!this.micStream) {
+      return;
+    }
+
+    this.micStream.getTracks().forEach(track => track.stop?.());
+    this.micStream = null;
+  }
 
   onOpen(event: any) {
     super.onOpen(event);
@@ -32,62 +68,69 @@ export default class ChatChannel extends BaseChannel {
     // console.log('Channel/Control.ts - ['+this._channelName+'] onClose:', event)
   }
 
-  startMic() {
+  async startMic() {
     console.log('Channel/Chat.ts - Enabling Microphone');
 
-    if (this.isCapturing === false) {
-      console.log('Start chat...');
-
-      mediaDevices
-        .getUserMedia({
-          audio: {
-            frameRate: 24e3,
-          },
-        })
-        .then(stream => {
-          this.isCapturing = true;
-
-          const audioTracks = stream.getAudioTracks();
-
-          if (audioTracks.length > 0) {
-            console.log(
-              `Channel/Chat.ts - Using Audio device: ${audioTracks[0].label}`,
-            );
-          } else {
-            console.log('Channel/Chat.ts - No Audio device:', audioTracks);
-          }
-
-          stream.getTracks().forEach(track => {
-            this._client._webrtcClient?.addTrack(track, stream);
-          });
-
-          this._client.sdpNegotiationChat();
-        })
-        .catch(err => {
-          console.log(err);
-          console.log('Channel/Chat.ts - getUserMedia error:' + err);
-          this.isCapturing = false;
-        });
+    if (this.isCapturing === true && this.micStream) {
+      this.isPaused = false;
+      return true;
     }
 
-    this.isPaused = false;
+    try {
+      console.log('Start chat...');
+      const stream = await this.getMicStream();
+      const audioTracks = stream.getAudioTracks();
+
+      if (audioTracks.length === 0) {
+        console.log('Channel/Chat.ts - No Audio device:', audioTracks);
+        stream.getTracks().forEach(track => track.stop?.());
+        this.micStream = null;
+        this.isCapturing = false;
+        this.isPaused = true;
+        return false;
+      }
+
+      const [audioTrack] = audioTracks;
+      audioTrack.enabled = true;
+
+      console.log(
+        `Channel/Chat.ts - Using Audio device: ${audioTrack?.label ?? ''}`,
+      );
+
+      const sender = this.getAudioSender();
+      if (sender) {
+        await sender.replaceTrack(audioTrack);
+      } else {
+        this._client._webrtcClient?.addTrack(audioTrack, stream);
+      }
+
+      this._client.sdpNegotiationChat();
+      this.micStream = stream;
+
+      this.isCapturing = true;
+      this.isPaused = false;
+      return true;
+    } catch (err) {
+      console.log(err);
+      console.log('Channel/Chat.ts - getUserMedia error:' + err);
+      this.stopLocalMicStream();
+      this.isCapturing = false;
+      this.isPaused = true;
+      return false;
+    }
   }
 
   stopMic() {
     console.log('Channel/Chat.ts - Disabling Microphone');
 
-    const senders = this._client._webrtcClient?.getSenders();
-
-    for (const sender in senders) {
-      // @ts-ignore
-      if (senders[sender].track !== null) {
-        // @ts-ignore
-        if (senders[sender].track?.kind === 'audio') {
-          // @ts-ignore
-          this._client._webrtcClient?.removeTrack(senders[sender]);
-        }
-      }
+    const sender = this.getAudioSender();
+    if (sender) {
+      sender.replaceTrack(null).catch(error => {
+        console.log('Channel/Chat.ts - replaceTrack(null) error:', error);
+      });
     }
+
+    this.stopLocalMicStream();
 
     this.isCapturing = false;
     this.isPaused = true;
