@@ -173,7 +173,7 @@ function NativeStreamScreen({navigation, route}) {
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
-  // const [openMicro, setOpenMicro] = React.useState(false);
+  const [openMicro, setOpenMicro] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
@@ -1688,20 +1688,20 @@ function NativeStreamScreen({navigation, route}) {
     handleExit(off);
   };
 
-  // const handleToggleMic = () => {
-  //   if (!webrtcClient) {
-  //     return;
-  //   }
-  //   if (webrtcClient.getChannelProcessor('chat').isPaused === true) {
-  //     webrtcClient.getChannelProcessor('chat').startMic();
-  //     setOpenMicro(true);
-  //   } else {
-  //     webrtcClient.getChannelProcessor('chat').stopMic();
-  //     setOpenMicro(false);
-  //   }
+  const handleToggleMic = () => {
+    if (!webrtcClient) {
+      return;
+    }
+    if (webrtcClient.getChannelProcessor('chat').isPaused === true) {
+      webrtcClient.getChannelProcessor('chat').startMic();
+      setOpenMicro(true);
+    } else {
+      webrtcClient.getChannelProcessor('chat').stopMic();
+      setOpenMicro(false);
+    }
 
-  //   handleCloseModal();
-  // };
+    handleCloseModal();
+  };
 
   const getActiveProfileName = React.useCallback(() => {
     return settings.custom_virtual_gamepad || LIVE_GAMEPAD_PROFILE;
@@ -1803,7 +1803,7 @@ function NativeStreamScreen({navigation, route}) {
                     />
                   )}
 
-                  {/* {connectState === CONNECTED && (
+                  {connectState === CONNECTED && (
                     <List.Item
                       title={
                         openMicro ? t('Close Microphone') : t('Open Microphone')
@@ -1811,7 +1811,7 @@ function NativeStreamScreen({navigation, route}) {
                       background={background}
                       onPress={handleToggleMic}
                     />
-                  )} */}
+                  )}
 
                   {connectState === CONNECTED && (
                     <List.Item

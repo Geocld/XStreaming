@@ -113,7 +113,7 @@ function StreamScreen({navigation, route}) {
   const [isRumbling, setIsRumbling] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
-  // const [openMicro, setOpenMicro] = React.useState(false);
+  const [openMicro, setOpenMicro] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
 
@@ -1441,7 +1441,7 @@ function StreamScreen({navigation, route}) {
                       />
                     )}
 
-                  {/* {connectState === CONNECTED && (
+                  {connectState === CONNECTED && (
                     <List.Item
                       title={
                         openMicro ? t('Close Microphone') : t('Open Microphone')
@@ -1450,14 +1450,14 @@ function StreamScreen({navigation, route}) {
                       onPress={() => {
                         setOpenMicro(!openMicro);
                         if (!openMicro) {
-                          postData2Webview('openMicro');
+                          postData2Webview('openMicro', {});
                         } else {
-                          postData2Webview('closeMicro');
+                          postData2Webview('closeMicro', {});
                         }
                         handleCloseModal();
                       }}
                     />
-                  )} */}
+                  )}
 
                   {connectState === CONNECTED && (
                     <List.Item
