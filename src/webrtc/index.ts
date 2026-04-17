@@ -24,6 +24,8 @@ type AudioEnergySnapshot = {
   totalSamplesReceived: number;
 };
 
+const DEFAULT_SUPPORTED_SYSTEM_UIS = [10, 19, 31, 27, 32, -44, 40, 41, -43];
+
 class webRTCClient {
   _webrtcClient: RTCPeerConnection | undefined;
   _iceCandidates: Array<RTCIceCandidate> = [];
@@ -647,6 +649,42 @@ class webRTCClient {
   _rumbleHandler: any;
   setRumbleHandler(listener: any) {
     this._rumbleHandler = listener;
+  }
+
+  _systemUiHandler: any;
+  setSystemUiHandler(listener: any) {
+    this._systemUiHandler = listener;
+  }
+
+  getSystemUiHandler() {
+    return this._systemUiHandler;
+  }
+
+  _messageHandler: any;
+  setMessageHandler(listener: any) {
+    this._messageHandler = listener;
+  }
+
+  getMessageHandler() {
+    return this._messageHandler;
+  }
+
+  _supportedSystemUis: Array<number> | undefined;
+  setSupportedSystemUis(systemUis: Array<number>) {
+    if (!Array.isArray(systemUis)) {
+      this._supportedSystemUis = undefined;
+      return;
+    }
+
+    this._supportedSystemUis = [...systemUis];
+  }
+
+  getSupportedSystemUis() {
+    if (Array.isArray(this._supportedSystemUis)) {
+      return this._supportedSystemUis;
+    }
+
+    return DEFAULT_SUPPORTED_SYSTEM_UIS;
   }
 
   forceStereoAudio(sdp: string): string {

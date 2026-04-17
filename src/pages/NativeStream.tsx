@@ -77,6 +77,11 @@ const GAMEPAD_DIGITAL_KEYS = [
   'Nexus',
 ];
 
+const SYSTEM_UI_TARGET_SHOW_MESSAGE_DIALOG =
+  '/streaming/systemUi/messages/ShowMessageDialog';
+const SYSTEM_UI_TARGET_SHOW_VIRTUAL_KEYBOARD =
+  '/streaming/systemUi/messages/ShowVirtualKeyboard';
+
 const createGamepadState = (gamepadIndex = 0) => ({
   GamepadIndex: gamepadIndex,
   A: 0,
@@ -152,6 +157,17 @@ function NativeStreamScreen({navigation, route}) {
   const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
   const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
+  const [showSystemKeyboardModal, setShowSystemKeyboardModal] =
+    React.useState(false);
+  const [systemKeyboardTitle, setSystemKeyboardTitle] = React.useState('');
+  const [systemKeyboardDescription, setSystemKeyboardDescription] =
+    React.useState('');
+  const [systemKeyboardText, setSystemKeyboardText] = React.useState('');
+  const [systemKeyboardMaxLength, setSystemKeyboardMaxLength] = React.useState<
+    number | undefined
+  >(undefined);
+  const [systemKeyboardInputScope, setSystemKeyboardInputScope] =
+    React.useState(0);
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
@@ -159,6 +175,7 @@ function NativeStreamScreen({navigation, route}) {
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
+  const systemKeyboardTransactionRef = React.useRef<any>(null);
 
   // webrtc
   const [webrtcClient, setWebrtcClient] = React.useState<any>(undefined);
@@ -182,6 +199,214 @@ function NativeStreamScreen({navigation, route}) {
   const isConnected = React.useRef(false);
 
   const isTriggerWork = React.useRef(false);
+
+  const closeSystemKeyboardModal = React.useCallback(() => {
+    setShowSystemKeyboardModal(false);
+    setSystemKeyboardTitle('');
+    setSystemKeyboardDescription('');
+    setSystemKeyboardText('');
+    setSystemKeyboardMaxLength(undefined);
+    setSystemKeyboardInputScope(0);
+    systemKeyboardTransactionRef.current = null;
+  }, []);
+
+  const completeSystemKeyboard = React.useCallback(() => {
+    const transaction = systemKeyboardTransactionRef.current;
+    if (
+      transaction &&
+      transaction.isTransaction &&
+      transaction.completion &&
+      typeof transaction.completion.complete === 'function'
+    ) {
+      transaction.completion.complete(
+        JSON.stringify({
+          Text: systemKeyboardText,
+        }),
+      );
+    }
+    closeSystemKeyboardModal();
+  }, [closeSystemKeyboardModal, systemKeyboardText]);
+
+  const cancelSystemKeyboard = React.useCallback(() => {
+    const transaction = systemKeyboardTransactionRef.current;
+    if (
+      transaction &&
+      transaction.isTransaction &&
+      transaction.completion &&
+      typeof transaction.completion.cancel === 'function'
+    ) {
+      transaction.completion.cancel();
+    }
+    closeSystemKeyboardModal();
+  }, [closeSystemKeyboardModal]);
+
+  const resolveSystemKeyboardProps = React.useCallback(() => {
+    let keyboardType:
+      | 'default'
+      | 'email-address'
+      | 'numeric'
+      | 'phone-pad'
+      | 'url'
+      | 'web-search' = 'default';
+    let secureTextEntry = false;
+
+    switch (systemKeyboardInputScope) {
+      case 1:
+        keyboardType = 'url';
+        break;
+      case 5:
+        keyboardType = 'email-address';
+        break;
+      case 29:
+        keyboardType = 'numeric';
+        break;
+      case 31:
+        secureTextEntry = true;
+        break;
+      case 32:
+        keyboardType = 'phone-pad';
+        break;
+      case 50:
+        keyboardType = 'web-search';
+        break;
+      default:
+        keyboardType = 'default';
+        break;
+    }
+
+    return {
+      keyboardType,
+      secureTextEntry,
+    };
+  }, [systemKeyboardInputScope]);
+
+  const handleSystemUiEvent = React.useCallback(
+    (event: any) => {
+      if (!event || !event.target) {
+        return false;
+      }
+
+      if (event.target === SYSTEM_UI_TARGET_SHOW_MESSAGE_DIALOG) {
+        const payload = event.payload || {};
+        const title = payload.TitleText || '';
+        const content = payload.ContentText || '';
+        const labels = [
+          payload.CommandLabel1,
+          payload.CommandLabel2,
+          payload.CommandLabel3,
+        ];
+        let hasResponded = false;
+
+        const completeWithResult = (result?: number) => {
+          if (hasResponded) {
+            return;
+          }
+          hasResponded = true;
+          if (
+            event.isTransaction &&
+            event.completion &&
+            typeof event.completion.complete === 'function'
+          ) {
+            event.completion.complete(
+              JSON.stringify({
+                Result: result,
+              }),
+            );
+          }
+        };
+
+        const buttons: Array<any> = [];
+        labels.forEach((label, index) => {
+          if (!label) {
+            return;
+          }
+          buttons.push({
+            text: label,
+            onPress: () => {
+              completeWithResult(index);
+            },
+          });
+        });
+
+        if (!buttons.length) {
+          buttons.push({
+            text: t('Confirm'),
+            onPress: () => {
+              const fallbackIndex =
+                typeof payload.DefaultIndex === 'number'
+                  ? payload.DefaultIndex
+                  : 0;
+              completeWithResult(fallbackIndex);
+            },
+          });
+        }
+
+        Alert.alert(title, content, buttons, {
+          cancelable: true,
+          onDismiss: () => {
+            if (!event.isTransaction) {
+              return;
+            }
+
+            const dismissIndex =
+              typeof payload.CancelIndex === 'number'
+                ? payload.CancelIndex
+                : payload.DefaultIndex;
+            if (typeof dismissIndex === 'number') {
+              completeWithResult(dismissIndex);
+            } else if (
+              event.completion &&
+              typeof event.completion.cancel === 'function'
+            ) {
+              hasResponded = true;
+              event.completion.cancel();
+            }
+          },
+        });
+
+        return true;
+      }
+
+      if (event.target === SYSTEM_UI_TARGET_SHOW_VIRTUAL_KEYBOARD) {
+        const payload = event.payload || {};
+
+        setSystemKeyboardTitle(payload.TitleText || '');
+        setSystemKeyboardDescription(payload.DescriptionText || '');
+        setSystemKeyboardText(payload.DefaultText || '');
+        setSystemKeyboardInputScope(payload.InputScope ?? 0);
+        setSystemKeyboardMaxLength(
+          typeof payload.MaxLength === 'number' && payload.MaxLength > 0
+            ? payload.MaxLength
+            : undefined,
+        );
+
+        systemKeyboardTransactionRef.current = {
+          id: event.id,
+          isTransaction: event.isTransaction,
+          completion: event.completion,
+        };
+
+        if (
+          event.isTransaction &&
+          event.completion &&
+          typeof event.completion.setOnRemoteCancellation === 'function'
+        ) {
+          const transactionId = event.id;
+          event.completion.setOnRemoteCancellation(() => {
+            if (systemKeyboardTransactionRef.current?.id === transactionId) {
+              closeSystemKeyboardModal();
+            }
+          });
+        }
+
+        setShowSystemKeyboardModal(true);
+        return true;
+      }
+
+      return false;
+    },
+    [closeSystemKeyboardModal, t],
+  );
 
   // event
   const usbGpEventListener = React.useRef<any>(undefined);
@@ -726,6 +951,8 @@ function NativeStreamScreen({navigation, route}) {
       remoteStream.current = new MediaStream(undefined);
 
       webrtcClient.setPollRate(_settings.polling_rate);
+      webrtcClient.setSupportedSystemUis([10, 19]);
+      webrtcClient.setSystemUiHandler(handleSystemUiEvent);
 
       if (_settings.coop) {
         webrtcClient.setCoop();
@@ -1296,6 +1523,7 @@ function NativeStreamScreen({navigation, route}) {
       GamepadManager.setCurrentScreen('');
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
+      closeSystemKeyboardModal();
     };
   }, [
     t,
@@ -1308,6 +1536,8 @@ function NativeStreamScreen({navigation, route}) {
     streamingTokens,
     navigation,
     authentication,
+    handleSystemUiEvent,
+    closeSystemKeyboardModal,
   ]);
 
   const handlePowerOff = async () => {
@@ -1665,6 +1895,57 @@ function NativeStreamScreen({navigation, route}) {
     );
   };
 
+  const renderSystemKeyboardPanel = () => {
+    const inputProps = resolveSystemKeyboardProps();
+
+    return (
+      <Portal>
+        <Modal
+          visible={showSystemKeyboardModal}
+          onDismiss={cancelSystemKeyboard}
+          contentContainerStyle={styles.modal}>
+          <Card>
+            <Card.Content>
+              {systemKeyboardTitle !== '' && (
+                <List.Subheader>{systemKeyboardTitle}</List.Subheader>
+              )}
+              {systemKeyboardDescription !== '' && (
+                <List.Item
+                  title={systemKeyboardDescription}
+                  titleNumberOfLines={3}
+                />
+              )}
+              <TextInput
+                label={t('Text')}
+                value={systemKeyboardText}
+                onChangeText={text => setSystemKeyboardText(text)}
+                maxLength={systemKeyboardMaxLength}
+                keyboardType={inputProps.keyboardType}
+                secureTextEntry={inputProps.secureTextEntry}
+                autoCapitalize="none"
+              />
+              <View style={{flexDirection: 'row', marginTop: 10}}>
+                <Button
+                  mode="outlined"
+                  style={{flex: 1}}
+                  onPress={cancelSystemKeyboard}>
+                  {t('Cancel')}
+                </Button>
+                <View style={{width: 10}} />
+                <Button
+                  mode="contained"
+                  style={{flex: 1}}
+                  onPress={completeSystemKeyboard}>
+                  {t('Confirm')}
+                </Button>
+              </View>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
+    );
+  };
+
   const renderMenu = () => {
     if (settings.show_menu) {
       return (
@@ -1735,6 +2016,8 @@ function NativeStreamScreen({navigation, route}) {
       {renderOptionsModal()}
 
       {renderTextPanel()}
+
+      {renderSystemKeyboardPanel()}
 
       {renderMenu()}
     </View>

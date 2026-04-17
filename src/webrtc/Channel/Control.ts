@@ -1,6 +1,8 @@
 import BaseChannel from './Base';
 
 export default class ControlChannel extends BaseChannel {
+  _gamepadSyncTimeout: any = null;
+
   onOpen(event: any) {
     super.onOpen(event);
     // console.log(
@@ -14,13 +16,15 @@ export default class ControlChannel extends BaseChannel {
       clearInterval(this._keyframeInterval);
       this._keyframeInterval = null;
     }
+    if (this._gamepadSyncTimeout) {
+      clearTimeout(this._gamepadSyncTimeout);
+      this._gamepadSyncTimeout = null;
+    }
 
-    const authRequest = JSON.stringify({
+    this._sendControlMessage({
       message: 'authorizationRequest',
       accessKey: '4BDB3609-C1F1-4195-9B37-FEFF45DA8B8E',
     });
-
-    this.send(authRequest);
 
     this._client._inputDriver.start();
 
@@ -30,7 +34,7 @@ export default class ControlChannel extends BaseChannel {
       this.sendGamepadRemoved(1);
     }
 
-    setTimeout(() => {
+    this._gamepadSyncTimeout = setTimeout(() => {
       this.sendGamepadAdded(0);
       if (this._client._coop) {
         this.sendGamepadAdded(1);
@@ -44,30 +48,26 @@ export default class ControlChannel extends BaseChannel {
 
   requestKeyframeRequest(ifrRequested = false) {
     console.log('Channel/Control.ts - requestKeyframeRequest');
-    const keyframeRequest = JSON.stringify({
+    this._sendControlMessage({
       message: 'videoKeyframeRequested',
       ifrRequested: ifrRequested,
     });
-
-    this.send(keyframeRequest);
   }
 
   sendGamepadAdded(gamepadIndex: number) {
-    const gamepadRequest = JSON.stringify({
+    this._sendControlMessage({
       message: 'gamepadChanged',
       gamepadIndex: gamepadIndex,
       wasAdded: true,
     });
-    this.send(gamepadRequest);
   }
 
   sendGamepadRemoved(gamepadIndex: number) {
-    const gamepadRequest = JSON.stringify({
+    this._sendControlMessage({
       message: 'gamepadChanged',
       gamepadIndex: gamepadIndex,
       wasAdded: false,
     });
-    this.send(gamepadRequest);
   }
 
   onMessage(event: any) {
@@ -84,6 +84,10 @@ export default class ControlChannel extends BaseChannel {
     super.onClose(event);
     clearInterval(this._keyframeInterval);
     this._keyframeInterval = null;
+    if (this._gamepadSyncTimeout) {
+      clearTimeout(this._gamepadSyncTimeout);
+      this._gamepadSyncTimeout = null;
+    }
     this.sendGamepadRemoved(0);
 
     if (this._client._coop) {
@@ -96,11 +100,24 @@ export default class ControlChannel extends BaseChannel {
       clearInterval(this._keyframeInterval);
       this._keyframeInterval = null;
     }
+    if (this._gamepadSyncTimeout) {
+      clearTimeout(this._gamepadSyncTimeout);
+      this._gamepadSyncTimeout = null;
+    }
     this.sendGamepadRemoved(0);
 
     if (this._client._coop) {
       this.sendGamepadRemoved(1);
     }
     super.destroy();
+  }
+
+  _sendControlMessage(data: any) {
+    const channel = this.getClient().getChannel(this._channelName);
+    if (!channel || channel.readyState !== 'open') {
+      return;
+    }
+
+    this.send(JSON.stringify(data));
   }
 }
