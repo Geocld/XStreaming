@@ -9,6 +9,7 @@ import {
   Dimensions,
   ToastAndroid,
   Platform,
+  Vibration,
 } from 'react-native';
 import {
   Portal,
@@ -1629,6 +1630,10 @@ function NativeStreamScreen({navigation, route}) {
       return;
     }
     gpState[name] = 1;
+
+    if (settings.vibration) {
+      Vibration.vibrate(30);
+    }
   };
 
   // Virtual gamepad press end

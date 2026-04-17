@@ -1405,7 +1405,7 @@ function StreamScreen({navigation, route}) {
                     settings.gamepad_kernal === 'Native' &&
                     showVirtualGamepad && (
                       <List.Item
-                        title={t('Customize buttons of virtual gamepad')}
+                        title={t('Edit Virtual Gamepad')}
                         background={background}
                         onPress={() => {
                           handleCloseModal();
