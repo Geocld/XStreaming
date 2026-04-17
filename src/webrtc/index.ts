@@ -112,6 +112,7 @@ class webRTCClient {
     RightThumbYAxis: 0.0,
   };
   _polling_rate = 62.5;
+  _maxTouchPoints = 0;
   _audioLevel = 0;
   _audioEnergySnapshot: AudioEnergySnapshot | null = null;
   _hasAudioLevelSample = false;
@@ -644,6 +645,15 @@ class webRTCClient {
 
   setPollRate(value: number) {
     this._polling_rate = value || 62.5;
+  }
+
+  setMaxTouchPoints(value: number) {
+    const next = Math.max(0, Math.min(255, Math.floor(Number(value) || 0)));
+    this._maxTouchPoints = next;
+  }
+
+  getMaxTouchPoints() {
+    return this._maxTouchPoints;
   }
 
   _rumbleHandler: any;

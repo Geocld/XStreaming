@@ -81,7 +81,8 @@ export default class InputChannel extends BaseChannel {
 
   start() {
     const Packet = new InputPacket(this._inputSequenceNum);
-    Packet.setMetadata(2);
+    const maxTouchPoints = this.getClient().getMaxTouchPoints?.() ?? 0;
+    Packet.setMetadata(maxTouchPoints);
 
     this.send(Packet.toBuffer());
 

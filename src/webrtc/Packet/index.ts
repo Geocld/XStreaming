@@ -13,6 +13,32 @@ enum ReportTypes {
   Sensor = 256,
 }
 
+enum GamepadInputPhysicality {
+  None = 0x00000000,
+  DPadUp = 0x00000001,
+  DPadDown = 0x00000002,
+  DPadLeft = 0x00000004,
+  DPadRight = 0x00000008,
+  Menu = 0x00000010,
+  View = 0x00000020,
+  LeftThumb = 0x00000040,
+  RightThumb = 0x00000080,
+  LeftShoulder = 0x00000100,
+  RightShoulder = 0x00000200,
+  Nexus = 0x00000400,
+  Misc = 0x00000800,
+  A = 0x00001000,
+  B = 0x00002000,
+  X = 0x00004000,
+  Y = 0x00008000,
+  LeftTrigger = 0x00010000,
+  RightTrigger = 0x00020000,
+  LeftThumbXAxis = 0x00040000,
+  LeftThumbYAxis = 0x00080000,
+  RightThumbXAxis = 0x00100000,
+  RightThumbYAxis = 0x00200000,
+}
+
 export default class InputPacket {
   _reportType = ReportTypes.None;
   _totalSize = -1;
@@ -27,7 +53,7 @@ export default class InputPacket {
     this._sequence = sequence;
   }
 
-  setMetadata(maxTouchpoints = 1) {
+  setMetadata(maxTouchpoints = 0) {
     this._reportType = ReportTypes.ClientMetadata;
     this._totalSize = 15;
     this._maxTouchpoints = maxTouchpoints;
@@ -196,8 +222,23 @@ export default class InputPacket {
           true,
         ); // RightTrigger
 
-        packet.setUint32(offset + 14, 0, true); // PhysicalPhysicality
-        packet.setUint32(offset + 18, 0, false); // VirtualPhysicality
+        const inputWithPhysicality = input as InputFrame & {
+          PhysicalPhysicality?: number;
+          VirtualPhysicality?: number;
+        };
+        const physicalPhysicality = Number.isFinite(
+          inputWithPhysicality.PhysicalPhysicality,
+        )
+          ? (inputWithPhysicality.PhysicalPhysicality as number)
+          : this._calculateGamepadPhysicality(input);
+        const virtualPhysicality = Number.isFinite(
+          inputWithPhysicality.VirtualPhysicality,
+        )
+          ? (inputWithPhysicality.VirtualPhysicality as number)
+          : 0;
+
+        packet.setUint32(offset + 14, physicalPhysicality, true); // PhysicalPhysicality
+        packet.setUint32(offset + 18, virtualPhysicality, true); // VirtualPhysicality
         offset += 22;
       }
     }
@@ -255,5 +296,83 @@ export default class InputPacket {
   _convertToUInt16(e: any) {
     const int = new Uint16Array(1);
     return (int[0] = e), int[0];
+  }
+
+  _calculateGamepadPhysicality(input: InputFrame, thumbstickDeadzone = 0) {
+    let physicality = GamepadInputPhysicality.None;
+
+    if (input.DPadUp) {
+      physicality |= GamepadInputPhysicality.DPadUp;
+    }
+    if (input.DPadDown) {
+      physicality |= GamepadInputPhysicality.DPadDown;
+    }
+    if (input.DPadLeft) {
+      physicality |= GamepadInputPhysicality.DPadLeft;
+    }
+    if (input.DPadRight) {
+      physicality |= GamepadInputPhysicality.DPadRight;
+    }
+    if (input.Menu) {
+      physicality |= GamepadInputPhysicality.Menu;
+    }
+    if (input.View) {
+      physicality |= GamepadInputPhysicality.View;
+    }
+    if (input.LeftThumb) {
+      physicality |= GamepadInputPhysicality.LeftThumb;
+    }
+    if (input.RightThumb) {
+      physicality |= GamepadInputPhysicality.RightThumb;
+    }
+    if (input.LeftShoulder) {
+      physicality |= GamepadInputPhysicality.LeftShoulder;
+    }
+    if (input.RightShoulder) {
+      physicality |= GamepadInputPhysicality.RightShoulder;
+    }
+    if (input.Nexus) {
+      physicality |= GamepadInputPhysicality.Nexus;
+    }
+    if (input.A) {
+      physicality |= GamepadInputPhysicality.A;
+    }
+    if (input.B) {
+      physicality |= GamepadInputPhysicality.B;
+    }
+    if (input.X) {
+      physicality |= GamepadInputPhysicality.X;
+    }
+    if (input.Y) {
+      physicality |= GamepadInputPhysicality.Y;
+    }
+    if (input.LeftTrigger) {
+      physicality |= GamepadInputPhysicality.LeftTrigger;
+    }
+    if (input.RightTrigger) {
+      physicality |= GamepadInputPhysicality.RightTrigger;
+    }
+
+    let distanceToOrigin = Math.hypot(
+      input.LeftThumbXAxis || 0,
+      input.LeftThumbYAxis || 0,
+    );
+    let isThumbstickIdle = distanceToOrigin <= thumbstickDeadzone;
+    if (!isThumbstickIdle) {
+      physicality |= GamepadInputPhysicality.LeftThumbXAxis;
+      physicality |= GamepadInputPhysicality.LeftThumbYAxis;
+    }
+
+    distanceToOrigin = Math.hypot(
+      input.RightThumbXAxis || 0,
+      input.RightThumbYAxis || 0,
+    );
+    isThumbstickIdle = distanceToOrigin <= thumbstickDeadzone;
+    if (!isThumbstickIdle) {
+      physicality |= GamepadInputPhysicality.RightThumbXAxis;
+      physicality |= GamepadInputPhysicality.RightThumbYAxis;
+    }
+
+    return physicality;
   }
 }

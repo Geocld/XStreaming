@@ -21,7 +21,7 @@ const {UsbRumbleManager, FullScreenManager} = NativeModules;
 
 const log = debugFactory('TitleDetailScreen');
 
-const warnTitles = ['MINECRAFTDUNGEONS', 'MICROSOFTFLIGHTSIMULATOR'];
+const warnTitles: any = [];
 const webviewTitles: any = [];
 
 function TitleDetail({navigation, route}) {

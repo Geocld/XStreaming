@@ -81,6 +81,7 @@ const SYSTEM_UI_TARGET_SHOW_MESSAGE_DIALOG =
   '/streaming/systemUi/messages/ShowMessageDialog';
 const SYSTEM_UI_TARGET_SHOW_VIRTUAL_KEYBOARD =
   '/streaming/systemUi/messages/ShowVirtualKeyboard';
+const STREAMING_TOUCHCONTROLS_SCOPE = '/streaming/touchcontrols';
 
 const createGamepadState = (gamepadIndex = 0) => ({
   GamepadIndex: gamepadIndex,
@@ -407,6 +408,26 @@ function NativeStreamScreen({navigation, route}) {
     },
     [closeSystemKeyboardModal, t],
   );
+
+  const handleStreamingMessage = React.useCallback((event: any) => {
+    if (!event || typeof event.target !== 'string') {
+      return false;
+    }
+
+    if (!event.target.startsWith(STREAMING_TOUCHCONTROLS_SCOPE)) {
+      return false;
+    }
+
+    if (
+      event.isTransaction &&
+      event.completion &&
+      typeof event.completion.cancel === 'function'
+    ) {
+      event.completion.cancel();
+    }
+
+    return true;
+  }, []);
 
   // event
   const usbGpEventListener = React.useRef<any>(undefined);
@@ -951,8 +972,10 @@ function NativeStreamScreen({navigation, route}) {
       remoteStream.current = new MediaStream(undefined);
 
       webrtcClient.setPollRate(_settings.polling_rate);
+      webrtcClient.setMaxTouchPoints(0);
       webrtcClient.setSupportedSystemUis([10, 19]);
       webrtcClient.setSystemUiHandler(handleSystemUiEvent);
+      webrtcClient.setMessageHandler(handleStreamingMessage);
 
       if (_settings.coop) {
         webrtcClient.setCoop();
@@ -1537,6 +1560,7 @@ function NativeStreamScreen({navigation, route}) {
     navigation,
     authentication,
     handleSystemUiEvent,
+    handleStreamingMessage,
     closeSystemKeyboardModal,
   ]);
 
