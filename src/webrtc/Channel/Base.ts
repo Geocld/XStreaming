@@ -58,11 +58,12 @@ export default class BaseChannel {
   }
 
   // Channel functions
-  send(data: any) {
+  send(data: any, options?: {suppressClosedWarning?: boolean}) {
     const channel = this.getClient().getChannel(this._channelName);
+    const suppressClosedWarning = options?.suppressClosedWarning === true;
 
     // Encode to ArrayBuffer if not ArrayBuffer
-    if (channel.readyState === 'open') {
+    if (channel?.readyState === 'open') {
       if (this._channelName !== 'input') {
         console.log(
           'Channel/Base.ts - [' + this._channelName + '] Sending message:',
@@ -84,15 +85,19 @@ export default class BaseChannel {
 
       if (channel.readyState === 'open') {
         channel.send(data);
+        return true;
       }
     } else {
-      console.warn(
-        'xCloudPlayer Channel/Base.ts - [' +
-          this._channelName +
-          '] Channel is closed. Failed to send packet:',
-        data,
-      );
+      if (!suppressClosedWarning) {
+        console.warn(
+          'xCloudPlayer Channel/Base.ts - [' +
+            this._channelName +
+            '] Channel is closed. Failed to send packet:',
+          data,
+        );
+      }
     }
+    return false;
   }
 
   // Base functions

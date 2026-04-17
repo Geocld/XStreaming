@@ -66,12 +66,14 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
             {resolutionText || '-1'} {isHorizon ? '| ' : ''}{' '}
           </Text>
         </View>
-        <View>
-          <Text style={styles.text}>
-            {settings.fsr ? 'FSR' : ''}
-            {isHorizon ? ' | ' : ''}
-          </Text>
-        </View>
+        {settings.fsr && (
+          <View>
+            <Text style={styles.text}>
+              FSR
+              {isHorizon ? ' | ' : ''}
+            </Text>
+          </View>
+        )}
         <View>
           <Text style={styles.text}>
             {t('RTT')}: {performance.rtt || '-1'} {isHorizon ? '| ' : ''}

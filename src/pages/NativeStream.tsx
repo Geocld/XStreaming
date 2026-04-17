@@ -178,6 +178,7 @@ function NativeStreamScreen({navigation, route}) {
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
   const systemKeyboardTransactionRef = React.useRef<any>(null);
+  const handleExitRef = React.useRef<(off?: boolean) => void>(() => {});
 
   // webrtc
   const [webrtcClient, setWebrtcClient] = React.useState<any>(undefined);
@@ -326,6 +327,11 @@ function NativeStreamScreen({navigation, route}) {
             text: label,
             onPress: () => {
               completeWithResult(index);
+              setTimeout(() => {
+                if (label.toLocaleUpperCase().indexOf('QUIT') !== -1) {
+                  handleExitRef.current(false);
+                }
+              }, 500);
             },
           });
         });
@@ -1611,6 +1617,7 @@ function NativeStreamScreen({navigation, route}) {
       }, 500);
     });
   };
+  handleExitRef.current = handleExit;
 
   const handleCloseModal = () => {
     setShowModal(false);

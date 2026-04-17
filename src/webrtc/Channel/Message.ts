@@ -294,6 +294,9 @@ export default class MessageChannel extends BaseChannel {
             content: reason ? this._stringifyContent(reason) : undefined,
             cv: localCv,
           }),
+          {
+            suppressClosedWarning: true,
+          },
         );
         this._incomingTransactionCancellationCallbacks.delete(message.id);
       },
@@ -310,6 +313,9 @@ export default class MessageChannel extends BaseChannel {
             id: message.id,
             cv: localCv,
           }),
+          {
+            suppressClosedWarning: true,
+          },
         );
         this._incomingTransactionCancellationCallbacks.delete(message.id);
       },
@@ -512,6 +518,9 @@ export default class MessageChannel extends BaseChannel {
             content: 'channel closing',
             cv: this._nextCv(),
           }),
+          {
+            suppressClosedWarning: true,
+          },
         );
       } catch (error) {
         console.warn('Channel/Message.ts - SenderCancel failed:', error);
@@ -528,6 +537,9 @@ export default class MessageChannel extends BaseChannel {
             content: 'channel closing',
             cv: this._nextCv(),
           }),
+          {
+            suppressClosedWarning: true,
+          },
         );
       } catch (error) {
         console.warn('Channel/Message.ts - ReceiverCancel failed:', error);
