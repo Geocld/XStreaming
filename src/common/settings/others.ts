@@ -4,6 +4,16 @@ const {t} = i18next;
 
 const others = [
   {
+    name: 'native_touch',
+    type: 'radio',
+    title: t('Native touch'),
+    description: t('Enable native touch input'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
     name: 'check_update',
     type: 'radio',
     title: t('Auto check update'),

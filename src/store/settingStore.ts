@@ -35,6 +35,7 @@ export type Settings = {
   performance_style: boolean;
   vibration: boolean;
   vibration_mode: string;
+  native_touch: boolean;
   bind_usb_device: boolean;
   show_harmony_modal: boolean;
   rumble_intensity: number;
@@ -101,6 +102,7 @@ const defaultSettings: Settings = {
   performance_style: true,
   vibration: true,
   vibration_mode: 'Native',
+  native_touch: false,
   bind_usb_device: false,
   show_harmony_modal: true,
   rumble_intensity: 3,

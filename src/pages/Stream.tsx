@@ -1567,10 +1567,7 @@ function StreamScreen({navigation, route}) {
           injectedJavaScriptObject={{
             settings,
             streamType: route.params?.streamType,
-            inputTouch:
-              route.params?.sessionId === 'MINECRAFTDUNGEONS' ||
-              route.params?.sessionId === 'MICROSOFTFLIGHTSIMULATOR',
-            // route.params?.sessionId === 'GENSHINIMPACT',
+            inputTouch: settings.native_touch,
           }}
           onMessage={event => {
             handleWebviewMessage(event);

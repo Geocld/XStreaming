@@ -359,5 +359,7 @@ export default {
     CoopTips: '已进入双人模式',
     Microphone_title: '開啟麥克風(實驗性)',
     Microphone_desc: '快捷菜单将可以设置开启/关闭麦克风',
+    'Native touch': '原生触控',
+    'Enable native touch input': '允许原生触控输入',
   },
 };
