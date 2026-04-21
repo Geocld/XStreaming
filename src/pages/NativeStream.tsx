@@ -296,10 +296,19 @@ function NativeStreamScreen({navigation, route}) {
         const payload = event.payload || {};
         const title = payload.TitleText || '';
         const content = payload.ContentText || '';
-        const labels = [
-          payload.CommandLabel1,
-          payload.CommandLabel2,
-          payload.CommandLabel3,
+        const commandButtons = [
+          {
+            label: payload.CommandLabel1,
+            result: 0,
+          },
+          {
+            label: payload.CommandLabel2,
+            result: 1,
+          },
+          {
+            label: payload.CommandLabel3,
+            result: 2,
+          },
         ];
         let hasResponded = false;
 
@@ -322,16 +331,17 @@ function NativeStreamScreen({navigation, route}) {
         };
 
         const buttons: Array<any> = [];
-        labels.forEach((label, index) => {
+        commandButtons.forEach(({label, result}) => {
           if (!label) {
             return;
           }
+          const buttonText = String(label);
           buttons.push({
-            text: label,
+            text: buttonText,
             onPress: () => {
-              completeWithResult(index);
+              completeWithResult(result);
               setTimeout(() => {
-                if (label.toLocaleUpperCase().indexOf('QUIT') !== -1) {
+                if (buttonText.toUpperCase().indexOf('QUIT') !== -1) {
                   handleExitRef.current(false);
                 }
               }, 500);
@@ -362,16 +372,15 @@ function NativeStreamScreen({navigation, route}) {
             const dismissIndex =
               typeof payload.CancelIndex === 'number'
                 ? payload.CancelIndex
-                : payload.DefaultIndex;
-            if (typeof dismissIndex === 'number') {
+                : typeof payload.DefaultIndex === 'number'
+                ? payload.DefaultIndex
+                : 0;
+
+            // Message dialog should always complete with a Result value.
+            // Defer to avoid racing with button onPress callback order on Android.
+            setTimeout(() => {
               completeWithResult(dismissIndex);
-            } else if (
-              event.completion &&
-              typeof event.completion.cancel === 'function'
-            ) {
-              hasResponded = true;
-              event.completion.cancel();
-            }
+            }, 0);
           },
         });
 
@@ -1081,14 +1090,6 @@ function NativeStreamScreen({navigation, route}) {
             }, keepaliveIntervalMs);
           }
 
-          if (!performanceInterval.current) {
-            performanceInterval.current = setInterval(() => {
-              webrtcClient.getStreamState().then(res => {
-                setPerformance(res);
-              });
-            }, 1000);
-          }
-
           if (!audioRumbleTimer.current && _settings.enable_audio_rumble) {
             audioRumbleTimer.current = setInterval(() => {
               webrtcClient.getAudioVolume().then(vol => {
@@ -1575,6 +1576,40 @@ function NativeStreamScreen({navigation, route}) {
     handleStreamingMessage,
     closeSystemKeyboardModal,
   ]);
+
+  React.useEffect(() => {
+    if (
+      connectState !== CONNECTED ||
+      !showPerformance ||
+      !webrtcClient ||
+      typeof webrtcClient.getStreamState !== 'function'
+    ) {
+      if (performanceInterval.current) {
+        clearInterval(performanceInterval.current);
+        performanceInterval.current = null;
+      }
+      return;
+    }
+
+    const updatePerformance = () => {
+      webrtcClient
+        .getStreamState()
+        .then(res => {
+          setPerformance(res);
+        })
+        .catch(() => {});
+    };
+
+    updatePerformance();
+    performanceInterval.current = setInterval(updatePerformance, 1000);
+
+    return () => {
+      if (performanceInterval.current) {
+        clearInterval(performanceInterval.current);
+        performanceInterval.current = null;
+      }
+    };
+  }, [connectState, showPerformance, webrtcClient]);
 
   const handlePowerOff = async () => {
     const webApi = new WebApi(webToken);
