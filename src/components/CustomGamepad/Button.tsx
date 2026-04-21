@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {SvgXml} from 'react-native-svg';
 import icons from '../../common/virtualgp';
+import {VIRTUAL_MACRO_BUTTON_NAME} from '../../utils/virtualMacro';
 
 type Props = {
   name: string;
@@ -25,6 +26,10 @@ const GamepadButton: React.FC<Props> = ({
   if (name.indexOf('DPad') > -1) {
     width = 70;
     height = 70;
+  }
+  if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+    width = 80;
+    height = 80;
   }
 
   return (

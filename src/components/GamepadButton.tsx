@@ -3,6 +3,7 @@ import {TouchableOpacity} from 'react-native';
 import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import {SvgXml} from 'react-native-svg';
 import icons from '../common/virtualgp';
+import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
 
 type Props = {
   name: string;
@@ -34,6 +35,10 @@ const GamepadButton: React.FC<Props> = ({
     height = 70;
   }
   if (name === 'Nexus') {
+    width = 60;
+    height = 60;
+  }
+  if (name === VIRTUAL_MACRO_BUTTON_NAME) {
     width = 60;
     height = 60;
   }

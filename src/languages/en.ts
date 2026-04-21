@@ -245,5 +245,40 @@ export default {
     'Native touch': 'Native touch',
     'Enable native touch input':
       'Enable native touch input (cannot customize screen ratio after enable)',
+    'Virtual macro button': 'Virtual macro button',
+    'Enable virtual macro button': 'Enable virtual macro button',
+    'Virtual macro settings': 'Virtual macro settings',
+    'Configure short/long press macro actions':
+      'Configure short/long press macro actions',
+    'Enable macro button and edit its action sequence':
+      'Enable macro button and edit its action sequence',
+    'Configure one macro button with separate short/long press action chains for accessibility play styles.':
+      'Configure one macro button with separate short/long press action chains for accessibility play styles.',
+    'Macro button': 'Macro button',
+    'Enable or disable': 'Enable or disable',
+    'Long press threshold': 'Long press threshold',
+    'Short press actions': 'Short press actions',
+    'Long press actions': 'Long press actions',
+    'Actions executed when macro button is tapped':
+      'Actions executed when macro button is tapped',
+    'Actions executed when macro button is held':
+      'Actions executed when macro button is held',
+    'No action steps, tap + to add': 'No action steps, tap + to add',
+    Hold: 'Hold',
+    Wait: 'Wait',
+    'Edit action': 'Edit action',
+    'Add action': 'Add action',
+    Button: 'Button',
+    Buttons: 'Buttons',
+    'Hold duration': 'Hold duration',
+    'Wait after action': 'Wait after action',
+    'Macro action sequence': 'Macro action sequence',
+    'Tap + to add sequence step': 'Tap + to add sequence step',
+    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':
+      'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.',
+    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.':
+      'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.',
+    'Enable macro button and edit its action sequence in one place.':
+      'Enable macro button and edit its action sequence in one place.',
   },
 };

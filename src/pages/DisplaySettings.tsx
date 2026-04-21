@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView} from 'react-native';
-import {Button} from 'react-native-paper';
+import {Button, Card, Text} from 'react-native-paper';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import Display from '../components/Display';
@@ -42,6 +42,16 @@ function DisplaySettings({navigation}) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.displayWrap}>
+        <Card style={styles.heroCard}>
+          <Card.Content>
+            <Text style={styles.heroDesc}>
+              {t('Set parameters such as screen clarity and saturation')}
+            </Text>
+            <Text style={styles.heroHint}>
+              {t('Display settings is not working in native render engine.')}
+            </Text>
+          </Card.Content>
+        </Card>
         <Display options={options} onChange={handleChange} />
       </ScrollView>
 
@@ -68,10 +78,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   displayWrap: {
-    paddingTop: 30,
+    paddingTop: 12,
     paddingLeft: 10,
     paddingRight: 10,
     marginBottom: 230,
+  },
+  heroCard: {
+    marginBottom: 12,
+    backgroundColor: '#16351c',
+  },
+  heroDesc: {
+    color: '#C0D8BF',
+    lineHeight: 20,
+  },
+  heroHint: {
+    color: '#a5c6a3',
+    marginTop: 8,
+    lineHeight: 18,
   },
   buttonWrap: {
     position: 'absolute',

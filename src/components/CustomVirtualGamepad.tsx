@@ -4,6 +4,11 @@ import GamepadButton from './CustomGamepad/GamepadButton';
 import AnalogStick from '../components/AnalogStick';
 import {getSettings as getLocalSettings} from '../store/settingStore';
 import {getSettings} from '../store/gamepadStore';
+import {
+  createDefaultMacroLayoutButton,
+  ensureMacroLayoutButton,
+  VIRTUAL_MACRO_BUTTON_NAME,
+} from '../utils/virtualMacro';
 
 type Props = {
   title: string;
@@ -35,6 +40,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     const viewLeft = width * 0.5 - 100;
     const menuLeft = width * 0.5 + 60;
 
+    const macroDefaultButton = createDefaultMacroLayoutButton(width, height);
     const _buttons = [
       {
         name: 'LeftTrigger',
@@ -163,10 +169,11 @@ const CustomVirtualGamepad: React.FC<Props> = ({
         y: height - 195,
         show: true,
       },
+      macroDefaultButton,
     ];
     if (_settings[title]) {
       const exitButtons = _settings[title];
-      setButtons(exitButtons);
+      setButtons(ensureMacroLayoutButton(exitButtons, macroDefaultButton));
     } else {
       setButtons(_buttons);
     }
@@ -188,6 +195,12 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     <View style={styles.wrap} pointerEvents="box-none">
       {buttons.map((button: any) => {
         if (!button.show) {
+          return null;
+        }
+        if (
+          button.name === VIRTUAL_MACRO_BUTTON_NAME &&
+          !localSettings.virtual_macro_enabled
+        ) {
           return null;
         }
         if (button.name === 'LeftStick') {

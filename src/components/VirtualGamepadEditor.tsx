@@ -16,6 +16,10 @@ import Slider from '@react-native-community/slider';
 import GridBackground from './GridBackground';
 import GamepadButton from './CustomGamepad/Button';
 import {getSettings as getGamepadLayouts} from '../store/gamepadStore';
+import {
+  createDefaultMacroLayoutButton,
+  ensureMacroLayoutButton,
+} from '../utils/virtualMacro';
 
 export type ButtonConfig = {
   name: string;
@@ -60,6 +64,7 @@ const buildDefaultButtons = (): ButtonConfig[] => {
     {name: 'DPadRight', x: 135, y: height - 105, show: true},
     {name: 'LeftStick', x: 175, y: height - 205, show: true},
     {name: 'RightStick', x: width - 265, y: height - 195, show: true},
+    createDefaultMacroLayoutButton(width, height),
   ];
 };
 
@@ -91,7 +96,14 @@ const VirtualGamepadEditor: React.FC<VirtualGamepadEditorProps> = ({
     const layouts = getGamepadLayouts();
     const layout = layouts[profileName];
     if (layout && Array.isArray(layout)) {
-      setButtons(layout.map(button => ({...button})));
+      const withMacro = ensureMacroLayoutButton(
+        layout,
+        createDefaultMacroLayoutButton(
+          Dimensions.get('window').width,
+          Dimensions.get('window').height,
+        ),
+      );
+      setButtons(withMacro.map(button => ({...button})));
     } else {
       setButtons(defaults.map(button => ({...button})));
     }

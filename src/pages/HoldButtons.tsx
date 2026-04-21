@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView} from 'react-native';
-import {Text, Divider, Button, Checkbox} from 'react-native-paper';
+import {Text, Divider, Button, Checkbox, Card} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {getSettings, saveSettings} from '../store/settingStore';
 
@@ -49,9 +49,11 @@ function HoldButtonsScreen({navigation}) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        <View style={styles.tips}>
-          <Text>{t('HoldButtonsSettingsDesc')}</Text>
-        </View>
+        <Card style={styles.heroCard}>
+          <Card.Content>
+            <Text style={styles.heroDesc}>{t('HoldButtonsSettingsDesc')}</Text>
+          </Card.Content>
+        </Card>
         <Divider />
 
         {buttons.map((button, index) => (
@@ -103,6 +105,19 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 10,
+  },
+  heroCard: {
+    margin: 12,
+    backgroundColor: '#16351c',
+  },
+  heroDesc: {
+    color: '#C0D8BF',
+    lineHeight: 20,
+  },
+  heroHint: {
+    color: '#a5c6a3',
+    marginTop: 8,
+    lineHeight: 18,
   },
 });
 

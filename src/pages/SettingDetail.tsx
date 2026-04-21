@@ -6,7 +6,7 @@ import {
   NativeModules,
   ToastAndroid,
 } from 'react-native';
-import {Button, RadioButton, Text, Divider} from 'react-native-paper';
+import {Button, RadioButton, Text, Divider, Card} from 'react-native-paper';
 import CookieManager from '@react-native-cookies/cookies';
 import {useTranslation} from 'react-i18next';
 import RNRestart from 'react-native-restart';
@@ -332,15 +332,16 @@ function SettingDetailScreen({navigation, route}) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        <View style={styles.tips}>
-          <Text>{currentMetas && currentMetas.description}</Text>
-        </View>
-
-        {currentMetas && currentMetas.tips && (
-          <View style={styles.tips}>
-            <Text>Tips: {currentMetas && currentMetas.tips}</Text>
-          </View>
-        )}
+        <Card style={styles.heroCard}>
+          <Card.Content>
+            <Text style={styles.heroDesc}>
+              {currentMetas?.description || ''}
+            </Text>
+            {!!currentMetas?.tips && (
+              <Text style={styles.heroHint}>{currentMetas.tips}</Text>
+            )}
+          </Card.Content>
+        </Card>
 
         <Divider />
 
@@ -366,8 +367,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tips: {
-    padding: 10,
+  heroCard: {
+    margin: 12,
+    backgroundColor: '#16351c',
+  },
+  heroDesc: {
+    color: '#C0D8BF',
+    lineHeight: 20,
+  },
+  heroHint: {
+    color: '#a5c6a3',
+    marginTop: 8,
+    lineHeight: 18,
   },
   scrollView: {
     marginBottom: 120,

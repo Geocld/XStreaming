@@ -42,6 +42,12 @@ import PerfPanel from '../components/PerfPanel';
 import Display from '../components/Display';
 import FSRDisplay from '../components/FSRDisplay';
 import Audio from '../components/Audio';
+import {
+  normalizeMacroSteps,
+  VIRTUAL_MACRO_ALLOWED_BUTTONS,
+  VIRTUAL_MACRO_BUTTON_NAME,
+  DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
+} from '../utils/virtualMacro';
 
 const log = debugFactory('StreamScreen');
 
@@ -130,6 +136,7 @@ function StreamScreen({navigation, route}) {
   const usbGpEventListener = React.useRef<any>(undefined);
   const sensorEventListener = React.useRef<any>(undefined);
   const isConnected = React.useRef(false);
+  const macroSequenceTimersRef = React.useRef<any[]>([]);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
@@ -660,6 +667,10 @@ function StreamScreen({navigation, route}) {
     }, 500);
 
     return () => {
+      macroSequenceTimersRef.current.forEach(timeoutId =>
+        clearTimeout(timeoutId),
+      );
+      macroSequenceTimersRef.current = [];
       Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
       stopVibrate();
@@ -1101,8 +1112,90 @@ function StreamScreen({navigation, route}) {
     }
   };
 
+  const clearMacroTimers = () => {
+    macroSequenceTimersRef.current.forEach(timeoutId =>
+      clearTimeout(timeoutId),
+    );
+    macroSequenceTimersRef.current = [];
+  };
+
+  const runMacroSteps = (rawSteps: any) => {
+    const allowedButtons = new Set(VIRTUAL_MACRO_ALLOWED_BUTTONS);
+    const steps = normalizeMacroSteps(
+      rawSteps,
+      DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
+    );
+    let accumulatedDelay = 0;
+
+    const schedule = (delay: number, fn: () => void) => {
+      const timeoutId = setTimeout(() => {
+        fn();
+        macroSequenceTimersRef.current = macroSequenceTimersRef.current.filter(
+          item => item !== timeoutId,
+        );
+      }, delay);
+      macroSequenceTimersRef.current.push(timeoutId);
+    };
+
+    steps.forEach(step => {
+      const stepButtons = Array.isArray(step?.buttons)
+        ? step.buttons.filter((button: string) =>
+            allowedButtons.has(button as any),
+          )
+        : allowedButtons.has(step?.button as any)
+        ? [step.button]
+        : [];
+
+      if (!stepButtons.length) {
+        return;
+      }
+
+      const duration = Math.max(30, Number(step.durationMs) || 80);
+      const waitAfter = Math.max(0, Number(step.waitAfterMs) || 0);
+
+      schedule(accumulatedDelay, () => {
+        stepButtons.forEach((button: string) => {
+          gpState[button] = 1;
+        });
+      });
+
+      schedule(accumulatedDelay + duration, () => {
+        stepButtons.forEach((button: string) => {
+          gpState[button] = 0;
+        });
+      });
+
+      accumulatedDelay += duration + waitAfter;
+    });
+  };
+
+  const handleMacroPressIn = () => {
+    clearMacroTimers();
+    const shortSteps = Array.isArray(settings.virtual_macro_short_press_steps)
+      ? settings.virtual_macro_short_press_steps
+      : [];
+    const longSteps = Array.isArray(settings.virtual_macro_long_press_steps)
+      ? settings.virtual_macro_long_press_steps
+      : [];
+    const rawSteps = shortSteps.length ? shortSteps : longSteps;
+    runMacroSteps(
+      normalizeMacroSteps(rawSteps, DEFAULT_VIRTUAL_MACRO_SHORT_STEPS),
+    );
+
+    if (settings.vibration) {
+      Vibration.vibrate(20);
+    }
+  };
+
+  const handleMacroPressOut = () => {};
+
   // Virtual gamepad press
   const handleButtonPressIn = name => {
+    if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+      handleMacroPressIn();
+      return;
+    }
+
     // console.log('handleButtonPressIn:', name);
     // Hold button
     const hold_buttons = settings.hold_buttons || [];
@@ -1117,6 +1210,11 @@ function StreamScreen({navigation, route}) {
   };
 
   const handleButtonPressOut = name => {
+    if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+      handleMacroPressOut();
+      return;
+    }
+
     // Hold button
     const hold_buttons = settings.hold_buttons || [];
     if (hold_buttons.includes(name)) {
@@ -1158,6 +1256,7 @@ function StreamScreen({navigation, route}) {
   const requestVirtualGamepad = () => {
     // Close
     if (showVirtualGamepad) {
+      clearMacroTimers();
       setShowVirtualGamepad(false);
       if (settings.gamepad_kernal !== 'Native') {
         timer.current && clearInterval(timer.current);
@@ -1173,6 +1272,7 @@ function StreamScreen({navigation, route}) {
   };
 
   const requestExit = () => {
+    clearMacroTimers();
     setShowPerformance(false);
     setShowVirtualGamepad(false);
     postData2Webview('disconnect', {});

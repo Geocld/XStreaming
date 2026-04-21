@@ -1,6 +1,11 @@
 import {storage} from './mmkv';
 import {debugFactory} from '../utils/debug';
 import {NativeModules} from 'react-native';
+import {
+  DEFAULT_VIRTUAL_MACRO_LONG_PRESS_MS,
+  DEFAULT_VIRTUAL_MACRO_LONG_STEPS,
+  DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
+} from '../utils/virtualMacro';
 const log = debugFactory('settingStore');
 
 const STORE_KEY = 'user.settings';
@@ -48,6 +53,10 @@ export type Settings = {
   virtual_gamepad_opacity: number;
   virtual_gamepad_joystick: number;
   custom_virtual_gamepad: string;
+  virtual_macro_enabled: boolean;
+  virtual_macro_long_press_ms: number;
+  virtual_macro_short_press_steps: any[];
+  virtual_macro_long_press_steps: any[];
   gamepad_maping: Record<string, number> | null;
   native_gamepad_maping: Record<string, number> | null;
   polling_rate: number;
@@ -115,6 +124,10 @@ const defaultSettings: Settings = {
   virtual_gamepad_opacity: 0.7,
   custom_virtual_gamepad: '',
   virtual_gamepad_joystick: 1,
+  virtual_macro_enabled: false,
+  virtual_macro_long_press_ms: DEFAULT_VIRTUAL_MACRO_LONG_PRESS_MS,
+  virtual_macro_short_press_steps: DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
+  virtual_macro_long_press_steps: DEFAULT_VIRTUAL_MACRO_LONG_STEPS,
   gamepad_maping: null,
   native_gamepad_maping: null,
   polling_rate: 62.5,

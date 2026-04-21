@@ -2,7 +2,9 @@ import React from 'react';
 import {StyleSheet, View, Dimensions} from 'react-native';
 import AnalogStick from '../components/AnalogStick';
 import ButtonView from './ButtonView';
+import GamepadButton from './GamepadButton';
 import {getSettings} from '../store/settingStore';
+import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
 
 type Props = {
   opacity: number;
@@ -171,6 +173,15 @@ const VirtualGamepad: React.FC<Props> = ({
         onPressIn={() => handlePressIn('DPadRight')}
         onPressOut={() => handlePressOut('DPadRight')}
       />
+
+      {settings.virtual_macro_enabled && (
+        <GamepadButton
+          name={VIRTUAL_MACRO_BUTTON_NAME}
+          style={[styles.button, styles.macro, {opacity}]}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+        />
+      )}
 
       {settings.virtual_gamepad_joystick === 1 ? (
         <View
@@ -360,6 +371,13 @@ const styles = StyleSheet.create({
     height: 70,
     left: 75,
     bottom: 25,
+  },
+  macro: {
+    width: 60,
+    height: 60,
+    left: '50%',
+    marginLeft: -30,
+    bottom: 90,
   },
   analogStick: {
     width: 200,

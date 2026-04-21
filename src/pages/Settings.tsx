@@ -245,6 +245,14 @@ function SettingsScreen({navigation}) {
               navigation.navigate('HoldButtons');
             }}
           />
+
+          <SettingItem
+            title={t('Virtual macro settings')}
+            description={t('Enable macro button and edit its action sequence')}
+            onPress={() => {
+              navigation.navigate('VirtualMacroSettings');
+            }}
+          />
         </View>
 
         <View>

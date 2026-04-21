@@ -45,6 +45,7 @@ import FeedbackScreen from './pages/Feedback';
 import VirtualGamepadSettingsScreen from './pages/VirtualGamepadSettings';
 import CustomGamepadScreen from './pages/CustomGamepad';
 import HoldButtonsScreen from './pages/HoldButtons';
+import VirtualMacroSettingsScreen from './pages/VirtualMacroSettings';
 import Ds5SettingsScreen from './pages/Ds5Settings';
 import DeviceInfosScreen from './pages/DeviceInfos';
 import ThanksScreen from './pages/Thanks';
@@ -205,6 +206,11 @@ function App() {
                   name="HoldButtons"
                   component={HoldButtonsScreen}
                   options={{title: t('Hold Buttons')}}
+                />
+                <RootStack.Screen
+                  name="VirtualMacroSettings"
+                  component={VirtualMacroSettingsScreen}
+                  options={{title: t('Virtual macro settings')}}
                 />
                 <RootStack.Screen
                   name="Display"

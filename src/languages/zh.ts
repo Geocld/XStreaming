@@ -157,6 +157,8 @@ export default {
     'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
       '📢自定义虚拟按键位置可能跟实际渲染存在误差，请以实际效果为准',
     'Customize virtual buttons': '自定义虚拟按键',
+    'Customize buttons of virtual gamepad':
+      '自定义属于自己的虚拟按键布局，可以编辑多套按键布局并按需使用',
     'Edit Virtual Gamepad': '编辑虚拟手柄',
     'Click on an element to set its size and display':
       '👆点击元素设置元素大小及显示',
@@ -394,5 +396,38 @@ export default {
     Microphone_desc: '快捷菜单将可以设置开启/关闭麦克风',
     'Native touch': '原生触控',
     'Enable native touch input': '允许原生触控输入(开启后不能自定义画面比例)',
+    'Virtual macro button': '虚拟宏按键',
+    'Enable virtual macro button': '启用虚拟宏按键',
+    'Virtual macro settings': '虚拟宏按键设置',
+    'Configure short/long press macro actions': '配置短按/长按宏动作',
+    'Enable macro button and edit its action sequence':
+      '启用宏按键并编辑动作序列',
+    'Configure one macro button with separate short/long press action chains for accessibility play styles.':
+      '为一个宏按键分别配置短按和长按动作链，提升无障碍操作体验。',
+    'Macro button': '宏按键',
+    'Enable or disable': '启用或禁用',
+    'Long press threshold': '长按判定时长',
+    'Short press actions': '短按动作',
+    'Long press actions': '长按动作',
+    'Actions executed when macro button is tapped':
+      '轻触宏按键时执行的动作序列',
+    'Actions executed when macro button is held': '按住宏按键时执行的动作序列',
+    'No action steps, tap + to add': '暂无动作步骤，点击 + 添加',
+    Hold: '按下',
+    Wait: '等待',
+    'Edit action': '编辑动作',
+    'Add action': '添加动作',
+    Button: '按键',
+    Buttons: '按键组',
+    'Hold duration': '按住时长',
+    'Wait after action': '动作后等待',
+    'Macro action sequence': '宏动作序列',
+    'Tap + to add sequence step': '点击 + 添加动作步骤',
+    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':
+      '配置一套连续宏链路，按下宏按键后将按从上到下依次执行。',
+    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.':
+      '宏按键开关在设置页的“虚拟宏按键”中控制，此页面仅编辑动作序列。',
+    'Enable macro button and edit its action sequence in one place.':
+      '在同一页面中启用宏按键并编辑动作序列。',
   },
 };

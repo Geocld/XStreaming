@@ -361,5 +361,39 @@ export default {
     Microphone_desc: '快捷菜单将可以设置开启/关闭麦克风',
     'Native touch': '原生触控',
     'Enable native touch input': '允许原生触控输入(开启后不能自定义画面比例)',
+    'Virtual macro button': '虛擬巨集按鍵',
+    'Enable virtual macro button': '啟用虛擬巨集按鍵',
+    'Virtual macro settings': '虛擬巨集按鍵設定',
+    'Configure short/long press macro actions': '設定短按/長按巨集動作',
+    'Enable macro button and edit its action sequence':
+      '啟用巨集按鍵並編輯動作序列',
+    'Configure one macro button with separate short/long press action chains for accessibility play styles.':
+      '為一個巨集按鍵分別設定短按與長按動作鏈，提升無障礙操作體驗。',
+    'Macro button': '巨集按鍵',
+    'Enable or disable': '啟用或停用',
+    'Long press threshold': '長按判定時長',
+    'Short press actions': '短按動作',
+    'Long press actions': '長按動作',
+    'Actions executed when macro button is tapped':
+      '輕觸巨集按鍵時執行的動作序列',
+    'Actions executed when macro button is held':
+      '按住巨集按鍵時執行的動作序列',
+    'No action steps, tap + to add': '暫無動作步驟，點擊 + 新增',
+    Hold: '按下',
+    Wait: '等待',
+    'Edit action': '編輯動作',
+    'Add action': '新增動作',
+    Button: '按鍵',
+    Buttons: '按鍵組',
+    'Hold duration': '按住時長',
+    'Wait after action': '動作後等待',
+    'Macro action sequence': '巨集動作序列',
+    'Tap + to add sequence step': '點擊 + 新增動作步驟',
+    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':
+      '設定一套連續巨集鏈路，按下巨集按鍵後將由上到下依序執行。',
+    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.':
+      '巨集按鍵開關在設定頁的「虛擬巨集按鍵」中控制，此頁面僅編輯動作序列。',
+    'Enable macro button and edit its action sequence in one place.':
+      '在同一頁面中啟用巨集按鍵並編輯動作序列。',
   },
 };

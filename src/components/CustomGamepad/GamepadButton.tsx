@@ -1,5 +1,10 @@
 import React from 'react';
 import ButtonView from '../ButtonView';
+import {TouchableOpacity} from 'react-native';
+import {GestureDetector, Gesture} from 'react-native-gesture-handler';
+import {SvgXml} from 'react-native-svg';
+import icons from '../../common/virtualgp';
+import {VIRTUAL_MACRO_BUTTON_NAME} from '../../utils/virtualMacro';
 
 type Props = {
   name: string;
@@ -49,6 +54,42 @@ const GamepadButton: React.FC<Props> = ({
     height = 70;
   }
 
+  if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+    width = 60;
+    height = 60;
+  }
+
+  const mappedButtonName = mapping[name];
+  if (!mappedButtonName) {
+    const longPressGesture = Gesture.LongPress()
+      .onStart(() => {
+        onPressIn(name);
+      })
+      .onEnd(() => {
+        onPressOut(name);
+      })
+      .minDuration(16);
+
+    return (
+      <GestureDetector gesture={longPressGesture}>
+        <TouchableOpacity
+          style={[
+            style,
+            {
+              width: width * scale,
+              height: height * scale,
+            },
+          ]}>
+          <SvgXml
+            xml={icons[name] ?? icons.Menu}
+            width={width * scale}
+            height={height * scale}
+          />
+        </TouchableOpacity>
+      </GestureDetector>
+    );
+  }
+
   return (
     <ButtonView
       style={[
@@ -58,7 +99,7 @@ const GamepadButton: React.FC<Props> = ({
           height: height * scale,
         },
       ]}
-      buttonName={mapping[name]}
+      buttonName={mappedButtonName}
       onPressIn={() => onPressIn(name)}
       onPressOut={() => onPressOut(name)}
     />

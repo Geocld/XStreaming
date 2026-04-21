@@ -26,6 +26,10 @@ import {
   getSettings as getUserSettings,
   saveSettings as saveUserSettings,
 } from '../store/settingStore';
+import {
+  createDefaultMacroLayoutButton,
+  ensureMacroLayoutButton,
+} from '../utils/virtualMacro';
 
 const {FullScreenManager} = NativeModules;
 
@@ -33,7 +37,6 @@ function CustomGamepadScreen({navigation, route}) {
   const {t} = useTranslation();
   const [settings, setSettings] = React.useState({});
   const [title, setTitle] = React.useState('');
-  const [defaultButtons, setDefaultButtons] = React.useState<any>([]);
   const [buttons, setButtons] = React.useState<any>([]);
   const [showActionModal, setActionShowModal] = React.useState(false);
   const [showWarnModal, setShowWarnShowModal] = React.useState(false);
@@ -64,6 +67,7 @@ function CustomGamepadScreen({navigation, route}) {
       const nexusLeft = width * 0.5 - 20;
       const viewLeft = width * 0.5 - 100;
       const menuLeft = width * 0.5 + 60;
+      const macroDefaultButton = createDefaultMacroLayoutButton(width, height);
 
       const _buttons = [
         {
@@ -193,15 +197,14 @@ function CustomGamepadScreen({navigation, route}) {
           y: height - 195,
           show: true,
         },
+        macroDefaultButton,
       ];
       if (_settings[_title]) {
         const exitButtons = _settings[_title];
-        setButtons(exitButtons);
+        setButtons(ensureMacroLayoutButton(exitButtons, macroDefaultButton));
       } else {
         setButtons(_buttons);
       }
-      setDefaultButtons(_buttons);
-
       setShowWarnShowModal(true);
       setShowGrid(true);
     }, 500);
@@ -272,6 +275,7 @@ function CustomGamepadScreen({navigation, route}) {
     const nexusLeft = width * 0.5 - 20;
     const viewLeft = width * 0.5 - 100;
     const menuLeft = width * 0.5 + 60;
+    const macroDefaultButton = createDefaultMacroLayoutButton(width, height);
 
     const _buttons = [
       {
@@ -401,6 +405,7 @@ function CustomGamepadScreen({navigation, route}) {
         y: height - 195,
         show: true,
       },
+      macroDefaultButton,
     ];
     setButtons([..._buttons]);
   };

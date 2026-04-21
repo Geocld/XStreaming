@@ -5,7 +5,6 @@ import {
   IconButton,
   RadioButton,
   Text,
-  Divider,
   Portal,
   Modal,
   Card,
@@ -104,10 +103,18 @@ function VirtualGamepadSettingsScreen({navigation}) {
       </Portal>
 
       <ScrollView style={styles.scrollView}>
-        <View style={styles.tips}>
-          <Text>{t('Customize buttons of virtual gamepad')}</Text>
-        </View>
-        <Divider />
+        <Card style={styles.heroCard}>
+          <Card.Content>
+            <Text style={styles.heroDesc}>
+              {t('Customize buttons of virtual gamepad')}
+            </Text>
+            <Text style={styles.heroHint}>
+              {t(
+                'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy',
+              )}
+            </Text>
+          </Card.Content>
+        </Card>
 
         <RadioButton.Group onValueChange={val => setValue(val)} value={value}>
           <RadioButton.Item label={t('Default')} value={''} />
@@ -141,8 +148,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tips: {
-    padding: 10,
+  heroCard: {
+    margin: 12,
+    backgroundColor: '#16351c',
+  },
+  heroDesc: {
+    color: '#C0D8BF',
+    lineHeight: 20,
+  },
+  heroHint: {
+    color: '#a5c6a3',
+    marginTop: 8,
+    lineHeight: 18,
   },
   scrollView: {
     marginBottom: 120,
