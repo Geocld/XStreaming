@@ -77,19 +77,18 @@ public class MainApplication extends Application implements ReactApplication {
     WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
     boolean stereoEnabled = AudioConfig.isStereoEnabled(this);
     if (stereoEnabled) {
-      AudioAttributes audioAttributes = new AudioAttributes.Builder()
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
               .setUsage(AudioAttributes.USAGE_MEDIA)
               .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
               .build();
 
-      options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
+        options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
               .setAudioAttributes(audioAttributes)
-              // Keep capture mono for compatibility with Android microphone devices.
-              .setUseStereoInput(false)
+              .setUseStereoInput(true)
               .setUseStereoOutput(true)
               .createAudioDeviceModule();
     } else {
-      options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
+        options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
               .setEnableVolumeLogger(false)
               .setUseLowLatency(true)
               .setUseStereoInput(false)
