@@ -102,12 +102,18 @@ function TitleDetail({navigation, route}) {
       routeName = 'Stream';
     }
 
+    let postUrl = '';
+    if (titleItem.Image_Poster && titleItem.Image_Poster.URL) {
+      postUrl = `https:${titleItem.Image_Poster.URL}`;
+    }
+
     navigation.navigate({
       name: routeName,
       params: {
         sessionId: titleId,
         settings,
         streamType: 'cloud',
+        postUrl,
         isUsbMode,
         usbController,
       },

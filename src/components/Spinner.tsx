@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleProp, StyleSheet, TextStyle} from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {Wander} from 'react-native-animated-spinkit';
 
@@ -7,6 +7,7 @@ type Props = {
   loading: boolean;
   cancelable?: boolean;
   text?: string;
+  textStyle?: StyleProp<TextStyle>;
   closeCb?: () => void;
   onChange?: (value: any) => void;
 };
@@ -17,6 +18,7 @@ const Loading: React.FC<Props> = ({
   loading,
   cancelable = false,
   text = '',
+  textStyle,
   closeCb,
 }) => {
   return (
@@ -26,7 +28,7 @@ const Loading: React.FC<Props> = ({
       color={COLOR}
       overlayColor={'rgba(0, 0, 0, 0)'}
       textContent={text}
-      textStyle={styles.spinnerTextStyle}
+      textStyle={[styles.spinnerTextStyle, textStyle]}
       animation={'fade'}
       customIndicator={<Wander size={50} color={COLOR} />}
       closeCb={closeCb}

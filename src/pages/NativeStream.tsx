@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   View,
+  Image,
   Alert,
   NativeModules,
   NativeEventEmitter,
@@ -2026,13 +2027,34 @@ function NativeStreamScreen({navigation, route}) {
   );
 
   const video_format = settings.native_touch ? '' : settings.video_format;
+  const loadingPosterUrl =
+    typeof route.params?.postUrl === 'string' ? route.params.postUrl : '';
+  const showLoadingPoster = loading && !!loadingPosterUrl;
 
   return (
     <View style={styles.container}>
+      {showLoadingPoster && (
+        <View style={styles.loadingPosterContainer} pointerEvents="none">
+          <Image
+            source={{uri: loadingPosterUrl}}
+            style={styles.loadingPosterBackdrop}
+            resizeMode="cover"
+            blurRadius={8}
+          />
+          <Image
+            source={{uri: loadingPosterUrl}}
+            style={styles.loadingPoster}
+            resizeMode="contain"
+          />
+          <View style={styles.loadingPosterMask} />
+        </View>
+      )}
+
       {loading && (
         <Spinner
           loading={true}
           text={loadingText}
+          textStyle={showLoadingPoster ? styles.loadingSpinnerText : undefined}
           cancelable={true}
           closeCb={() => {
             setLoading(false);
@@ -2041,7 +2063,8 @@ function NativeStreamScreen({navigation, route}) {
         />
       )}
 
-      {remoteStream.current?.toURL() &&
+      {!showLoadingPoster &&
+        remoteStream.current?.toURL() &&
         (useFsrRenderer ? (
           <View style={styles.playerContainer}>
             <RTCFsrView
@@ -2101,6 +2124,28 @@ function NativeStreamScreen({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
+  },
+  loadingPosterContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingPosterBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  loadingPosterMask: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.32)',
+  },
+  loadingPoster: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  loadingSpinnerText: {
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: {width: 0, height: 2},
+    textShadowRadius: 6,
   },
   playerContainer: {
     flex: 1,
