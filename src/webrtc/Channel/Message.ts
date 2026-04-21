@@ -242,7 +242,7 @@ export default class MessageChannel extends BaseChannel {
     });
 
     this.sendMessage('/streaming/characteristics/touchinputenabledchanged', {
-      touchInputEnabled: false,
+      touchInputEnabled: (this.getClient().getMaxTouchPoints?.() ?? 0) > 0,
     });
 
     this.sendMessage('/streaming/characteristics/clientdevicecapabilities', {});

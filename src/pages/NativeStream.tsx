@@ -40,6 +40,8 @@ import VirtualGamepadEditor, {
 } from '../components/VirtualGamepadEditor';
 import PerfPanel from '../components/PerfPanel';
 import RTCFsrView from '../components/RTCFsrView';
+import NativeTouchOverlay from '../components/NativeTouchOverlay';
+import type {PointerWireData} from '../webrtc/Channel/Input';
 
 const log = debugFactory('NativeStreamScreen');
 
@@ -979,7 +981,7 @@ function NativeStreamScreen({navigation, route}) {
       remoteStream.current = new MediaStream(undefined);
 
       webrtcClient.setPollRate(_settings.polling_rate);
-      webrtcClient.setMaxTouchPoints(0);
+      webrtcClient.setMaxTouchPoints(_settings.native_touch ? 10 : 0);
       webrtcClient.setSupportedSystemUis([10, 19]);
       webrtcClient.setSystemUiHandler(handleSystemUiEvent);
       webrtcClient.setMessageHandler(handleStreamingMessage);
@@ -2012,6 +2014,18 @@ function NativeStreamScreen({navigation, route}) {
 
   const useFsrRenderer = !!settings.fsr;
   const fsrSharpness = settings.fsr_display_options?.sharpness ?? 2;
+  const handleNativePointerInput = React.useCallback(
+    (event: PointerWireData) => {
+      if (!webrtcClient || !settings.native_touch) {
+        return;
+      }
+
+      webrtcClient.getChannelProcessor('input')?.queuePointerInput([event]);
+    },
+    [settings.native_touch, webrtcClient],
+  );
+
+  const video_format = settings.native_touch ? '' : settings.video_format;
 
   return (
     <View style={styles.container}>
@@ -2029,23 +2043,37 @@ function NativeStreamScreen({navigation, route}) {
 
       {remoteStream.current?.toURL() &&
         (useFsrRenderer ? (
-          <RTCFsrView
-            style={styles.player}
-            zOrder={9}
-            objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
-            streamURL={remote}
-            videoFormat={settings.video_format || ''}
-            fsrEnabled={true}
-            fsrSharpness={fsrSharpness}
-          />
+          <View style={styles.playerContainer}>
+            <RTCFsrView
+              style={styles.player}
+              zOrder={9}
+              objectFit={video_format === 'Zoom' ? 'cover' : 'contain'}
+              streamURL={remote}
+              videoFormat={video_format || ''}
+              fsrEnabled={true}
+              fsrSharpness={fsrSharpness}
+            />
+            <NativeTouchOverlay
+              enabled={!!settings.native_touch}
+              videoFormat={video_format || ''}
+              onPointerInput={handleNativePointerInput}
+            />
+          </View>
         ) : (
-          <RTCView
-            style={styles.player}
-            zOrder={9}
-            objectFit={settings.video_format === 'Zoom' ? 'cover' : 'contain'}
-            streamURL={remote}
-            videoFormat={settings.video_format || ''}
-          />
+          <View style={styles.playerContainer}>
+            <RTCView
+              style={styles.player}
+              zOrder={9}
+              objectFit={video_format === 'Zoom' ? 'cover' : 'contain'}
+              streamURL={remote}
+              videoFormat={video_format || ''}
+            />
+            <NativeTouchOverlay
+              enabled={!!settings.native_touch}
+              videoFormat={video_format || ''}
+              onPointerInput={handleNativePointerInput}
+            />
+          </View>
         ))}
 
       {renderPerformancePanel()}
@@ -2073,6 +2101,11 @@ function NativeStreamScreen({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  playerContainer: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: 'black',
   },
   player: {
     flex: 1,

@@ -393,6 +393,6 @@ export default {
     Microphone_title: '开启麦克风(实验性)',
     Microphone_desc: '快捷菜单将可以设置开启/关闭麦克风',
     'Native touch': '原生触控',
-    'Enable native touch input': '允许原生触控输入',
+    'Enable native touch input': '允许原生触控输入(开启后不能自定义画面比例)',
   },
 };

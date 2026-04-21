@@ -29,7 +29,20 @@ export interface InputFrame {
 }
 
 export interface PointerFrame {
-  events: Array<any>;
+  events: Array<PointerWireData>;
+}
+
+export interface PointerWireData {
+  height: number;
+  pressure: number;
+  twist: number;
+  width: number;
+  pointerId: number;
+  x: number;
+  y: number;
+  type: string;
+  clientHeight: number | null;
+  clientWidth: number | null;
 }
 
 export interface MouseFrame {
@@ -66,7 +79,10 @@ export default class InputChannel extends BaseChannel {
   _frameMetadataQueue: Array<any> = [];
 
   _gamepadFrames: Array<InputFrame> = [];
+  _pointerFrames: Array<PointerFrame> = [];
   _inputInterval: any;
+  _serverHeight = 1080;
+  _serverWidth = 1920;
 
   _rumbleInterval = {0: undefined, 1: undefined, 2: undefined, 3: undefined};
   _rumbleEnabled = true;
@@ -93,11 +109,22 @@ export default class InputChannel extends BaseChannel {
     this._inputInterval = setInterval(() => {
       const metadataQueue = this.getMetadataQueue();
       const gamepadQueue = this.getGamepadQueue();
+      const pointerQueue = this.getPointerQueue();
 
-      if (metadataQueue.length !== 0 || gamepadQueue.length !== 0) {
+      if (
+        metadataQueue.length !== 0 ||
+        gamepadQueue.length !== 0 ||
+        pointerQueue.length !== 0
+      ) {
         this._inputSequenceNum++;
         const packet = new InputPacket(this._inputSequenceNum);
-        packet.setData(metadataQueue, gamepadQueue);
+        packet.setData(
+          metadataQueue,
+          gamepadQueue,
+          pointerQueue,
+          this._serverWidth,
+          this._serverHeight,
+        );
 
         this.send(packet.toBuffer());
       }
@@ -113,14 +140,27 @@ export default class InputChannel extends BaseChannel {
     const dataView = new DataView(event.data);
 
     let i = 0;
-    const reportType = dataView.getUint8(i);
+    const reportType = dataView.getUint16(i, true);
     i += 2;
 
-    if (reportType === this._reportTypes.Vibration) {
+    if (reportType & this._reportTypes.ServerMetadata) {
+      if (dataView.byteLength >= i + 8) {
+        this._serverHeight = dataView.getUint32(i, true);
+        this._serverWidth = dataView.getUint32(i + 4, true);
+      }
+      i += 8;
+    }
+
+    if (reportType & this._reportTypes.Vibration) {
+      if (dataView.byteLength < i + 10) {
+        return;
+      }
+
       dataView.getUint8(i); // rumbleType: 0 = FourMotorRumble
-      // const gamepadIndex = dataView.getUint8(i + 1); // Gamepadindex?
-      // console.log('gamepad: ', gamepadIndex);
-      i += 2; // Read one unknown byte extra
+      i += 1;
+
+      dataView.getUint8(i); // gamepadIndex
+      i += 1;
 
       const leftMotorPercent = dataView.getUint8(i) / 100;
       const rightMotorPercent = dataView.getUint8(i + 1) / 100;
@@ -129,7 +169,6 @@ export default class InputChannel extends BaseChannel {
       const durationMs = dataView.getUint16(i + 4, true);
       const delayMs = dataView.getUint16(i + 6, true);
       const repeat = dataView.getUint8(i + 8);
-      i += 9;
 
       const rumbleData = {
         startDelay: 0,
@@ -141,8 +180,6 @@ export default class InputChannel extends BaseChannel {
         delayMs,
         repeat,
       };
-
-      // console.log('rumbleData:', rumbleData);
 
       this._client._rumbleHandler(rumbleData);
     }
@@ -166,6 +203,14 @@ export default class InputChannel extends BaseChannel {
     return this._gamepadFrames.length;
   }
 
+  getPointerQueue(size = 30) {
+    return this._pointerFrames.splice(0, size - 1);
+  }
+
+  getPointerQueueLength() {
+    return this._pointerFrames.length;
+  }
+
   queueGamepadState(input: InputFrame) {
     if (input !== null) {
       return this._gamepadFrames.push(input);
@@ -176,6 +221,14 @@ export default class InputChannel extends BaseChannel {
     for (const input in inputs) {
       this.queueGamepadState(inputs[input]);
     }
+  }
+
+  queuePointerInput(events: Array<PointerWireData>) {
+    if (!Array.isArray(events) || events.length === 0) {
+      return;
+    }
+
+    this._pointerFrames.push({events});
   }
 
   _convertToInt16(e: any) {

@@ -1,4 +1,4 @@
-import {InputFrame} from '../Channel/Input';
+import type {InputFrame, PointerFrame, PointerWireData} from '../Channel/Input';
 
 enum ReportTypes {
   None = 0,
@@ -39,6 +39,13 @@ enum GamepadInputPhysicality {
   RightThumbYAxis = 0x00200000,
 }
 
+enum TouchType {
+  Unknown = 0,
+  PointerDown = 1,
+  PointerUp = 2,
+  PointerMove = 3,
+}
+
 export default class InputPacket {
   _reportType = ReportTypes.None;
   _totalSize = -1;
@@ -46,6 +53,9 @@ export default class InputPacket {
 
   _metadataFrames: Array<any> = [];
   _gamepadFrames: Array<InputFrame> = [];
+  _pointerFrames: Array<PointerFrame> = [];
+  _serverWidth = 1920;
+  _serverHeight = 1080;
 
   _maxTouchpoints = 0;
 
@@ -59,7 +69,13 @@ export default class InputPacket {
     this._maxTouchpoints = maxTouchpoints;
   }
 
-  setData(metadataQueue: Array<any>, gamepadQueue: Array<InputFrame>) {
+  setData(
+    metadataQueue: Array<any>,
+    gamepadQueue: Array<InputFrame>,
+    pointerQueue: Array<PointerFrame> = [],
+    serverWidth = 1920,
+    serverHeight = 1080,
+  ) {
     let size = 14;
 
     if (metadataQueue.length > 0) {
@@ -74,6 +90,15 @@ export default class InputPacket {
       this._gamepadFrames = gamepadQueue;
     }
 
+    if (pointerQueue.length > 0) {
+      this._reportType |= ReportTypes.Pointer;
+      size = size + this._calculatePointerSize(pointerQueue);
+      this._pointerFrames = pointerQueue;
+    }
+
+    this._serverWidth = Math.max(1, Math.floor(serverWidth || 1920));
+    this._serverHeight = Math.max(1, Math.floor(serverHeight || 1080));
+
     this._totalSize = size;
   }
 
@@ -83,6 +108,17 @@ export default class InputPacket {
 
   _calculateGamepadSize(frames: Array<InputFrame>) {
     return 1 + 23 * frames.length;
+  }
+
+  _calculatePointerSize(frames: Array<PointerFrame>) {
+    let size = 1;
+
+    for (const frame of frames) {
+      const count = frame?.events?.length || 0;
+      size += 1 + 20 * count;
+    }
+
+    return size;
   }
 
   _writeMetadataData(packet: DataView, offset: number, frames: Array<any>) {
@@ -246,6 +282,77 @@ export default class InputPacket {
     return offset;
   }
 
+  _writePointerData(
+    packet: DataView,
+    offset: number,
+    frames: Array<PointerFrame>,
+  ) {
+    packet.setUint8(offset, frames.length);
+    offset++;
+
+    for (const frame of frames) {
+      const events = frame?.events || [];
+      packet.setUint8(offset, events.length);
+      offset++;
+
+      for (const event of events) {
+        offset = this._writeSinglePointerEvent(packet, offset, event);
+      }
+    }
+
+    return offset;
+  }
+
+  _writeSinglePointerEvent(
+    packet: DataView,
+    offset: number,
+    event: PointerWireData,
+  ) {
+    const clientWidth = Math.max(1, Number(event.clientWidth || 1));
+    const clientHeight = Math.max(1, Number(event.clientHeight || 1));
+
+    const normalizedHeight = this._clampUint16(
+      (Number(event.height || 0) * this._serverHeight) / clientHeight,
+    );
+    const normalizedWidth = this._clampUint16(
+      (Number(event.width || 0) * this._serverWidth) / clientWidth,
+    );
+    const pressure = this._clampUint8(Number(event.pressure || 0) * 255);
+    const twist = this._clampUint16(Number(event.twist || 0));
+    const pointerId = this._clampUint32(Number(event.pointerId || 0));
+    const normalizedX = this._clampUint32(
+      (Number(event.x || 0) * this._serverWidth) / clientWidth,
+    );
+    const normalizedY = this._clampUint32(
+      (Number(event.y || 0) * this._serverHeight) / clientHeight,
+    );
+
+    packet.setUint16(offset, normalizedHeight, true);
+    packet.setUint16(offset + 2, normalizedWidth, true);
+    packet.setUint8(offset + 4, pressure);
+    packet.setUint16(offset + 5, twist, true);
+    packet.setUint32(offset + 7, pointerId, true);
+    packet.setUint32(offset + 11, normalizedX, true);
+    packet.setUint32(offset + 15, normalizedY, true);
+    packet.setUint8(offset + 19, this._mapPointerType(event.type));
+
+    return offset + 20;
+  }
+
+  _mapPointerType(type: string) {
+    if (type === 'pointerdown') {
+      return TouchType.PointerDown;
+    }
+    if (type === 'pointerup') {
+      return TouchType.PointerUp;
+    }
+    if (type === 'pointermove') {
+      return TouchType.PointerMove;
+    }
+
+    return TouchType.Unknown;
+  }
+
   toBuffer() {
     const metadataAlloc = new Uint8Array(this._totalSize);
     const packet = new DataView(metadataAlloc.buffer);
@@ -262,6 +369,10 @@ export default class InputPacket {
 
     if (this._gamepadFrames.length > 0) {
       offset = this._writeGamepadData(packet, offset, this._gamepadFrames);
+    }
+
+    if (this._pointerFrames.length > 0) {
+      offset = this._writePointerData(packet, offset, this._pointerFrames);
     }
 
     if (this._reportType === ReportTypes.ClientMetadata) {
@@ -296,6 +407,30 @@ export default class InputPacket {
   _convertToUInt16(e: any) {
     const int = new Uint16Array(1);
     return (int[0] = e), int[0];
+  }
+
+  _clampUint8(value: number) {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(255, Math.round(value)));
+  }
+
+  _clampUint16(value: number) {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(65535, Math.round(value)));
+  }
+
+  _clampUint32(value: number) {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(4294967295, Math.round(value)));
   }
 
   _calculateGamepadPhysicality(input: InputFrame, thumbstickDeadzone = 0) {
