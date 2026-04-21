@@ -1064,6 +1064,8 @@ function NativeStreamScreen({navigation, route}) {
 
           // Start keepalive loop
           if (!keepaliveInterval.current) {
+            const keepaliveIntervalMs =
+              streamApi?.getKeepaliveIntervalMs?.() ?? 20 * 1000;
             keepaliveInterval.current = setInterval(() => {
               streamApi
                 .sendKeepalive()
@@ -1076,7 +1078,7 @@ function NativeStreamScreen({navigation, route}) {
                     JSON.stringify(error),
                   );
                 });
-            }, 20 * 1000);
+            }, keepaliveIntervalMs);
           }
 
           if (!performanceInterval.current) {

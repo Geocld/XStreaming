@@ -12,10 +12,6 @@ export default class ControlChannel extends BaseChannel {
   }
 
   start() {
-    if (this._keyframeInterval) {
-      clearInterval(this._keyframeInterval);
-      this._keyframeInterval = null;
-    }
     if (this._gamepadSyncTimeout) {
       clearTimeout(this._gamepadSyncTimeout);
       this._gamepadSyncTimeout = null;
@@ -40,17 +36,12 @@ export default class ControlChannel extends BaseChannel {
         this.sendGamepadAdded(1);
       }
     }, 500);
-
-    this._keyframeInterval = setInterval(() => {
-      this.requestKeyframeRequest(true);
-    }, 5 * 1000);
   }
 
-  requestKeyframeRequest(ifrRequested = false) {
-    console.log('Channel/Control.ts - requestKeyframeRequest');
+  sendVideoKeyframeRequested(ifrRequested = false) {
     this._sendControlMessage({
       message: 'videoKeyframeRequested',
-      ifrRequested: ifrRequested,
+      ifrRequested,
     });
   }
 
@@ -82,8 +73,6 @@ export default class ControlChannel extends BaseChannel {
 
   onClose(event: any) {
     super.onClose(event);
-    clearInterval(this._keyframeInterval);
-    this._keyframeInterval = null;
     if (this._gamepadSyncTimeout) {
       clearTimeout(this._gamepadSyncTimeout);
       this._gamepadSyncTimeout = null;
@@ -96,10 +85,6 @@ export default class ControlChannel extends BaseChannel {
   }
 
   destroy() {
-    if (this._keyframeInterval) {
-      clearInterval(this._keyframeInterval);
-      this._keyframeInterval = null;
-    }
     if (this._gamepadSyncTimeout) {
       clearTimeout(this._gamepadSyncTimeout);
       this._gamepadSyncTimeout = null;

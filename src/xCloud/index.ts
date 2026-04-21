@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {getSettings} from '../store/settingStore';
 import {debugFactory} from '../utils/debug';
 import {Address6} from 'ip-address';
@@ -18,10 +18,12 @@ type AuthContext = {
 export default class XcloudApi {
   private sessionId = '';
   private readonly host: string;
-  private readonly gsToken: string;
+  private gsToken: string;
   private readonly type: 'home' | 'cloud';
   private readonly authContext: AuthContext;
   private isStoped = false;
+  private keepAlivePulseInSeconds = 20;
+  private refreshGsTokenPromise: Promise<void> | null = null;
 
   constructor(
     host: string,
@@ -41,6 +43,115 @@ export default class XcloudApi {
       throw new Error('Authentication context is required for this operation');
     }
     return this.authContext;
+  }
+
+  private getAuthHeaders(config: AxiosRequestConfig = {}): AxiosRequestConfig {
+    return {
+      ...config,
+      headers: {
+        ...(config.headers || {}),
+        Authorization: 'Bearer ' + this.gsToken,
+      },
+    };
+  }
+
+  private isAuthError(error: unknown): boolean {
+    if (!axios.isAxiosError(error)) {
+      return false;
+    }
+    const status = error.response?.status;
+    return status === 401 || status === 403;
+  }
+
+  private async refreshStreamingToken(): Promise<void> {
+    if (this.refreshGsTokenPromise) {
+      return this.refreshGsTokenPromise;
+    }
+
+    this.refreshGsTokenPromise = (async () => {
+      const auth = this.requireAuthContext();
+      auth._tokenStore.load();
+
+      let streamingTokens: any;
+      const authMethod = auth._tokenStore.getAuthenticationMethod();
+      if (authMethod === 'msal' && auth._msal) {
+        streamingTokens = await auth._msal.getStreamingTokens();
+      } else if (auth._xal) {
+        streamingTokens = await auth._xal.getStreamingToken(auth._tokenStore);
+      } else if (auth._msal) {
+        streamingTokens = await auth._msal.getStreamingTokens();
+      } else {
+        throw new Error('Authentication provider is missing');
+      }
+
+      const nextGsToken =
+        this.type === 'cloud'
+          ? streamingTokens?.xCloudToken?.data?.gsToken
+          : streamingTokens?.xHomeToken?.data?.gsToken;
+
+      if (!nextGsToken) {
+        throw new Error(`[refreshStreamingToken] ${this.type} gsToken missing`);
+      }
+
+      this.gsToken = nextGsToken;
+      log.info('[refreshStreamingToken] streaming token refreshed');
+    })().finally(() => {
+      this.refreshGsTokenPromise = null;
+    });
+
+    return this.refreshGsTokenPromise;
+  }
+
+  private async requestWithAuthRetry<T>(
+    requestFn: () => Promise<AxiosResponse<T>>,
+  ): Promise<AxiosResponse<T>> {
+    try {
+      return await requestFn();
+    } catch (error) {
+      if (!this.authContext || !this.isAuthError(error)) {
+        throw error;
+      }
+
+      log.info('[requestWithAuthRetry] auth failed, refreshing gsToken');
+      await this.refreshStreamingToken();
+      return await requestFn();
+    }
+  }
+
+  private authedGet<T = any>(
+    url: string,
+    config: AxiosRequestConfig = {},
+  ): Promise<AxiosResponse<T>> {
+    return this.requestWithAuthRetry(() =>
+      axios.get<T>(url, this.getAuthHeaders(config)),
+    );
+  }
+
+  private authedPost<T = any>(
+    url: string,
+    data?: any,
+    config: AxiosRequestConfig = {},
+  ): Promise<AxiosResponse<T>> {
+    return this.requestWithAuthRetry(() =>
+      axios.post<T>(url, data, this.getAuthHeaders(config)),
+    );
+  }
+
+  private authedDelete<T = any>(
+    url: string,
+    config: AxiosRequestConfig = {},
+  ): Promise<AxiosResponse<T>> {
+    return this.requestWithAuthRetry(() =>
+      axios.delete<T>(url, this.getAuthHeaders(config)),
+    );
+  }
+
+  getKeepaliveIntervalMs(): number {
+    const pulse = Number(this.keepAlivePulseInSeconds);
+    if (!Number.isFinite(pulse) || pulse <= 0) {
+      return 20 * 1000;
+    }
+    return Math.max(pulse, 5) * 1000;
   }
 
   startSession(consoleId: string, resolution: number): Promise<any> {
@@ -130,14 +241,12 @@ export default class XcloudApi {
         fallbackRegionNames: [],
       });
 
-      axios
-        .post(`${this.host}/v5/sessions/${this.type}/play`, body, {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-MS-Device-Info': deviceInfo,
-            Authorization: 'Bearer ' + this.gsToken,
-          },
-        })
+      this.authedPost(`${this.host}/v5/sessions/${this.type}/play`, body, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-MS-Device-Info': deviceInfo,
+        },
+      })
         .then(res => {
           if (res.status === 200 || res.status === 202) {
             log.info(
@@ -149,23 +258,29 @@ export default class XcloudApi {
 
             this.waitState()
               .then(() => {
-                axios
-                  .get(
-                    `${this.host}/v5/sessions/${this.type}/${this.sessionId}/configuration`,
-                    {
-                      headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Bearer ' + this.gsToken,
-                      },
+                this.authedGet(
+                  `${this.host}/v5/sessions/${this.type}/${this.sessionId}/configuration`,
+                  {
+                    headers: {
+                      'Content-Type': 'application/json',
                     },
-                  )
-                  .then(result => {
-                    log.info(
-                      '[startSession] /configuration res:',
-                      JSON.stringify(result.data),
-                    );
-                    resolve(result.data);
-                  });
+                  },
+                ).then(result => {
+                  log.info(
+                    '[startSession] /configuration res:',
+                    JSON.stringify(result.data),
+                  );
+                  const keepAlivePulseInSeconds = Number(
+                    result.data?.keepAlivePulseInSeconds,
+                  );
+                  if (
+                    Number.isFinite(keepAlivePulseInSeconds) &&
+                    keepAlivePulseInSeconds > 0
+                  ) {
+                    this.keepAlivePulseInSeconds = keepAlivePulseInSeconds;
+                  }
+                  resolve(result.data);
+                });
               })
               .catch(error => {
                 reject(error);
@@ -182,13 +297,14 @@ export default class XcloudApi {
   // Check host streaming status is ready or not
   waitState(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      axios
-        .get(`${this.host}/v5/sessions/${this.type}/${this.sessionId}/state`, {
+      this.authedGet(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/state`,
+        {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + this.gsToken,
           },
-        })
+        },
+      )
         .then(res => {
           log.info('[waitState] res:', res.data);
           const _state = res.data;
@@ -296,65 +412,57 @@ export default class XcloudApi {
           },
         },
       });
-      axios
-        .post(
+      this.authedPost(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+        body,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      ).then(() => {
+        // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
+        this.authedGet(
           `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-          body,
           {
             headers: {
-              Accept: 'application/json',
               'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + this.gsToken,
             },
           },
-        )
-        .then(() => {
-          // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
-          axios
-            .get(
-              `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: 'Bearer ' + this.gsToken,
-                },
-              },
-            )
-            .then(res => {
-              log.info('[sendSDPOffer] res.data:', res.data);
-              if (res.data && res.data.exchangeResponse) {
-                resolve(res.data);
-              } else {
-                const checkInterval = setInterval(() => {
-                  if (this.isStoped) {
-                    clearInterval(checkInterval);
-                    return;
-                  }
-                  axios
-                    .get(
-                      `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-                      {
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: 'Bearer ' + this.gsToken,
-                        },
-                      },
-                    )
-                    .then(res2 => {
-                      if (res2.data && res2.data.exchangeResponse) {
-                        resolve(res2.data);
-                        clearInterval(checkInterval);
-                      }
-                    })
-                    .catch(e => {
-                      reject(e);
-                      clearInterval(checkInterval);
-                    });
-                }, 1000);
+        ).then(res => {
+          log.info('[sendSDPOffer] res.data:', res.data);
+          if (res.data && res.data.exchangeResponse) {
+            resolve(res.data);
+          } else {
+            const checkInterval = setInterval(() => {
+              if (this.isStoped) {
+                clearInterval(checkInterval);
+                return;
               }
-              // resolve(sdpResponse.exchangeResponse);
-            });
+              this.authedGet(
+                `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                },
+              )
+                .then(res2 => {
+                  if (res2.data && res2.data.exchangeResponse) {
+                    resolve(res2.data);
+                    clearInterval(checkInterval);
+                  }
+                })
+                .catch(e => {
+                  reject(e);
+                  clearInterval(checkInterval);
+                });
+            }, 1000);
+          }
+          // resolve(sdpResponse.exchangeResponse);
         });
+      });
     });
   }
 
@@ -368,77 +476,70 @@ export default class XcloudApi {
           isMediaStreamsChatRenegotiation: true,
         },
       });
-      axios
-        .post(
+      this.authedPost(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+        body,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      ).then(() => {
+        // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
+        this.authedGet(
           `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-          body,
           {
             headers: {
-              Accept: 'application/json',
               'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + this.gsToken,
             },
           },
-        )
-        .then(() => {
-          // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
-          axios
-            .get(
-              `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: 'Bearer ' + this.gsToken,
-                },
-              },
-            )
-            .then(res => {
-              log.info('[sendSChatSdp] res.data:', res.data);
-              if (res.data && res.data.exchangeResponse) {
-                resolve(res.data);
-              } else {
-                const checkInterval = setInterval(() => {
-                  if (this.isStoped) {
-                    clearInterval(checkInterval);
-                    return;
-                  }
-                  axios
-                    .get(
-                      `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-                      {
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: 'Bearer ' + this.gsToken,
-                        },
-                      },
-                    )
-                    .then(res2 => {
-                      if (res2.data && res2.data.exchangeResponse) {
-                        resolve(res2.data);
-                        clearInterval(checkInterval);
-                      }
-                    })
-                    .catch(e => {
-                      reject(e);
-                      clearInterval(checkInterval);
-                    });
-                }, 1000);
+        ).then(res => {
+          log.info('[sendSChatSdp] res.data:', res.data);
+          if (res.data && res.data.exchangeResponse) {
+            resolve(res.data);
+          } else {
+            const checkInterval = setInterval(() => {
+              if (this.isStoped) {
+                clearInterval(checkInterval);
+                return;
               }
-              // resolve(sdpResponse.exchangeResponse);
-            });
+              this.authedGet(
+                `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                },
+              )
+                .then(res2 => {
+                  if (res2.data && res2.data.exchangeResponse) {
+                    resolve(res2.data);
+                    clearInterval(checkInterval);
+                  }
+                })
+                .catch(e => {
+                  reject(e);
+                  clearInterval(checkInterval);
+                });
+            }, 1000);
+          }
+          // resolve(sdpResponse.exchangeResponse);
         });
+      });
     });
   }
 
   checkIceResponse(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      axios
-        .get(`${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`, {
+      this.authedGet(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`,
+        {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + this.gsToken,
           },
-        })
+        },
+      )
         .then(iceResponse => {
           const iceResult = iceResponse.data;
           log.info('[checkIceResponse] res:', iceResult);
@@ -495,8 +596,7 @@ export default class XcloudApi {
             }
 
             const pattern = new RegExp(
-              // eslint-disable-next-line prettier/prettier
-              /^(?:a=)?candidate:(?<foundation>\d+) (?<component>\d+) (?<protocol>\w+) (?<priority>\d+) (?<ip>[^\s]+) (?<port>\d+) (?<the_rest>.*)/
+              /^(?:a=)?candidate:(?<foundation>\d+) (?<component>\d+) (?<protocol>\w+) (?<priority>\d+) (?<ip>[^\s]+) (?<port>\d+) (?<the_rest>.*)/,
             );
 
             const lst: Array<Record<string, any>> = [];
@@ -571,17 +671,15 @@ export default class XcloudApi {
         messageType: 'iceCandidate',
         candidate: iceCandidates,
       };
-      axios
-        .post(
-          `${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`,
-          JSON.stringify(postData),
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + this.gsToken,
-            },
+      this.authedPost(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`,
+        JSON.stringify(postData),
+        {
+          headers: {
+            'Content-Type': 'application/json',
           },
-        )
+        },
+      )
         .then(() => {
           // Check ICE result
           this.checkIceResponse()
@@ -600,19 +698,17 @@ export default class XcloudApi {
 
   sendMSALAuth(userToken: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      axios
-        .post(
-          `${this.host}/v5/sessions/${this.type}/${this.sessionId}/connect`,
-          {
-            userToken,
+      this.authedPost(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/connect`,
+        {
+          userToken,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
           },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + this.gsToken,
-            },
-          },
-        )
+        },
+      )
         .then(() => {
           resolve();
         })
@@ -624,17 +720,15 @@ export default class XcloudApi {
 
   sendKeepalive(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      axios
-        .post(
-          `${this.host}/v5/sessions/${this.type}/${this.sessionId}/keepalive`,
-          {},
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + this.gsToken,
-            },
+      this.authedPost(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/keepalive`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
           },
-        )
+        },
+      )
         .then(res => {
           resolve(res.data);
         })
@@ -651,13 +745,14 @@ export default class XcloudApi {
         resolve({});
         return;
       }
-      axios
-        .delete(`${this.host}/v5/sessions/${this.type}/${this.sessionId}`, {
+      this.authedDelete(
+        `${this.host}/v5/sessions/${this.type}/${this.sessionId}`,
+        {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + this.gsToken,
           },
-        })
+        },
+      )
         .then(res => {
           log.info('Stream stop:', res);
           resolve(res.data);
@@ -670,13 +765,11 @@ export default class XcloudApi {
 
   getActiveSessions(): Promise<any[]> {
     return new Promise<any[]>(resolve => {
-      axios
-        .get(`${this.host}/v5/sessions/${this.type}/active`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + this.gsToken,
-          },
-        })
+      this.authedGet(`${this.host}/v5/sessions/${this.type}/active`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
         .then(res => {
           resolve(res.data);
         })

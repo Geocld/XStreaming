@@ -116,15 +116,20 @@ class webRTCClient {
   _audioLevel = 0;
   _audioEnergySnapshot: AudioEnergySnapshot | null = null;
   _hasAudioLevelSample = false;
+  _hasVideoTrack = false;
+  _hasAudioTrack = false;
+  _hasSentInitialVideoKeyframeRequest = false;
 
   constructor() {
     console.log('xstreaming Player loaded!');
     this._resetAudioLevelTracking();
+    this._resetVideoTrackState();
   }
 
   init() {
     const settings = getSettings();
     this._resetAudioLevelTracking();
+    this._resetVideoTrackState();
 
     // Use custom STUN/TURN server
     if (
@@ -168,6 +173,22 @@ class webRTCClient {
 
     // @ts-ignore
     this._webrtcClient.ontrack = (event: any) => {
+      const kind = event?.track?.kind;
+      if (kind === 'video') {
+        this._hasVideoTrack = true;
+      } else if (kind === 'audio') {
+        this._hasAudioTrack = true;
+      }
+
+      if (
+        this._hasVideoTrack &&
+        this._hasAudioTrack &&
+        !this._hasSentInitialVideoKeyframeRequest
+      ) {
+        this._hasSentInitialVideoKeyframeRequest = true;
+        this.requestVideoKeyframe(false);
+      }
+
       this._trackHandler && this._trackHandler(event);
     };
 
@@ -290,6 +311,7 @@ class webRTCClient {
       this._isResetting = true;
       this._webrtcClient?.close();
       this._resetAudioLevelTracking();
+      this._resetVideoTrackState();
 
       for (const name in this._webrtcChannelProcessors) {
         this._webrtcChannelProcessors[name].destroy();
@@ -298,6 +320,23 @@ class webRTCClient {
       this._webrtcChannelProcessors = {};
 
       this._inputDriver.stop();
+    }
+  }
+
+  _resetVideoTrackState() {
+    this._hasVideoTrack = false;
+    this._hasAudioTrack = false;
+    this._hasSentInitialVideoKeyframeRequest = false;
+  }
+
+  requestVideoKeyframe(ifrRequested = false) {
+    const controlChannel = this.getChannelProcessor('control');
+    if (!controlChannel) {
+      return;
+    }
+
+    if (typeof controlChannel.sendVideoKeyframeRequested === 'function') {
+      controlChannel.sendVideoKeyframeRequested(ifrRequested);
     }
   }
 
