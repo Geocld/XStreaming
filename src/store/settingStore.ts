@@ -6,6 +6,7 @@ import {
   DEFAULT_VIRTUAL_MACRO_LONG_STEPS,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
+import {DEFAULT_THEME_PRIMARY_COLOR} from '../utils/themeColor';
 const log = debugFactory('settingStore');
 
 const STORE_KEY = 'user.settings';
@@ -80,6 +81,7 @@ export type Settings = {
   server_username: string;
   server_credential: string;
   theme: string;
+  theme_primary_color: string;
   show_menu: boolean;
   fsr: boolean;
   coop: boolean;
@@ -161,6 +163,7 @@ const defaultSettings: Settings = {
   },
   hold_buttons: [],
   theme: 'dark',
+  theme_primary_color: DEFAULT_THEME_PRIMARY_COLOR,
   show_menu: false,
   fsr: false,
   coop: false,

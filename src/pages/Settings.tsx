@@ -7,7 +7,7 @@ import {
   NativeModules,
   ToastAndroid,
 } from 'react-native';
-import {Text} from 'react-native-paper';
+import {Text, useTheme} from 'react-native-paper';
 import Spinner from '../components/Spinner';
 import {getSettings, resetSettings} from '../store/settingStore';
 import SettingItem from '../components/SettingItem';
@@ -41,9 +41,14 @@ const log = debugFactory('SettingsScreen');
 
 function SettingsScreen({navigation}) {
   const {t, i18n} = useTranslation();
+  const theme = useTheme();
   const authentication = useSelector((state: any) => state.authentication);
 
   const currentLanguage = i18n.language;
+  const titleTextStyle = React.useMemo(
+    () => [styles.titleText, {color: theme.colors.primary}],
+    [theme.colors.primary],
+  );
 
   const [loading, setLoading] = React.useState(false);
 
@@ -140,7 +145,7 @@ function SettingsScreen({navigation}) {
       <ScrollView>
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               ⚙️ {t('BasesSettings')}
             </Text>
           </View>
@@ -159,7 +164,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               🖥️ {t('DisplaySettings')}
             </Text>
           </View>
@@ -195,7 +200,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               🎮 {t('GamepadSettings')}
             </Text>
           </View>
@@ -214,7 +219,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               🧩 {t('vGamepadSettings')}
             </Text>
           </View>
@@ -257,7 +262,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               🔊 {t('AudioSettings')}
             </Text>
           </View>
@@ -276,7 +281,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               ☁️ {t('XcloudSettings')}
             </Text>
           </View>
@@ -295,7 +300,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               {t('XchomeSettings')}
             </Text>
           </View>
@@ -314,7 +319,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               {t('SensorSettings')}
             </Text>
           </View>
@@ -333,7 +338,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               {t('DualSense')}
             </Text>
           </View>
@@ -367,7 +372,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               🌐 {t('TurnServerSettings')}
             </Text>
           </View>
@@ -391,7 +396,7 @@ function SettingsScreen({navigation}) {
 
         <View>
           <View style={styles.contentTitle}>
-            <Text variant="titleLarge" style={styles.titleText}>
+            <Text variant="titleLarge" style={titleTextStyle}>
               {t('Others')}
             </Text>
           </View>
@@ -491,7 +496,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   titleText: {
-    color: '#107C10',
+    color: '#fff',
   },
   version: {
     paddingTop: 20,

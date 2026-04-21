@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, ToastAndroid} from 'react-native';
-import {Text, Button} from 'react-native-paper';
+import {Text, Button, useTheme} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import QRCode from 'react-native-qrcode-svg';
 import RNRestart from 'react-native-restart';
@@ -19,6 +19,7 @@ const formatSeconds = (seconds: number) => {
 
 const MsalAuth: React.FC<Props> = ({data}) => {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [countdown, setCountdown] = React.useState(data.expires_in);
   const [msalBtnLoading, setMsalBtnLoading] = React.useState(false);
 
@@ -36,7 +37,11 @@ const MsalAuth: React.FC<Props> = ({data}) => {
 
   return (
     <View style={styles.container}>
-      <QRCode value={data.verification_uri} size={200} color="#107C10" />
+      <QRCode
+        value={data.verification_uri}
+        size={200}
+        color={theme.colors.primary}
+      />
 
       <View style={[styles.mt10, styles.mb10]}>
         <LinkText url={data.verification_uri}>{data.verification_uri}</LinkText>

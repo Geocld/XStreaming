@@ -1,12 +1,14 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView} from 'react-native';
-import {Button, Card, Text} from 'react-native-paper';
+import {Button, Card, Text, useTheme} from 'react-native-paper';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import Display from '../components/Display';
+import {shiftColor} from '../utils/themeColor';
 
 function DisplaySettings({navigation}) {
   const {t} = useTranslation();
+  const theme = useTheme();
 
   const [settings, setSettings] = React.useState<any>({});
   const [options, setOptions] = React.useState({});
@@ -39,15 +41,31 @@ function DisplaySettings({navigation}) {
     });
   };
 
+  const heroCardStyle = React.useMemo(
+    () => [
+      styles.heroCard,
+      {backgroundColor: shiftColor(theme.colors.primary, -0.82)},
+    ],
+    [theme.colors.primary],
+  );
+  const heroDescStyle = React.useMemo(
+    () => [styles.heroDesc, {color: shiftColor(theme.colors.primary, 0.72)}],
+    [theme.colors.primary],
+  );
+  const heroHintStyle = React.useMemo(
+    () => [styles.heroHint, {color: shiftColor(theme.colors.primary, 0.55)}],
+    [theme.colors.primary],
+  );
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.displayWrap}>
-        <Card style={styles.heroCard}>
+        <Card style={heroCardStyle}>
           <Card.Content>
-            <Text style={styles.heroDesc}>
+            <Text style={heroDescStyle}>
               {t('Set parameters such as screen clarity and saturation')}
             </Text>
-            <Text style={styles.heroHint}>
+            <Text style={heroHintStyle}>
               {t('Display settings is not working in native render engine.')}
             </Text>
           </Card.Content>

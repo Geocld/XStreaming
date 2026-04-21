@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Text, IconButton} from 'react-native-paper';
+import {Text, IconButton, useTheme} from 'react-native-paper';
 import Slider from '@react-native-community/slider';
 import {useTranslation} from 'react-i18next';
 
@@ -17,6 +17,7 @@ const defaultValue = {
 
 const Display: React.FC<Props> = ({options, onChange}) => {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [innerOptions, setInnerOptions] = React.useState<any>(defaultValue);
 
   React.useEffect(() => {
@@ -86,7 +87,7 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             handleValChange('sharpness', val);
           }}
           lowerLimit={0}
-          minimumTrackTintColor="#107C10"
+          minimumTrackTintColor={theme.colors.primary}
           maximumTrackTintColor="grey"
         />
       </View>
@@ -136,7 +137,7 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             handleValChange('saturation', val);
           }}
           lowerLimit={0}
-          minimumTrackTintColor="#107C10"
+          minimumTrackTintColor={theme.colors.primary}
           maximumTrackTintColor="grey"
         />
       </View>
@@ -186,7 +187,7 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             handleValChange('contrast', val);
           }}
           lowerLimit={0}
-          minimumTrackTintColor="#107C10"
+          minimumTrackTintColor={theme.colors.primary}
           maximumTrackTintColor="grey"
         />
       </View>
@@ -236,7 +237,7 @@ const Display: React.FC<Props> = ({options, onChange}) => {
             handleValChange('brightness', val);
           }}
           lowerLimit={0}
-          minimumTrackTintColor="#107C10"
+          minimumTrackTintColor={theme.colors.primary}
           maximumTrackTintColor="grey"
         />
       </View>

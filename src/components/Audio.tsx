@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Text, IconButton} from 'react-native-paper';
+import {Text, IconButton, useTheme} from 'react-native-paper';
 import Slider from '@react-native-community/slider';
 import {useTranslation} from 'react-i18next';
 
@@ -11,6 +11,7 @@ type Props = {
 
 const Audio: React.FC<Props> = ({value, onChange}) => {
   const {t} = useTranslation();
+  const theme = useTheme();
 
   const handleValChange = (val: string | number) => {
     onChange && onChange(val);
@@ -54,7 +55,7 @@ const Audio: React.FC<Props> = ({value, onChange}) => {
             handleValChange(val);
           }}
           lowerLimit={0}
-          minimumTrackTintColor="#107C10"
+          minimumTrackTintColor={theme.colors.primary}
           maximumTrackTintColor="grey"
         />
       </View>

@@ -6,7 +6,7 @@ import {
   NativeModules,
   ToastAndroid,
 } from 'react-native';
-import {Button, RadioButton, Text, Divider} from 'react-native-paper';
+import {Button, RadioButton, Text, Divider, useTheme} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import Slider from '@react-native-community/slider';
 import {getSettings, saveSettings} from '../store/settingStore';
@@ -15,6 +15,7 @@ const {UsbRumbleManager} = NativeModules;
 
 function Ds5SettingsScreen({navigation, route}) {
   const {t} = useTranslation();
+  const theme = useTheme();
 
   const [mode, setMode] = React.useState<any>('0');
   const [startPos, setStartPos] = React.useState(0);
@@ -254,7 +255,7 @@ function Ds5SettingsScreen({navigation, route}) {
                 }, 100);
               }}
               lowerLimit={0}
-              minimumTrackTintColor="#107C10"
+              minimumTrackTintColor={theme.colors.primary}
               maximumTrackTintColor="grey"
             />
           </View>
@@ -276,7 +277,7 @@ function Ds5SettingsScreen({navigation, route}) {
                 }, 100);
               }}
               lowerLimit={0}
-              minimumTrackTintColor="#107C10"
+              minimumTrackTintColor={theme.colors.primary}
               maximumTrackTintColor="grey"
             />
           </View>
@@ -298,7 +299,7 @@ function Ds5SettingsScreen({navigation, route}) {
                 }, 100);
               }}
               lowerLimit={0}
-              minimumTrackTintColor="#107C10"
+              minimumTrackTintColor={theme.colors.primary}
               maximumTrackTintColor="grey"
             />
           </View>
@@ -320,7 +321,7 @@ function Ds5SettingsScreen({navigation, route}) {
                 }, 100);
               }}
               lowerLimit={0}
-              minimumTrackTintColor="#107C10"
+              minimumTrackTintColor={theme.colors.primary}
               maximumTrackTintColor="grey"
             />
           </View>

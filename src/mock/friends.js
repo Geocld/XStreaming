@@ -36,7 +36,7 @@ const data = [
     recentPlayer: null,
     follower: null,
     preferredColor: {
-      primaryColor: '107c10',
+      primaryColor: '2e7d32',
       secondaryColor: '102b14',
       tertiaryColor: '155715',
     },
@@ -116,7 +116,7 @@ const data = [
     recentPlayer: null,
     follower: null,
     preferredColor: {
-      primaryColor: '107c10',
+      primaryColor: '2e7d32',
       secondaryColor: '102b14',
       tertiaryColor: '155715',
     },

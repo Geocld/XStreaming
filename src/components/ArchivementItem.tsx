@@ -6,7 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import {Text, Icon, ProgressBar} from 'react-native-paper';
+import {Text, Icon, ProgressBar, useTheme} from 'react-native-paper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 };
 
 const ArchivementItem: React.FC<Props> = ({item}) => {
+  const theme = useTheme();
   const [loading, setLoading] = React.useState(true);
 
   let progress = 0;
@@ -38,7 +39,7 @@ const ArchivementItem: React.FC<Props> = ({item}) => {
           <ActivityIndicator
             style={styles.loadingIndicator}
             size="large"
-            color="#107C10"
+            color={theme.colors.primary}
           />
         )}
         {item.progressState !== 'Achieved' && (

@@ -1,14 +1,15 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Avatar, Text, Icon} from 'react-native-paper';
+import {Avatar, Text, Icon, useTheme} from 'react-native-paper';
 
 type Props = {
   profile: any;
 };
 
 const Profile: React.FC<Props> = ({profile}) => {
+  const theme = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.colors.primary}]}>
       <Avatar.Image
         style={styles.avatar}
         size={64}
@@ -33,7 +34,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#107C10',
     marginBottom: 20,
     borderRadius: 5,
   },

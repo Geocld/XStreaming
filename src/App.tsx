@@ -53,6 +53,11 @@ import HistoryScreen from './pages/History';
 import ServerScreen from './pages/Server';
 import updater from './utils/updater';
 import getServer from './utils/get-server';
+import {
+  applyPrimaryColorToPaperTheme,
+  DEFAULT_THEME_PRIMARY_COLOR,
+  normalizeHexColor,
+} from './utils/themeColor';
 
 import {useTranslation} from 'react-i18next';
 
@@ -69,19 +74,6 @@ const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
   reactNavigationDark: NavigationDarkTheme,
 });
-
-const paperLightTheme = {
-  ...MD3LightTheme,
-  colors: customLightTheme.colors,
-};
-
-const paperDarkTheme = {
-  ...MD3DarkTheme,
-  colors: customDarkTheme.colors,
-};
-
-const CombinedDefaultTheme = merge(paperLightTheme, LightTheme);
-const CombinedDarkTheme = merge(paperDarkTheme, DarkTheme);
 
 function App() {
   const {t} = useTranslation();
@@ -128,6 +120,29 @@ function App() {
     }
   });
 
+  const primaryColor = normalizeHexColor(
+    settings.theme_primary_color,
+    DEFAULT_THEME_PRIMARY_COLOR,
+  );
+  const paperLightTheme = applyPrimaryColorToPaperTheme(
+    {
+      ...MD3LightTheme,
+      colors: customLightTheme.colors,
+    },
+    'light',
+    primaryColor,
+  );
+  const paperDarkTheme = applyPrimaryColorToPaperTheme(
+    {
+      ...MD3DarkTheme,
+      colors: customDarkTheme.colors,
+    },
+    'dark',
+    primaryColor,
+  );
+  const CombinedDefaultTheme = merge(paperLightTheme, LightTheme);
+  const CombinedDarkTheme = merge(paperDarkTheme, DarkTheme);
+
   let paperTheme = paperDarkTheme;
   let navigationTheme = CombinedDarkTheme;
 
@@ -157,11 +172,6 @@ function App() {
           <NavigationContainer theme={navigationTheme}>
             <RootStack.Navigator>
               <RootStack.Group>
-                {/* <RootStack.Screen
-                  name="Main"
-                  component={HomeTabs}
-                  options={{headerShown: false}}
-                /> */}
                 <RootStack.Screen
                   name="Home"
                   component={HomeScreen}

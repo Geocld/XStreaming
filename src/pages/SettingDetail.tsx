@@ -5,8 +5,16 @@ import {
   ScrollView,
   NativeModules,
   ToastAndroid,
+  TouchableOpacity,
 } from 'react-native';
-import {Button, RadioButton, Text, Divider, Card} from 'react-native-paper';
+import {
+  Button,
+  RadioButton,
+  Text,
+  Divider,
+  Card,
+  useTheme,
+} from 'react-native-paper';
 import CookieManager from '@react-native-cookies/cookies';
 import {useTranslation} from 'react-i18next';
 import RNRestart from 'react-native-restart';
@@ -28,11 +36,17 @@ import xhome from '../common/settings/xhome';
 import sensor from '../common/settings/sensor';
 import server from '../common/settings/server';
 import others from '../common/settings/others';
+import {
+  DEFAULT_THEME_PRIMARY_COLOR,
+  normalizeHexColor,
+  shiftColor,
+} from '../utils/themeColor';
 
 const {UsbRumbleManager} = NativeModules;
 
 function SettingDetailScreen({navigation, route}) {
   const {t} = useTranslation();
+  const theme = useTheme();
 
   const [current, setCurrent] = React.useState<any>('');
   const [value, setValue] = React.useState<any>('');
@@ -49,6 +63,26 @@ function SettingDetailScreen({navigation, route}) {
   if (streamingTokens.xCloudToken) {
     xgpuRegions.current = streamingTokens.xCloudToken?.getRegions() || [];
   }
+
+  const primaryColor = normalizeHexColor(
+    settings.theme_primary_color,
+    DEFAULT_THEME_PRIMARY_COLOR,
+  );
+  const heroCardStyle = React.useMemo(
+    () => [
+      styles.heroCard,
+      {backgroundColor: shiftColor(theme.colors.primary, -0.82)},
+    ],
+    [theme.colors.primary],
+  );
+  const heroDescStyle = React.useMemo(
+    () => [styles.heroDesc, {color: shiftColor(theme.colors.primary, 0.72)}],
+    [theme.colors.primary],
+  );
+  const heroHintStyle = React.useMemo(
+    () => [styles.heroHint, {color: shiftColor(theme.colors.primary, 0.55)}],
+    [theme.colors.primary],
+  );
 
   React.useEffect(() => {
     const _settings = getSettings();
@@ -124,6 +158,12 @@ function SettingDetailScreen({navigation, route}) {
   }, [navigation, route.params?.id]);
 
   const handleSaveSettings = () => {
+    let settingValue: any = value;
+    if (currentMetas?.name === 'theme_primary_color') {
+      settingValue = normalizeHexColor(value, DEFAULT_THEME_PRIMARY_COLOR);
+      setValue(settingValue);
+    }
+
     if (
       currentMetas.name === 'signaling_home' ||
       currentMetas.name === 'signaling_cloud'
@@ -132,9 +172,9 @@ function SettingDetailScreen({navigation, route}) {
         currentMetas.name === 'signaling_home'
           ? 'signaling_home_name'
           : 'signaling_cloud_name'
-      ] = value;
+      ] = settingValue;
     } else if (settings[current] !== undefined) {
-      settings[current] = value;
+      settings[current] = settingValue;
     }
 
     setSettings(settings);
@@ -257,7 +297,7 @@ function SettingDetailScreen({navigation, route}) {
                 onValueChange={val => {
                   setValue2(val);
                 }}
-                minimumTrackTintColor="#107C10"
+                minimumTrackTintColor={primaryColor}
                 maximumTrackTintColor="grey"
               />
             </>
@@ -303,6 +343,62 @@ function SettingDetailScreen({navigation, route}) {
             })}
         </RadioButton.Group>
       );
+    } else if (currentMetas.type === 'color') {
+      const selectedColor = normalizeHexColor(
+        value,
+        DEFAULT_THEME_PRIMARY_COLOR,
+      );
+      const selectedColorItemStyle = {borderColor: primaryColor};
+      const colorOptions = Array.isArray(currentMetas.data)
+        ? currentMetas.data
+        : [];
+
+      return (
+        <View style={styles.colorWrap}>
+          <Text style={styles.sliderTitle}>
+            {t('Current')}: {selectedColor}
+          </Text>
+          <View style={styles.currentColorRow}>
+            <View
+              style={[
+                styles.currentColorPreview,
+                {
+                  backgroundColor: selectedColor,
+                },
+              ]}
+            />
+          </View>
+          <View style={styles.colorPalette}>
+            {colorOptions.map((item, idx) => {
+              const colorValue = normalizeHexColor(
+                typeof item === 'string' ? item : item.value,
+                DEFAULT_THEME_PRIMARY_COLOR,
+              );
+              const selected = selectedColor === colorValue;
+              return (
+                <TouchableOpacity
+                  key={`${colorValue}-${idx}`}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.colorItem,
+                    selected ? styles.colorItemSelected : null,
+                    selected ? selectedColorItemStyle : null,
+                  ]}
+                  onPress={() => setValue(colorValue)}>
+                  <View
+                    style={[
+                      styles.colorInner,
+                      {
+                        backgroundColor: colorValue,
+                      },
+                    ]}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      );
     } else if (currentMetas.type === 'slider') {
       return (
         <>
@@ -319,7 +415,7 @@ function SettingDetailScreen({navigation, route}) {
               setValue(parseFloat(val.toFixed(2)));
             }}
             lowerLimit={0.1}
-            minimumTrackTintColor="#107C10"
+            minimumTrackTintColor={primaryColor}
             maximumTrackTintColor="grey"
           />
         </>
@@ -332,13 +428,11 @@ function SettingDetailScreen({navigation, route}) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        <Card style={styles.heroCard}>
+        <Card style={heroCardStyle}>
           <Card.Content>
-            <Text style={styles.heroDesc}>
-              {currentMetas?.description || ''}
-            </Text>
+            <Text style={heroDescStyle}>{currentMetas?.description || ''}</Text>
             {!!currentMetas?.tips && (
-              <Text style={styles.heroHint}>{currentMetas.tips}</Text>
+              <Text style={heroHintStyle}>{currentMetas.tips}</Text>
             )}
           </Card.Content>
         </Card>
@@ -389,6 +483,44 @@ const styles = StyleSheet.create({
   slider: {
     width: '100%',
     height: 40,
+  },
+  colorWrap: {
+    paddingHorizontal: 10,
+    paddingBottom: 16,
+  },
+  currentColorRow: {
+    marginBottom: 14,
+  },
+  currentColorPreview: {
+    width: 64,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#666',
+  },
+  colorPalette: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  colorItem: {
+    width: 34,
+    height: 34,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#777',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    marginBottom: 10,
+    backgroundColor: 'transparent',
+  },
+  colorItemSelected: {
+    borderWidth: 3,
+  },
+  colorInner: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
   buttonWrap: {
     position: 'absolute',

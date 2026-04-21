@@ -11,6 +11,7 @@ import {
   IconButton,
   Checkbox,
   Switch,
+  useTheme,
 } from 'react-native-paper';
 import Slider from '@react-native-community/slider';
 import {useTranslation} from 'react-i18next';
@@ -22,6 +23,7 @@ import {
   VIRTUAL_MACRO_ALLOWED_BUTTONS,
   VirtualMacroStep,
 } from '../utils/virtualMacro';
+import {shiftColor} from '../utils/themeColor';
 
 type EditingState = {
   index: number;
@@ -30,6 +32,7 @@ type EditingState = {
 
 function VirtualMacroSettingsScreen({navigation}) {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [settings, setSettings] = React.useState<any>({});
   const [steps, setSteps] = React.useState<VirtualMacroStep[]>(
     DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
@@ -121,33 +124,57 @@ function VirtualMacroSettingsScreen({navigation}) {
     navigation.goBack();
   };
 
+  const heroCardStyle = React.useMemo(
+    () => [
+      styles.heroCard,
+      {backgroundColor: shiftColor(theme.colors.primary, -0.82)},
+    ],
+    [theme.colors.primary],
+  );
+  const switchTitleStyle = React.useMemo(
+    () => [styles.switchTitle, {color: shiftColor(theme.colors.primary, 0.82)}],
+    [theme.colors.primary],
+  );
+  const switchDescStyle = React.useMemo(
+    () => [styles.switchDesc, {color: shiftColor(theme.colors.primary, 0.6)}],
+    [theme.colors.primary],
+  );
+  const heroDescStyle = React.useMemo(
+    () => [styles.heroDesc, {color: shiftColor(theme.colors.primary, 0.72)}],
+    [theme.colors.primary],
+  );
+  const heroHintStyle = React.useMemo(
+    () => [styles.heroHint, {color: shiftColor(theme.colors.primary, 0.55)}],
+    [theme.colors.primary],
+  );
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        <Card style={styles.heroCard}>
+        <Card style={heroCardStyle}>
           <Card.Content>
             <View style={styles.switchRow}>
               <View style={styles.switchTextWrap}>
-                <Text style={styles.switchTitle}>
+                <Text style={switchTitleStyle}>
                   {t('Virtual macro button')}
                 </Text>
-                <Text style={styles.switchDesc}>
+                <Text style={switchDescStyle}>
                   {t('Enable virtual macro button')}
                 </Text>
               </View>
               <Switch
                 value={!!settings.virtual_macro_enabled}
                 onValueChange={handleMacroEnabledChange}
-                color="#107C10"
+                color={theme.colors.primary}
               />
             </View>
             <Divider style={styles.switchDivider} />
-            <Text style={styles.heroDesc}>
+            <Text style={heroDescStyle}>
               {t(
                 'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.',
               )}
             </Text>
-            <Text style={styles.heroHint}>
+            <Text style={heroHintStyle}>
               {t(
                 'Enable macro button and edit its action sequence in one place.',
               )}
@@ -291,7 +318,7 @@ function VirtualMacroSettingsScreen({navigation}) {
                     },
                   });
                 }}
-                minimumTrackTintColor="#107C10"
+                minimumTrackTintColor={theme.colors.primary}
                 maximumTrackTintColor="#5f5f5f"
               />
 
@@ -315,7 +342,7 @@ function VirtualMacroSettingsScreen({navigation}) {
                     },
                   });
                 }}
-                minimumTrackTintColor="#107C10"
+                minimumTrackTintColor={theme.colors.primary}
                 maximumTrackTintColor="#5f5f5f"
               />
 

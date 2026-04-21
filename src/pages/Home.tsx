@@ -822,7 +822,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   spinnerTextStyle: {
-    color: '#107C10',
+    color: '#fff',
     textAlign: 'center',
   },
   menuWrap: {

@@ -132,6 +132,11 @@ export default {
     Theme: '主题',
     'Set the app theme to take effect on the next launch':
       '设置APP主题，下次启动生效',
+    'Theme primary color': '主题主色',
+    'Choose app primary color, takes effect on next launch':
+      '选择应用主题主色，下次启动生效',
+    'Choose from preset palette for best readability':
+      '建议从预设调色盘中选择，以获得更好的可读性',
     'Signal server': '信令服务器',
     'Virtual gamepad': '虚拟手柄',
     'Always display the virtual gamepad': '始终显示虚拟手柄',

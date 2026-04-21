@@ -7,7 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import {Text, Button} from 'react-native-paper';
+import {Text, Button, useTheme} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
 };
 
 const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
+  const theme = useTheme();
   const [loading, setLoading] = React.useState(true);
   const {t} = useTranslation();
 
@@ -57,7 +58,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
             <ActivityIndicator
               style={styles.loadingIndicator}
               size="large"
-              color="#107C10"
+              color={theme.colors.primary}
             />
           )}
           {renderImage()}
@@ -87,7 +88,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
             <ActivityIndicator
               style={styles.loadingIndicator}
               size="large"
-              color="#107C10"
+              color={theme.colors.primary}
             />
           )}
           {renderImage()}

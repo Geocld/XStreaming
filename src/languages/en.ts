@@ -100,6 +100,14 @@ export default {
     SensorSettings: 'Sensor',
     TurnServerSettings: 'TURN Server',
     Auto: 'Auto',
+    Theme: 'Theme',
+    'Set the app theme to take effect on the next launch':
+      'Set the app theme to take effect on the next launch',
+    'Theme primary color': 'Theme primary color',
+    'Choose app primary color, takes effect on next launch':
+      'Choose app primary color, takes effect on next launch',
+    'Choose from preset palette for best readability':
+      'Choose from preset palette for best readability',
     Custom: 'Custom',
     bitrate: 'bitrate',
     On: 'On',

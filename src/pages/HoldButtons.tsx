@@ -1,11 +1,20 @@
 import React from 'react';
 import {StyleSheet, View, ScrollView} from 'react-native';
-import {Text, Divider, Button, Checkbox, Card} from 'react-native-paper';
+import {
+  Text,
+  Divider,
+  Button,
+  Checkbox,
+  Card,
+  useTheme,
+} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {shiftColor} from '../utils/themeColor';
 
 function HoldButtonsScreen({navigation}) {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [settings, setSettings] = React.useState<any>({});
   const [buttons, setButtons] = React.useState<any>([]);
 
@@ -46,12 +55,24 @@ function HoldButtonsScreen({navigation}) {
     navigation.goBack();
   };
 
+  const heroCardStyle = React.useMemo(
+    () => [
+      styles.heroCard,
+      {backgroundColor: shiftColor(theme.colors.primary, -0.82)},
+    ],
+    [theme.colors.primary],
+  );
+  const heroDescStyle = React.useMemo(
+    () => [styles.heroDesc, {color: shiftColor(theme.colors.primary, 0.72)}],
+    [theme.colors.primary],
+  );
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        <Card style={styles.heroCard}>
+        <Card style={heroCardStyle}>
           <Card.Content>
-            <Text style={styles.heroDesc}>{t('HoldButtonsSettingsDesc')}</Text>
+            <Text style={heroDescStyle}>{t('HoldButtonsSettingsDesc')}</Text>
           </Card.Content>
         </Card>
         <Divider />

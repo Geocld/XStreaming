@@ -15,6 +15,7 @@ import {
   RadioButton,
   Text,
   Divider,
+  useTheme,
 } from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import Draggable from 'react-native-draggable';
@@ -35,6 +36,7 @@ const {FullScreenManager} = NativeModules;
 
 function CustomGamepadScreen({navigation, route}) {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [settings, setSettings] = React.useState({});
   const [title, setTitle] = React.useState('');
   const [buttons, setButtons] = React.useState<any>([]);
@@ -517,7 +519,7 @@ function CustomGamepadScreen({navigation, route}) {
                         handleChangeSize(_val);
                       }}
                       lowerLimit={0.5}
-                      minimumTrackTintColor="#107C10"
+                      minimumTrackTintColor={theme.colors.primary}
                       maximumTrackTintColor="grey"
                     />
                   </>

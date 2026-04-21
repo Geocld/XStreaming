@@ -1,8 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import {SvgXml} from 'react-native-svg';
+import {useTheme} from 'react-native-paper';
 import icons from '../../common/virtualgp';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../../utils/virtualMacro';
+import {colorizeMacroIconXml, normalizeHexColor} from '../../utils/themeColor';
 
 type Props = {
   name: string;
@@ -19,6 +21,8 @@ const GamepadButton: React.FC<Props> = ({
   scale = 1,
   style,
 }) => {
+  const theme = useTheme();
+  const primaryColor = normalizeHexColor(theme.colors.primary);
   if (['A', 'B', 'X', 'Y'].indexOf(name) > -1) {
     width = 100;
     height = 100;
@@ -34,7 +38,15 @@ const GamepadButton: React.FC<Props> = ({
 
   return (
     <View style={style}>
-      <SvgXml xml={icons[name]} width={width * scale} height={height * scale} />
+      <SvgXml
+        xml={
+          name === VIRTUAL_MACRO_BUTTON_NAME
+            ? colorizeMacroIconXml(icons[name], primaryColor)
+            : icons[name]
+        }
+        width={width * scale}
+        height={height * scale}
+      />
     </View>
   );
 };

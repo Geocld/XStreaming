@@ -10,6 +10,7 @@ import {
   Card,
   HelperText,
   TextInput,
+  useTheme,
 } from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {
@@ -17,9 +18,11 @@ import {
   saveSettings as saveUserSettings,
 } from '../store/settingStore';
 import {getSettings} from '../store/gamepadStore';
+import {shiftColor} from '../utils/themeColor';
 
 function VirtualGamepadSettingsScreen({navigation}) {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [value, setValue] = React.useState('');
   const [name, setName] = React.useState('');
   const [userSettings, setUserSettings] = React.useState<any>({});
@@ -68,6 +71,22 @@ function VirtualGamepadSettingsScreen({navigation}) {
     errorText = t('Name can not be empty');
   }
 
+  const heroCardStyle = React.useMemo(
+    () => [
+      styles.heroCard,
+      {backgroundColor: shiftColor(theme.colors.primary, -0.82)},
+    ],
+    [theme.colors.primary],
+  );
+  const heroDescStyle = React.useMemo(
+    () => [styles.heroDesc, {color: shiftColor(theme.colors.primary, 0.72)}],
+    [theme.colors.primary],
+  );
+  const heroHintStyle = React.useMemo(
+    () => [styles.heroHint, {color: shiftColor(theme.colors.primary, 0.55)}],
+    [theme.colors.primary],
+  );
+
   return (
     <View style={styles.container}>
       <Portal>
@@ -103,12 +122,12 @@ function VirtualGamepadSettingsScreen({navigation}) {
       </Portal>
 
       <ScrollView style={styles.scrollView}>
-        <Card style={styles.heroCard}>
+        <Card style={heroCardStyle}>
           <Card.Content>
-            <Text style={styles.heroDesc}>
+            <Text style={heroDescStyle}>
               {t('Customize buttons of virtual gamepad')}
             </Text>
-            <Text style={styles.heroHint}>
+            <Text style={heroHintStyle}>
               {t(
                 'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy',
               )}

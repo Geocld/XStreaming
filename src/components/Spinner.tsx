@@ -2,6 +2,11 @@ import React from 'react';
 import {StyleProp, StyleSheet, TextStyle} from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {Wander} from 'react-native-animated-spinkit';
+import {getSettings} from '../store/settingStore';
+import {
+  DEFAULT_THEME_PRIMARY_COLOR,
+  normalizeHexColor,
+} from '../utils/themeColor';
 
 type Props = {
   loading: boolean;
@@ -12,8 +17,6 @@ type Props = {
   onChange?: (value: any) => void;
 };
 
-const COLOR = '#107C10';
-
 const Loading: React.FC<Props> = ({
   loading,
   cancelable = false,
@@ -21,16 +24,22 @@ const Loading: React.FC<Props> = ({
   textStyle,
   closeCb,
 }) => {
+  const settings = getSettings();
+  const primaryColor = normalizeHexColor(
+    settings.theme_primary_color,
+    DEFAULT_THEME_PRIMARY_COLOR,
+  );
+
   return (
     <Spinner
       visible={loading}
       cancelable={cancelable}
-      color={COLOR}
+      color={primaryColor}
       overlayColor={'rgba(0, 0, 0, 0)'}
       textContent={text}
-      textStyle={[styles.spinnerTextStyle, textStyle]}
+      textStyle={[styles.spinnerTextStyle, {color: primaryColor}, textStyle]}
       animation={'fade'}
-      customIndicator={<Wander size={50} color={COLOR} />}
+      customIndicator={<Wander size={50} color={primaryColor} />}
       closeCb={closeCb}
     />
   );
@@ -38,7 +47,7 @@ const Loading: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   spinnerTextStyle: {
-    color: COLOR,
+    fontWeight: '500',
   },
 });
 

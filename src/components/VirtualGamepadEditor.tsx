@@ -10,6 +10,7 @@ import {
   Divider,
   Button,
   IconButton,
+  useTheme,
 } from 'react-native-paper';
 import Draggable from 'react-native-draggable';
 import Slider from '@react-native-community/slider';
@@ -75,6 +76,7 @@ const VirtualGamepadEditor: React.FC<VirtualGamepadEditorProps> = ({
   onCancel,
 }) => {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [buttons, setButtons] = React.useState<ButtonConfig[]>([]);
   const [defaultButtons, setDefaultButtons] = React.useState<ButtonConfig[]>(
     [],
@@ -178,7 +180,7 @@ const VirtualGamepadEditor: React.FC<VirtualGamepadEditorProps> = ({
                         setCurrentScale(_val);
                         handleChangeSize(_val);
                       }}
-                      minimumTrackTintColor="#107C10"
+                      minimumTrackTintColor={theme.colors.primary}
                       maximumTrackTintColor="grey"
                     />
                   </>
