@@ -50,7 +50,7 @@ function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
-  const [xalUrl, setXalUrl] = React.useState('');
+  const [_, setXalUrl] = React.useState('');
   const [consoles, setConsoles] = React.useState([]);
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
@@ -433,6 +433,30 @@ function HomeScreen({navigation, route}) {
     }
   };
 
+  const handleRefreshConsoles = async () => {
+    setLoading(true);
+    setLoadingText(t('Loading...'));
+
+    try {
+      const webApi = new WebApi(webToken);
+      let _consoles: any = [];
+
+      if (_xHomeApiRef.current) {
+        _consoles = await _xHomeApiRef.current.getConsoles();
+      }
+
+      if (!_consoles.length) {
+        _consoles = await webApi.getConsoles();
+      }
+
+      if (_consoles.length > 0) {
+        setConsoles(_consoles);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStartStream = async sessionId => {
     const settings = getSettings();
     const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
@@ -702,7 +726,17 @@ function HomeScreen({navigation, route}) {
               </View>
             ) : (
               <View style={styles.noConsoles}>
-                <Text variant="titleMedium">{t('NoConsoles')}</Text>
+                <View style={styles.emptyConsoleCard}>
+                  <Text style={styles.emptyConsoleDesc}>{t('NoConsoles')}</Text>
+                  <View style={styles.emptyConsoleActions}>
+                    <Button
+                      mode="contained-tonal"
+                      style={styles.emptyActionBtn}
+                      onPress={handleRefreshConsoles}>
+                      {t('Refresh')}
+                    </Button>
+                  </View>
+                </View>
               </View>
             )}
 
@@ -798,6 +832,45 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
     paddingBottom: 20,
+  },
+  emptyConsoleCard: {
+    borderRadius: 16,
+    padding: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  emptyConsoleHeader: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(16, 124, 16, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 124, 16, 0.5)',
+  },
+  emptyConsoleMark: {
+    color: '#8BC34A',
+    fontWeight: '700',
+    fontSize: 16,
+    lineHeight: 18,
+  },
+  emptyConsoleTitle: {
+    marginBottom: 8,
+  },
+  emptyConsoleDesc: {
+    opacity: 0.88,
+    lineHeight: 20,
+    marginBottom: 14,
+  },
+  emptyConsoleActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  emptyActionBtn: {
+    marginRight: 10,
   },
   consoleList: {
     paddingLeft: 10,

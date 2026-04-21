@@ -1,6 +1,6 @@
 export default {
   translation: {
-    Consoles: '终端',
+    Consoles: '主机',
     Xcloud: '云游戏',
     Host: '主机',
     Settings: '设置',
@@ -16,7 +16,7 @@ export default {
     GameMap: '手柄映射',
     NoLogin: '尚未登录，请登录',
     'Fetching user info...': '正在获取用户信息...',
-    'Fetching consoles...': '正在获取终端信息...',
+    'Fetching consoles...': '正在获取主机信息...',
     'Login successful, refreshing login credentials...':
       '登录成功，正在刷新登录凭证...',
     'Checking login status...': '正在检查登录...',
