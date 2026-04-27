@@ -35,6 +35,10 @@ function TitleDetail({navigation, route}) {
 
   React.useEffect(() => {
     log.info('TitleDetail titleItem:', route.params?.titleItem);
+    // console.log(
+    //   'TitleDetail titleItem:',
+    //   JSON.stringify(route.params?.titleItem),
+    // );
     if (route.params?.titleItem) {
       setTitleItem(route.params.titleItem);
     }

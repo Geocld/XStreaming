@@ -37,7 +37,7 @@ export default {
     NoConsoles:
       'No consoles found on your account. If you do have an Xbox console then make sure that remote playing is enabled and that the console is visible in the official Xbox App.',
     NoXGP:
-      "You don't have XGPU access or your region doesn't have XGPU permissions. Please check your account permissions or change your region in settings and try again. \n If you've already changed your region, please enable \"MSAL Code Login\" in settings to resolve this issue.",
+      "You don't have XGP access or your region doesn't have xCloud permissions. Please check your account permissions or change your region in settings and try again. \n If you've already changed your region, please enable \"MSAL Code Login\" in settings to resolve this issue.",
     'Recent Games': 'Recent Games',
     'Recently added': 'Recently added',
     'All Games': 'All Games',

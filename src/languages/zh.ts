@@ -51,7 +51,7 @@ export default {
     Disconnect: '断开连接',
     'Disconnect and power off': '断开连接并关机',
     NoXGP:
-      '你没有开通XGPU或所在地区没有XGPU权限，请检查账号权限或到设置中修改地区重试。\n如你已修改地区，请在设置中开启授权登录尝试解决。',
+      '你没有开通XGP或所在地区没有xCloud权限，请检查账号权限或到设置中修改地区重试。\n如你已修改地区，请在设置中开启授权登录尝试解决。',
     Recently: '最近游玩',
     Newest: '新入库',
     Stars: '收藏',

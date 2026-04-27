@@ -50,7 +50,7 @@ export default {
     Disconnect: '斷開連接',
     'Disconnect and power off': '斷開連接并關機',
     NoXGP:
-      '您未開通XGPU或所在地區沒有XGPU權限，請檢查帳號權限或到設定中修改地區重試。\n 如您已修改地區，請在設定中開啟授權登入嘗試解決。',
+      '您未開通XGP或所在地區沒有xCloud權限，請檢查帳號權限或到設定中修改地區重試。\n 如您已修改地區，請在設定中開啟授權登入嘗試解決。',
     NoConsoles:
       '账号下没有找到主机，如果你有xbox主机，请确保主机开启了远程游玩功能，并且使用官方xbox App可以查看到该主机。',
     Recently: '最近遊玩',
