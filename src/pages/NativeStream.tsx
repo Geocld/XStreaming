@@ -34,6 +34,11 @@ import webRTCClient from '../webrtc';
 import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
 import {XBOX_360_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
+import {
+  applyScreenOrientation,
+  getCurrentScreenOrientation,
+  type ScreenOrientation,
+} from '../utils/orientation';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import VirtualGamepadEditor, {
@@ -210,8 +215,67 @@ function NativeStreamScreen({navigation, route}) {
   const isRequestExit = React.useRef(false);
   const isConnected = React.useRef(false);
   const macroSequenceTimersRef = React.useRef<any[]>([]);
+  const orientationLockTimer = React.useRef<any>(null);
+  const orientationLayoutTimer = React.useRef<any>(null);
+  const returnOrientationRef = React.useRef<ScreenOrientation | null>(null);
+  const shouldRestoreOrientationRef = React.useRef(false);
 
   const isTriggerWork = React.useRef(false);
+
+  const clearOrientationTimers = React.useCallback(() => {
+    if (orientationLockTimer.current) {
+      clearTimeout(orientationLockTimer.current);
+      orientationLockTimer.current = null;
+    }
+    if (orientationLayoutTimer.current) {
+      clearTimeout(orientationLayoutTimer.current);
+      orientationLayoutTimer.current = null;
+    }
+  }, []);
+
+  const markOrientationForRestore = React.useCallback(() => {
+    clearOrientationTimers();
+    shouldRestoreOrientationRef.current = true;
+  }, [clearOrientationTimers]);
+
+  React.useEffect(() => {
+    let isActive = true;
+    shouldRestoreOrientationRef.current = false;
+    returnOrientationRef.current = null;
+
+    getCurrentScreenOrientation().then(orientation => {
+      if (isActive) {
+        returnOrientationRef.current = orientation;
+      }
+    });
+
+    clearOrientationTimers();
+    orientationLockTimer.current = setTimeout(() => {
+      Orientation.lockToLandscape();
+      orientationLockTimer.current = null;
+
+      orientationLayoutTimer.current = setTimeout(() => {
+        const {height: dHeight} = Dimensions.get('window');
+        setModalMaxHeight(dHeight - 50);
+        orientationLayoutTimer.current = null;
+      }, 100);
+    }, 500);
+
+    return () => {
+      isActive = false;
+      clearOrientationTimers();
+      if (shouldRestoreOrientationRef.current) {
+        applyScreenOrientation(returnOrientationRef.current);
+        shouldRestoreOrientationRef.current = false;
+      } else {
+        Orientation.unlockAllOrientations();
+      }
+    };
+  }, [
+    route.params?.sessionId,
+    route.params?.streamType,
+    clearOrientationTimers,
+  ]);
 
   const closeSystemKeyboardModal = React.useCallback(() => {
     setShowSystemKeyboardModal(false);
@@ -930,7 +994,7 @@ function NativeStreamScreen({navigation, route}) {
             _streamApi.stopStream().then(() => {
               setTimeout(() => {
                 setIsExiting(false);
-                Orientation.unlockAllOrientations();
+                markOrientationForRestore();
                 FullScreenManager.immersiveModeOff();
                 const dest =
                   route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
@@ -1280,12 +1344,13 @@ function NativeStreamScreen({navigation, route}) {
         const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         setLoading(false);
         webrtcClient && webrtcClient.close();
+        markOrientationForRestore();
         streamApi
           .stopStream()
           .then(() => {
             setTimeout(() => {
               setIsExiting(false);
-              Orientation.unlockAllOrientations();
+              markOrientationForRestore();
               FullScreenManager.immersiveModeOff();
               navigation.navigate({
                 name: dest,
@@ -1294,7 +1359,7 @@ function NativeStreamScreen({navigation, route}) {
             }, 500);
           })
           .catch(() => {
-            Orientation.unlockAllOrientations();
+            markOrientationForRestore();
             FullScreenManager.immersiveModeOff();
             navigation.navigate({
               name: dest,
@@ -1511,6 +1576,7 @@ function NativeStreamScreen({navigation, route}) {
                 text: t('Confirm'),
                 style: 'default',
                 onPress: () => {
+                  markOrientationForRestore();
                   const dest =
                     route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
                   navigation.navigate(dest);
@@ -1521,17 +1587,7 @@ function NativeStreamScreen({navigation, route}) {
         });
     }
 
-    setTimeout(() => {
-      Orientation.lockToLandscape();
-
-      setTimeout(() => {
-        const {height: dHeight} = Dimensions.get('window');
-        setModalMaxHeight(dHeight - 50);
-      }, 100);
-    }, 500);
-
     return () => {
-      Orientation.unlockAllOrientations();
       FullScreenManager.immersiveModeOff();
       stopVibrate();
       webrtcClient && webrtcClient.close();
@@ -1586,6 +1642,7 @@ function NativeStreamScreen({navigation, route}) {
     handleSystemUiEvent,
     handleStreamingMessage,
     closeSystemKeyboardModal,
+    markOrientationForRestore,
   ]);
 
   React.useEffect(() => {
@@ -1651,6 +1708,7 @@ function NativeStreamScreen({navigation, route}) {
     }
     setIsExiting(true);
     webrtcClient && webrtcClient.close();
+    markOrientationForRestore();
     streamApi.stopStream().then(() => {
       if (off) {
         handlePowerOff();
@@ -1658,7 +1716,7 @@ function NativeStreamScreen({navigation, route}) {
       setTimeout(() => {
         setIsExiting(false);
         setLoading(false);
-        Orientation.unlockAllOrientations();
+        markOrientationForRestore();
         FullScreenManager.immersiveModeOff();
         const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         navigation.navigate({

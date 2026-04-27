@@ -15,6 +15,8 @@ import {
   Modal,
   Card,
 } from 'react-native-paper';
+import {useIsFocused} from '@react-navigation/native';
+import Orientation from 'react-native-orientation-locker';
 import Spinner from '../components/Spinner';
 import {useSelector, useDispatch} from 'react-redux';
 import TitleItem from '../components/TitleItem';
@@ -36,6 +38,7 @@ function CloudScreen({navigation, route}) {
   const dispatch = useDispatch();
   const streamingTokens = useSelector((state: any) => state.streamingTokens);
   const starTitles = useSelector((state: any) => state.stars || []);
+  const isFocused = useIsFocused();
 
   const currentLanguage = i18n.language;
 
@@ -59,6 +62,12 @@ function CloudScreen({navigation, route}) {
 
   const currentTitles = React.useRef([]);
   const totalPage = React.useRef(0);
+
+  React.useEffect(() => {
+    if (isFocused) {
+      Orientation.unlockAllOrientations();
+    }
+  }, [isFocused]);
 
   React.useEffect(() => {
     if (route.params?.keyword) {
