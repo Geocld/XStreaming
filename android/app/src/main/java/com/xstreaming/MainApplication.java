@@ -76,25 +76,28 @@ public class MainApplication extends Application implements ReactApplication {
     // webrtc
     WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
     boolean stereoEnabled = AudioConfig.isStereoEnabled(this);
-    if (stereoEnabled) {
-        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-              .setUsage(AudioAttributes.USAGE_MEDIA)
-              .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-              .build();
+    AudioAttributes audioAttributes = new AudioAttributes.Builder()
+          .setUsage(AudioAttributes.USAGE_MEDIA)
+          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+          .build();
 
-        options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
-              .setAudioAttributes(audioAttributes)
+    JavaAudioDeviceModule.Builder audioDeviceModuleBuilder =
+          JavaAudioDeviceModule.builder(this)
+                .setAudioAttributes(audioAttributes)
+                .setEnableVolumeLogger(false);
+
+    if (stereoEnabled) {
+        audioDeviceModuleBuilder
               .setUseStereoInput(true)
-              .setUseStereoOutput(true)
-              .createAudioDeviceModule();
+              .setUseStereoOutput(true);
     } else {
-        options.audioDeviceModule = JavaAudioDeviceModule.builder(this)
-              .setEnableVolumeLogger(false)
+        audioDeviceModuleBuilder
               .setUseLowLatency(true)
               .setUseStereoInput(false)
-              .setUseStereoOutput(false)
-              .createAudioDeviceModule();
+              .setUseStereoOutput(false);
     }
+
+    options.audioDeviceModule = audioDeviceModuleBuilder.createAudioDeviceModule();
 
     UMConfigure.preInit(this,"66ab42a4192e0574e75249b9","XStreaming");
     UMConfigure.init(this, "66ab42a4192e0574e75249b9", "XStreaming", UMConfigure.DEVICE_TYPE_PHONE, "");
