@@ -11,6 +11,7 @@ import {
   NativeModules,
   ToastAndroid,
   Linking,
+  ImageBackground,
 } from 'react-native';
 import {Button, Text, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from '../components/Spinner';
@@ -800,19 +801,34 @@ function HomeScreen({navigation, route}) {
   };
 
   return (
-    <>
+    <View style={styles.root}>
       <Spinner loading={loading} text={loadingText} />
 
       {renderUsbWarningModal()}
 
       {renderHarmonyModal()}
 
-      {renderContent()}
-    </>
+      <ImageBackground
+        source={require('../assets/console/bg.png')}
+        style={styles.pageBackground}
+        imageStyle={styles.pageBackgroundImage}
+        resizeMode="cover">
+        {renderContent()}
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  pageBackground: {
+    flex: 1,
+  },
+  pageBackgroundImage: {
+    opacity: 1,
+  },
   container: {
     flex: 1,
     paddingTop: 40,
