@@ -218,6 +218,10 @@ function NativeStreamScreen({navigation, route}) {
   const orientationLockTimer = React.useRef<any>(null);
   const orientationLayoutTimer = React.useRef<any>(null);
   const returnOrientationRef = React.useRef<ScreenOrientation | null>(null);
+  const supportedSystemUis = React.useMemo(
+    () => (Platform.isTV ? [] : [10, 19]),
+    [],
+  );
   const shouldRestoreOrientationRef = React.useRef(false);
 
   const isTriggerWork = React.useRef(false);
@@ -1063,8 +1067,10 @@ function NativeStreamScreen({navigation, route}) {
 
       webrtcClient.setPollRate(_settings.polling_rate);
       webrtcClient.setMaxTouchPoints(_settings.native_touch ? 10 : 0);
-      webrtcClient.setSupportedSystemUis([10, 19]);
-      webrtcClient.setSystemUiHandler(handleSystemUiEvent);
+      webrtcClient.setSupportedSystemUis(supportedSystemUis);
+      webrtcClient.setSystemUiHandler(
+        Platform.isTV ? undefined : handleSystemUiEvent,
+      );
       webrtcClient.setMessageHandler(handleStreamingMessage);
 
       if (_settings.coop) {
@@ -1643,6 +1649,7 @@ function NativeStreamScreen({navigation, route}) {
     handleStreamingMessage,
     closeSystemKeyboardModal,
     markOrientationForRestore,
+    supportedSystemUis,
   ]);
 
   React.useEffect(() => {

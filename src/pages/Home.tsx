@@ -767,7 +767,7 @@ function HomeScreen({navigation, route}) {
                 />
               </View>
 
-              <View
+              {/* <View
                 style={[
                   styles.moreItem,
                   {width: width > 600 ? '15%' : width / 2 - 40},
@@ -778,7 +778,7 @@ function HomeScreen({navigation, route}) {
                   color={'#E81123'}
                   onPress={() => navigation.navigate('Achivements')}
                 />
-              </View>
+              </View> */}
 
               <View
                 style={[
