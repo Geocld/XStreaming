@@ -250,7 +250,7 @@ export default {
     CoopTips: 'Local co-op mode',
     Microphone_title: 'Enable Microphone(Experimental)',
     Microphone_desc: 'The quick menu will be able to set microphone on/off',
-    'Native touch': 'Native touch',
+    'Native touch': 'Native touch(Experimental)',
     'Enable native touch input':
       'Enable native touch input (cannot customize screen ratio after enable)',
     'Virtual macro button': 'Virtual macro button',
