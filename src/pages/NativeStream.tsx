@@ -11,6 +11,7 @@ import {
   ToastAndroid,
   Platform,
   Vibration,
+  AppState,
 } from 'react-native';
 import {
   Portal,
@@ -62,6 +63,7 @@ const CLOSED = 'closed';
 const FAILED = 'failed';
 const DUALSENSE = 'DualSenseController';
 const LIVE_GAMEPAD_PROFILE = 'LiveLayout';
+const PICTURE_IN_PICTURE_MODE_CHANGED = 'pictureInPictureModeChanged';
 
 const {
   FullScreenManager,
@@ -69,6 +71,7 @@ const {
   UsbRumbleManager,
   SensorModule,
   GamepadSensorModule,
+  PipManager,
 } = NativeModules;
 
 let defaultMaping: any = GAMEPAD_MAPING;
@@ -188,6 +191,7 @@ function NativeStreamScreen({navigation, route}) {
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   const [openMicro, setOpenMicro] = React.useState(false);
+  const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
@@ -212,6 +216,8 @@ function NativeStreamScreen({navigation, route}) {
   const timer = React.useRef<any>(undefined);
   const frameTimer = React.useRef<any>(undefined);
   const audioRumbleTimer = React.useRef<any>(undefined);
+  const appStateSubscription = React.useRef<any>(undefined);
+  const pipEventListener = React.useRef<any>(undefined);
   const isRequestExit = React.useRef(false);
   const isConnected = React.useRef(false);
   const macroSequenceTimersRef = React.useRef<any[]>([]);
@@ -644,6 +650,44 @@ function NativeStreamScreen({navigation, route}) {
     };
 
     const eventEmitter = new NativeEventEmitter();
+    PipManager?.setAutoPipEnabled?.(false);
+    appStateSubscription.current && appStateSubscription.current.remove();
+    appStateSubscription.current = AppState.addEventListener(
+      'change',
+      async state => {
+        if (
+          state === 'background' &&
+          isConnected.current &&
+          _settings.picture_in_picture
+        ) {
+          try {
+            const enteredPip = await PipManager?.enterPipMode?.();
+            if (enteredPip) {
+              return;
+            }
+          } catch (error) {}
+        }
+      },
+    );
+
+    pipEventListener.current = eventEmitter.addListener(
+      PICTURE_IN_PICTURE_MODE_CHANGED,
+      event => {
+        const nextIsInPip = !!event?.isInPictureInPictureMode;
+        setIsInPictureInPicture(nextIsInPip);
+        if (nextIsInPip) {
+          setShowModal(false);
+          setShowMessageModal(false);
+          setShowSystemKeyboardModal(false);
+          setShowGamepadEditor(false);
+          macroSequenceTimersRef.current.forEach(timeoutId =>
+            clearTimeout(timeoutId),
+          );
+          macroSequenceTimersRef.current = [];
+          closeSystemKeyboardModal();
+        }
+      },
+    );
 
     // USB Mode
     if (isUsbMode) {
@@ -1114,6 +1158,7 @@ function NativeStreamScreen({navigation, route}) {
           setLoadingText(`${t(CONNECTED)}`);
           setLoading(false);
           isConnected.current = true;
+          PipManager?.setAutoPipEnabled?.(!!_settings.picture_in_picture);
 
           // Alway show virtual gamepad
           if (_settings.show_virtual_gamead) {
@@ -1605,6 +1650,9 @@ function NativeStreamScreen({navigation, route}) {
       stickEventListener.current && stickEventListener.current.remove();
       triggerEventListener.current && triggerEventListener.current.remove();
       sensorEventListener.current && sensorEventListener.current.remove();
+      appStateSubscription.current && appStateSubscription.current.remove();
+      pipEventListener.current && pipEventListener.current.remove();
+      PipManager?.setAutoPipEnabled?.(false);
       if (timer.current) {
         clearInterval(timer.current);
         timer.current = null;
@@ -1944,7 +1992,7 @@ function NativeStreamScreen({navigation, route}) {
   };
 
   const renderVirtualGamepad = () => {
-    if (!showVirtualGamepad) {
+    if (isInPictureInPicture || !showVirtualGamepad) {
       return null;
     }
     const useCustomVirtualGamepad = settings.custom_virtual_gamepad !== '';
@@ -1981,7 +2029,7 @@ function NativeStreamScreen({navigation, route}) {
     return (
       <Portal>
         <Modal
-          visible={showModal}
+          visible={showModal && !isInPictureInPicture}
           onDismiss={() => handleCloseModal()}
           contentContainerStyle={styles.modal}>
           <Card>
@@ -2108,7 +2156,7 @@ function NativeStreamScreen({navigation, route}) {
   };
 
   const renderPerformancePanel = () => {
-    if (showPerformance) {
+    if (showPerformance && !isInPictureInPicture) {
       return <PerfPanel performance={performance} />;
     } else {
       return null;
@@ -2119,7 +2167,7 @@ function NativeStreamScreen({navigation, route}) {
     return (
       <Portal>
         <Modal
-          visible={showMessageModal}
+          visible={showMessageModal && !isInPictureInPicture}
           onDismiss={() => {
             setShowMessageModal(false);
           }}
@@ -2151,7 +2199,7 @@ function NativeStreamScreen({navigation, route}) {
     return (
       <Portal>
         <Modal
-          visible={showSystemKeyboardModal}
+          visible={showSystemKeyboardModal && !isInPictureInPicture}
           onDismiss={cancelSystemKeyboard}
           contentContainerStyle={styles.modal}>
           <Card>
@@ -2197,7 +2245,7 @@ function NativeStreamScreen({navigation, route}) {
   };
 
   const renderMenu = () => {
-    if (settings.show_menu) {
+    if (settings.show_menu && !isInPictureInPicture) {
       return (
         <View style={styles.quickMenu}>
           <IconButton
@@ -2234,7 +2282,7 @@ function NativeStreamScreen({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      {showLoadingPoster && (
+      {showLoadingPoster && !isInPictureInPicture && (
         <View style={styles.loadingPosterContainer} pointerEvents="none">
           <Image
             source={{uri: loadingPosterUrl}}
@@ -2251,7 +2299,7 @@ function NativeStreamScreen({navigation, route}) {
         </View>
       )}
 
-      {loading && (
+      {loading && !isInPictureInPicture && (
         <Spinner
           loading={true}
           text={loadingText}
@@ -2278,7 +2326,7 @@ function NativeStreamScreen({navigation, route}) {
               fsrSharpness={fsrSharpness}
             />
             <NativeTouchOverlay
-              enabled={!!settings.native_touch}
+              enabled={!!settings.native_touch && !isInPictureInPicture}
               videoFormat={video_format || ''}
               onPointerInput={handleNativePointerInput}
             />
@@ -2293,7 +2341,7 @@ function NativeStreamScreen({navigation, route}) {
               videoFormat={video_format || ''}
             />
             <NativeTouchOverlay
-              enabled={!!settings.native_touch}
+              enabled={!!settings.native_touch && !isInPictureInPicture}
               videoFormat={video_format || ''}
               onPointerInput={handleNativePointerInput}
             />
@@ -2305,7 +2353,7 @@ function NativeStreamScreen({navigation, route}) {
       {renderVirtualGamepad()}
 
       <VirtualGamepadEditor
-        visible={showGamepadEditor}
+        visible={showGamepadEditor && !isInPictureInPicture}
         profileName={editorProfile || getActiveProfileName()}
         onSave={handleSaveGamepadLayout}
         onCancel={() => setShowGamepadEditor(false)}

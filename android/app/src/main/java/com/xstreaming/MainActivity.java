@@ -1,9 +1,14 @@
 package com.xstreaming;
 
 import android.app.Activity;
+import android.app.PictureInPictureParams;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Build;
 import android.util.Log;
+import android.util.Rational;
 import android.util.SparseBooleanArray;
 import android.util.SparseIntArray;
 import com.facebook.react.ReactActivity;
@@ -109,6 +114,7 @@ class Dpad {
 public class MainActivity extends ReactActivity implements UsbDriverService.UsbDriverStateListener, InputManager.InputDeviceListener {
 
   public static MainActivity instance;
+  private boolean autoPipEnabled = false;
 
   private final Vector2d inputVector = new Vector2d();
 
@@ -566,6 +572,64 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     if (reactContext != null) {
       reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
     }
+  }
+
+  @Override
+  protected void onUserLeaveHint() {
+    if (autoPipEnabled) {
+      enterPipModeIfPossible();
+    }
+    super.onUserLeaveHint();
+  }
+
+  public void setAutoPipEnabled(boolean enabled) {
+    autoPipEnabled = enabled && "stream".equals(GamepadManager.getCurrentScreen());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && supportsPipMode()) {
+      try {
+        setPictureInPictureParams(createPipParams(autoPipEnabled));
+      } catch (RuntimeException e) {
+        Log.w("MainActivity", "Failed to update PiP params", e);
+      }
+    }
+  }
+
+  public boolean enterPipModeIfPossible() {
+    if (!"stream".equals(GamepadManager.getCurrentScreen())) {
+      return false;
+    }
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !supportsPipMode()) {
+      return false;
+    }
+    if (isInPictureInPictureMode()) {
+      return true;
+    }
+    try {
+      return enterPictureInPictureMode(createPipParams(autoPipEnabled));
+    } catch (RuntimeException e) {
+      Log.w("MainActivity", "Failed to enter PiP mode", e);
+      return false;
+    }
+  }
+
+  private boolean supportsPipMode() {
+    return getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
+  }
+
+  private PictureInPictureParams createPipParams(boolean autoEnterEnabled) {
+    PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder()
+            .setAspectRatio(new Rational(16, 9));
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      builder.setAutoEnterEnabled(autoEnterEnabled);
+    }
+    return builder.build();
+  }
+
+  @Override
+  public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+    super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+    WritableMap params = Arguments.createMap();
+    params.putBoolean("isInPictureInPictureMode", isInPictureInPictureMode);
+    sendEvent("pictureInPictureModeChanged", params);
   }
 
   public void handleRumble(short lowFreMotor, short highFreMotor) {

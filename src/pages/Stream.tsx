@@ -10,6 +10,7 @@ import {
   Dimensions,
   ToastAndroid,
   Platform,
+  AppState,
 } from 'react-native';
 import {
   Portal,
@@ -59,6 +60,7 @@ const log = debugFactory('StreamScreen');
 const CONNECTED = 'connected';
 const DUALSENSE = 'DualSenseController';
 const LIVE_GAMEPAD_PROFILE = 'LiveLayout';
+const PICTURE_IN_PICTURE_MODE_CHANGED = 'pictureInPictureModeChanged';
 
 const {
   FullScreenManager,
@@ -66,6 +68,7 @@ const {
   UsbRumbleManager,
   SensorModule,
   GamepadSensorModule,
+  PipManager,
 } = NativeModules;
 
 let defaultMaping: any = GAMEPAD_MAPING;
@@ -125,6 +128,7 @@ function StreamScreen({navigation, route}) {
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   const [openMicro, setOpenMicro] = React.useState(false);
+  const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
 
@@ -140,6 +144,8 @@ function StreamScreen({navigation, route}) {
 
   const usbGpEventListener = React.useRef<any>(undefined);
   const sensorEventListener = React.useRef<any>(undefined);
+  const appStateSubscription = React.useRef<any>(undefined);
+  const pipEventListener = React.useRef<any>(undefined);
   const isConnected = React.useRef(false);
   const macroSequenceTimersRef = React.useRef<any[]>([]);
   const orientationLockTimer = React.useRef<any>(null);
@@ -334,6 +340,51 @@ function StreamScreen({navigation, route}) {
     };
 
     const eventEmitter = new NativeEventEmitter();
+    PipManager?.setAutoPipEnabled?.(false);
+    appStateSubscription.current && appStateSubscription.current.remove();
+    appStateSubscription.current = AppState.addEventListener(
+      'change',
+      async state => {
+        if (
+          state === 'background' &&
+          isConnected.current &&
+          _settings.picture_in_picture
+        ) {
+          try {
+            const enteredPip = await PipManager?.enterPipMode?.();
+            if (enteredPip) {
+              return;
+            }
+          } catch (error) {}
+        }
+      },
+    );
+
+    pipEventListener.current = eventEmitter.addListener(
+      PICTURE_IN_PICTURE_MODE_CHANGED,
+      event => {
+        const nextIsInPip = !!event?.isInPictureInPictureMode;
+        setIsInPictureInPicture(nextIsInPip);
+        if (nextIsInPip) {
+          postData2Webview('hidePerformance', {});
+          setShowModal(false);
+          setShowDisplayModal(false);
+          setShowFSRDisplayModal(false);
+          setShowAudioModal(false);
+          setShowMessageModal(false);
+          setShowGamepadEditor(false);
+          macroSequenceTimersRef.current.forEach(timeoutId =>
+            clearTimeout(timeoutId),
+          );
+          macroSequenceTimersRef.current = [];
+        } else if (
+          _settings.show_performance &&
+          _settings.gamepad_kernal === 'Web'
+        ) {
+          postData2Webview('showPerformance', {});
+        }
+      },
+    );
 
     // USB Mode
     if (isUsbMode) {
@@ -735,7 +786,10 @@ function StreamScreen({navigation, route}) {
       stickEventListener.current && stickEventListener.current.remove();
       triggerEventListener.current && triggerEventListener.current.remove();
       sensorEventListener.current && sensorEventListener.current.remove();
+      appStateSubscription.current && appStateSubscription.current.remove();
+      pipEventListener.current && pipEventListener.current.remove();
       timer.current && clearInterval(timer.current);
+      PipManager?.setAutoPipEnabled?.(false);
       GamepadManager.setCurrentScreen('');
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
@@ -1126,6 +1180,9 @@ function StreamScreen({navigation, route}) {
       if (message === CONNECTED && settings.show_virtual_gamead) {
         setShowVirtualGamepad(true);
       }
+      if (message === CONNECTED) {
+        PipManager?.setAutoPipEnabled?.(!!settings.picture_in_picture);
+      }
 
       // Alway show performance
       if (message === CONNECTED && settings.show_performance) {
@@ -1389,7 +1446,7 @@ function StreamScreen({navigation, route}) {
   };
 
   const renderVirtualGamepad = () => {
-    if (!showVirtualGamepad) {
+    if (isInPictureInPicture || !showVirtualGamepad) {
       return null;
     }
     const useCustomVirtualGamepad = settings.custom_virtual_gamepad !== '';
@@ -1422,14 +1479,16 @@ function StreamScreen({navigation, route}) {
 
   return (
     <>
-      {showPerformance && settings.gamepad_kernal === 'Native' && (
-        <PerfPanel performance={performance} />
-      )}
+      {!isInPictureInPicture &&
+        showPerformance &&
+        settings.gamepad_kernal === 'Native' && (
+          <PerfPanel performance={performance} />
+        )}
 
       {renderVirtualGamepad()}
 
       <VirtualGamepadEditor
-        visible={showGamepadEditor}
+        visible={showGamepadEditor && !isInPictureInPicture}
         profileName={editorProfile || getActiveProfileName()}
         onSave={handleSaveGamepadLayout}
         onCancel={() => setShowGamepadEditor(false)}
@@ -1437,7 +1496,7 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
-          visible={showDisplayModal}
+          visible={showDisplayModal && !isInPictureInPicture}
           onDismiss={() => {
             setShowDisplayModal(false);
           }}
@@ -1455,7 +1514,7 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
-          visible={showFSRDisplayModal}
+          visible={showFSRDisplayModal && !isInPictureInPicture}
           onDismiss={() => {
             setShowFSRDisplayModal(false);
           }}
@@ -1473,7 +1532,7 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
-          visible={showAudioModal}
+          visible={showAudioModal && !isInPictureInPicture}
           onDismiss={() => {
             setShowAudioModal(false);
           }}
@@ -1488,7 +1547,7 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
-          visible={showMessageModal}
+          visible={showMessageModal && !isInPictureInPicture}
           onDismiss={() => {
             setShowMessageModal(false);
           }}
@@ -1514,7 +1573,7 @@ function StreamScreen({navigation, route}) {
 
       <Portal>
         <Modal
-          visible={showModal}
+          visible={showModal && !isInPictureInPicture}
           onDismiss={() => handleCloseModal()}
           contentContainerStyle={styles.modal}>
           <Card>
@@ -1690,7 +1749,7 @@ function StreamScreen({navigation, route}) {
         </Modal>
       </Portal>
 
-      {settings.show_menu && (
+      {settings.show_menu && !isInPictureInPicture && (
         <View style={styles.quickMenu}>
           <IconButton
             icon="menu"

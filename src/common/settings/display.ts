@@ -43,6 +43,16 @@ const display = [
     ],
   },
   {
+    name: 'picture_in_picture',
+    type: 'radio',
+    title: t('Picture in picture'),
+    description: t('PictureInPictureDesc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
     name: 'xhome_bitrate_mode',
     type: 'radio',
     title: t('Host stream bitrate'),

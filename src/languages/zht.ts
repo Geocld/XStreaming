@@ -255,6 +255,8 @@ export default {
     byorg: '該遊戲屬於自購遊戲，非XGPU庫遊戲，如需遊玩，請保證已購買此遊戲。',
     compatibleWarn:
       '該遊戲在第三方串流應用上存在相容性問題，建議通過官方途徑遊玩此遊戲。',
+    'Picture in picture': '畫中畫',
+    PictureInPictureDesc: '開啟後串流時切到背景會進入安卓畫中畫並保持畫面顯示',
     show_menu_title: '顯示快捷菜單',
     show_menu_desc: '串流介面右下角始終顯示快捷菜單。',
     sensorInvertTitle: '反轉陀螺儀模擬搖桿',

@@ -50,6 +50,7 @@ export type Settings = {
   edge_compensation: number;
   short_trigger: boolean;
   video_format: string;
+  picture_in_picture: boolean;
   show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
   virtual_gamepad_joystick: number;
@@ -122,6 +123,7 @@ const defaultSettings: Settings = {
   edge_compensation: 0,
   short_trigger: false,
   video_format: '',
+  picture_in_picture: false,
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.7,
   custom_virtual_gamepad: '',

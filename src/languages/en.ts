@@ -149,6 +149,9 @@ export default {
       'This game is a self-purchased game, not part of the XGPU library. Please ensure that you have purchased this game to play.',
     compatibleWarn:
       'This game has compatibility issues with third-party streaming apps. It is recommended to play this game through official channels.',
+    'Picture in picture': 'Picture in picture',
+    PictureInPictureDesc:
+      'Enter Android picture-in-picture and keep video visible when streaming goes to the background',
     show_menu_title: 'Display Quick Menu',
     show_menu_desc:
       'The quick menu is always displayed in the lower right corner of the streaming page.',
