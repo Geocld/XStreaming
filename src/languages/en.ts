@@ -16,6 +16,17 @@ export default {
     MsalAuthTimeout: 'The authorization code has expired, please refresh',
     Copied: 'Copied',
     Warning: 'Warning',
+    'Update Warning': 'Update available',
+    Download: 'Download',
+    'Update download': 'Downloading update',
+    Downloaded: 'Downloaded',
+    'Preparing installation': 'Download complete. Opening installer...',
+    'Auto install': 'Auto install',
+    'Manual download': 'Manual download',
+    InstallPermissionRequired:
+      'Allow XStreaming to install unknown apps in system settings, then tap auto install again.',
+    AutoInstallFailed:
+      'Automatic download and installation failed. Please try manual download.',
     WaitingForServerToRegister:
       'Unable to establish streaming on the console because the console is not connected to the Xbox servers. When you see this error, it is not an issue with XStreaming. This usually occurs when the console system is abnormal, the console is updating, or the console is not logged into an account. Please try holding down the power button or disconnecting the power (disconnect for at least 10 seconds) to restart the console and resolve this issue.',
     XboxstreaminghelperErr:

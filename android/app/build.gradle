@@ -20,7 +20,7 @@ react {
     //   The list of variants to that are debuggable. For those we're going to
     //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
+    debuggableVariants = ["devDebug", "prodDebug"]
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
@@ -76,13 +76,23 @@ android {
 
     namespace "com.xstreaming"
     defaultConfig {
-        applicationId "com.xstreaming"
         versionCode 1
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
 //        applicationId "com.gamepass"
 //        versionCode 1999999999
         versionName "2.7.1"
+    }
+    flavorDimensions "environment"
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationId "com.dev.xstreaming"
+        }
+        prod {
+            dimension "environment"
+            applicationId "com.xstreaming"
+        }
     }
     signingConfigs {
         debug {

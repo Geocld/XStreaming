@@ -45,6 +45,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new ButtonViewPackage());
             packages.add(new AudioSettingPackage());
             packages.add(new RTCFsrVideoViewPackage());
+            packages.add(new UpdateManagerPackage());
           return packages;
         }
 

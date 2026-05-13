@@ -1,9 +1,21 @@
 import React from 'react';
-import {Alert, Linking, useColorScheme, NativeModules} from 'react-native';
 import {
+  Alert,
+  DeviceEventEmitter,
+  Linking,
+  useColorScheme,
+  NativeModules,
+  StyleSheet,
+} from 'react-native';
+import {
+  Button,
+  Dialog,
   PaperProvider,
   MD3DarkTheme,
   MD3LightTheme,
+  Portal,
+  ProgressBar,
+  Text,
   adaptNavigationTheme,
 } from 'react-native-paper';
 
@@ -68,7 +80,17 @@ import SearchScreen from './pages/Search';
 
 const RootStack = createStackNavigator();
 
-const {UsbRumbleManager, FullScreenManager} = NativeModules;
+const {UsbRumbleManager, FullScreenManager, UpdateManager} = NativeModules;
+const UPDATE_PROGRESS_EVENT = 'UpdateManagerProgress';
+
+const formatUpdateBytes = (bytes?: number) => {
+  if (!bytes || bytes <= 0) {
+    return '0 MB';
+  }
+
+  const mb = bytes / 1024 / 1024;
+  return `${mb >= 10 ? mb.toFixed(1) : mb.toFixed(2)} MB`;
+};
 
 const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
@@ -80,45 +102,129 @@ function App() {
   const colorScheme = useColorScheme();
   const settings = getSettings();
   const deviceInfos = FullScreenManager.getDeviceInfos();
+  const updateCheckedRef = React.useRef(false);
+  const [updateProgressVisible, setUpdateProgressVisible] =
+    React.useState(false);
+  const [updateProgress, setUpdateProgress] = React.useState({
+    downloadedBytes: 0,
+    progress: 0,
+    status: 'idle',
+    totalBytes: 0,
+  });
 
-  if (settings.bind_usb_device !== undefined) {
-    UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
-  }
+  React.useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      UPDATE_PROGRESS_EVENT,
+      (event: any) => {
+        setUpdateProgress({
+          downloadedBytes: Number(event?.downloadedBytes) || 0,
+          progress: Number(event?.progress) || 0,
+          status: event?.status || 'downloading',
+          totalBytes: Number(event?.totalBytes) || 0,
+        });
+      },
+    );
 
-  if (settings.check_update) {
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!settings.check_update || updateCheckedRef.current) {
+      return;
+    }
+
+    updateCheckedRef.current = true;
     updater().then((infos: any) => {
       if (infos) {
-        const {latestVer, version, updateText, url} = infos;
+        const {latestVer, version, updateText, pageUrl, apkUrl, apkName, url} =
+          infos;
+        const updateUrl = pageUrl || url;
+        const buttons: any[] = [
+          {
+            text: t('Cancel'),
+            style: 'default',
+            onPress: () => {},
+          },
+          {
+            text: t('Manual download'),
+            style: 'default',
+            onPress: () => {
+              Linking.openURL(updateUrl).catch(_ => {});
+            },
+          },
+        ];
+
+        if (apkUrl) {
+          buttons.push({
+            text: t('Auto install'),
+            style: 'default',
+            onPress: () => {
+              const showAutoInstallError = (e?: any) => {
+                setUpdateProgressVisible(false);
+                const message =
+                  e?.code === 'INSTALL_PERMISSION_REQUIRED'
+                    ? t('InstallPermissionRequired')
+                    : t('AutoInstallFailed');
+                Alert.alert(t('Warning'), message, [
+                  {
+                    text: t('Manual download'),
+                    style: 'default',
+                    onPress: () => {
+                      Linking.openURL(updateUrl).catch(_ => {});
+                    },
+                  },
+                  {
+                    text: t('Confirm'),
+                    style: 'cancel',
+                  },
+                ]);
+              };
+
+              if (!UpdateManager?.downloadAndInstall) {
+                showAutoInstallError();
+                return;
+              }
+
+              setUpdateProgress({
+                downloadedBytes: 0,
+                progress: 0,
+                status: 'downloading',
+                totalBytes: 0,
+              });
+              setUpdateProgressVisible(true);
+              UpdateManager.downloadAndInstall(apkUrl, apkName).catch(
+                showAutoInstallError,
+              );
+            },
+          });
+        }
+
         Alert.alert(
           t('Update Warning'),
           t(
             `Check new version ${latestVer}, current version is ${version}. \n ${updateText}`,
           ),
-          [
-            {
-              text: t('Cancel'),
-              style: 'default',
-              onPress: () => {},
-            },
-            {
-              text: t('Download'),
-              style: 'default',
-              onPress: () => {
-                Linking.openURL(url).catch(_ => {});
-              },
-            },
-          ],
+          buttons,
         );
       }
     });
-  }
+  }, [settings.check_update, t]);
 
-  // Get TURN server
-  getServer().then((data: any) => {
-    if (data && data.url && data.username && data.credential) {
-      saveServerData(data);
+  React.useEffect(() => {
+    if (settings.bind_usb_device !== undefined) {
+      UsbRumbleManager.setBindUsbDevice(settings.bind_usb_device);
     }
-  });
+  }, [settings.bind_usb_device]);
+
+  React.useEffect(() => {
+    getServer().then((data: any) => {
+      if (data && data.url && data.username && data.credential) {
+        saveServerData(data);
+      }
+    });
+  }, []);
 
   const primaryColor = normalizeHexColor(
     settings.theme_primary_color,
@@ -164,6 +270,23 @@ function App() {
       saveSettings(settings);
     }
   }
+
+  const hasDownloadTotal = updateProgress.totalBytes > 0;
+  const normalizedUpdateProgress = hasDownloadTotal
+    ? Math.max(0, Math.min(updateProgress.progress, 1))
+    : 0;
+  const updateProgressPercent = Math.round(normalizedUpdateProgress * 100);
+  const updateProgressText =
+    updateProgress.status === 'installing' ||
+    updateProgress.status === 'completed'
+      ? t('Preparing installation')
+      : hasDownloadTotal
+      ? `${t('Downloaded')} ${updateProgressPercent}% (${formatUpdateBytes(
+          updateProgress.downloadedBytes,
+        )} / ${formatUpdateBytes(updateProgress.totalBytes)})`
+      : `${t('Downloaded')} ${formatUpdateBytes(
+          updateProgress.downloadedBytes,
+        )}`;
 
   return (
     <>
@@ -316,11 +439,38 @@ function App() {
               </RootStack.Group>
             </RootStack.Navigator>
           </NavigationContainer>
+          <Portal>
+            <Dialog
+              visible={updateProgressVisible}
+              onDismiss={() => setUpdateProgressVisible(false)}>
+              <Dialog.Title>{t('Update download')}</Dialog.Title>
+              <Dialog.Content>
+                <Text style={styles.updateProgressText}>
+                  {updateProgressText}
+                </Text>
+                <ProgressBar
+                  progress={normalizedUpdateProgress}
+                  indeterminate={!hasDownloadTotal}
+                />
+              </Dialog.Content>
+              <Dialog.Actions>
+                <Button onPress={() => setUpdateProgressVisible(false)}>
+                  {t('Hide')}
+                </Button>
+              </Dialog.Actions>
+            </Dialog>
+          </Portal>
         </PaperProvider>
       </Provider>
       <SystemBars style="light" hidden={false} />
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  updateProgressText: {
+    marginBottom: 12,
+  },
+});
 
 export default App;

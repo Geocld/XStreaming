@@ -3,11 +3,11 @@
   "version": "2.7.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "react-native run-android --variant devDebug --appId com.dev.xstreaming",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "release:android": "cd ./android && ./gradlew assembleRelease",
+    "release:android": "cd ./android && ./gradlew assembleProdRelease",
     "postinstall": "patch-package",
     "test": "jest"
   },
