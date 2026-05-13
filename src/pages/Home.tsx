@@ -11,7 +11,6 @@ import {
   NativeModules,
   ToastAndroid,
   Linking,
-  ImageBackground,
 } from 'react-native';
 import {Button, Text, Portal, Modal, Card} from 'react-native-paper';
 import Spinner from '../components/Spinner';
@@ -694,7 +693,9 @@ function HomeScreen({navigation, route}) {
     } else {
       return (
         <SafeAreaView style={styles.container}>
-          <ScrollView>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}>
             <View style={[styles.blockTitle]}>
               <Text variant="titleLarge" style={styles.blockTitleText}>
                 {t('Consoles')}
@@ -808,13 +809,7 @@ function HomeScreen({navigation, route}) {
 
       {renderHarmonyModal()}
 
-      <ImageBackground
-        source={require('../assets/console/bg.png')}
-        style={styles.pageBackground}
-        imageStyle={styles.pageBackgroundImage}
-        resizeMode="cover">
-        {renderContent()}
-      </ImageBackground>
+      {renderContent()}
     </View>
   );
 }
@@ -822,16 +817,19 @@ function HomeScreen({navigation, route}) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  pageBackground: {
-    flex: 1,
-  },
-  pageBackgroundImage: {
-    opacity: 1,
+    backgroundColor: 'transparent',
   },
   container: {
     flex: 1,
     paddingTop: 40,
+    backgroundColor: 'transparent',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   centerContainer: {
     flex: 1,

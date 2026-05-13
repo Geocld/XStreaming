@@ -6,6 +6,7 @@ import {
   useColorScheme,
   NativeModules,
   StyleSheet,
+  View,
 } from 'react-native';
 import {
   Button,
@@ -70,6 +71,7 @@ import {
   DEFAULT_THEME_PRIMARY_COLOR,
   normalizeHexColor,
 } from './utils/themeColor';
+import XboxSymbolBackground from './components/XboxSymbolBackground';
 
 import {useTranslation} from 'react-i18next';
 
@@ -96,6 +98,73 @@ const {LightTheme, DarkTheme} = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
   reactNavigationDark: NavigationDarkTheme,
 });
+
+const PAGE_BACKGROUND_LIGHT = '#FCFBFF';
+const PAGE_BACKGROUND_DARK = '#111320';
+
+const withPageBackground = (ScreenComponent: any) => {
+  const WrappedScreen = (props: any) => {
+    const colorScheme = useColorScheme();
+    const settings = getSettings();
+    const isLight =
+      settings.theme === 'light' ||
+      (settings.theme === 'auto' && colorScheme === 'light');
+
+    return (
+      <View
+        style={[
+          styles.backgroundScreen,
+          isLight ? styles.backgroundScreenLight : styles.backgroundScreenDark,
+        ]}>
+        <XboxSymbolBackground isLight={isLight} />
+        <View style={styles.backgroundContent}>
+          <ScreenComponent {...props} />
+        </View>
+      </View>
+    );
+  };
+
+  WrappedScreen.displayName = `WithPageBackground(${
+    ScreenComponent.displayName || ScreenComponent.name || 'Screen'
+  })`;
+  return WrappedScreen;
+};
+
+const HomeBackgroundScreen = withPageBackground(HomeScreen);
+const CloudBackgroundScreen = withPageBackground(CloudScreen);
+const FriendsBackgroundScreen = withPageBackground(FriendsScreen);
+const AchivementBackgroundScreen = withPageBackground(AchivementScreen);
+const AchivementDetailBackgroundScreen = withPageBackground(
+  AchivementDetailScreen,
+);
+const LoginBackgroundScreen = withPageBackground(LoginScreen);
+const SettingsBackgroundScreen = withPageBackground(SettingsScreen);
+const SettingDetailBackgroundScreen = withPageBackground(SettingDetailScreen);
+const TitleDetailBackgroundScreen = withPageBackground(TitleDetailScreen);
+const DebugBackgroundScreen = withPageBackground(DebugScreen);
+const GameMapBackgroundScreen = withPageBackground(GameMapScreen);
+const NativeGameMapBackgroundScreen = withPageBackground(NativeGameMapScreen);
+const GameMapDetailBackgroundScreen = withPageBackground(GameMapDetailScreen);
+const DisplaySettingsBackgroundScreen = withPageBackground(
+  DisplaySettingsScreen,
+);
+const AboutBackgroundScreen = withPageBackground(AboutScreen);
+const AboutZhBackgroundScreen = withPageBackground(AboutZhScreen);
+const FeedbackBackgroundScreen = withPageBackground(FeedbackScreen);
+const VirtualGamepadSettingsBackgroundScreen = withPageBackground(
+  VirtualGamepadSettingsScreen,
+);
+const CustomGamepadBackgroundScreen = withPageBackground(CustomGamepadScreen);
+const HoldButtonsBackgroundScreen = withPageBackground(HoldButtonsScreen);
+const VirtualMacroSettingsBackgroundScreen = withPageBackground(
+  VirtualMacroSettingsScreen,
+);
+const Ds5SettingsBackgroundScreen = withPageBackground(Ds5SettingsScreen);
+const DeviceInfosBackgroundScreen = withPageBackground(DeviceInfosScreen);
+const ThanksBackgroundScreen = withPageBackground(ThanksScreen);
+const HistoryBackgroundScreen = withPageBackground(HistoryScreen);
+const ServerBackgroundScreen = withPageBackground(ServerScreen);
+const SearchBackgroundScreen = withPageBackground(SearchScreen);
 
 function App() {
   const {t} = useTranslation();
@@ -248,6 +317,10 @@ function App() {
   );
   const CombinedDefaultTheme = merge(paperLightTheme, LightTheme);
   const CombinedDarkTheme = merge(paperDarkTheme, DarkTheme);
+  CombinedDefaultTheme.colors.background = PAGE_BACKGROUND_LIGHT;
+  CombinedDefaultTheme.colors.card = PAGE_BACKGROUND_LIGHT;
+  CombinedDarkTheme.colors.background = PAGE_BACKGROUND_DARK;
+  CombinedDarkTheme.colors.card = PAGE_BACKGROUND_DARK;
 
   let paperTheme = paperDarkTheme;
   let navigationTheme = CombinedDarkTheme;
@@ -297,22 +370,25 @@ function App() {
               <RootStack.Group>
                 <RootStack.Screen
                   name="Home"
-                  component={HomeScreen}
-                  options={{headerShown: false}}
+                  component={HomeBackgroundScreen}
+                  options={{
+                    headerShown: false,
+                    cardStyle: styles.transparentCard,
+                  }}
                 />
                 <RootStack.Screen
                   name="Cloud"
-                  component={CloudScreen}
+                  component={CloudBackgroundScreen}
                   options={{title: t('Xcloud')}}
                 />
                 <RootStack.Screen
                   name="Settings"
-                  component={SettingsScreen}
+                  component={SettingsBackgroundScreen}
                   options={{title: t('Settings')}}
                 />
                 <RootStack.Screen
                   name="Login"
-                  component={LoginScreen}
+                  component={LoginBackgroundScreen}
                   options={{title: t('Login')}}
                 />
                 <RootStack.Screen
@@ -327,113 +403,116 @@ function App() {
                 />
                 <RootStack.Screen
                   name="CustomGamepad"
-                  component={CustomGamepadScreen}
+                  component={CustomGamepadBackgroundScreen}
                   options={{headerShown: false}}
                 />
                 <RootStack.Screen
                   name="VirtualGamepadSettings"
-                  component={VirtualGamepadSettingsScreen}
+                  component={VirtualGamepadSettingsBackgroundScreen}
                   options={{title: t('Custom')}}
                 />
                 <RootStack.Screen
                   name="HoldButtons"
-                  component={HoldButtonsScreen}
+                  component={HoldButtonsBackgroundScreen}
                   options={{title: t('Hold Buttons')}}
                 />
                 <RootStack.Screen
                   name="VirtualMacroSettings"
-                  component={VirtualMacroSettingsScreen}
+                  component={VirtualMacroSettingsBackgroundScreen}
                   options={{title: t('Virtual macro settings')}}
                 />
                 <RootStack.Screen
                   name="Display"
-                  component={DisplaySettingsScreen}
+                  component={DisplaySettingsBackgroundScreen}
                   options={{title: t('Display')}}
                 />
                 <RootStack.Screen
                   name="Search"
-                  component={SearchScreen}
+                  component={SearchBackgroundScreen}
                   options={{title: t('Search'), headerShown: false}}
                 />
                 <RootStack.Screen
                   name="Friends"
-                  component={FriendsScreen}
+                  component={FriendsBackgroundScreen}
                   options={{title: t('Friends')}}
                 />
                 <RootStack.Screen
                   name="Achivements"
-                  component={AchivementScreen}
+                  component={AchivementBackgroundScreen}
                   options={{title: t('Achivements')}}
                 />
                 <RootStack.Screen
                   name="About"
-                  component={AboutScreen}
+                  component={AboutBackgroundScreen}
                   options={{title: t('About')}}
                 />
                 <RootStack.Screen
                   name="AboutZh"
-                  component={AboutZhScreen}
+                  component={AboutZhBackgroundScreen}
                   options={{title: t('About')}}
                 />
                 <RootStack.Screen
                   name="Feedback"
-                  component={FeedbackScreen}
+                  component={FeedbackBackgroundScreen}
                   options={{title: t('Feedback')}}
                 />
                 <RootStack.Screen
                   name="Thanks"
-                  component={ThanksScreen}
+                  component={ThanksBackgroundScreen}
                   options={{title: t('Thanks')}}
                 />
                 <RootStack.Screen
                   name="History"
-                  component={HistoryScreen}
+                  component={HistoryBackgroundScreen}
                   options={{title: t('HistoryTitle')}}
                 />
                 <RootStack.Screen
                   name="Server"
-                  component={ServerScreen}
+                  component={ServerBackgroundScreen}
                   options={{title: t('Server')}}
                 />
                 <RootStack.Screen
                   name="GameMap"
-                  component={GameMapScreen}
+                  component={GameMapBackgroundScreen}
                   options={{title: t('GameMap')}}
                 />
                 <RootStack.Screen
                   name="SettingDetail"
-                  component={SettingDetailScreen}
+                  component={SettingDetailBackgroundScreen}
                 />
                 <RootStack.Screen
                   name="NativeGameMap"
-                  component={NativeGameMapScreen}
+                  component={NativeGameMapBackgroundScreen}
                   options={{title: t('GameMap')}}
                 />
                 <RootStack.Screen
                   name="Ds5"
-                  component={Ds5SettingsScreen}
+                  component={Ds5SettingsBackgroundScreen}
                   options={{title: t('DualSense')}}
                 />
                 <RootStack.Screen
                   name="DeviceInfos"
-                  component={DeviceInfosScreen}
+                  component={DeviceInfosBackgroundScreen}
                   options={{title: t('Device testing')}}
                 />
-                <RootStack.Screen name="Debug" component={DebugScreen} />
+                <RootStack.Screen
+                  name="Debug"
+                  component={DebugBackgroundScreen}
+                />
               </RootStack.Group>
 
               <RootStack.Group screenOptions={{presentation: 'modal'}}>
                 <RootStack.Screen
                   name="TitleDetail"
-                  component={TitleDetailScreen}
+                  component={TitleDetailBackgroundScreen}
                 />
                 <RootStack.Screen
                   name="AchivementDetail"
-                  component={AchivementDetailScreen}
+                  component={AchivementDetailBackgroundScreen}
                 />
                 <RootStack.Screen
                   name="GameMapDetail"
-                  component={GameMapDetailScreen}
+                  component={GameMapDetailBackgroundScreen}
                   options={{title: t('GameMap')}}
                 />
               </RootStack.Group>
@@ -468,6 +547,21 @@ function App() {
 }
 
 const styles = StyleSheet.create({
+  backgroundScreen: {
+    flex: 1,
+  },
+  backgroundScreenLight: {
+    backgroundColor: PAGE_BACKGROUND_LIGHT,
+  },
+  backgroundScreenDark: {
+    backgroundColor: PAGE_BACKGROUND_DARK,
+  },
+  backgroundContent: {
+    flex: 1,
+  },
+  transparentCard: {
+    backgroundColor: 'transparent',
+  },
   updateProgressText: {
     marginBottom: 12,
   },
