@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, useWindowDimensions} from 'react-native';
+import {Dimensions, StyleSheet, useWindowDimensions} from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -17,6 +17,8 @@ import Svg, {
 type Props = {
   isLight: boolean;
 };
+
+const BACKGROUND_OVERDRAW = 96;
 
 type SymbolItem = {
   kind: 'button' | 'dpad' | 'nexus' | 'stripe';
@@ -100,6 +102,16 @@ const SYMBOLS: SymbolItem[] = [
     label: 'Y',
   },
   {kind: 'dpad', x: 0.88, y: 0.9, size: 42, rotate: 14, opacity: 0.18},
+  {
+    kind: 'button',
+    x: 0.99,
+    y: 0.95,
+    size: 30,
+    rotate: 0,
+    opacity: 0.18,
+    label: 'Y',
+  },
+  {kind: 'nexus', x: 0.1, y: 0.99, size: 46, rotate: -6, opacity: 0.18},
 ];
 
 const usePalette = (isLight: boolean) => {
@@ -310,7 +322,12 @@ const renderSymbol = (
 };
 
 const XboxSymbolBackground = ({isLight}: Props) => {
-  const {width, height} = useWindowDimensions();
+  const windowDimensions = useWindowDimensions();
+  const screenDimensions = Dimensions.get('screen');
+  const width = Math.max(windowDimensions.width, screenDimensions.width);
+  const height =
+    Math.max(windowDimensions.height, screenDimensions.height) +
+    BACKGROUND_OVERDRAW;
   const palette = usePalette(isLight);
 
   return (
@@ -319,7 +336,7 @@ const XboxSymbolBackground = ({isLight}: Props) => {
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      style={StyleSheet.absoluteFill}>
+      style={styles.background}>
       <Defs>
         <LinearGradient id="xboxBg" x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0" stopColor={palette.start} />
@@ -376,5 +393,12 @@ const XboxSymbolBackground = ({isLight}: Props) => {
     </Svg>
   );
 };
+
+const styles = StyleSheet.create({
+  background: {
+    ...StyleSheet.absoluteFillObject,
+    bottom: -BACKGROUND_OVERDRAW,
+  },
+});
 
 export default XboxSymbolBackground;

@@ -1,6 +1,13 @@
 import React from 'react';
 import {StyleSheet, View, Image, Platform, Dimensions} from 'react-native';
-import {Card, Text, Button, Menu, IconButton} from 'react-native-paper';
+import {
+  Card,
+  Text,
+  Button,
+  Menu,
+  IconButton,
+  useTheme,
+} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {SvgXml} from 'react-native-svg';
 import icons from '../common/svg';
@@ -8,6 +15,7 @@ import {getSettings} from '../store/settingStore';
 
 const ConsoleItem = (props: any) => {
   const {t} = useTranslation();
+  const theme = useTheme();
   const settings = getSettings();
 
   const [menuVisible, setMenuVisible] = React.useState(false);
@@ -16,6 +24,7 @@ const ConsoleItem = (props: any) => {
 
   const consoleItem = props.consoleItem;
   const {width} = Dimensions.get('window');
+  const isWide = width > 600;
 
   const renderImage = () => {
     const type = consoleItem.consoleType;
@@ -23,7 +32,7 @@ const ConsoleItem = (props: any) => {
       return (
         <Image
           source={require('../assets/console/series-x.png')}
-          style={{width: '100%', height: width > 600 ? 150 : 130}}
+          style={[styles.consoleImage, isWide && styles.consoleImageWide]}
           resizeMode="contain"
         />
       );
@@ -31,7 +40,7 @@ const ConsoleItem = (props: any) => {
       return (
         <Image
           source={require('../assets/console/series-s.png')}
-          style={{width: '100%', height: width > 600 ? 150 : 130}}
+          style={[styles.consoleImage, isWide && styles.consoleImageWide]}
           resizeMode="contain"
         />
       );
@@ -41,8 +50,8 @@ const ConsoleItem = (props: any) => {
   };
 
   return (
-    <Card>
-      <Card.Content>
+    <Card mode="contained" style={[styles.card, theme.dark && styles.cardDark]}>
+      <Card.Content style={styles.cardContent}>
         <View style={styles.menuContainer}>
           <Menu
             visible={menuVisible}
@@ -79,7 +88,11 @@ const ConsoleItem = (props: any) => {
             </Text>
             <Text
               variant="labelSmall"
-              style={[styles.textCenter, {color: '#999'}]}>
+              style={[
+                styles.textCenter,
+                styles.serverId,
+                theme.dark && styles.serverIdDark,
+              ]}>
               ({consoleItem.serverId})
             </Text>
             {consoleItem.powerState === 'On' ? (
@@ -102,14 +115,22 @@ const ConsoleItem = (props: any) => {
           consoleItem.powerState === 'ConnectedStandby' ? (
             <Button
               mode={Platform.isTV ? 'elevated' : 'outlined'}
-              labelStyle={{marginHorizontal: 0}}
+              style={[
+                styles.actionButton,
+                theme.dark && styles.actionButtonDark,
+              ]}
+              labelStyle={styles.actionButtonLabel}
               onPress={props.onPoweronStream}>
               {t('Power on and start stream')}
             </Button>
           ) : (
             <Button
               mode={Platform.isTV ? 'elevated' : 'outlined'}
-              labelStyle={{marginHorizontal: 0}}
+              style={[
+                styles.actionButton,
+                theme.dark && styles.actionButtonDark,
+              ]}
+              labelStyle={styles.actionButtonLabel}
               onPress={props.onPress}>
               {t('Start stream')}
             </Button>
@@ -121,6 +142,29 @@ const ConsoleItem = (props: any) => {
 };
 
 const styles = StyleSheet.create({
+  card: {
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.56)',
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+  },
+  cardDark: {
+    backgroundColor: 'rgba(18, 20, 32, 0.84)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    shadowOpacity: 0.32,
+  },
+  cardContent: {
+    padding: 16,
+  },
   green: {
     color: '#36B728',
   },
@@ -131,12 +175,37 @@ const styles = StyleSheet.create({
     color: '#dc2626',
   },
   image: {},
+  consoleImage: {
+    width: '100%',
+    height: 130,
+  },
+  consoleImageWide: {
+    height: 150,
+  },
   textCenter: {
     textAlign: 'center',
+  },
+  serverId: {
+    color: 'rgba(120, 120, 136, 0.88)',
+  },
+  serverIdDark: {
+    color: 'rgba(214, 216, 232, 0.62)',
   },
   consoleInfos: {},
   footer: {
     paddingTop: 10,
+  },
+  actionButton: {
+    borderColor: 'rgba(16, 124, 16, 0.42)',
+    backgroundColor: 'rgba(255, 255, 255, 0.32)',
+  },
+  actionButtonDark: {
+    borderColor: 'rgba(110, 235, 131, 0.28)',
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+  },
+  actionButtonLabel: {
+    marginHorizontal: 0,
+    fontWeight: '700',
   },
   footerControl: {
     marginHorizontal: 2,

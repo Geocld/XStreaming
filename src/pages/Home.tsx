@@ -12,7 +12,7 @@ import {
   ToastAndroid,
   Linking,
 } from 'react-native';
-import {Button, Text, Portal, Modal, Card} from 'react-native-paper';
+import {Button, Text, Portal, Modal, Card, useTheme} from 'react-native-paper';
 import Spinner from '../components/Spinner';
 import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
@@ -49,6 +49,7 @@ const MSAL = 'msal';
 
 function HomeScreen({navigation, route}) {
   const {t} = useTranslation();
+  const theme = useTheme();
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
   const [_, setXalUrl] = React.useState('');
@@ -90,6 +91,10 @@ function HomeScreen({navigation, route}) {
   }, [isFocused]);
 
   const {width} = Dimensions.get('window');
+  const emptyConsoleCardStyle = React.useMemo(
+    () => [styles.emptyConsoleCard, theme.dark && styles.emptyConsoleCardDark],
+    [theme.dark],
+  );
 
   React.useEffect(() => {
     log.info('Page loaded.');
@@ -735,7 +740,7 @@ function HomeScreen({navigation, route}) {
               </View>
             ) : (
               <View style={styles.noConsoles}>
-                <View style={styles.emptyConsoleCard}>
+                <View style={emptyConsoleCardStyle}>
                   <Text style={styles.emptyConsoleDesc}>{t('NoConsoles')}</Text>
                   <View style={styles.emptyConsoleActions}>
                     <Button
@@ -855,11 +860,25 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   emptyConsoleCard: {
-    borderRadius: 16,
-    padding: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 18,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.68)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.56)',
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+  },
+  emptyConsoleCardDark: {
+    backgroundColor: 'rgba(18, 20, 32, 0.84)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    shadowOpacity: 0.32,
   },
   emptyConsoleHeader: {
     width: 34,
