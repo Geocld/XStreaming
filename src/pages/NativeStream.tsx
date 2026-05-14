@@ -12,6 +12,8 @@ import {
   Platform,
   Vibration,
   AppState,
+  StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import {Portal, Modal, Card, List, IconButton} from 'react-native-paper';
 import {RTCView, MediaStream, RTCRtpReceiver} from 'react-native-webrtc';
@@ -33,6 +35,8 @@ import {
   type ScreenOrientation,
 } from '../utils/orientation';
 import VirtualGamepad from '../components/VirtualGamepad';
+import GamepadButton from '../components/GamepadButton';
+import AnalogStick from '../components/AnalogStick';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import VirtualGamepadEditor, {
   ButtonConfig,
@@ -149,8 +153,19 @@ const resetGamepadState = (
 
 const gpState = createGamepadState(0);
 
-function NativeStreamScreen({navigation, route}) {
+type NativeStreamScreenProps = {
+  navigation: any;
+  route: any;
+  portraitMode?: boolean;
+};
+
+export function NativeStreamScreenBase({
+  navigation,
+  route,
+  portraitMode = false,
+}: NativeStreamScreenProps) {
   const {t} = useTranslation();
+  const {width: screenWidth} = useWindowDimensions();
   const authentication = useSelector((state: any) => state.authentication);
   const streamingTokens = useSelector((state: any) => state.streamingTokens);
   const webToken = useSelector((state: any) => state.webToken);
@@ -238,7 +253,11 @@ function NativeStreamScreen({navigation, route}) {
 
     clearOrientationTimers();
     orientationLockTimer.current = setTimeout(() => {
-      Orientation.lockToLandscape();
+      if (portraitMode) {
+        Orientation.lockToPortrait();
+      } else {
+        Orientation.lockToLandscape();
+      }
       orientationLockTimer.current = null;
 
       orientationLayoutTimer.current = setTimeout(() => {
@@ -262,6 +281,7 @@ function NativeStreamScreen({navigation, route}) {
     route.params?.sessionId,
     route.params?.streamType,
     clearOrientationTimers,
+    portraitMode,
   ]);
 
   const closeSystemKeyboardModal = React.useCallback(() => {
@@ -370,6 +390,17 @@ function NativeStreamScreen({navigation, route}) {
     (event: any) => {
       if (!event || !event.target) {
         return false;
+      }
+
+      if (isRequestExit.current) {
+        if (
+          event.isTransaction &&
+          event.completion &&
+          typeof event.completion.cancel === 'function'
+        ) {
+          event.completion.cancel();
+        }
+        return true;
       }
 
       if (event.target === SYSTEM_UI_TARGET_SHOW_MESSAGE_DIALOG) {
@@ -560,7 +591,11 @@ function NativeStreamScreen({navigation, route}) {
       }
     };
 
-    FullScreenManager.immersiveModeOn();
+    if (portraitMode) {
+      FullScreenManager.immersiveModeOff();
+    } else {
+      FullScreenManager.immersiveModeOn();
+    }
 
     const stopVibrate = () => {
       GamepadManager.vibrate(10, 0, 0, 0, 0, 3);
@@ -625,6 +660,7 @@ function NativeStreamScreen({navigation, route}) {
       'change',
       async state => {
         if (
+          !portraitMode &&
           state === 'background' &&
           isConnected.current &&
           _settings.picture_in_picture
@@ -993,8 +1029,63 @@ function NativeStreamScreen({navigation, route}) {
     }
 
     // Back action
-    navigation.addListener('beforeRemove', e => {
+    const beforeRemoveListener = navigation.addListener('beforeRemove', e => {
       stopVibrate();
+      if (portraitMode && e.data.action.type === 'GO_BACK') {
+        e.preventDefault();
+        Alert.alert(t('Warning'), t('Exit stream?'), [
+          {
+            text: t('Cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('Confirm'),
+            style: 'destructive',
+            onPress: () => {
+              const _streamApi =
+                route.params?.streamType === 'cloud'
+                  ? xCloudApiRef.current
+                  : xHomeApiRef.current;
+              const dest =
+                route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+              isRequestExit.current = true;
+              setLoading(true);
+              setLoadingText(t('Disconnecting...'));
+              setIsExiting(true);
+              webrtcClient && webrtcClient.close();
+              markOrientationForRestore();
+              if (_streamApi) {
+                _streamApi
+                  .stopStream()
+                  .then(() => {
+                    setIsExiting(false);
+                    FullScreenManager.immersiveModeOff();
+                    navigation.navigate({
+                      name: dest,
+                      params: {needRefresh: true},
+                    });
+                  })
+                  .catch(() => {
+                    setIsExiting(false);
+                    FullScreenManager.immersiveModeOff();
+                    navigation.navigate({
+                      name: dest,
+                      params: {needRefresh: true},
+                    });
+                  });
+              } else {
+                setIsExiting(false);
+                FullScreenManager.immersiveModeOff();
+                navigation.navigate({
+                  name: dest,
+                  params: {needRefresh: true},
+                });
+              }
+            },
+          },
+        ]);
+        return;
+      }
       if (Platform.isTV) {
         if (e.data.action.type !== 'GO_BACK') {
           navigation.dispatch(e.data.action);
@@ -1126,15 +1217,17 @@ function NativeStreamScreen({navigation, route}) {
           setLoadingText(`${t(CONNECTED)}`);
           setLoading(false);
           isConnected.current = true;
-          PipManager?.setAutoPipEnabled?.(!!_settings.picture_in_picture);
+          PipManager?.setAutoPipEnabled?.(
+            !portraitMode && !!_settings.picture_in_picture,
+          );
 
           // Alway show virtual gamepad
-          if (_settings.show_virtual_gamead) {
+          if (portraitMode || _settings.show_virtual_gamead) {
             setShowVirtualGamepad(true);
           }
 
           // Alway show performance
-          if (_settings.show_performance) {
+          if (!portraitMode && _settings.show_performance) {
             setShowPerformance(true);
           }
 
@@ -1607,6 +1700,7 @@ function NativeStreamScreen({navigation, route}) {
     }
 
     return () => {
+      beforeRemoveListener();
       FullScreenManager.immersiveModeOff();
       stopVibrate();
       webrtcClient && webrtcClient.close();
@@ -1666,6 +1760,7 @@ function NativeStreamScreen({navigation, route}) {
     closeSystemKeyboardModal,
     markOrientationForRestore,
     supportedSystemUis,
+    portraitMode,
   ]);
 
   React.useEffect(() => {
@@ -1981,6 +2076,9 @@ function NativeStreamScreen({navigation, route}) {
   };
 
   const renderVirtualGamepad = () => {
+    if (portraitMode) {
+      return null;
+    }
     if (isInPictureInPicture || !showVirtualGamepad) {
       return null;
     }
@@ -2018,7 +2116,7 @@ function NativeStreamScreen({navigation, route}) {
     return (
       <Portal>
         <Modal
-          visible={showModal && !isInPictureInPicture}
+          visible={!portraitMode && showModal && !isInPictureInPicture}
           onDismiss={() => handleCloseModal()}
           contentContainerStyle={styles.modal}>
           <Card>
@@ -2145,7 +2243,7 @@ function NativeStreamScreen({navigation, route}) {
   };
 
   const renderPerformancePanel = () => {
-    if (showPerformance && !isInPictureInPicture) {
+    if (!portraitMode && showPerformance && !isInPictureInPicture) {
       return <PerfPanel performance={performance} />;
     } else {
       return null;
@@ -2153,7 +2251,7 @@ function NativeStreamScreen({navigation, route}) {
   };
 
   const renderMenu = () => {
-    if (settings.show_menu && !isInPictureInPicture) {
+    if (!portraitMode && settings.show_menu && !isInPictureInPicture) {
       return (
         <View style={styles.quickMenu}>
           <IconButton
@@ -2187,6 +2285,205 @@ function NativeStreamScreen({navigation, route}) {
   const loadingPosterUrl =
     typeof route.params?.postUrl === 'string' ? route.params.postUrl : '';
   const showLoadingPoster = loading && !!loadingPosterUrl;
+  const portraitSafeTop =
+    portraitMode && Platform.OS === 'android'
+      ? StatusBar.currentHeight || 0
+      : 0;
+  const portraitVideoHeight = Math.round((screenWidth * 9) / 16);
+
+  const renderStreamPlayer = (containerStyle: any, playerStyle: any) => {
+    if (showLoadingPoster || !remoteStream.current?.toURL()) {
+      return null;
+    }
+
+    const objectFit = video_format === 'Zoom' ? 'cover' : 'contain';
+
+    if (useFsrRenderer) {
+      return (
+        <View style={containerStyle}>
+          <RTCFsrView
+            style={playerStyle}
+            zOrder={9}
+            objectFit={objectFit}
+            streamURL={remote}
+            videoFormat={video_format || ''}
+            fsrEnabled={true}
+            fsrSharpness={fsrSharpness}
+          />
+          <NativeTouchOverlay
+            enabled={!!settings.native_touch && !isInPictureInPicture}
+            videoFormat={video_format || ''}
+            onPointerInput={handleNativePointerInput}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <View style={containerStyle}>
+        <RTCView
+          style={playerStyle}
+          zOrder={9}
+          objectFit={objectFit}
+          streamURL={remote}
+          videoFormat={video_format || ''}
+        />
+        <NativeTouchOverlay
+          enabled={!!settings.native_touch && !isInPictureInPicture}
+          videoFormat={video_format || ''}
+          onPointerInput={handleNativePointerInput}
+        />
+      </View>
+    );
+  };
+
+  const renderPortraitButton = (name: string, style: any) => (
+    <GamepadButton
+      name={name}
+      style={style}
+      onPressIn={handleButtonPressIn}
+      onPressOut={handleButtonPressOut}
+    />
+  );
+
+  const renderPortraitVirtualGamepad = () => {
+    if (!portraitMode || connectState !== CONNECTED) {
+      return null;
+    }
+
+    return (
+      <View style={styles.portraitGamepad} pointerEvents="box-none">
+        <View style={styles.portraitTriggerRow}>
+          {renderPortraitButton('LeftTrigger', styles.portraitTriggerButton)}
+          {renderPortraitButton('RightTrigger', styles.portraitTriggerButton)}
+        </View>
+
+        <View style={styles.portraitBumperRow}>
+          {renderPortraitButton('LeftShoulder', styles.portraitBumperButton)}
+          {renderPortraitButton('RightShoulder', styles.portraitBumperButton)}
+        </View>
+
+        <View style={styles.portraitMainRow}>
+          <View style={styles.portraitDPadCluster}>
+            {renderPortraitButton('DPadUp', styles.portraitDPadUp)}
+            {renderPortraitButton('DPadLeft', styles.portraitDPadLeft)}
+            {renderPortraitButton('DPadDown', styles.portraitDPadDown)}
+            {renderPortraitButton('DPadRight', styles.portraitDPadRight)}
+          </View>
+
+          <View style={styles.portraitSystemCluster}>
+            <View style={styles.portraitSystemRow}>
+              {renderPortraitButton('View', styles.portraitSystemButton)}
+              {renderPortraitButton('Menu', styles.portraitSystemButton)}
+            </View>
+            {renderPortraitButton('Nexus', styles.portraitNexus)}
+          </View>
+
+          <View style={styles.portraitFaceCluster}>
+            {renderPortraitButton('Y', styles.portraitButtonY)}
+            {renderPortraitButton('X', styles.portraitButtonX)}
+            {renderPortraitButton('B', styles.portraitButtonB)}
+            {renderPortraitButton('A', styles.portraitButtonA)}
+          </View>
+        </View>
+
+        <View style={styles.portraitStickRow}>
+          <View style={styles.portraitStickColumn}>
+            {renderPortraitButton('LeftThumb', styles.portraitStickThumb)}
+            <View style={styles.portraitStickBlock}>
+              <AnalogStick
+                style={styles.portraitAnalogStick}
+                radius={110}
+                handleRadius={70}
+                onStickChange={(data: any) => handleStickMove('left', data)}
+              />
+            </View>
+          </View>
+          <View style={styles.portraitStickColumn}>
+            {renderPortraitButton('RightThumb', styles.portraitStickThumb)}
+            <View style={styles.portraitStickBlock}>
+              <AnalogStick
+                style={styles.portraitAnalogStick}
+                radius={110}
+                handleRadius={70}
+                onStickChange={(data: any) => handleStickMove('right', data)}
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const confirmPortraitExit = () => {
+    Alert.alert(t('Warning'), t('Exit stream?'), [
+      {
+        text: t('Cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('Confirm'),
+        style: 'destructive',
+        onPress: () => requestExit(false),
+      },
+    ]);
+  };
+
+  if (portraitMode) {
+    return (
+      <View style={styles.portraitContainer}>
+        {showLoadingPoster && (
+          <View style={styles.loadingPosterContainer} pointerEvents="none">
+            <Image
+              source={{uri: loadingPosterUrl}}
+              style={styles.loadingPosterBackdrop}
+              resizeMode="cover"
+              blurRadius={8}
+            />
+            <Image
+              source={{uri: loadingPosterUrl}}
+              style={styles.loadingPoster}
+              resizeMode="contain"
+            />
+            <View style={styles.loadingPosterMask} />
+          </View>
+        )}
+
+        {loading && (
+          <Spinner
+            loading={true}
+            text={loadingText}
+            textStyle={
+              showLoadingPoster ? styles.loadingSpinnerText : undefined
+            }
+            cancelable={true}
+            closeCb={() => {
+              setLoading(false);
+              confirmPortraitExit();
+            }}
+          />
+        )}
+
+        <View
+          style={[
+            styles.portraitVideoFrame,
+            {
+              height: portraitVideoHeight,
+              marginTop: portraitSafeTop,
+            },
+          ]}>
+          {renderStreamPlayer(
+            styles.portraitPlayerContainer,
+            styles.portraitPlayer,
+          )}
+        </View>
+
+        <View style={styles.portraitControls}>
+          {renderPortraitVirtualGamepad()}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -2220,48 +2517,14 @@ function NativeStreamScreen({navigation, route}) {
         />
       )}
 
-      {!showLoadingPoster &&
-        remoteStream.current?.toURL() &&
-        (useFsrRenderer ? (
-          <View style={styles.playerContainer}>
-            <RTCFsrView
-              style={styles.player}
-              zOrder={9}
-              objectFit={video_format === 'Zoom' ? 'cover' : 'contain'}
-              streamURL={remote}
-              videoFormat={video_format || ''}
-              fsrEnabled={true}
-              fsrSharpness={fsrSharpness}
-            />
-            <NativeTouchOverlay
-              enabled={!!settings.native_touch && !isInPictureInPicture}
-              videoFormat={video_format || ''}
-              onPointerInput={handleNativePointerInput}
-            />
-          </View>
-        ) : (
-          <View style={styles.playerContainer}>
-            <RTCView
-              style={styles.player}
-              zOrder={9}
-              objectFit={video_format === 'Zoom' ? 'cover' : 'contain'}
-              streamURL={remote}
-              videoFormat={video_format || ''}
-            />
-            <NativeTouchOverlay
-              enabled={!!settings.native_touch && !isInPictureInPicture}
-              videoFormat={video_format || ''}
-              onPointerInput={handleNativePointerInput}
-            />
-          </View>
-        ))}
+      {renderStreamPlayer(styles.playerContainer, styles.player)}
 
       {renderPerformancePanel()}
 
       {renderVirtualGamepad()}
 
       <VirtualGamepadEditor
-        visible={showGamepadEditor && !isInPictureInPicture}
+        visible={!portraitMode && showGamepadEditor && !isInPictureInPicture}
         profileName={editorProfile || getActiveProfileName()}
         onSave={handleSaveGamepadLayout}
         onCancel={() => setShowGamepadEditor(false)}
@@ -2310,6 +2573,186 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'black',
   },
+  portraitContainer: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  portraitVideoFrame: {
+    width: '100%',
+    backgroundColor: 'black',
+  },
+  portraitPlayerContainer: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: 'black',
+  },
+  portraitPlayer: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: 'black',
+  },
+  portraitControls: {
+    flex: 1,
+    backgroundColor: '#050505',
+  },
+  portraitGamepad: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 14,
+    justifyContent: 'flex-start',
+  },
+  portraitTriggerRow: {
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  portraitTriggerButton: {
+    width: 58,
+    height: 52,
+    opacity: 0.72,
+  },
+  portraitBumperRow: {
+    height: 46,
+    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  portraitBumperButton: {
+    width: 52,
+    height: 46,
+    opacity: 0.72,
+  },
+  portraitDPadUp: {
+    position: 'absolute',
+    left: 48,
+    top: 8,
+    width: 48,
+    height: 48,
+    opacity: 0.72,
+  },
+  portraitDPadLeft: {
+    position: 'absolute',
+    left: 4,
+    top: 52,
+    width: 48,
+    height: 48,
+    opacity: 0.72,
+  },
+  portraitDPadDown: {
+    position: 'absolute',
+    left: 48,
+    top: 96,
+    width: 48,
+    height: 48,
+    opacity: 0.72,
+  },
+  portraitDPadRight: {
+    position: 'absolute',
+    left: 92,
+    top: 52,
+    width: 48,
+    height: 48,
+    opacity: 0.72,
+  },
+  portraitButtonY: {
+    position: 'absolute',
+    left: 42,
+    top: 0,
+    opacity: 0.78,
+  },
+  portraitButtonX: {
+    position: 'absolute',
+    left: 0,
+    top: 44,
+    opacity: 0.78,
+  },
+  portraitButtonB: {
+    position: 'absolute',
+    right: 0,
+    top: 44,
+    opacity: 0.78,
+  },
+  portraitButtonA: {
+    position: 'absolute',
+    left: 42,
+    top: 88,
+    opacity: 0.78,
+  },
+  portraitMainRow: {
+    height: 144,
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  portraitDPadCluster: {
+    width: 144,
+    height: 144,
+    position: 'relative',
+  },
+  portraitSystemCluster: {
+    width: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  portraitSystemRow: {
+    width: 72,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  portraitSystemButton: {
+    width: 34,
+    height: 34,
+    opacity: 0.68,
+  },
+  portraitNexus: {
+    width: 54,
+    height: 54,
+    marginTop: 8,
+    opacity: 0.68,
+  },
+  portraitFaceCluster: {
+    width: 154,
+    height: 148,
+    position: 'relative',
+  },
+  portraitStickRow: {
+    height: 160,
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+  },
+  portraitStickColumn: {
+    width: 118,
+    height: 160,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  portraitStickBlock: {
+    width: 118,
+    height: 118,
+    borderRadius: 59,
+    overflow: 'hidden',
+  },
+  portraitStickThumb: {
+    width: 40,
+    height: 40,
+    marginBottom: 2,
+    opacity: 0.68,
+    zIndex: 2,
+  },
+  portraitAnalogStick: {
+    width: 118,
+    height: 118,
+    borderRadius: 59,
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
+    overflow: 'hidden',
+  },
   modal: {
     // backgroundColor: 'rgba(0, 0, 0, 0.5)',
     marginLeft: '32%',
@@ -2322,5 +2765,9 @@ const styles = StyleSheet.create({
     zIndex: 99,
   },
 });
+
+function NativeStreamScreen(props: NativeStreamScreenProps) {
+  return <NativeStreamScreenBase {...props} />;
+}
 
 export default NativeStreamScreen;

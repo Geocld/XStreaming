@@ -163,6 +163,10 @@ export default {
     'Picture in picture': 'Picture in picture',
     PictureInPictureDesc:
       'Enter Android picture-in-picture and keep video visible when streaming goes to the background',
+    'Native portrait mode': 'Native portrait mode',
+    NativePortraitModeDesc:
+      'Use a portrait native streaming page with video on top and virtual controls below',
+    'Exit stream?': 'Exit stream?',
     show_menu_title: 'Display Quick Menu',
     show_menu_desc:
       'The quick menu is always displayed in the lower right corner of the streaming page.',

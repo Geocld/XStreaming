@@ -53,6 +53,16 @@ const display = [
     ],
   },
   {
+    name: 'native_portrait_mode',
+    type: 'radio',
+    title: t('Native portrait mode'),
+    description: t('NativePortraitModeDesc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
     name: 'xhome_bitrate_mode',
     type: 'radio',
     title: t('Host stream bitrate'),

@@ -504,12 +504,16 @@ function HomeScreen({navigation, route}) {
 
     let routeName = 'Stream';
     if (settings.render_engine === 'native') {
-      routeName = 'NativeStream';
+      routeName = settings.native_portrait_mode
+        ? 'NativePortraitStream'
+        : 'NativeStream';
     }
 
     // Lagecy user force to native stream
     if (isLagecy) {
-      routeName = 'NativeStream';
+      routeName = settings.native_portrait_mode
+        ? 'NativePortraitStream'
+        : 'NativeStream';
     }
 
     navigation.navigate({

@@ -301,6 +301,10 @@ export default {
       '该游戏在第三方串流应用上存在兼容性问题，建议从官方途径游玩此游戏。',
     'Picture in picture': '画中画',
     PictureInPictureDesc: '开启后串流时切到后台会进入安卓画中画并保持画面显示',
+    'Native portrait mode': '原生竖屏模式',
+    NativePortraitModeDesc:
+      '开启后原生串流使用竖屏页面，上方显示视频，下方显示虚拟按键',
+    'Exit stream?': '是否退出串流？',
     Device: '设备',
     Controller: '控制器',
     show_menu_title: '显示快捷菜单',

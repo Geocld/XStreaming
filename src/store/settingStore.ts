@@ -51,6 +51,7 @@ export type Settings = {
   short_trigger: boolean;
   video_format: string;
   picture_in_picture: boolean;
+  native_portrait_mode: boolean;
   show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
   virtual_gamepad_joystick: number;
@@ -124,6 +125,7 @@ const defaultSettings: Settings = {
   short_trigger: false,
   video_format: '',
   picture_in_picture: false,
+  native_portrait_mode: false,
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.7,
   custom_virtual_gamepad: '',
