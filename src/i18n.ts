@@ -3,7 +3,11 @@ import {initReactI18next} from 'react-i18next';
 import en from './languages/en';
 import zh from './languages/zh';
 import zht from './languages/zht';
+import de from './languages/de';
+import es from './languages/es';
+import pt from './languages/pt';
 import {getSettings} from './store/settingStore';
+import {normalizeAppLocale} from './utils/locale';
 
 const settings = getSettings();
 
@@ -11,6 +15,9 @@ const resources = {
   en,
   zh,
   zht,
+  de,
+  es,
+  pt,
 };
 
 i18n
@@ -18,7 +25,8 @@ i18n
   .init({
     compatibilityJSON: 'v3',
     resources,
-    lng: settings.locale || 'en',
+    lng: normalizeAppLocale(settings.locale),
+    fallbackLng: 'en',
 
     interpolation: {
       escapeValue: false, // react already safes from xss

@@ -164,7 +164,10 @@ function SettingDetailScreen({navigation, route}) {
       setValue(settingValue);
     }
 
-    if (
+    if (currentMetas.name === 'locale') {
+      settings.locale = settingValue;
+      settings.locale_follow_system = false;
+    } else if (
       currentMetas.name === 'signaling_home' ||
       currentMetas.name === 'signaling_cloud'
     ) {

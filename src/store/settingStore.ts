@@ -7,6 +7,7 @@ import {
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
 import {DEFAULT_THEME_PRIMARY_COLOR} from '../utils/themeColor';
+import {getSystemLocale} from '../utils/locale';
 const log = debugFactory('settingStore');
 
 const STORE_KEY = 'user.settings';
@@ -20,6 +21,7 @@ type DisplayOptions = {
 
 export type Settings = {
   locale: string;
+  locale_follow_system: boolean;
   resolution: number;
   render_engine: 'web' | 'native';
   xhome_bitrate_mode: string;
@@ -96,6 +98,7 @@ export type Settings = {
 
 const defaultSettings: Settings = {
   locale: 'en',
+  locale_follow_system: true,
   resolution: 720,
   render_engine: 'native',
   xhome_bitrate_mode: 'auto',
@@ -200,13 +203,32 @@ export const saveSettings = (settings: Settings) => {
 export const getSettings = (): Settings => {
   let settings = storage.getString(STORE_KEY);
   if (!settings) {
-    return defaultSettings;
+    return {
+      ...defaultSettings,
+      locale: getSystemLocale(),
+      locale_follow_system: true,
+    };
   }
   try {
-    const _settings = JSON.parse(settings) as Settings;
-    return Object.assign({}, defaultSettings, _settings);
+    const _settings = JSON.parse(settings) as Partial<Settings>;
+    const hasLocaleFollowSystem = Object.prototype.hasOwnProperty.call(
+      _settings,
+      'locale_follow_system',
+    );
+    const merged = Object.assign({}, defaultSettings, _settings);
+    merged.locale_follow_system = hasLocaleFollowSystem
+      ? !!_settings.locale_follow_system
+      : false;
+    if (merged.locale_follow_system) {
+      merged.locale = getSystemLocale();
+    }
+    return merged;
   } catch {
-    return defaultSettings;
+    return {
+      ...defaultSettings,
+      locale: getSystemLocale(),
+      locale_follow_system: true,
+    };
   }
 };
 
