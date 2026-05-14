@@ -1,24 +1,22 @@
 import React from 'react';
 import {
-  Platform,
   StyleSheet,
   View,
   Image,
   Pressable,
   ActivityIndicator,
 } from 'react-native';
-import {Text, Button, useTheme} from 'react-native-paper';
-import {useTranslation} from 'react-i18next';
+import {Text, useTheme} from 'react-native-paper';
 
 type Props = {
   titleItem: any;
   onPress: (titleItem: any) => any;
+  compact?: boolean;
 };
 
-const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
+const TitleItem: React.FC<Props> = ({titleItem, onPress, compact = false}) => {
   const theme = useTheme();
   const [loading, setLoading] = React.useState(true);
-  const {t} = useTranslation();
 
   const handlePress = () => {
     onPress && onPress(titleItem);
@@ -43,92 +41,94 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress}) => {
           }}
           resizeMode={'cover'}
           onLoad={() => setLoading(false)}
-          style={styles.image}
+          style={[styles.image, compact && styles.imageCompact]}
         />
       );
     } else {
       return null;
     }
   };
-  if (Platform.isTV) {
-    return (
-      <View>
-        <View style={styles.card}>
-          {loading && (
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      android_ripple={{color: 'rgba(255,255,255,0.18)'}}
+      style={styles.pressable}>
+      <View style={[styles.card, compact && styles.cardCompact]}>
+        {loading && (
+          <View style={styles.loadingWrap}>
             <ActivityIndicator
-              style={styles.loadingIndicator}
-              size="large"
+              size={compact ? 'small' : 'large'}
               color={theme.colors.primary}
             />
-          )}
-          {renderImage()}
-          <View style={styles.descriptionContainer}>
-            <Text
-              style={styles.description}
-              numberOfLines={2}
-              ellipsizeMode="tail">
-              {titleItem.ProductTitle}
-            </Text>
           </View>
-
-          <Button
-            mode="text"
-            labelStyle={{marginHorizontal: 0}}
-            onPress={handlePress}>
-            {t('Start game')}
-          </Button>
+        )}
+        {renderImage()}
+        <View
+          style={[
+            styles.descriptionContainer,
+            compact && styles.descriptionContainerCompact,
+          ]}>
+          <Text
+            style={[styles.description, compact && styles.descriptionCompact]}
+            numberOfLines={compact ? 1 : 2}
+            ellipsizeMode="tail">
+            {titleItem.ProductTitle}
+          </Text>
         </View>
       </View>
-    );
-  } else {
-    return (
-      <Pressable onPress={handlePress}>
-        <View style={styles.card}>
-          {loading && (
-            <ActivityIndicator
-              style={styles.loadingIndicator}
-              size="large"
-              color={theme.colors.primary}
-            />
-          )}
-          {renderImage()}
-          <View style={styles.descriptionContainer}>
-            <Text
-              style={styles.description}
-              numberOfLines={2}
-              ellipsizeMode="tail">
-              {titleItem.ProductTitle}
-            </Text>
-          </View>
-        </View>
-      </Pressable>
-    );
-  }
+    </Pressable>
+  );
 };
 
 const styles = StyleSheet.create({
+  pressable: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
   card: {
     borderWidth: 1,
-    borderColor: '#666666',
-    borderRadius: 10,
-    margin: 10,
+    borderColor: 'rgba(140, 140, 150, 0.38)',
+    borderRadius: 8,
+    margin: 8,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
-  loadingIndicator: {
+  cardCompact: {
+    margin: 5,
+    borderColor: 'rgba(140, 140, 150, 0.28)',
+  },
+  loadingWrap: {
     position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   image: {
     width: '100%',
     height: 150,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+  },
+  imageCompact: {
+    height: 104,
   },
   descriptionContainer: {
     padding: 10,
   },
+  descriptionContainerCompact: {
+    paddingHorizontal: 8,
+    paddingVertical: 7,
+  },
   description: {
     fontSize: 12,
     fontWeight: 'bold',
+    letterSpacing: 0,
+  },
+  descriptionCompact: {
+    fontSize: 11,
   },
 });
 

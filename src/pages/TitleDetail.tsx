@@ -1,5 +1,14 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, Image, NativeModules} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  Image,
+  NativeModules,
+  Platform,
+  Pressable,
+  useWindowDimensions,
+} from 'react-native';
 import {
   Text,
   Button,
@@ -26,12 +35,15 @@ const webviewTitles: any = [];
 
 function TitleDetail({navigation, route}) {
   const {t} = useTranslation();
+  const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const dispatch = useDispatch();
   const [titleItem, setTitleItem] = React.useState<any>(null);
   const [settings, setSettings] = React.useState<any>({});
   const [starTitles, setStarTitles] = React.useState<any>([]);
   // const streamingTokens = useSelector(state => state.streamingTokens);
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
+  const isLandscape = screenWidth > screenHeight;
+  const isLargeScreen = Platform.isTV || isLandscape;
 
   React.useEffect(() => {
     log.info('TitleDetail titleItem:', route.params?.titleItem);
@@ -211,71 +223,51 @@ function TitleDetail({navigation, route}) {
     description = games[titleItem.XboxTitleId].short_description;
   }
 
-  return (
-    <View style={styles.container}>
-      <Spinner loading={!titleItem} text={t('Loading...')} />
+  const renderLargeActionButton = (
+    label: string,
+    onPress: () => void,
+    primary = false,
+  ) => {
+    return (
+      <Pressable
+        focusable={true}
+        hasTVPreferredFocus={primary}
+        onPress={onPress}
+        android_ripple={{
+          color: primary
+            ? 'rgba(255, 255, 255, 0.18)'
+            : 'rgba(16, 124, 16, 0.16)',
+        }}
+        style={({focused, pressed}) => [
+          styles.tvActionButton,
+          primary ? styles.tvActionButtonPrimary : styles.tvActionButtonPlain,
+          focused && styles.tvActionButtonFocused,
+          pressed && styles.tvActionButtonPressed,
+        ]}>
+        <Text
+          style={[
+            styles.tvActionButtonText,
+            primary
+              ? styles.tvActionButtonTextPrimary
+              : styles.tvActionButtonTextPlain,
+          ]}>
+          {label}
+        </Text>
+      </Pressable>
+    );
+  };
 
-      {renderUsbWarningModal()}
-
-      {titleItem && (
-        <>
-          <ScrollView style={styles.scrollView}>
-            {titleItem.Image_Poster && (
-              <Image
-                source={{
-                  uri: 'https:' + titleItem.Image_Poster.URL,
-                }}
-                resizeMode="center"
-                style={styles.image}
-              />
-            )}
-            <View style={styles.textWrap}>
-              <Text variant="titleLarge" style={styles.productTitle}>
-                {titleItem.ProductTitle}
-              </Text>
-              <Text variant="titleMedium">{titleItem.PublisherName}</Text>
-
-              <FAB
-                icon={isStar ? 'cards-heart' : 'cards-heart-outline'}
-                style={styles.fab}
-                onPress={handleToggleStar}
-              />
-            </View>
-
-            {isByorg && (
-              <View style={styles.tagsWrap}>
-                <HelperText type="error" visible={true}>
-                  {t('byorg')}
-                </HelperText>
-              </View>
-            )}
-
-            {warnTitles.indexOf(titleItem.titleId) > -1 ? (
-              <View style={styles.tagsWrap}>
-                <HelperText type="error" visible={true}>
-                  {t('compatibleWarn')}
-                </HelperText>
-              </View>
-            ) : null}
-
-            {titleItem.LocalizedCategories && (
-              <View style={styles.tagsWrap}>
-                {titleItem.LocalizedCategories.map(item => {
-                  return (
-                    <View style={styles.tagContainer} key={item}>
-                      <Text variant="titleSmall">{item}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            <View style={styles.description}>
-              <Text variant="titleSmall">{description}</Text>
-            </View>
-          </ScrollView>
-
-          <View style={styles.buttonWrap}>
+  const renderActionBar = () => {
+    return (
+      <View
+        style={[styles.buttonWrap, isLargeScreen && styles.buttonWrapLarge]}>
+        {isLargeScreen ? (
+          <>
+            {renderLargeActionButton(t('Start game'), handleStartGame, true)}
+            {renderLargeActionButton(t('Back'), () => navigation.goBack())}
+          </>
+        ) : (
+          <>
             <Button
               mode="elevated"
               style={styles.button}
@@ -288,7 +280,118 @@ function TitleDetail({navigation, route}) {
               onPress={() => navigation.goBack()}>
               {t('Back')}
             </Button>
-          </View>
+          </>
+        )}
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <Spinner loading={!titleItem} text={t('Loading...')} />
+
+      {renderUsbWarningModal()}
+
+      {titleItem && (
+        <>
+          <ScrollView
+            style={[styles.scrollView, isLargeScreen && styles.scrollViewLarge]}
+            contentContainerStyle={[
+              styles.detailContent,
+              isLargeScreen && styles.detailContentLarge,
+            ]}>
+            <View
+              style={[
+                styles.posterWrap,
+                isLargeScreen && styles.posterWrapLarge,
+              ]}>
+              {titleItem.Image_Poster && (
+                <Image
+                  source={{
+                    uri: 'https:' + titleItem.Image_Poster.URL,
+                  }}
+                  resizeMode={isLargeScreen ? 'cover' : 'center'}
+                  style={[styles.image, isLargeScreen && styles.imageLarge]}
+                />
+              )}
+            </View>
+
+            <View
+              style={[
+                styles.infoPanel,
+                isLargeScreen && styles.infoPanelLarge,
+              ]}>
+              <View style={styles.titleRow}>
+                <View style={styles.titleTextWrap}>
+                  <Text
+                    variant={isLargeScreen ? 'headlineSmall' : 'titleLarge'}
+                    style={styles.productTitle}>
+                    {titleItem.ProductTitle}
+                  </Text>
+                  <Text
+                    variant={isLargeScreen ? 'bodyMedium' : 'titleMedium'}
+                    style={isLargeScreen && styles.publisherLarge}>
+                    {titleItem.PublisherName}
+                  </Text>
+                </View>
+                <FAB
+                  icon={isStar ? 'cards-heart' : 'cards-heart-outline'}
+                  size={isLargeScreen ? 'small' : 'medium'}
+                  style={[styles.fab, isLargeScreen && styles.fabLarge]}
+                  onPress={handleToggleStar}
+                />
+              </View>
+
+              {isByorg && (
+                <View style={styles.tagsWrap}>
+                  <HelperText type="error" visible={true}>
+                    {t('byorg')}
+                  </HelperText>
+                </View>
+              )}
+
+              {warnTitles.indexOf(titleItem.titleId) > -1 ? (
+                <View style={styles.tagsWrap}>
+                  <HelperText type="error" visible={true}>
+                    {t('compatibleWarn')}
+                  </HelperText>
+                </View>
+              ) : null}
+
+              {titleItem.LocalizedCategories && (
+                <View style={styles.tagsWrap}>
+                  {titleItem.LocalizedCategories.map(item => {
+                    return (
+                      <View
+                        style={[
+                          styles.tagContainer,
+                          isLargeScreen && styles.tagContainerLarge,
+                        ]}
+                        key={item}>
+                        <Text
+                          variant={
+                            isLargeScreen ? 'labelMedium' : 'titleSmall'
+                          }>
+                          {item}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+
+              <View
+                style={[
+                  styles.description,
+                  isLargeScreen && styles.descriptionLarge,
+                ]}>
+                <Text variant={isLargeScreen ? 'bodyMedium' : 'titleSmall'}>
+                  {description}
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+          {renderActionBar()}
         </>
       )}
     </View>
@@ -301,17 +404,48 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    marginBottom: 120, // Adjust the marginBottom value to accommodate the button height
+  },
+  scrollViewLarge: {
+    marginBottom: 0,
+  },
+  detailContent: {},
+  detailContentLarge: {
+    flexDirection: 'row',
+    paddingHorizontal: 36,
+    paddingVertical: 28,
+    alignItems: 'flex-start',
+  },
+  posterWrap: {},
+  posterWrapLarge: {
+    width: 300,
+    maxWidth: '34%',
   },
   image: {
     width: '100%',
     height: 960 / 3,
   },
-  textWrap: {
-    padding: 10,
+  imageLarge: {
+    height: 440,
+    borderRadius: 12,
+  },
+  infoPanel: {
+    paddingHorizontal: 10,
+  },
+  infoPanelLarge: {
+    flex: 1,
+    paddingLeft: 28,
+    paddingRight: 0,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  titleTextWrap: {
+    flex: 1,
+    minWidth: 0,
   },
   tagsWrap: {
-    padding: 10,
+    paddingVertical: 10,
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -325,29 +459,93 @@ const styles = StyleSheet.create({
     marginRight: 5,
     marginBottom: 10,
   },
+  tagContainerLarge: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    marginRight: 8,
+    marginBottom: 8,
+  },
   description: {
-    paddingLeft: 10,
-    paddingRight: 10,
+    paddingVertical: 8,
+  },
+  descriptionLarge: {
+    maxWidth: 760,
+    paddingTop: 12,
   },
   productTitle: {
-    marginBottom: 10,
+    marginBottom: 8,
+    letterSpacing: 0,
+  },
+  publisherLarge: {
+    opacity: 0.78,
   },
   buttonWrap: {
-    position: 'absolute',
-    left: 0,
     width: '100%',
-    bottom: 20,
-    paddingLeft: 10,
-    paddingRight: 10,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(16, 124, 16, 0.18)',
+    backgroundColor: 'rgba(18, 18, 18, 0.96)',
+  },
+  buttonWrapLarge: {
+    paddingHorizontal: 36,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   button: {
     marginTop: 10,
   },
+  buttonLarge: {
+    minWidth: 150,
+    marginTop: 0,
+    marginRight: 12,
+  },
+  tvActionButton: {
+    minWidth: 150,
+    height: 42,
+    borderRadius: 8,
+    marginRight: 12,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  tvActionButtonPrimary: {
+    backgroundColor: '#107C10',
+    borderColor: '#107C10',
+  },
+  tvActionButtonPlain: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(16, 124, 16, 0.42)',
+  },
+  tvActionButtonFocused: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2,
+  },
+  tvActionButtonPressed: {
+    opacity: 0.78,
+  },
+  tvActionButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  tvActionButtonTextPrimary: {
+    color: '#FFFFFF',
+  },
+  tvActionButtonTextPlain: {
+    color: '#107C10',
+  },
   fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    top: -80,
+    marginLeft: 12,
+  },
+  fabLarge: {
+    marginLeft: 16,
   },
 });
 

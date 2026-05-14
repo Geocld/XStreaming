@@ -3,18 +3,12 @@ import {
   StyleSheet,
   View,
   FlatList,
-  Dimensions,
   ActivityIndicator,
+  Platform,
+  Pressable,
+  useWindowDimensions,
 } from 'react-native';
-import {
-  Text,
-  SegmentedButtons,
-  Appbar,
-  Chip,
-  Portal,
-  Modal,
-  Card,
-} from 'react-native-paper';
+import {Text, Portal, Modal, Card, IconButton, Icon} from 'react-native-paper';
 import {useIsFocused} from '@react-navigation/native';
 import Orientation from 'react-native-orientation-locker';
 import Spinner from '../components/Spinner';
@@ -35,6 +29,7 @@ const log = debugFactory('CloudScreen');
 
 function CloudScreen({navigation, route}) {
   const {t, i18n} = useTranslation();
+  const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const dispatch = useDispatch();
   const streamingTokens = useSelector((state: any) => state.streamingTokens);
   const starTitles = useSelector((state: any) => state.stars || []);
@@ -45,7 +40,6 @@ function CloudScreen({navigation, route}) {
   // log.info('streamingTokens:', streamingTokens);
 
   const [current, setCurrent] = React.useState<any>(0);
-  const [numColumns, setNumColumns] = React.useState(2);
   const [currentPage, setCurrentPage] = React.useState(1);
 
   const [loading, setLoading] = React.useState(false);
@@ -54,7 +48,7 @@ function CloudScreen({navigation, route}) {
   const [showToturial, setShowToturial] = React.useState(false);
   const [titles, setTitles] = React.useState<any>([]);
   const [newTitles, setNewTitles] = React.useState([]);
-  const [titlesMap, setTitlesMap] = React.useState({});
+  const [_titlesMap, setTitlesMap] = React.useState({});
   const [recentTitles, setRecentTitles] = React.useState([]);
   const [keyword, setKeyword] = React.useState('');
   const flatListRef = React.useRef<any>(null);
@@ -62,6 +56,16 @@ function CloudScreen({navigation, route}) {
 
   const currentTitles = React.useRef([]);
   const totalPage = React.useRef(0);
+  const isLandscape = screenWidth > screenHeight;
+  const isLargeScreen = Platform.isTV || isLandscape;
+  const numColumns = React.useMemo(() => {
+    if (!isLargeScreen && screenWidth < 640) {
+      return 2;
+    }
+    const targetWidth = isLargeScreen ? 150 : 190;
+    return Math.max(3, Math.min(8, Math.floor(screenWidth / targetWidth)));
+  }, [isLargeScreen, screenWidth]);
+  const pageSize = isLargeScreen ? 40 : 20;
 
   React.useEffect(() => {
     if (isFocused) {
@@ -70,7 +74,7 @@ function CloudScreen({navigation, route}) {
   }, [isFocused]);
 
   React.useEffect(() => {
-    if (route.params?.keyword) {
+    if (typeof route.params?.keyword === 'string') {
       setKeyword(route.params.keyword);
     }
     if (!streamingTokens.xCloudToken) {
@@ -186,23 +190,7 @@ function CloudScreen({navigation, route}) {
       }
     }
 
-    const updateLayout = () => {
-      const {width} = Dimensions.get('window');
-      if (width < 800) {
-        setNumColumns(2);
-      } else if (width >= 800 && width < 1500) {
-        setNumColumns(4);
-      } else if (width >= 1500) {
-        setNumColumns(8);
-      }
-    };
-
-    updateLayout();
-    const subscription = Dimensions.addEventListener('change', updateLayout);
-
-    return () => {
-      subscription?.remove();
-    };
+    return () => {};
   }, [
     route.params?.keyword,
     streamingTokens.xCloudToken,
@@ -212,6 +200,19 @@ function CloudScreen({navigation, route}) {
 
   const handleViewDetail = titleItem => {
     navigation.navigate('TitleDetail', {titleItem});
+  };
+
+  const handleOpenSearch = () => {
+    navigation.navigate('Search', {
+      keyword,
+    });
+  };
+
+  const handleClearKeyword = () => {
+    setKeyword('');
+    navigation.setParams({
+      keyword: '',
+    });
   };
 
   const scrollToTop = () => {
@@ -340,12 +341,161 @@ function CloudScreen({navigation, route}) {
   }
 
   if (currentTitles.current.length > 0) {
-    totalPage.current = Math.ceil(currentTitles.current.length / 20);
+    totalPage.current = Math.ceil(currentTitles.current.length / pageSize);
   }
 
-  // Show 20 titles per page
-  const endIdx = currentPage * 20;
+  const endIdx = currentPage * pageSize;
   let showTitles = currentTitles.current.slice(0, endIdx);
+  const segmentedButtons = [
+    {
+      value: '0',
+      label: t('Recently'),
+    },
+    {
+      value: '1',
+      label: t('Stars'),
+    },
+    {
+      value: '2',
+      label: t('Newest'),
+    },
+    {
+      value: '3',
+      label: t('All'),
+    },
+  ];
+
+  const renderCategoryTabs = () => (
+    <View style={[styles.tabs, isLargeScreen && styles.tabsLarge]}>
+      {segmentedButtons.map(item => {
+        const selected = `${current}` === item.value;
+        return (
+          <Pressable
+            key={item.value}
+            focusable={true}
+            onPress={() => handleSelectCategories(item.value)}
+            android_ripple={{color: 'rgba(16, 124, 16, 0.16)'}}
+            style={({focused, pressed}) => [
+              styles.tab,
+              isLargeScreen && styles.tabLarge,
+              selected && styles.tabSelected,
+              focused && styles.tabFocused,
+              pressed && styles.tabPressed,
+            ]}>
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.tabText,
+                isLargeScreen && styles.tabTextLarge,
+                selected && styles.tabTextSelected,
+              ]}>
+              {item.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+
+  const renderMobileSearchButton = () => {
+    if (isLargeScreen) {
+      return null;
+    }
+
+    const hasKeyword = keyword.length > 0;
+    const searchLabel = hasKeyword ? `${t('Search')}: ${keyword}` : t('Search');
+
+    if (hasKeyword) {
+      return (
+        <View
+          style={[styles.mobileSearchButton, styles.mobileSearchButtonActive]}>
+          <Pressable
+            focusable={true}
+            onPress={handleOpenSearch}
+            android_ripple={{color: 'rgba(255, 255, 255, 0.16)'}}
+            style={({focused, pressed}) => [
+              styles.mobileSearchMain,
+              focused && styles.mobileSearchSegmentFocused,
+              pressed && styles.mobileSearchButtonPressed,
+            ]}>
+            <Icon source="magnify" size={18} color="#FFFFFF" />
+            <Text
+              numberOfLines={1}
+              style={[styles.mobileSearchText, styles.mobileSearchTextActive]}>
+              {searchLabel}
+            </Text>
+          </Pressable>
+          <Pressable
+            focusable={true}
+            onPress={handleClearKeyword}
+            android_ripple={{color: 'rgba(255, 255, 255, 0.18)'}}
+            style={({focused, pressed}) => [
+              styles.mobileSearchClear,
+              focused && styles.mobileSearchSegmentFocused,
+              pressed && styles.mobileSearchButtonPressed,
+            ]}>
+            <Icon source="close" size={18} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <Pressable
+        focusable={true}
+        onPress={handleOpenSearch}
+        android_ripple={{color: 'rgba(16, 124, 16, 0.12)'}}
+        style={({focused, pressed}) => [
+          styles.mobileSearchButton,
+          hasKeyword && styles.mobileSearchButtonActive,
+          focused && styles.mobileSearchButtonFocused,
+          pressed && styles.mobileSearchButtonPressed,
+        ]}>
+        <Icon source="magnify" size={18} color="#107C10" />
+        <Text numberOfLines={1} style={styles.mobileSearchText}>
+          {searchLabel}
+        </Text>
+      </Pressable>
+    );
+  };
+
+  const renderLargeKeywordPill = () => {
+    if (!keyword || !isLargeScreen) {
+      return null;
+    }
+
+    return (
+      <View style={styles.search}>
+        <View style={styles.keywordPill}>
+          <Pressable
+            focusable={true}
+            onPress={handleOpenSearch}
+            android_ripple={{color: 'rgba(16, 124, 16, 0.12)'}}
+            style={({focused, pressed}) => [
+              styles.keywordPillMain,
+              focused && styles.keywordPillFocused,
+              pressed && styles.keywordPillPressed,
+            ]}>
+            <Icon source="cloud-search-outline" size={18} color="#107C10" />
+            <Text numberOfLines={1} style={styles.keywordPillText}>
+              {keyword}
+            </Text>
+          </Pressable>
+          <Pressable
+            focusable={true}
+            onPress={handleClearKeyword}
+            android_ripple={{color: 'rgba(16, 124, 16, 0.14)'}}
+            style={({focused, pressed}) => [
+              styles.keywordPillClear,
+              focused && styles.keywordPillFocused,
+              pressed && styles.keywordPillPressed,
+            ]}>
+            <Icon source="close" size={18} color="#107C10" />
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <>
@@ -354,39 +504,28 @@ function CloudScreen({navigation, route}) {
       {!isLimited && (
         <>
           <View style={styles.gameContainer}>
-            <Appbar.Header statusBarHeight={0}>
-              <Appbar.Content
-                title={
-                  <SegmentedButtons
-                    value={`${current}`}
-                    onValueChange={handleSelectCategories}
-                    buttons={[
-                      {
-                        value: '0',
-                        label: t('Recently'),
-                      },
-                      {
-                        value: '1',
-                        label: t('Stars'),
-                      },
-                      {
-                        value: '2',
-                        label: t('Newest'),
-                      },
-                      {value: '3', label: t('All')},
-                    ]}
-                  />
-                }
-              />
-              <Appbar.Action
+            <View
+              style={[styles.toolbar, isLargeScreen && styles.toolbarLarge]}>
+              <View
+                style={[
+                  styles.segmentedWrap,
+                  isLargeScreen && styles.segmentedWrapLarge,
+                ]}>
+                {renderCategoryTabs()}
+              </View>
+              <IconButton
                 icon="magnify"
-                onPress={() => {
-                  navigation.navigate('Search', {
-                    keyword,
-                  });
-                }}
+                size={isLargeScreen ? 22 : 24}
+                style={[
+                  styles.searchButton,
+                  isLargeScreen && styles.searchButtonLarge,
+                  !isLargeScreen && styles.searchButtonHidden,
+                ]}
+                onPress={handleOpenSearch}
               />
-            </Appbar.Header>
+            </View>
+
+            {renderMobileSearchButton()}
 
             {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
               <Text
@@ -399,15 +538,7 @@ function CloudScreen({navigation, route}) {
               </Text>
             )}
 
-            {keyword && (
-              <View style={styles.search}>
-                <Chip
-                  icon="cloud-search-outline"
-                  onClose={() => setKeyword('')}>
-                  {keyword}
-                </Chip>
-              </View>
-            )}
+            {renderLargeKeywordPill()}
 
             {!loading && !showTitles.length && <Empty />}
 
@@ -418,16 +549,21 @@ function CloudScreen({navigation, route}) {
                   data={showTitles}
                   numColumns={numColumns}
                   key={numColumns}
-                  contentContainerStyle={styles.listContainer}
+                  contentContainerStyle={[
+                    styles.listContainer,
+                    isLargeScreen && styles.listContainerLarge,
+                  ]}
                   renderItem={({item}) => {
                     return (
                       <View
-                        style={
-                          numColumns === 2 ? styles.listItemH : styles.listItemV
-                        }>
+                        style={[
+                          styles.listItem,
+                          {width: `${100 / numColumns}%`},
+                        ]}>
                         <TitleItem
                           titleItem={item}
                           onPress={handleViewDetail}
+                          compact={isLargeScreen}
                         />
                       </View>
                     );
@@ -471,17 +607,171 @@ const styles = StyleSheet.create({
   gameContainer: {
     flex: 1,
   },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  toolbarLarge: {
+    paddingHorizontal: 24,
+    paddingTop: 14,
+    paddingBottom: 10,
+  },
+  segmentedWrap: {
+    flex: 1,
+  },
+  segmentedWrapLarge: {
+    maxWidth: 620,
+    flex: 0,
+    width: 620,
+  },
+  tabs: {
+    height: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 124, 16, 0.45)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  tabsLarge: {
+    height: 40,
+  },
+  tab: {
+    flex: 1,
+    height: '100%',
+    minWidth: 64,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(16, 124, 16, 0.24)',
+  },
+  tabLarge: {
+    minWidth: 86,
+    paddingHorizontal: 12,
+  },
+  tabSelected: {
+    backgroundColor: '#107C10',
+  },
+  tabFocused: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2,
+  },
+  tabPressed: {
+    opacity: 0.78,
+  },
+  tabText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+    letterSpacing: 0,
+    color: '#107C10',
+    includeFontPadding: false,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
+  tabTextLarge: {
+    fontSize: 12,
+  },
+  tabTextSelected: {
+    color: '#FFFFFF',
+  },
+  searchButton: {
+    position: 'absolute',
+    right: 8,
+    top: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  searchButtonLarge: {
+    width: 42,
+    height: 42,
+    right: 24,
+    top: 13,
+  },
+  searchButtonHidden: {
+    display: 'none',
+  },
+  mobileSearchButton: {
+    height: 38,
+    marginHorizontal: 8,
+    marginTop: 2,
+    marginBottom: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 124, 16, 0.38)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  mobileSearchButtonActive: {
+    borderColor: 'rgba(16, 124, 16, 0.72)',
+    backgroundColor: '#107C10',
+  },
+  mobileSearchMain: {
+    flex: 1,
+    height: '100%',
+    minWidth: 0,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  mobileSearchClear: {
+    width: 42,
+    height: 32,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileSearchSegmentFocused: {
+    borderColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+  },
+  mobileSearchButtonFocused: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2,
+  },
+  mobileSearchButtonPressed: {
+    opacity: 0.78,
+  },
+  mobileSearchText: {
+    marginLeft: 6,
+    color: '#107C10',
+    flexShrink: 1,
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '700',
+    letterSpacing: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  mobileSearchTextActive: {
+    color: '#FFFFFF',
+  },
   categoryWrap: {
     width: 200,
     padding: 10,
   },
-  listContainer: {},
-  listItemH: {
-    width: '50%',
-    justifyContent: 'center',
+  listContainer: {
+    paddingHorizontal: 4,
+    paddingBottom: 20,
   },
-  listItemV: {
-    width: '25%',
+  listContainerLarge: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+  },
+  listItem: {
     justifyContent: 'center',
   },
   loadingIndicator: {
@@ -490,6 +780,57 @@ const styles = StyleSheet.create({
   search: {
     paddingLeft: 10,
     paddingRight: 10,
+  },
+  keywordPill: {
+    height: 38,
+    maxWidth: 520,
+    alignSelf: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 124, 16, 0.42)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  keywordPillMain: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 12,
+    paddingRight: 10,
+  },
+  keywordPillText: {
+    marginLeft: 6,
+    color: '#107C10',
+    flexShrink: 1,
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '700',
+    letterSpacing: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  keywordPillClear: {
+    width: 42,
+    height: '100%',
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(16, 124, 16, 0.24)',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  keywordPillFocused: {
+    borderColor: '#FFFFFF',
+    backgroundColor: 'rgba(16, 124, 16, 0.14)',
+  },
+  keywordPillPressed: {
+    opacity: 0.78,
   },
   tutorialText: {
     textAlign: 'center',
