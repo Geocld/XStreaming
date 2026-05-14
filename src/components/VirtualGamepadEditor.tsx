@@ -248,12 +248,8 @@ const VirtualGamepadEditor: React.FC<VirtualGamepadEditorProps> = ({
                 setCurrentShow(button.show ?? true);
                 setShowButtonModal(true);
               }}
-              onDragRelease={event => {
-                handleDrag(
-                  button.name,
-                  event.nativeEvent.pageX - event.nativeEvent.locationX,
-                  event.nativeEvent.pageY - event.nativeEvent.locationY,
-                );
+              onDragRelease={(_, __, bounds) => {
+                handleDrag(button.name, bounds.left, bounds.top);
                 setReloadKey(Date.now());
               }}
             />
@@ -273,12 +269,8 @@ const VirtualGamepadEditor: React.FC<VirtualGamepadEditorProps> = ({
               setCurrentShow(button.show ?? true);
               setShowButtonModal(true);
             }}
-            onDragRelease={event => {
-              handleDrag(
-                button.name,
-                event.nativeEvent.pageX - event.nativeEvent.locationX,
-                event.nativeEvent.pageY - event.nativeEvent.locationY,
-              );
+            onDragRelease={(_, __, bounds) => {
+              handleDrag(button.name, bounds.left, bounds.top);
               setReloadKey(Date.now());
             }}>
             <GamepadButton

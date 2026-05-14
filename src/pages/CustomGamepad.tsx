@@ -560,12 +560,8 @@ function CustomGamepadScreen({navigation, route}) {
                   setCurrentShow(button.show || true);
                   setShowModal(true);
                 }}
-                onDragRelease={event => {
-                  handleDrag(
-                    button.name,
-                    event.nativeEvent.pageX - event.nativeEvent.locationX,
-                    event.nativeEvent.pageY - event.nativeEvent.locationY,
-                  );
+                onDragRelease={(_, __, bounds) => {
+                  handleDrag(button.name, bounds.left, bounds.top);
                   setReloader(Date.now());
                 }}
               />
@@ -585,12 +581,8 @@ function CustomGamepadScreen({navigation, route}) {
                   setCurrentShow(button.show || true);
                   setShowModal(true);
                 }}
-                onDragRelease={event => {
-                  handleDrag(
-                    button.name,
-                    event.nativeEvent.pageX - event.nativeEvent.locationX,
-                    event.nativeEvent.pageY - event.nativeEvent.locationY,
-                  );
+                onDragRelease={(_, __, bounds) => {
+                  handleDrag(button.name, bounds.left, bounds.top);
                   setReloader(Date.now());
                 }}>
                 <GamepadButton

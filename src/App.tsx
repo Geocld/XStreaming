@@ -154,7 +154,6 @@ const FeedbackBackgroundScreen = withPageBackground(FeedbackScreen);
 const VirtualGamepadSettingsBackgroundScreen = withPageBackground(
   VirtualGamepadSettingsScreen,
 );
-const CustomGamepadBackgroundScreen = withPageBackground(CustomGamepadScreen);
 const HoldButtonsBackgroundScreen = withPageBackground(HoldButtonsScreen);
 const VirtualMacroSettingsBackgroundScreen = withPageBackground(
   VirtualMacroSettingsScreen,
@@ -403,7 +402,7 @@ function App() {
                 />
                 <RootStack.Screen
                   name="CustomGamepad"
-                  component={CustomGamepadBackgroundScreen}
+                  component={CustomGamepadScreen}
                   options={{headerShown: false}}
                 />
                 <RootStack.Screen
