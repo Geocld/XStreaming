@@ -21,22 +21,35 @@ export const VIRTUAL_MACRO_ALLOWED_BUTTONS = [
 ] as const;
 
 export type VirtualMacroStep = {
+  type: 'buttons' | 'stick';
   buttons: string[];
+  stick: 'left' | 'right';
+  x: number;
+  y: number;
   durationMs: number;
   waitAfterMs: number;
 };
 
 export const DEFAULT_VIRTUAL_MACRO_LONG_PRESS_MS = 500;
+export const DEFAULT_VIRTUAL_MACRO_LOOP_INTERVAL_MS = 500;
 export const DEFAULT_VIRTUAL_MACRO_SHORT_STEPS: VirtualMacroStep[] = [
   {
+    type: 'buttons',
     buttons: ['A'],
+    stick: 'left',
+    x: 0,
+    y: 0,
     durationMs: 80,
     waitAfterMs: 0,
   },
 ];
 export const DEFAULT_VIRTUAL_MACRO_LONG_STEPS: VirtualMacroStep[] = [
   {
+    type: 'buttons',
     buttons: ['B'],
+    stick: 'left',
+    x: 0,
+    y: 0,
     durationMs: 250,
     waitAfterMs: 0,
   },
@@ -68,11 +81,28 @@ export const ensureMacroLayoutButton = (
   return [...buttons, fallbackButton];
 };
 
+export const normalizeMacroLoopIntervalMs = (value: any): number => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    return DEFAULT_VIRTUAL_MACRO_LOOP_INTERVAL_MS;
+  }
+  return Math.max(0, Math.min(10000, Math.round(num)));
+};
+
+const normalizeStickAxis = (value: any): number => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    return 0;
+  }
+  return Math.max(-1, Math.min(1, Number(num.toFixed(2))));
+};
+
 export const normalizeMacroStep = (
   step: any,
   fallbackButton = 'A',
 ): VirtualMacroStep => {
-  const allowed = new Set(VIRTUAL_MACRO_ALLOWED_BUTTONS);
+  const stepType = step?.type === 'stick' ? 'stick' : 'buttons';
+  const allowed = new Set<string>(VIRTUAL_MACRO_ALLOWED_BUTTONS);
   let buttons: string[] = [];
   if (Array.isArray(step?.buttons)) {
     buttons = step.buttons.filter((button: string) => allowed.has(button));
@@ -87,7 +117,11 @@ export const normalizeMacroStep = (
   const waitRaw = Number(step?.waitAfterMs);
 
   return {
+    type: stepType,
     buttons: Array.from(new Set(buttons)),
+    stick: step?.stick === 'right' ? 'right' : 'left',
+    x: normalizeStickAxis(step?.x),
+    y: normalizeStickAxis(step?.y),
     durationMs: Number.isFinite(durationRaw)
       ? Math.max(30, Math.min(5000, Math.round(durationRaw)))
       : 80,

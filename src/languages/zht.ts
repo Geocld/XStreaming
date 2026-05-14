@@ -407,6 +407,18 @@ export default {
     Buttons: '按鍵組',
     'Hold duration': '按住時長',
     'Wait after action': '動作後等待',
+    'Loop macro': '循環執行巨集',
+    'Press macro once to loop, press again to stop':
+      '按一次巨集按鍵開始循環，再按一次停止',
+    'Loop interval': '循環間隔',
+    'Action type': '動作類型',
+    'Button macro': '按鍵巨集',
+    'Stick macro': '搖桿巨集',
+    Stick: '搖桿',
+    'Left stick': '左搖桿',
+    'Right stick': '右搖桿',
+    Move: '移動',
+    'Move duration': '移動時長',
     'Macro action sequence': '巨集動作序列',
     'Tap + to add sequence step': '點擊 + 新增動作步驟',
     'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':

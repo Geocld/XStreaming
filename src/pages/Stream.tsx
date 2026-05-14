@@ -49,6 +49,7 @@ import Display from '../components/Display';
 import FSRDisplay from '../components/FSRDisplay';
 import Audio from '../components/Audio';
 import {
+  normalizeMacroLoopIntervalMs,
   normalizeMacroSteps,
   VIRTUAL_MACRO_ALLOWED_BUTTONS,
   VIRTUAL_MACRO_BUTTON_NAME,
@@ -148,6 +149,9 @@ function StreamScreen({navigation, route}) {
   const pipEventListener = React.useRef<any>(undefined);
   const isConnected = React.useRef(false);
   const macroSequenceTimersRef = React.useRef<any[]>([]);
+  const activeMacroButtonsRef = React.useRef<Set<string>>(new Set());
+  const activeMacroSticksRef = React.useRef<Set<string>>(new Set());
+  const isMacroLoopRunningRef = React.useRef(false);
   const orientationLockTimer = React.useRef<any>(null);
   const orientationLayoutTimer = React.useRef<any>(null);
   const returnOrientationRef = React.useRef<ScreenOrientation | null>(null);
@@ -1227,10 +1231,25 @@ function StreamScreen({navigation, route}) {
       clearTimeout(timeoutId),
     );
     macroSequenceTimersRef.current = [];
+    isMacroLoopRunningRef.current = false;
+    Array.from(activeMacroButtonsRef.current).forEach(button => {
+      gpState[button] = 0;
+    });
+    activeMacroButtonsRef.current.clear();
+    Array.from(activeMacroSticksRef.current).forEach(stick => {
+      if (stick === 'right') {
+        gpState.RightThumbXAxis = 0;
+        gpState.RightThumbYAxis = 0;
+      } else {
+        gpState.LeftThumbXAxis = 0;
+        gpState.LeftThumbYAxis = 0;
+      }
+    });
+    activeMacroSticksRef.current.clear();
   };
 
   const runMacroSteps = (rawSteps: any) => {
-    const allowedButtons = new Set(VIRTUAL_MACRO_ALLOWED_BUTTONS);
+    const allowedButtons = new Set<string>(VIRTUAL_MACRO_ALLOWED_BUTTONS);
     const steps = normalizeMacroSteps(
       rawSteps,
       DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
@@ -1248,39 +1267,69 @@ function StreamScreen({navigation, route}) {
     };
 
     steps.forEach(step => {
+      const duration = Math.max(30, Number(step.durationMs) || 80);
+      const waitAfter = Math.max(0, Number(step.waitAfterMs) || 0);
+
+      if (step.type === 'stick') {
+        const stick = step.stick === 'right' ? 'right' : 'left';
+        const x = Math.max(-1, Math.min(1, Number(step.x) || 0));
+        const y = Math.max(-1, Math.min(1, Number(step.y) || 0));
+
+        schedule(accumulatedDelay, () => {
+          activeMacroSticksRef.current.add(stick);
+          if (stick === 'right') {
+            gpState.RightThumbXAxis = x;
+            gpState.RightThumbYAxis = y;
+          } else {
+            gpState.LeftThumbXAxis = x;
+            gpState.LeftThumbYAxis = y;
+          }
+        });
+
+        schedule(accumulatedDelay + duration, () => {
+          activeMacroSticksRef.current.delete(stick);
+          if (stick === 'right') {
+            gpState.RightThumbXAxis = 0;
+            gpState.RightThumbYAxis = 0;
+          } else {
+            gpState.LeftThumbXAxis = 0;
+            gpState.LeftThumbYAxis = 0;
+          }
+        });
+
+        accumulatedDelay += duration + waitAfter;
+        return;
+      }
+
       const stepButtons = Array.isArray(step?.buttons)
-        ? step.buttons.filter((button: string) =>
-            allowedButtons.has(button as any),
-          )
-        : allowedButtons.has(step?.button as any)
-        ? [step.button]
+        ? step.buttons.filter((button: string) => allowedButtons.has(button))
         : [];
 
       if (!stepButtons.length) {
         return;
       }
 
-      const duration = Math.max(30, Number(step.durationMs) || 80);
-      const waitAfter = Math.max(0, Number(step.waitAfterMs) || 0);
-
       schedule(accumulatedDelay, () => {
         stepButtons.forEach((button: string) => {
+          activeMacroButtonsRef.current.add(button);
           gpState[button] = 1;
         });
       });
 
       schedule(accumulatedDelay + duration, () => {
         stepButtons.forEach((button: string) => {
+          activeMacroButtonsRef.current.delete(button);
           gpState[button] = 0;
         });
       });
 
       accumulatedDelay += duration + waitAfter;
     });
+
+    return accumulatedDelay;
   };
 
   const handleMacroPressIn = () => {
-    clearMacroTimers();
     const shortSteps = Array.isArray(settings.virtual_macro_short_press_steps)
       ? settings.virtual_macro_short_press_steps
       : [];
@@ -1288,9 +1337,40 @@ function StreamScreen({navigation, route}) {
       ? settings.virtual_macro_long_press_steps
       : [];
     const rawSteps = shortSteps.length ? shortSteps : longSteps;
-    runMacroSteps(
-      normalizeMacroSteps(rawSteps, DEFAULT_VIRTUAL_MACRO_SHORT_STEPS),
-    );
+    if (settings.virtual_macro_loop_enabled) {
+      if (isMacroLoopRunningRef.current) {
+        clearMacroTimers();
+        return;
+      }
+
+      clearMacroTimers();
+      isMacroLoopRunningRef.current = true;
+      const interval = normalizeMacroLoopIntervalMs(
+        settings.virtual_macro_loop_interval_ms,
+      );
+      const runLoop = () => {
+        if (!isMacroLoopRunningRef.current) {
+          return;
+        }
+        const totalDuration = runMacroSteps(rawSteps);
+        if (!totalDuration) {
+          clearMacroTimers();
+          return;
+        }
+        const delay = Math.max(30, totalDuration + interval);
+        const timeoutId = setTimeout(() => {
+          macroSequenceTimersRef.current =
+            macroSequenceTimersRef.current.filter(item => item !== timeoutId);
+          runLoop();
+        }, delay);
+        macroSequenceTimersRef.current.push(timeoutId);
+      };
+      runLoop();
+      return;
+    }
+
+    clearMacroTimers();
+    runMacroSteps(rawSteps);
 
     if (settings.vibration) {
       Vibration.vibrate(20);

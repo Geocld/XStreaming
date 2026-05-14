@@ -298,6 +298,18 @@ export default {
     Buttons: 'Buttons',
     'Hold duration': 'Hold duration',
     'Wait after action': 'Wait after action',
+    'Loop macro': 'Loop macro',
+    'Press macro once to loop, press again to stop':
+      'Press macro once to loop, press again to stop',
+    'Loop interval': 'Loop interval',
+    'Action type': 'Action type',
+    'Button macro': 'Button macro',
+    'Stick macro': 'Stick macro',
+    Stick: 'Stick',
+    'Left stick': 'Left stick',
+    'Right stick': 'Right stick',
+    Move: 'Move',
+    'Move duration': 'Move duration',
     'Macro action sequence': 'Macro action sequence',
     'Tap + to add sequence step': 'Tap + to add sequence step',
     'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':

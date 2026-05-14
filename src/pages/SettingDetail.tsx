@@ -414,7 +414,7 @@ function SettingDetailScreen({navigation, route}) {
             onValueChange={val => {
               setValue(parseFloat(val.toFixed(2)));
             }}
-            lowerLimit={0.1}
+            lowerLimit={currentMetas.min}
             minimumTrackTintColor={primaryColor}
             maximumTrackTintColor="grey"
           />

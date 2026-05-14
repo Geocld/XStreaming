@@ -18,6 +18,7 @@ import {useTranslation} from 'react-i18next';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
+  normalizeMacroLoopIntervalMs,
   normalizeMacroStep,
   normalizeMacroSteps,
   VIRTUAL_MACRO_ALLOWED_BUTTONS,
@@ -62,11 +63,35 @@ function VirtualMacroSettingsScreen({navigation}) {
     saveSettings(nextSettings);
   };
 
+  const handleLoopEnabledChange = (enabled: boolean) => {
+    const nextSettings = {
+      ...settings,
+      virtual_macro_loop_enabled: enabled,
+    };
+    setSettings(nextSettings);
+    saveSettings(nextSettings);
+  };
+
+  const handleLoopIntervalChange = (value: number, shouldSave = false) => {
+    const nextSettings = {
+      ...settings,
+      virtual_macro_loop_interval_ms: normalizeMacroLoopIntervalMs(value),
+    };
+    setSettings(nextSettings);
+    if (shouldSave) {
+      saveSettings(nextSettings);
+    }
+  };
+
   const openAddModal = () => {
     setEditing({
       index: -1,
       step: {
+        type: 'buttons',
         buttons: ['A'],
+        stick: 'left',
+        x: 0,
+        y: 0,
         durationMs: 80,
         waitAfterMs: 0,
       },
@@ -116,6 +141,9 @@ function VirtualMacroSettingsScreen({navigation}) {
     );
     const nextSettings = {
       ...settings,
+      virtual_macro_loop_interval_ms: normalizeMacroLoopIntervalMs(
+        settings.virtual_macro_loop_interval_ms,
+      ),
       virtual_macro_short_press_steps: normalized,
       virtual_macro_long_press_steps: normalized,
     };
@@ -147,6 +175,27 @@ function VirtualMacroSettingsScreen({navigation}) {
     () => [styles.heroHint, {color: shiftColor(theme.colors.primary, 0.55)}],
     [theme.colors.primary],
   );
+  const loopInterval = normalizeMacroLoopIntervalMs(
+    settings.virtual_macro_loop_interval_ms,
+  );
+  const getStepTitle = (step: VirtualMacroStep, index: number) => {
+    if (step.type === 'stick') {
+      return `${index + 1}. ${t('Stick')}: ${t(
+        step.stick === 'right' ? 'Right stick' : 'Left stick',
+      )}`;
+    }
+    return `${index + 1}. ${step.buttons.join(' + ')}`;
+  };
+  const getStepDescription = (step: VirtualMacroStep) => {
+    if (step.type === 'stick') {
+      return `X: ${step.x.toFixed(2)} · Y: ${step.y.toFixed(2)} · ${t(
+        'Move',
+      )}: ${step.durationMs}ms · ${t('Wait')}: ${step.waitAfterMs}ms`;
+    }
+    return `${t('Hold')}: ${step.durationMs}ms · ${t('Wait')}: ${
+      step.waitAfterMs
+    }ms`;
+  };
 
   return (
     <View style={styles.container}>
@@ -179,6 +228,33 @@ function VirtualMacroSettingsScreen({navigation}) {
                 'Enable macro button and edit its action sequence in one place.',
               )}
             </Text>
+            <Divider style={styles.switchDivider} />
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextWrap}>
+                <Text style={switchTitleStyle}>{t('Loop macro')}</Text>
+                <Text style={switchDescStyle}>
+                  {t('Press macro once to loop, press again to stop')}
+                </Text>
+              </View>
+              <Switch
+                value={!!settings.virtual_macro_loop_enabled}
+                onValueChange={handleLoopEnabledChange}
+                color={theme.colors.primary}
+              />
+            </View>
+            <Text style={styles.modalLabel}>
+              {t('Loop interval')}: {loopInterval}ms
+            </Text>
+            <Slider
+              value={loopInterval}
+              minimumValue={0}
+              maximumValue={10000}
+              step={50}
+              onValueChange={handleLoopIntervalChange}
+              onSlidingComplete={value => handleLoopIntervalChange(value, true)}
+              minimumTrackTintColor={theme.colors.primary}
+              maximumTrackTintColor="#5f5f5f"
+            />
           </Card.Content>
         </Card>
 
@@ -199,12 +275,17 @@ function VirtualMacroSettingsScreen({navigation}) {
               steps.map((step, index) => (
                 <List.Item
                   key={`step-${index}`}
-                  title={`${index + 1}. ${step.buttons.join(' + ')}`}
-                  description={`${t('Hold')}: ${step.durationMs}ms · ${t(
-                    'Wait',
-                  )}: ${step.waitAfterMs}ms`}
+                  title={getStepTitle(step, index)}
+                  description={getStepDescription(step)}
                   left={props => (
-                    <List.Icon {...props} icon="gesture-tap-button" />
+                    <List.Icon
+                      {...props}
+                      icon={
+                        step.type === 'stick'
+                          ? 'gamepad-variant-outline'
+                          : 'gesture-tap-button'
+                      }
+                    />
                   )}
                   right={props => (
                     <IconButton
@@ -246,42 +327,109 @@ function VirtualMacroSettingsScreen({navigation}) {
               title={editing?.index !== -1 ? t('Edit action') : t('Add action')}
             />
             <Card.Content>
-              <Text style={styles.modalLabel}>{t('Buttons')}</Text>
-              <Divider />
-              <ScrollView style={styles.buttonsScroll}>
-                {VIRTUAL_MACRO_ALLOWED_BUTTONS.map(button => {
-                  const selected = editing?.step.buttons?.includes(button);
-                  return (
-                    <Checkbox.Item
-                      key={button}
-                      label={button}
-                      status={selected ? 'checked' : 'unchecked'}
+              <Text style={styles.modalLabel}>{t('Action type')}</Text>
+              <View style={styles.typeRow}>
+                <Button
+                  mode={
+                    editing?.step.type === 'stick' ? 'outlined' : 'contained'
+                  }
+                  style={styles.typeButton}
+                  onPress={() => {
+                    if (!editing) {
+                      return;
+                    }
+                    setEditing({
+                      ...editing,
+                      step: {
+                        ...editing.step,
+                        type: 'buttons',
+                      },
+                    });
+                  }}>
+                  {t('Button macro')}
+                </Button>
+                <Button
+                  mode={
+                    editing?.step.type === 'stick' ? 'contained' : 'outlined'
+                  }
+                  style={styles.typeButton}
+                  onPress={() => {
+                    if (!editing) {
+                      return;
+                    }
+                    setEditing({
+                      ...editing,
+                      step: {
+                        ...editing.step,
+                        type: 'stick',
+                        buttons: editing.step.buttons?.length
+                          ? editing.step.buttons
+                          : ['A'],
+                        stick: editing.step.stick || 'left',
+                      },
+                    });
+                  }}>
+                  {t('Stick macro')}
+                </Button>
+              </View>
+
+              {editing?.step.type === 'stick' ? (
+                <>
+                  <Text style={styles.modalLabel}>{t('Stick')}</Text>
+                  <View style={styles.typeRow}>
+                    <Button
+                      mode={
+                        editing?.step.stick === 'right'
+                          ? 'outlined'
+                          : 'contained'
+                      }
+                      style={styles.typeButton}
                       onPress={() => {
                         if (!editing) {
                           return;
                         }
-                        const current = Array.isArray(editing.step.buttons)
-                          ? editing.step.buttons
-                          : [];
-                        const next = selected
-                          ? current.filter(item => item !== button)
-                          : [...current, button];
                         setEditing({
                           ...editing,
                           step: {
                             ...editing.step,
-                            buttons: next,
+                            stick: 'left',
                           },
                         });
-                      }}
-                    />
-                  );
-                })}
-                {!!editing?.step.buttons?.length && (
-                  <Button
-                    compact
-                    mode="text"
-                    onPress={() => {
+                      }}>
+                      {t('Left stick')}
+                    </Button>
+                    <Button
+                      mode={
+                        editing?.step.stick === 'right'
+                          ? 'contained'
+                          : 'outlined'
+                      }
+                      style={styles.typeButton}
+                      onPress={() => {
+                        if (!editing) {
+                          return;
+                        }
+                        setEditing({
+                          ...editing,
+                          step: {
+                            ...editing.step,
+                            stick: 'right',
+                          },
+                        });
+                      }}>
+                      {t('Right stick')}
+                    </Button>
+                  </View>
+
+                  <Text style={styles.modalLabel}>
+                    X: {(editing?.step.x ?? 0).toFixed(2)}
+                  </Text>
+                  <Slider
+                    value={editing?.step.x ?? 0}
+                    minimumValue={-1}
+                    maximumValue={1}
+                    step={0.01}
+                    onValueChange={val => {
                       if (!editing) {
                         return;
                       }
@@ -289,17 +437,99 @@ function VirtualMacroSettingsScreen({navigation}) {
                         ...editing,
                         step: {
                           ...editing.step,
-                          buttons: [],
+                          x: Number(val.toFixed(2)),
                         },
                       });
-                    }}>
-                    {t('Reset')}
-                  </Button>
-                )}
-              </ScrollView>
+                    }}
+                    minimumTrackTintColor={theme.colors.primary}
+                    maximumTrackTintColor="#5f5f5f"
+                  />
+
+                  <Text style={styles.modalLabel}>
+                    Y: {(editing?.step.y ?? 0).toFixed(2)}
+                  </Text>
+                  <Slider
+                    value={editing?.step.y ?? 0}
+                    minimumValue={-1}
+                    maximumValue={1}
+                    step={0.01}
+                    onValueChange={val => {
+                      if (!editing) {
+                        return;
+                      }
+                      setEditing({
+                        ...editing,
+                        step: {
+                          ...editing.step,
+                          y: Number(val.toFixed(2)),
+                        },
+                      });
+                    }}
+                    minimumTrackTintColor={theme.colors.primary}
+                    maximumTrackTintColor="#5f5f5f"
+                  />
+                </>
+              ) : (
+                <>
+                  <Text style={styles.modalLabel}>{t('Buttons')}</Text>
+                  <Divider />
+                  <ScrollView style={styles.buttonsScroll}>
+                    {VIRTUAL_MACRO_ALLOWED_BUTTONS.map(button => {
+                      const selected = editing?.step.buttons?.includes(button);
+                      return (
+                        <Checkbox.Item
+                          key={button}
+                          label={button}
+                          status={selected ? 'checked' : 'unchecked'}
+                          onPress={() => {
+                            if (!editing) {
+                              return;
+                            }
+                            const current = Array.isArray(editing.step.buttons)
+                              ? editing.step.buttons
+                              : [];
+                            const next = selected
+                              ? current.filter(item => item !== button)
+                              : [...current, button];
+                            setEditing({
+                              ...editing,
+                              step: {
+                                ...editing.step,
+                                buttons: next,
+                              },
+                            });
+                          }}
+                        />
+                      );
+                    })}
+                    {!!editing?.step.buttons?.length && (
+                      <Button
+                        compact
+                        mode="text"
+                        onPress={() => {
+                          if (!editing) {
+                            return;
+                          }
+                          setEditing({
+                            ...editing,
+                            step: {
+                              ...editing.step,
+                              buttons: [],
+                            },
+                          });
+                        }}>
+                        {t('Reset')}
+                      </Button>
+                    )}
+                  </ScrollView>
+                </>
+              )}
 
               <Text style={styles.modalLabel}>
-                {t('Hold duration')}: {editing?.step.durationMs ?? 0}ms
+                {editing?.step.type === 'stick'
+                  ? t('Move duration')
+                  : t('Hold duration')}
+                : {editing?.step.durationMs ?? 0}ms
               </Text>
               <Slider
                 value={editing?.step.durationMs ?? 80}
@@ -442,6 +672,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
     fontWeight: '600',
+  },
+  typeRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  typeButton: {
+    flex: 1,
   },
   modalActions: {
     marginTop: 10,

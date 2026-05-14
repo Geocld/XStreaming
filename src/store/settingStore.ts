@@ -57,6 +57,8 @@ export type Settings = {
   virtual_gamepad_joystick: number;
   custom_virtual_gamepad: string;
   virtual_macro_enabled: boolean;
+  virtual_macro_loop_enabled: boolean;
+  virtual_macro_loop_interval_ms: number;
   virtual_macro_long_press_ms: number;
   virtual_macro_short_press_steps: any[];
   virtual_macro_long_press_steps: any[];
@@ -131,6 +133,8 @@ const defaultSettings: Settings = {
   custom_virtual_gamepad: '',
   virtual_gamepad_joystick: 1,
   virtual_macro_enabled: false,
+  virtual_macro_loop_enabled: false,
+  virtual_macro_loop_interval_ms: 500,
   virtual_macro_long_press_ms: DEFAULT_VIRTUAL_MACRO_LONG_PRESS_MS,
   virtual_macro_short_press_steps: DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
   virtual_macro_long_press_steps: DEFAULT_VIRTUAL_MACRO_LONG_STEPS,

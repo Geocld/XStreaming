@@ -105,16 +105,17 @@ export default {
     'Vibration intensity': '震动强度',
     'Config vibration intensity of controller': '调节控制器震动强度',
     'Joystick dead zone': '摇杆中心死区',
-    'Config joystick dead zone': '设置摇杆中心死区',
+    'Config joystick dead zone':
+      '如果控制器存在漂移，请设置摇杆中心死区缓解漂移问题',
     'Joystick edge compensation': '摇杆边缘补偿',
     "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation":
       '如果你的摇杆最大值达不到预期，可以在此处设置最大值补偿',
     'Set region': '地区设置',
     'Changing the region allows you to use XGPU services without a proxy':
-      '修改地区可以免代理使用XGPU服务',
+      '修改地区可以免代理使用XGP服务',
     'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
       '信令服务器用于串流开始握手阶段，如出现无法连接主机/云游戏的情况，请尝试修改此选项',
-    'Prioritize using IPv6 connection': '优先使用Ipv6连接',
+    'Prioritize using IPv6 connection': '优先使用IPv6连接',
     'Preferred language of game': '游戏偏好语言',
     'Set language of cloud game':
       '设置游戏偏好语言，该选项会影响云游戏语言及好友、成就语言',
@@ -132,9 +133,9 @@ export default {
     Theme: '主题',
     'Set the app theme to take effect on the next launch':
       '设置APP主题，下次启动生效',
-    'Theme primary color': '主题主色',
+    'Theme primary color': '主题色',
     'Choose app primary color, takes effect on next launch':
-      '选择应用主题主色，下次启动生效',
+      '选择应用主题色，下次启动生效',
     'Choose from preset palette for best readability':
       '建议从预设调色盘中选择，以获得更好的可读性',
     'Signal server': '信令服务器',
@@ -150,7 +151,7 @@ export default {
       'Native渲染引擎下无法设置画面',
     'Override native Xbox gamepad support': '覆盖安卓手柄支持',
     bind_usb_device_description:
-      '强制XStreaming的USB驱动接管所有受支持的Xbox/DualSense手柄(实验性)',
+      '强制XStreaming的USB驱动接管所有受支持的Xbox/DualSense手柄',
     bind_usb_device_tips:
       '该设置只有支持xinput或dualsense协议的手柄有线连接(OTG)才生效',
     'Power on when streaming': '开机串流',
@@ -440,6 +441,18 @@ export default {
     Buttons: '按键组',
     'Hold duration': '按住时长',
     'Wait after action': '动作后等待',
+    'Loop macro': '循环执行宏',
+    'Press macro once to loop, press again to stop':
+      '按一次宏按键开始循环，再按一次停止',
+    'Loop interval': '循环间隔',
+    'Action type': '动作类型',
+    'Button macro': '按键宏',
+    'Stick macro': '摇杆宏',
+    Stick: '摇杆',
+    'Left stick': '左摇杆',
+    'Right stick': '右摇杆',
+    Move: '移动',
+    'Move duration': '移动时长',
     'Macro action sequence': '宏动作序列',
     'Tap + to add sequence step': '点击 + 添加动作步骤',
     'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':
