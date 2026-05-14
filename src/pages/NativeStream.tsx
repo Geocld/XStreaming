@@ -13,15 +13,7 @@ import {
   Vibration,
   AppState,
 } from 'react-native';
-import {
-  Portal,
-  Modal,
-  Card,
-  List,
-  Button,
-  IconButton,
-  TextInput,
-} from 'react-native-paper';
+import {Portal, Modal, Card, List, IconButton} from 'react-native-paper';
 import {RTCView, MediaStream, RTCRtpReceiver} from 'react-native-webrtc';
 import Orientation from 'react-native-orientation-locker';
 import Spinner from '../components/Spinner';
@@ -72,6 +64,7 @@ const {
   SensorModule,
   GamepadSensorModule,
   PipManager,
+  NativeInputDialog,
 } = NativeModules;
 
 let defaultMaping: any = GAMEPAD_MAPING;
@@ -168,25 +161,12 @@ function NativeStreamScreen({navigation, route}) {
   const [settings, setSettings] = React.useState<any>({});
   const [isExiting, setIsExiting] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
-  const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [connectState, setConnectState] = React.useState('');
   const [performance, setPerformance] = React.useState<any>({});
   const [showPerformance, setShowPerformance] = React.useState(false);
   const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
-  const [message, setMessage] = React.useState('');
   const [messageSending, setMessageSending] = React.useState(false);
-  const [showSystemKeyboardModal, setShowSystemKeyboardModal] =
-    React.useState(false);
-  const [systemKeyboardTitle, setSystemKeyboardTitle] = React.useState('');
-  const [systemKeyboardDescription, setSystemKeyboardDescription] =
-    React.useState('');
-  const [systemKeyboardText, setSystemKeyboardText] = React.useState('');
-  const [systemKeyboardMaxLength, setSystemKeyboardMaxLength] = React.useState<
-    number | undefined
-  >(undefined);
-  const [systemKeyboardInputScope, setSystemKeyboardInputScope] =
-    React.useState(0);
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
@@ -224,10 +204,7 @@ function NativeStreamScreen({navigation, route}) {
   const orientationLockTimer = React.useRef<any>(null);
   const orientationLayoutTimer = React.useRef<any>(null);
   const returnOrientationRef = React.useRef<ScreenOrientation | null>(null);
-  const supportedSystemUis = React.useMemo(
-    () => (Platform.isTV ? [] : [10, 19]),
-    [],
-  );
+  const supportedSystemUis = React.useMemo(() => [10, 19], []);
   const shouldRestoreOrientationRef = React.useRef(false);
 
   const isTriggerWork = React.useRef(false);
@@ -288,31 +265,29 @@ function NativeStreamScreen({navigation, route}) {
   ]);
 
   const closeSystemKeyboardModal = React.useCallback(() => {
-    setShowSystemKeyboardModal(false);
-    setSystemKeyboardTitle('');
-    setSystemKeyboardDescription('');
-    setSystemKeyboardText('');
-    setSystemKeyboardMaxLength(undefined);
-    setSystemKeyboardInputScope(0);
+    NativeInputDialog?.dismiss?.();
     systemKeyboardTransactionRef.current = null;
   }, []);
 
-  const completeSystemKeyboard = React.useCallback(() => {
-    const transaction = systemKeyboardTransactionRef.current;
-    if (
-      transaction &&
-      transaction.isTransaction &&
-      transaction.completion &&
-      typeof transaction.completion.complete === 'function'
-    ) {
-      transaction.completion.complete(
-        JSON.stringify({
-          Text: systemKeyboardText,
-        }),
-      );
-    }
-    closeSystemKeyboardModal();
-  }, [closeSystemKeyboardModal, systemKeyboardText]);
+  const completeSystemKeyboard = React.useCallback(
+    (text: string) => {
+      const transaction = systemKeyboardTransactionRef.current;
+      if (
+        transaction &&
+        transaction.isTransaction &&
+        transaction.completion &&
+        typeof transaction.completion.complete === 'function'
+      ) {
+        transaction.completion.complete(
+          JSON.stringify({
+            Text: text,
+          }),
+        );
+      }
+      closeSystemKeyboardModal();
+    },
+    [closeSystemKeyboardModal],
+  );
 
   const cancelSystemKeyboard = React.useCallback(() => {
     const transaction = systemKeyboardTransactionRef.current;
@@ -327,45 +302,69 @@ function NativeStreamScreen({navigation, route}) {
     closeSystemKeyboardModal();
   }, [closeSystemKeyboardModal]);
 
-  const resolveSystemKeyboardProps = React.useCallback(() => {
-    let keyboardType:
-      | 'default'
-      | 'email-address'
-      | 'numeric'
-      | 'phone-pad'
-      | 'url'
-      | 'web-search' = 'default';
-    let secureTextEntry = false;
+  const showNativeInputDialog = React.useCallback(
+    async (options: any) => {
+      if (isInPictureInPicture || !NativeInputDialog?.showTextInput) {
+        return null;
+      }
 
-    switch (systemKeyboardInputScope) {
-      case 1:
-        keyboardType = 'url';
-        break;
-      case 5:
-        keyboardType = 'email-address';
-        break;
-      case 29:
-        keyboardType = 'numeric';
-        break;
-      case 31:
-        secureTextEntry = true;
-        break;
-      case 32:
-        keyboardType = 'phone-pad';
-        break;
-      case 50:
-        keyboardType = 'web-search';
-        break;
-      default:
-        keyboardType = 'default';
-        break;
-    }
+      try {
+        return await NativeInputDialog.showTextInput(options);
+      } catch (error) {
+        return null;
+      }
+    },
+    [isInPictureInPicture],
+  );
 
-    return {
-      keyboardType,
-      secureTextEntry,
-    };
-  }, [systemKeyboardInputScope]);
+  const openSystemKeyboardDialog = React.useCallback(
+    async (event: any, payload: any) => {
+      systemKeyboardTransactionRef.current = {
+        id: event.id,
+        isTransaction: event.isTransaction,
+        completion: event.completion,
+      };
+
+      if (
+        event.isTransaction &&
+        event.completion &&
+        typeof event.completion.setOnRemoteCancellation === 'function'
+      ) {
+        const transactionId = event.id;
+        event.completion.setOnRemoteCancellation(() => {
+          if (systemKeyboardTransactionRef.current?.id === transactionId) {
+            systemKeyboardTransactionRef.current = null;
+            NativeInputDialog?.dismiss?.();
+          }
+        });
+      }
+
+      const result = await showNativeInputDialog({
+        title: payload.TitleText || '',
+        message: payload.DescriptionText || '',
+        text: payload.DefaultText || '',
+        hint: t('Text'),
+        inputScope: payload.InputScope ?? 0,
+        maxLength:
+          typeof payload.MaxLength === 'number' && payload.MaxLength > 0
+            ? payload.MaxLength
+            : 0,
+        confirmText: t('Confirm'),
+        cancelText: t('Cancel'),
+      });
+
+      if (systemKeyboardTransactionRef.current?.id !== event.id) {
+        return;
+      }
+
+      if (result?.action === 'confirm') {
+        completeSystemKeyboard(result.text || '');
+      } else {
+        cancelSystemKeyboard();
+      }
+    },
+    [cancelSystemKeyboard, completeSystemKeyboard, showNativeInputDialog, t],
+  );
 
   const handleSystemUiEvent = React.useCallback(
     (event: any) => {
@@ -470,43 +469,13 @@ function NativeStreamScreen({navigation, route}) {
 
       if (event.target === SYSTEM_UI_TARGET_SHOW_VIRTUAL_KEYBOARD) {
         const payload = event.payload || {};
-
-        setSystemKeyboardTitle(payload.TitleText || '');
-        setSystemKeyboardDescription(payload.DescriptionText || '');
-        setSystemKeyboardText(payload.DefaultText || '');
-        setSystemKeyboardInputScope(payload.InputScope ?? 0);
-        setSystemKeyboardMaxLength(
-          typeof payload.MaxLength === 'number' && payload.MaxLength > 0
-            ? payload.MaxLength
-            : undefined,
-        );
-
-        systemKeyboardTransactionRef.current = {
-          id: event.id,
-          isTransaction: event.isTransaction,
-          completion: event.completion,
-        };
-
-        if (
-          event.isTransaction &&
-          event.completion &&
-          typeof event.completion.setOnRemoteCancellation === 'function'
-        ) {
-          const transactionId = event.id;
-          event.completion.setOnRemoteCancellation(() => {
-            if (systemKeyboardTransactionRef.current?.id === transactionId) {
-              closeSystemKeyboardModal();
-            }
-          });
-        }
-
-        setShowSystemKeyboardModal(true);
+        openSystemKeyboardDialog(event, payload);
         return true;
       }
 
       return false;
     },
-    [closeSystemKeyboardModal, t],
+    [openSystemKeyboardDialog, t],
   );
 
   const handleStreamingMessage = React.useCallback((event: any) => {
@@ -677,9 +646,8 @@ function NativeStreamScreen({navigation, route}) {
         setIsInPictureInPicture(nextIsInPip);
         if (nextIsInPip) {
           setShowModal(false);
-          setShowMessageModal(false);
-          setShowSystemKeyboardModal(false);
           setShowGamepadEditor(false);
+          NativeInputDialog?.dismiss?.();
           macroSequenceTimersRef.current.forEach(timeoutId =>
             clearTimeout(timeoutId),
           );
@@ -1740,20 +1708,41 @@ function NativeStreamScreen({navigation, route}) {
     console.log('powerOff:', powerOffRes);
   };
 
-  const handleSendMessage = async () => {
-    const webApi = new WebApi(webToken);
-    setMessageSending(true);
-    let text = message.trim();
-    if (message.length > 100) {
-      text = text.substring(0, 100);
+  const handleSendMessage = React.useCallback(
+    async (rawMessage: string) => {
+      const webApi = new WebApi(webToken);
+      setMessageSending(true);
+      let text = rawMessage.trim();
+      if (text.length > 100) {
+        text = text.substring(0, 100);
+      }
+      try {
+        await webApi.sendText(route.params?.sessionId, text);
+        ToastAndroid.show(t('Sended'), ToastAndroid.SHORT);
+      } catch (e) {}
+      setMessageSending(false);
+    },
+    [route.params?.sessionId, t, webToken],
+  );
+
+  const openSendTextDialog = React.useCallback(async () => {
+    if (messageSending) {
+      return;
     }
-    try {
-      await webApi.sendText(route.params?.sessionId, text);
-      setMessage('');
-      ToastAndroid.show(t('Sended'), ToastAndroid.SHORT);
-    } catch (e) {}
-    setMessageSending(false);
-  };
+
+    const result = await showNativeInputDialog({
+      title: t('Send text'),
+      hint: t('Text'),
+      text: '',
+      maxLength: 100,
+      confirmText: t('Send'),
+      cancelText: t('Cancel'),
+    });
+
+    if (result?.action === 'confirm') {
+      await handleSendMessage(result.text || '');
+    }
+  }, [handleSendMessage, messageSending, showNativeInputDialog, t]);
 
   const handleExit = (off = false) => {
     setLoading(true);
@@ -2116,8 +2105,8 @@ function NativeStreamScreen({navigation, route}) {
                         title={t('Send text')}
                         background={background}
                         onPress={() => {
-                          setShowMessageModal(true);
                           handleCloseModal();
+                          openSendTextDialog();
                         }}
                       />
                     )}
@@ -2161,87 +2150,6 @@ function NativeStreamScreen({navigation, route}) {
     } else {
       return null;
     }
-  };
-
-  const renderTextPanel = () => {
-    return (
-      <Portal>
-        <Modal
-          visible={showMessageModal && !isInPictureInPicture}
-          onDismiss={() => {
-            setShowMessageModal(false);
-          }}
-          contentContainerStyle={styles.modal}>
-          <Card>
-            <Card.Content>
-              <TextInput
-                label={t('Text')}
-                value={message}
-                onChangeText={text => setMessage(text)}
-              />
-              <Button
-                mode="contained"
-                loading={messageSending}
-                style={{marginTop: 10}}
-                onPress={handleSendMessage}>
-                {t('Send')}
-              </Button>
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
-    );
-  };
-
-  const renderSystemKeyboardPanel = () => {
-    const inputProps = resolveSystemKeyboardProps();
-
-    return (
-      <Portal>
-        <Modal
-          visible={showSystemKeyboardModal && !isInPictureInPicture}
-          onDismiss={cancelSystemKeyboard}
-          contentContainerStyle={styles.modal}>
-          <Card>
-            <Card.Content>
-              {systemKeyboardTitle !== '' && (
-                <List.Subheader>{systemKeyboardTitle}</List.Subheader>
-              )}
-              {systemKeyboardDescription !== '' && (
-                <List.Item
-                  title={systemKeyboardDescription}
-                  titleNumberOfLines={3}
-                />
-              )}
-              <TextInput
-                label={t('Text')}
-                value={systemKeyboardText}
-                onChangeText={text => setSystemKeyboardText(text)}
-                maxLength={systemKeyboardMaxLength}
-                keyboardType={inputProps.keyboardType}
-                secureTextEntry={inputProps.secureTextEntry}
-                autoCapitalize="none"
-              />
-              <View style={{flexDirection: 'row', marginTop: 10}}>
-                <Button
-                  mode="outlined"
-                  style={{flex: 1}}
-                  onPress={cancelSystemKeyboard}>
-                  {t('Cancel')}
-                </Button>
-                <View style={{width: 10}} />
-                <Button
-                  mode="contained"
-                  style={{flex: 1}}
-                  onPress={completeSystemKeyboard}>
-                  {t('Confirm')}
-                </Button>
-              </View>
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
-    );
   };
 
   const renderMenu = () => {
@@ -2360,10 +2268,6 @@ function NativeStreamScreen({navigation, route}) {
       />
 
       {renderOptionsModal()}
-
-      {renderTextPanel()}
-
-      {renderSystemKeyboardPanel()}
 
       {renderMenu()}
     </View>
