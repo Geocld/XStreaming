@@ -208,7 +208,7 @@ export default {
     Korea1: 'Corea 1',
     Korea2: 'Corea 2',
     'United States1': 'EE.UU. 1',
-    'United States2': 'United States 2',
+    'United States2': 'EE.UU. 2',
     'South India': 'Sur de India',
     'Central India': 'Centro de India',
     VeryWeak: 'Muy débil',
