@@ -34,11 +34,6 @@ import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
 import WebApi from '../web';
 import {XBOX_360_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
-import {
-  applyScreenOrientation,
-  getCurrentScreenOrientation,
-  type ScreenOrientation,
-} from '../utils/orientation';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import VirtualGamepadEditor, {
@@ -152,66 +147,27 @@ function StreamScreen({navigation, route}) {
   const activeMacroButtonsRef = React.useRef<Set<string>>(new Set());
   const activeMacroSticksRef = React.useRef<Set<string>>(new Set());
   const isMacroLoopRunningRef = React.useRef(false);
-  const orientationLockTimer = React.useRef<any>(null);
-  const orientationLayoutTimer = React.useRef<any>(null);
-  const returnOrientationRef = React.useRef<ScreenOrientation | null>(null);
-  const shouldRestoreOrientationRef = React.useRef(false);
   const webviewRef = React.useRef(null);
 
-  const clearOrientationTimers = React.useCallback(() => {
-    if (orientationLockTimer.current) {
-      clearTimeout(orientationLockTimer.current);
-      orientationLockTimer.current = null;
-    }
-    if (orientationLayoutTimer.current) {
-      clearTimeout(orientationLayoutTimer.current);
-      orientationLayoutTimer.current = null;
-    }
-  }, []);
-
-  const markOrientationForRestore = React.useCallback(() => {
-    clearOrientationTimers();
-    shouldRestoreOrientationRef.current = true;
-  }, [clearOrientationTimers]);
-
   React.useEffect(() => {
-    let isActive = true;
-    shouldRestoreOrientationRef.current = false;
-    returnOrientationRef.current = null;
-
-    getCurrentScreenOrientation().then(orientation => {
-      if (isActive) {
-        returnOrientationRef.current = orientation;
-      }
-    });
-
-    clearOrientationTimers();
-    orientationLockTimer.current = setTimeout(() => {
+    let layoutTimer: any = null;
+    const lockTimer = setTimeout(() => {
       Orientation.lockToLandscape();
-      orientationLockTimer.current = null;
 
-      orientationLayoutTimer.current = setTimeout(() => {
+      layoutTimer = setTimeout(() => {
         const {height: dHeight} = Dimensions.get('window');
         setModalMaxHeight(dHeight - 50);
-        orientationLayoutTimer.current = null;
       }, 100);
     }, 500);
 
     return () => {
-      isActive = false;
-      clearOrientationTimers();
-      if (shouldRestoreOrientationRef.current) {
-        applyScreenOrientation(returnOrientationRef.current);
-        shouldRestoreOrientationRef.current = false;
-      } else {
-        Orientation.unlockAllOrientations();
+      clearTimeout(lockTimer);
+      if (layoutTimer) {
+        clearTimeout(layoutTimer);
       }
+      Orientation.unlockAllOrientations();
     };
-  }, [
-    route.params?.sessionId,
-    route.params?.streamType,
-    clearOrientationTimers,
-  ]);
+  }, [route.params?.sessionId, route.params?.streamType]);
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
@@ -702,7 +658,7 @@ function StreamScreen({navigation, route}) {
             _streamApi.stopStream().then(() => {
               setTimeout(() => {
                 setIsExiting(false);
-                markOrientationForRestore();
+                Orientation.unlockAllOrientations();
                 FullScreenManager.immersiveModeOff();
                 const dest =
                   route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
@@ -713,7 +669,7 @@ function StreamScreen({navigation, route}) {
               }, 2000);
             });
           } else {
-            markOrientationForRestore();
+            Orientation.unlockAllOrientations();
             FullScreenManager.immersiveModeOff();
             const dest =
               route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
@@ -806,7 +762,6 @@ function StreamScreen({navigation, route}) {
     streamingTokens,
     navigation,
     authentication,
-    markOrientationForRestore,
   ]);
 
   const streamApi = route.params?.streamType === 'cloud' ? xCloudApi : xHomeApi;
@@ -839,7 +794,7 @@ function StreamScreen({navigation, route}) {
       return;
     }
     setIsExiting(true);
-    markOrientationForRestore();
+    Orientation.unlockAllOrientations();
     streamApi.stopStream().then(() => {
       if (needPoweroff) {
         handlePowerOff();
@@ -939,7 +894,7 @@ function StreamScreen({navigation, route}) {
                   if (isExiting) {
                     return;
                   }
-                  markOrientationForRestore();
+                  Orientation.unlockAllOrientations();
                   const dest =
                     route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
                   navigation.navigate(dest);

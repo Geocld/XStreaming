@@ -16,7 +16,6 @@ import {Button, Text, Portal, Modal, Card, useTheme} from 'react-native-paper';
 import Spinner from '../components/Spinner';
 import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
-import Orientation from 'react-native-orientation-locker';
 import ConsoleItem from '../components/ConsoleItem';
 import HomeItem from '../components/HomeItem';
 import {getSettings, saveSettings} from '../store/settingStore';
@@ -85,9 +84,6 @@ function HomeScreen({navigation, route}) {
   const _isFocused = React.useRef(isFocused);
   React.useEffect(() => {
     _isFocused.current = isFocused;
-    if (isFocused) {
-      Orientation.unlockAllOrientations();
-    }
   }, [isFocused]);
 
   const {width} = Dimensions.get('window');
