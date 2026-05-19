@@ -54,7 +54,15 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
   if (performance.resolution) {
     resolutionText = performance.resolution;
     if (settings.resolution === 1081) {
-      resolutionText = resolutionText + '(HQ)';
+      if (settings.fsr) {
+        resolutionText = resolutionText + '(HQ + FSR)';
+      } else {
+        resolutionText = resolutionText + '(HQ)';
+      }
+    } else {
+      if (settings.fsr) {
+        resolutionText = resolutionText + '(FSR)';
+      }
     }
   }
 
@@ -66,14 +74,6 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
             {resolutionText || '-1'} {isHorizon ? '| ' : ''}{' '}
           </Text>
         </View>
-        {settings.fsr && (
-          <View>
-            <Text style={styles.text}>
-              FSR
-              {isHorizon ? ' | ' : ''}
-            </Text>
-          </View>
-        )}
         <View>
           <Text style={styles.text}>
             {t('RTT')}: {performance.rtt || '-1'} {isHorizon ? '| ' : ''}
