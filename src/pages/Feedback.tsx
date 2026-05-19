@@ -20,6 +20,9 @@ function FeedbackScreen() {
       <View style={styles.block}>
         <View style={styles.title}>
           <Text variant="titleLarge">赞赏</Text>
+          <Text variant="titleMedium">
+            赞助开发者购买AI token加速新功能开发
+          </Text>
         </View>
 
         <View style={{paddingBottom: 50}}>
