@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   text: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#fff',
   },
 });

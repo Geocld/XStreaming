@@ -6,8 +6,6 @@ import {
   NativeModules,
   NativeEventEmitter,
   StyleSheet,
-  ScrollView,
-  Dimensions,
   ToastAndroid,
   Platform,
   Vibration,
@@ -15,7 +13,7 @@ import {
   StatusBar,
   useWindowDimensions,
 } from 'react-native';
-import {Portal, Modal, Card, List, IconButton} from 'react-native-paper';
+import {IconButton} from 'react-native-paper';
 import {RTCView, MediaStream, RTCRtpReceiver} from 'react-native-webrtc';
 import Orientation from 'react-native-orientation-locker';
 import Spinner from '../components/Spinner';
@@ -181,7 +179,6 @@ export function NativeStreamScreenBase({
   const [connectState, setConnectState] = React.useState('');
   const [performance, setPerformance] = React.useState<any>({});
   const [showPerformance, setShowPerformance] = React.useState(false);
-  const [modalMaxHeight, setModalMaxHeight] = React.useState(250);
   const [messageSending, setMessageSending] = React.useState(false);
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
@@ -210,12 +207,15 @@ export function NativeStreamScreenBase({
   const triggerEventListener = React.useRef<any>(undefined);
   const isRightstickMoving = React.useRef(false);
   const timer = React.useRef<any>(undefined);
+  const menuLongPressTimer = React.useRef<any>(undefined);
+  const menuLongPressTriggered = React.useRef(false);
   const frameTimer = React.useRef<any>(undefined);
   const audioRumbleTimer = React.useRef<any>(undefined);
   const appStateSubscription = React.useRef<any>(undefined);
   const pipEventListener = React.useRef<any>(undefined);
   const isRequestExit = React.useRef(false);
   const isConnected = React.useRef(false);
+  const optionsDialogOpenRef = React.useRef(false);
   const macroSequenceTimersRef = React.useRef<any[]>([]);
   const activeMacroButtonsRef = React.useRef<Set<string>>(new Set());
   const activeMacroSticksRef = React.useRef<Set<string>>(new Set());
@@ -265,8 +265,6 @@ export function NativeStreamScreenBase({
       orientationLockTimer.current = null;
 
       orientationLayoutTimer.current = setTimeout(() => {
-        const {height: dHeight} = Dimensions.get('window');
-        setModalMaxHeight(dHeight - 50);
         orientationLayoutTimer.current = null;
       }, 100);
     }, 500);
@@ -779,6 +777,21 @@ export function NativeStreamScreenBase({
           } else {
             targetState[keyName] = 1;
           }
+
+          if (
+            keyName === 'Menu' &&
+            !portraitMode &&
+            !isInPictureInPicture &&
+            !menuLongPressTimer.current
+          ) {
+            menuLongPressTriggered.current = false;
+            menuLongPressTimer.current = setTimeout(() => {
+              menuLongPressTimer.current = undefined;
+              menuLongPressTriggered.current = true;
+              targetState.Menu = 0;
+              setShowModal(true);
+            }, 2000);
+          }
         },
       );
 
@@ -802,6 +815,17 @@ export function NativeStreamScreenBase({
             }
           } else {
             targetState[keyName] = 0;
+          }
+
+          if (keyName === 'Menu') {
+            if (menuLongPressTimer.current) {
+              clearTimeout(menuLongPressTimer.current);
+              menuLongPressTimer.current = undefined;
+            }
+            if (menuLongPressTriggered.current) {
+              targetState.Menu = 0;
+              menuLongPressTriggered.current = false;
+            }
           }
         },
       );
@@ -1723,6 +1747,10 @@ export function NativeStreamScreenBase({
         clearInterval(timer.current);
         timer.current = null;
       }
+      if (menuLongPressTimer.current) {
+        clearTimeout(menuLongPressTimer.current);
+        menuLongPressTimer.current = null;
+      }
       if (frameTimer.current) {
         clearInterval(frameTimer.current);
         frameTimer.current = null;
@@ -1765,6 +1793,7 @@ export function NativeStreamScreenBase({
     markOrientationForRestore,
     supportedSystemUis,
     portraitMode,
+    isInPictureInPicture,
   ]);
 
   React.useEffect(() => {
@@ -1801,11 +1830,11 @@ export function NativeStreamScreenBase({
     };
   }, [connectState, showPerformance, webrtcClient]);
 
-  const handlePowerOff = async () => {
+  const handlePowerOff = React.useCallback(async () => {
     const webApi = new WebApi(webToken);
     const powerOffRes = await webApi.powerOff(route.params?.sessionId);
     console.log('powerOff:', powerOffRes);
-  };
+  }, [route.params?.sessionId, webToken]);
 
   const handleSendMessage = React.useCallback(
     async (rawMessage: string) => {
@@ -1843,44 +1872,56 @@ export function NativeStreamScreenBase({
     }
   }, [handleSendMessage, messageSending, showNativeInputDialog, t]);
 
-  const handleExit = (off = false) => {
-    setLoading(true);
-    setLoadingText(t('Disconnecting...'));
-    if (isExiting) {
-      return;
-    }
-    setIsExiting(true);
-    webrtcClient && webrtcClient.close();
-    markOrientationForRestore();
-    streamApi.stopStream().then(() => {
-      if (off) {
-        handlePowerOff();
+  const handleExit = React.useCallback(
+    (off = false) => {
+      setLoading(true);
+      setLoadingText(t('Disconnecting...'));
+      if (isExiting) {
+        return;
       }
-      setTimeout(() => {
-        setIsExiting(false);
-        setLoading(false);
-        markOrientationForRestore();
-        FullScreenManager.immersiveModeOff();
-        const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
-        navigation.navigate({
-          name: dest,
-          params: {needRefresh: true},
-        });
-      }, 500);
-    });
-  };
+      setIsExiting(true);
+      webrtcClient && webrtcClient.close();
+      markOrientationForRestore();
+      streamApi.stopStream().then(() => {
+        if (off) {
+          handlePowerOff();
+        }
+        setTimeout(() => {
+          setIsExiting(false);
+          setLoading(false);
+          markOrientationForRestore();
+          FullScreenManager.immersiveModeOff();
+          const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+          navigation.navigate({
+            name: dest,
+            params: {needRefresh: true},
+          });
+        }, 500);
+      });
+    },
+    [
+      handlePowerOff,
+      isExiting,
+      markOrientationForRestore,
+      navigation,
+      route.params?.streamType,
+      streamApi,
+      t,
+      webrtcClient,
+    ],
+  );
   handleExitRef.current = handleExit;
 
-  const handleCloseModal = () => {
+  const handleCloseModal = React.useCallback(() => {
     setShowModal(false);
     GamepadManager.setCurrentScreen('stream');
 
     if (!isConnected.current) {
       setLoading(true);
     }
-  };
+  }, []);
 
-  const clearMacroTimers = () => {
+  const clearMacroTimers = React.useCallback(() => {
     macroSequenceTimersRef.current.forEach(timeoutId =>
       clearTimeout(timeoutId),
     );
@@ -1900,7 +1941,7 @@ export function NativeStreamScreenBase({
       }
     });
     activeMacroSticksRef.current.clear();
-  };
+  }, []);
 
   const runMacroSteps = (rawSteps: any) => {
     const allowedButtons = new Set<string>(VIRTUAL_MACRO_ALLOWED_BUTTONS);
@@ -2093,21 +2134,24 @@ export function NativeStreamScreenBase({
     }
   };
 
-  const requestExit = (off = false) => {
-    clearMacroTimers();
-    isRequestExit.current = true;
-    setShowPerformance(false);
-    setShowVirtualGamepad(false);
-    webrtcClient && webrtcClient.close();
-    setShowModal(false);
-    if (settings.sensor) {
-      SensorModule.stopSensor();
-      GamepadSensorModule.stopSensor();
-    }
-    handleExit(off);
-  };
+  const requestExit = React.useCallback(
+    (off = false) => {
+      clearMacroTimers();
+      isRequestExit.current = true;
+      setShowPerformance(false);
+      setShowVirtualGamepad(false);
+      webrtcClient && webrtcClient.close();
+      setShowModal(false);
+      if (settings.sensor) {
+        SensorModule.stopSensor();
+        GamepadSensorModule.stopSensor();
+      }
+      handleExit(off);
+    },
+    [clearMacroTimers, handleExit, settings.sensor, webrtcClient],
+  );
 
-  const handleToggleMic = async () => {
+  const handleToggleMic = React.useCallback(async () => {
     if (!webrtcClient) {
       return;
     }
@@ -2130,16 +2174,16 @@ export function NativeStreamScreenBase({
     }
 
     handleCloseModal();
-  };
+  }, [handleCloseModal, t, webrtcClient]);
 
   const getActiveProfileName = React.useCallback(() => {
     return settings.custom_virtual_gamepad || LIVE_GAMEPAD_PROFILE;
   }, [settings.custom_virtual_gamepad]);
 
-  const handleOpenGamepadEditor = () => {
+  const handleOpenGamepadEditor = React.useCallback(() => {
     setEditorProfile(getActiveProfileName());
     setShowGamepadEditor(true);
-  };
+  }, [getActiveProfileName]);
 
   const handleSaveGamepadLayout = (layout: ButtonConfig[]) => {
     const profileName = editorProfile || getActiveProfileName();
@@ -2153,6 +2197,159 @@ export function NativeStreamScreenBase({
     setShowVirtualGamepad(true);
     setShowGamepadEditor(false);
   };
+
+  const showNativeOptionsDialog = React.useCallback(
+    async (items: Array<{id: string; title: string}>) => {
+      if (!NativeInputDialog?.showOptions) {
+        return null;
+      }
+
+      try {
+        return await NativeInputDialog.showOptions({
+          items,
+        });
+      } catch (error) {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const openOptionsModal = React.useCallback(async () => {
+    if (optionsDialogOpenRef.current) {
+      return;
+    }
+    if (portraitMode || isInPictureInPicture) {
+      handleCloseModal();
+      return;
+    }
+
+    optionsDialogOpenRef.current = true;
+    GamepadManager.setCurrentScreen('');
+
+    const items: Array<{id: string; title: string}> = [];
+    if (connectState === CONNECTED) {
+      items.push({
+        id: 'togglePerformance',
+        title: t('Toggle Performance'),
+      });
+      items.push({
+        id: 'toggleVirtualGamepad',
+        title: t('Toggle Virtual Gamepad'),
+      });
+      if (showVirtualGamepad) {
+        items.push({
+          id: 'editVirtualGamepad',
+          title: t('Edit Virtual Gamepad'),
+        });
+      }
+      if (settings.enable_microphone) {
+        items.push({
+          id: 'toggleMicrophone',
+          title: openMicro ? t('Close Microphone') : t('Open Microphone'),
+        });
+      }
+      items.push({
+        id: 'pressNexus',
+        title: t('Press Nexus'),
+      });
+      if (route.params?.streamType !== 'cloud') {
+        items.push({
+          id: 'longPressNexus',
+          title: t('Long press Nexus'),
+        });
+        items.push({
+          id: 'sendText',
+          title: t('Send text'),
+        });
+      }
+      if (settings.power_on && route.params?.streamType !== 'cloud') {
+        items.push({
+          id: 'disconnectPowerOff',
+          title: t('Disconnect and power off'),
+        });
+      }
+    }
+    items.push({
+      id: 'disconnect',
+      title: t('Disconnect'),
+    });
+
+    const result = await showNativeOptionsDialog(items);
+    optionsDialogOpenRef.current = false;
+
+    if (result?.action !== 'select') {
+      handleCloseModal();
+      return;
+    }
+
+    handleCloseModal();
+
+    switch (result.id) {
+      case 'togglePerformance':
+        setShowPerformance(!showPerformance);
+        break;
+      case 'toggleVirtualGamepad':
+        if (showVirtualGamepad) {
+          clearMacroTimers();
+        }
+        setShowVirtualGamepad(!showVirtualGamepad);
+        break;
+      case 'editVirtualGamepad':
+        handleOpenGamepadEditor();
+        break;
+      case 'toggleMicrophone':
+        await handleToggleMic();
+        break;
+      case 'pressNexus':
+        gpState.Nexus = 1;
+        setTimeout(() => {
+          gpState.Nexus = 0;
+        }, 120);
+        break;
+      case 'longPressNexus':
+        gpState.Nexus = 1;
+        setTimeout(() => {
+          gpState.Nexus = 0;
+        }, 1000);
+        break;
+      case 'sendText':
+        openSendTextDialog();
+        break;
+      case 'disconnectPowerOff':
+        requestExit(true);
+        break;
+      case 'disconnect':
+        requestExit(false);
+        break;
+      default:
+        break;
+    }
+  }, [
+    clearMacroTimers,
+    connectState,
+    handleCloseModal,
+    handleOpenGamepadEditor,
+    handleToggleMic,
+    isInPictureInPicture,
+    openMicro,
+    openSendTextDialog,
+    portraitMode,
+    requestExit,
+    route.params?.streamType,
+    settings.enable_microphone,
+    settings.power_on,
+    showNativeOptionsDialog,
+    showPerformance,
+    showVirtualGamepad,
+    t,
+  ]);
+
+  React.useEffect(() => {
+    if (showModal) {
+      openOptionsModal();
+    }
+  }, [openOptionsModal, showModal]);
 
   const renderVirtualGamepad = () => {
     if (portraitMode) {
@@ -2183,142 +2380,6 @@ export function NativeStreamScreenBase({
         />
       );
     }
-  };
-
-  const renderOptionsModal = () => {
-    const background = {
-      borderless: false,
-      color: 'rgba(255, 255, 255, 0.2)',
-      foreground: true,
-    };
-
-    return (
-      <Portal>
-        <Modal
-          visible={!portraitMode && showModal && !isInPictureInPicture}
-          onDismiss={() => handleCloseModal()}
-          contentContainerStyle={styles.modal}>
-          <Card>
-            <Card.Content>
-              <ScrollView style={{maxHeight: modalMaxHeight}}>
-                <List.Section>
-                  {connectState === CONNECTED && (
-                    <List.Item
-                      title={t('Toggle Performance')}
-                      background={background}
-                      onPress={() => {
-                        setShowPerformance(!showPerformance);
-                        handleCloseModal();
-                      }}
-                    />
-                  )}
-
-                  {connectState === CONNECTED && (
-                    <List.Item
-                      title={t('Toggle Virtual Gamepad')}
-                      background={background}
-                      onPress={() => {
-                        if (showVirtualGamepad) {
-                          clearMacroTimers();
-                        }
-                        setShowVirtualGamepad(!showVirtualGamepad);
-                        handleCloseModal();
-                      }}
-                    />
-                  )}
-
-                  {connectState === CONNECTED && showVirtualGamepad && (
-                    <List.Item
-                      title={t('Edit Virtual Gamepad')}
-                      background={background}
-                      onPress={() => {
-                        handleCloseModal();
-                        handleOpenGamepadEditor();
-                      }}
-                    />
-                  )}
-
-                  {connectState === CONNECTED && settings.enable_microphone && (
-                    <List.Item
-                      title={
-                        openMicro ? t('Close Microphone') : t('Open Microphone')
-                      }
-                      background={background}
-                      onPress={handleToggleMic}
-                    />
-                  )}
-
-                  {connectState === CONNECTED && (
-                    <List.Item
-                      title={t('Press Nexus')}
-                      background={background}
-                      onPress={() => {
-                        gpState.Nexus = 1;
-                        setTimeout(() => {
-                          gpState.Nexus = 0;
-                        }, 120);
-                        handleCloseModal();
-                      }}
-                    />
-                  )}
-                  {connectState === CONNECTED &&
-                    route.params?.streamType !== 'cloud' && (
-                      <List.Item
-                        title={t('Long press Nexus')}
-                        background={background}
-                        onPress={() => {
-                          gpState.Nexus = 1;
-                          setTimeout(() => {
-                            gpState.Nexus = 0;
-                          }, 1000);
-                          handleCloseModal();
-                        }}
-                      />
-                    )}
-
-                  {connectState === CONNECTED &&
-                    route.params?.streamType !== 'cloud' && (
-                      <List.Item
-                        title={t('Send text')}
-                        background={background}
-                        onPress={() => {
-                          handleCloseModal();
-                          openSendTextDialog();
-                        }}
-                      />
-                    )}
-
-                  {connectState === CONNECTED &&
-                    settings.power_on &&
-                    route.params?.streamType !== 'cloud' && (
-                      <List.Item
-                        title={t('Disconnect and power off')}
-                        background={background}
-                        onPress={() => {
-                          requestExit(true);
-                        }}
-                      />
-                    )}
-
-                  <List.Item
-                    title={t('Disconnect')}
-                    background={background}
-                    onPress={() => {
-                      requestExit(false);
-                    }}
-                  />
-                  <List.Item
-                    title={t('Cancel')}
-                    background={background}
-                    onPress={() => handleCloseModal()}
-                  />
-                </List.Section>
-              </ScrollView>
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
-    );
   };
 
   const renderPerformancePanel = () => {
@@ -2609,8 +2670,6 @@ export function NativeStreamScreenBase({
         onCancel={() => setShowGamepadEditor(false)}
       />
 
-      {renderOptionsModal()}
-
       {renderMenu()}
     </View>
   );
@@ -2831,11 +2890,6 @@ const styles = StyleSheet.create({
     borderRadius: 59,
     backgroundColor: 'rgba(255, 255, 255, 0.28)',
     overflow: 'hidden',
-  },
-  modal: {
-    // backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    marginLeft: '32%',
-    marginRight: '32%',
   },
   quickMenu: {
     position: 'absolute',
