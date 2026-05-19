@@ -1,6 +1,16 @@
 import {NativeModules, Platform} from 'react-native';
 
-export const SUPPORTED_LOCALES = ['en', 'zh', 'zht', 'de', 'es', 'pt'] as const;
+export const SUPPORTED_LOCALES = [
+  'en',
+  'zh',
+  'zht',
+  'de',
+  'es',
+  'pt',
+  'ko',
+  'ja',
+  'hi',
+] as const;
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
@@ -8,6 +18,10 @@ export const normalizeAppLocale = (locale?: string | null): SupportedLocale => {
   const raw = String(locale || '')
     .replace('_', '-')
     .toLowerCase();
+
+  if (raw === 'zht') {
+    return 'zht';
+  }
 
   if (raw.startsWith('zh')) {
     if (
@@ -29,6 +43,15 @@ export const normalizeAppLocale = (locale?: string | null): SupportedLocale => {
   }
   if (raw.startsWith('pt')) {
     return 'pt';
+  }
+  if (raw.startsWith('ko')) {
+    return 'ko';
+  }
+  if (raw.startsWith('ja')) {
+    return 'ja';
+  }
+  if (raw.startsWith('hi')) {
+    return 'hi';
   }
 
   return 'en';

@@ -17,19 +17,28 @@ export default {
     NoLogin: 'लॉगिन नहीं है। कृपया लॉगिन करें।',
     'Fetching user info...': 'उपयोगकर्ता की जानकारी प्राप्त की जा रही है...',
     'Fetching consoles...': 'कंसोल की सूची प्राप्त की जा रही है...',
-    'Login successful, refreshing login credentials...': 'लॉगिन सफल रहा, क्रेडेंशियल अपडेट किए जा रहे हैं...',
+    'Login successful, refreshing login credentials...':
+      'लॉगिन सफल रहा, क्रेडेंशियल अपडेट किए जा रहे हैं...',
     'Checking login status...': 'लॉगिन स्थिति की जाँच हो रही है...',
-    MsalAuthTip: 'QR कोड स्कैन करें या ब्राउज़र लिंक खोलें, समय समाप्त होने से पहले कोड दर्ज करें और पूरा होने पर "हो गया" दबाएं।',
-    MsalAuthTimeout: 'प्रमाणीकरण कोड की समय सीमा समाप्त हो गई है। कृपया फिर से प्रयास करें।',
+    MsalAuthTip:
+      'QR कोड स्कैन करें या ब्राउज़र लिंक खोलें, समय समाप्त होने से पहले कोड दर्ज करें और पूरा होने पर "हो गया" दबाएं।',
+    MsalAuthTimeout:
+      'प्रमाणीकरण कोड की समय सीमा समाप्त हो गई है। कृपया फिर से प्रयास करें।',
     Copied: 'कॉपी किया गया',
-    NoConsoles: 'कोई कंसोल नहीं मिला। सुनिश्चित करें कि रिमोट प्ले चालू है और कंसोल आधिकारिक Xbox ऐप में दिखाई दे रहा है।',
+    NoConsoles:
+      'कोई कंसोल नहीं मिला। सुनिश्चित करें कि रिमोट प्ले चालू है और कंसोल आधिकारिक Xbox ऐप में दिखाई दे रहा है।',
     Warning: 'चेतावनी',
-    WaitingForServerToRegister: 'कंसोल कनेक्ट नहीं है। यह अपडेट या लॉगिन न होने के कारण हो सकता है। पावर बटन को 10 सेकंड तक दबाकर रखें।',
-    XboxstreaminghelperErr: 'कंसोल स्ट्रीमिंग सेवा में समस्या है। कृपया कंसोल को पुनरारंभ करें। त्रुटि:',
-    DisabledStreamingErr: 'स्ट्रीमिंग अक्षम है। कृपया Xbox सेटिंग्स में रिमोट फीचर्स की जाँच करें।',
-    'Login has expired or not logged in, please log in again': 'लॉगिन समाप्त हो गया है, कृपया फिर से लॉगिन करें।',
+    WaitingForServerToRegister:
+      'कंसोल कनेक्ट नहीं है। यह अपडेट या लॉगिन न होने के कारण हो सकता है। पावर बटन को 10 सेकंड तक दबाकर रखें।',
+    XboxstreaminghelperErr:
+      'कंसोल स्ट्रीमिंग सेवा में समस्या है। कृपया कंसोल को पुनरारंभ करें। त्रुटि:',
+    DisabledStreamingErr:
+      'स्ट्रीमिंग अक्षम है। कृपया Xbox सेटिंग्स में रिमोट फीचर्स की जाँच करें।',
+    'Login has expired or not logged in, please log in again':
+      'लॉगिन समाप्त हो गया है, कृपया फिर से लॉगिन करें।',
     AuthFailDesc: 'प्रमाणीकरण विफल। त्रुटि:',
-    XalAuthFailDesc: 'XAL प्रमाणीकरण विफल। कृपया MSAL लॉगिन का उपयोग करें। त्रुटि:',
+    XalAuthFailDesc:
+      'XAL प्रमाणीकरण विफल। कृपया MSAL लॉगिन का उपयोग करें। त्रुटि:',
     'Loading...': 'लोड हो रहा है...',
     'Start stream': 'स्ट्रीमिंग शुरू करें',
     'Power on and start stream': 'पावर ऑन और स्ट्रीमिंग शुरू करें',
@@ -43,7 +52,8 @@ export default {
     'Long press Nexus': 'Nexus को देर तक दबाएं',
     Disconnect: 'डिस्कनेक्ट करें',
     'Disconnect and power off': 'डिस्कनेक्ट और पावर ऑफ',
-    NoXGP: 'XGPU नहीं मिला। कृपया अपनी सदस्यता या क्षेत्र सेटिंग्स की जाँच करें।',
+    NoXGP:
+      'XGPU नहीं मिला। कृपया अपनी सदस्यता या क्षेत्र सेटिंग्स की जाँच करें।',
     Recently: 'हाल ही में',
     Newest: 'नवीनतम',
     Stars: 'पसंदीदा',
@@ -55,45 +65,62 @@ export default {
     'App language': 'ऐप की भाषा',
     'Set language of XStreaming': 'XStreaming की भाषा सेट करें',
     Resolution: 'रिज़ॉल्यूशन',
-    'Set resolution, support 720P/1080P/1080P(HQ)': 'रिज़ॉल्यूशन सेट करें (720P/1080P समर्थित)',
-    resolutionTips: '1080P(HQ) के लिए अच्छी इंटरनेट गति की आवश्यकता होती है। कंसोल केवल 1080P तक का समर्थन करता है।',
+    'Set resolution, support 720P/1080P/1080P(HQ)':
+      'रिज़ॉल्यूशन सेट करें (720P/1080P समर्थित)',
+    resolutionTips:
+      '1080P(HQ) के लिए अच्छी इंटरनेट गति की आवश्यकता होती है। कंसोल केवल 1080P तक का समर्थन करता है।',
     'Host stream bitrate': 'होस्ट बिटरेट',
     'Cloud stream bitrate': 'क्लाउड बिटरेट',
     'Audio bitrate': 'ऑडियो बिटरेट',
     'Set the streaming audio bitrate': 'ऑडियो बिटरेट सेट करें',
-    'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)': 'होस्ट स्ट्रीमिंग बिटरेट सेट करें',
-    'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)': 'क्लाउड स्ट्रीमिंग बिटरेट सेट करें',
+    'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
+      'होस्ट स्ट्रीमिंग बिटरेट सेट करें',
+    'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
+      'क्लाउड स्ट्रीमिंग बिटरेट सेट करें',
     Codec: 'कोडेक',
-    'If your device supports newer codecs, it can reduce the video bandwidth requirements': 'नए कोडेक डेटा की खपत कम कर सकते हैं।',
+    'If your device supports newer codecs, it can reduce the video bandwidth requirements':
+      'नए कोडेक डेटा की खपत कम कर सकते हैं।',
     Vibration: 'कंपन',
     'Video stream format': 'वीडियो प्रारूप',
-    'Select video stream format, if you want video fullscreen, please select Stretch or Zoom': 'वीडियो का आकार चुनें। फुलस्क्रीन के लिए स्ट्रेच या ज़ूम चुनें।',
-    'In Native mode, only scaling can be set for the rendering engine.': 'नेटिव मोड में केवल स्केलिंग सेट की जा सकती है।',
+    'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
+      'वीडियो का आकार चुनें। फुलस्क्रीन के लिए स्ट्रेच या ज़ूम चुनें।',
+    'In Native mode, only scaling can be set for the rendering engine.':
+      'नेटिव मोड में केवल स्केलिंग सेट की जा सकती है।',
     'Aspect ratio': 'पहलू अनुपात',
-    'Native: Use native gamepad kernal to vibrate': 'नेटिव: कंट्रोलर कंपन के लिए सिस्टम का उपयोग करें',
+    'Native: Use native gamepad kernal to vibrate':
+      'नेटिव: कंट्रोलर कंपन के लिए सिस्टम का उपयोग करें',
     "Device: Use Phone/Pad's vibrate": 'डिवाइस: फोन के कंपन का उपयोग करें',
-    'Webview: Use Chromium kernal to vibrate': 'Webview: ब्राउज़र इंजन का उपयोग करें',
+    'Webview: Use Chromium kernal to vibrate':
+      'Webview: ब्राउज़र इंजन का उपयोग करें',
     Stretch: 'स्ट्रेच',
     Zoom: 'ज़ूम',
     'Gamepad kernal': 'गेमपै드 कर्नेल',
-    'If your controller supports vibration, you can set whether it vibrates during the game': 'गेम के दौरान कंट्रोलर कंपन को नियंत्रित करें।',
+    'If your controller supports vibration, you can set whether it vibrates during the game':
+      'गेम के दौरान कंट्रोलर कंपन को नियंत्रित करें।',
     'Vibration mode': 'कंपन मोड',
-    'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode': 'यदि कंपन काम नहीं कर रहा है, तो नेटिव मोड आज़माएं।',
+    'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode':
+      'यदि कंपन काम नहीं कर रहा है, तो नेटिव मोड आज़माएं।',
     'Vibration intensity': 'कंपन की तीव्रता',
-    'Config vibration intensity of controller': 'कंट्रोलर कंपन की तीव्रता सेट करें',
+    'Config vibration intensity of controller':
+      'कंट्रोलर कंपन की तीव्रता सेट करें',
     'Joystick dead zone': 'जॉयस्टिक डेड ज़ोन',
-    'Config joystick dead zone': 'स्टिक ड्रिफ्ट को कम करने के लिए डेड ज़ोन सेट करें।',
+    'Config joystick dead zone':
+      'स्टिक ड्रिफ्ट को कम करने के लिए डेड ज़ोन सेट करें।',
     'Joystick edge compensation': 'जॉयस्टिक एज मुआवजा',
-    "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation": "यदि जॉयस्टिक पूरी तरह से काम नहीं कर रहा है, तो मुआवजा सेट करें।",
+    "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation":
+      'यदि जॉयस्टिक पूरी तरह से काम नहीं कर रहा है, तो मुआवजा सेट करें।',
     'Set region': 'क्षेत्र सेट करें',
-    'Changing the region allows you to use XGPU services without a proxy': 'क्षेत्र बदलने से बिना प्रॉक्सी के गेम खेल सकते हैं।',
-    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option': 'कनेक्शन समस्याओं के लिए इस सर्वर को बदलें।',
+    'Changing the region allows you to use XGPU services without a proxy':
+      'क्षेत्र बदलने से बिना प्रॉक्सी के गेम खेल सकते हैं।',
+    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
+      'कनेक्शन समस्याओं के लिए इस सर्वर को बदलें।',
     'Prioritize using IPv6 connection': 'IPv6 को प्राथमिकता दें',
     'Preferred language of game': 'गेम की भाषा',
     'Set language of cloud game': 'क्लाउड गेम की भाषा सेट करें',
     'Key mapping': 'की मैपिंग',
     'Mapping key of gamepad': 'बटन मैपिंग सेट करें',
-    'Currently no network connection, please connect and try again': 'कोई इंटरनेट नहीं है। कृपया कनेक्ट करें।',
+    'Currently no network connection, please connect and try again':
+      'कोई इंटरनेट नहीं है। कृपया कनेक्ट करें।',
     Logout: 'लॉगआउट',
     'Do you want to logout?': 'क्या आप लॉगआउट करना चाहते हैं?',
     'Current user': 'वर्तमान उपयोगकर्ता',
@@ -102,47 +129,63 @@ export default {
     PoweredOnSentText: 'पावर ऑन कमांड भेजी गई',
     PoweredOffSentText: 'पावर ऑफ कमांड भेजी गई',
     Theme: 'थीम',
-    'Set the app theme to take effect on the next launch': 'अगली बार ऐप खोलने पर थीम बदल जाएगी।',
+    'Set the app theme to take effect on the next launch':
+      'अगली बार ऐप खोलने पर थीम बदल जाएगी।',
     'Theme primary color': 'थीम का मुख्य रंग',
     'Choose app primary color, takes effect on next launch': 'ऐप का रंग चुनें।',
-    'Choose from preset palette for best readability': 'बेहतर दिखावट के लिए रंगों का चयन करें।',
+    'Choose from preset palette for best readability':
+      'बेहतर दिखावट के लिए रंगों का चयन करें।',
     'Signal server': 'सिग्नल सर्वर',
     'Virtual gamepad': 'वर्चुअल पैड',
     'Always display the virtual gamepad': 'हमेशा वर्चुअल पैड दिखाएं',
-    'Select gamepad kernal, you can not use virtual gamepad in Web kernal': 'वेब कर्नेल में वर्चुअल पैड काम नहीं करेगा।',
+    'Select gamepad kernal, you can not use virtual gamepad in Web kernal':
+      'वेब कर्नेल में वर्चुअल पैड काम नहीं करेगा।',
     'Config opacity of virtual gamepad': 'वर्चुअल पैड की पारदर्शिता',
     'Display settings': 'डिस्प्ले सेटिंग्स',
-    'Set parameters such as screen clarity and saturation': 'स्क्रीन की स्पष्टता और रंग सेट करें।',
-    'Display settings is not working in native render engine.': 'नेटिव इंजन में डिस्प्ले सेटिंग्स काम नहीं करतीं।',
-    'Override native Xbox gamepad support': 'सिस्टम कंट्रोलर सपोर्ट को ओवरराइड करें',
-    bind_usb_device_description: 'XStreaming ड्राइवर को USB कंट्रोलर संभालने दें।',
+    'Set parameters such as screen clarity and saturation':
+      'स्क्रीन की स्पष्टता और रंग सेट करें।',
+    'Display settings is not working in native render engine.':
+      'नेटिव इंजन में डिस्प्ले सेटिंग्स काम नहीं करतीं।',
+    'Override native Xbox gamepad support':
+      'सिस्टम कंट्रोलर सपोर्ट को ओवरराइड करें',
+    bind_usb_device_description:
+      'XStreaming ड्राइवर को USB कंट्रोलर संभालने दें।',
     bind_usb_device_tips: 'यह केवल OTG केबल वाले कंट्रोलर के लिए है।',
     'Power on when streaming': 'स्ट्रीमिंग के समय पावर ऑन करें',
     power_on_description: 'स्ट्रीमिंग शुरू होने पर कंसोल को जगाएं।',
     'Low Latency Mode': 'लो लेटेंसी मोड',
-    low_latency_mode_description: 'बेहतर स्ट्रीमिंग के लिए वाई-फाई प्रदर्शन मोड का उपयोग करें।',
-    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy': 'बटन की स्थिति स्क्रीन पर थोड़ी अलग हो सकती.।',
+    low_latency_mode_description:
+      'बेहतर स्ट्रीमिंग के लिए वाई-फाई प्रदर्शन मोड का उपयोग करें।',
+    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
+      'बटन की स्थिति स्क्रीन पर थोड़ी अलग हो सकती.।',
     'Customize virtual buttons': 'वर्चुअल बटन कस्टमाइज़ करें',
     'Customize buttons of virtual gamepad': 'वर्चुअल पैड के लेआउट को बदलें।',
     'Edit Virtual Gamepad': 'वर्चुअल पैड संपादित करें',
-    'Click on an element to set its size and display': 'आकार और दिखावट सेट करने के लिए क्लिक करें।',
+    'Click on an element to set its size and display':
+      'आकार और दिखावट सेट करने के लिए क्लिक करें।',
     'Drag elements to adjust their position': 'स्थिति बदलने के लिए खींचें।',
     'Name can not be empty': 'नाम खाली नहीं हो सकता',
     'Show performance': 'प्रदर्शन दिखाएं',
     'Always display the performance panel': 'हमेशा प्रदर्शन पैनल दिखाएं',
     'Performance show style': 'प्रदर्शन की शैली',
-    'Setting performance show style': 'प्रदर्शन की शैली सेट करें (क्षैतिज/लंबवत)',
-    'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive': 'USB डिस्कनेक्ट होने पर गेम से बाहर निकलें और फिर से कनेक्ट करें।',
-    'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first': 'यदि बटन काम नहीं कर रहे हैं, तो पहले होम बटन दबाएं।',
-    'After replacing the Android controller driver, controller button mapping is temporarily not supported': 'ड्राइवर बदलने के बाद मैपिंग अभी उपलब्ध नहीं है।',
+    'Setting performance show style':
+      'प्रदर्शन की शैली सेट करें (क्षैतिज/लंबवत)',
+    'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
+      'USB डिस्कनेक्ट होने पर गेम से बाहर निकलें और फिर से कनेक्ट करें।',
+    'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':
+      'यदि बटन काम नहीं कर रहे हैं, तो पहले होम बटन दबाएं।',
+    'After replacing the Android controller driver, controller button mapping is temporarily not supported':
+      'ड्राइवर बदलने के बाद मैपिंग अभी उपलब्ध नहीं है।',
     'Short Trigger': 'शॉर्ट ट्रिगर',
     ShortTriggerDesc: 'तेज़ प्रतिक्रिया के लिए ट्रिगर को छोटा करें।',
-    noAllow: 'गेम शुरू करने की अनुमति नहीं है। कृपया लॉगिन और सदस्यता की जाँच करें।',
+    noAllow:
+      'गेम शुरू करने की अनुमति नहीं है। कृपया लॉगिन और सदस्यता की जाँच करें।',
     homeNoAllow: 'अनुमति जाँच विफल रही। फिर से लॉगिन करें।',
     Horizon: 'क्षैतिज',
     Vertical: 'लंबवत',
     'Auto check update': 'ऑटो अपडेट',
-    'Whether check XStreaming updates automatically': 'क्या अपडेट की स्वचालित रूप से जाँच करनी है?',
+    'Whether check XStreaming updates automatically':
+      'क्या अपडेट की स्वचालित रूप से जाँच करनी है?',
     BasesSettings: 'बुनियादी सेटिंग्स',
     DisplaySettings: 'डिस्प्ले सेटिंग्स',
     GamepadSettings: 'गेमपै드 सेटिंग्स',
@@ -186,7 +229,8 @@ export default {
     'Virtual Opacity': 'वर्चुअल पारदर्शिता',
     virtual_joystick_title: 'वर्चुअल जॉयस्टिक लेआउट',
     virtual_joystick_desc: 'जॉयस्टिक को फिक्स्ड या फ्री मोड पर सेट करें।',
-    virtual_joystick_tips: 'फ्री मोड में स्क्रीन पर कहीं भी टच करके स्टिक चला सकते हैं।',
+    virtual_joystick_tips:
+      'फ्री मोड में स्क्रीन पर कहीं भी टच करके स्टिक चला सकते हैं।',
     Fixed: 'फिक्स्ड',
     Free: 'फ्री',
     On: 'चालू',
@@ -265,9 +309,11 @@ export default {
     y_axies: 'Y अक्ष',
     all_axies: 'सभी अक्ष',
     DualSense_adaptive_trigger_left: 'DualSense बायां ट्रिगर',
-    DualSense_adaptive_trigger_left_desc: 'बाएं ट्रिगर के लिए रेजिस्टेंस सेट करें।',
+    DualSense_adaptive_trigger_left_desc:
+      'बाएं ट्रिगर के लिए रेजिस्टेंस सेट करें।',
     DualSense_adaptive_trigger_right: 'DualSense दायां ट्रिगर',
-    DualSense_adaptive_trigger_right_desc: 'दाएं ट्रिगर के लिए रेजिस्टेंस सेट करें।',
+    DualSense_adaptive_trigger_right_desc:
+      'दाएं ट्रिगर के लिए रेजिस्टेंस सेट करें।',
     Resistance: 'रेजिस्टेंस',
     Trigger: 'ट्रिगर',
     'Automatic Trigger': 'ऑटो ट्रिगर',
@@ -288,7 +334,8 @@ export default {
     'Modify controller response rate': 'प्रतिक्रिया की गति बदलें।',
     'Connecting...': 'कनेक्ट हो रहा है...',
     'Disconnecting...': 'डिस्कनेक्ट हो रहा है...',
-    'Configuration obtained successfully, initiating offer...': 'कॉन्फ़िगरेशन मिल गया, शुरू हो रहा है...',
+    'Configuration obtained successfully, initiating offer...':
+      'कॉन्फ़िगरेशन मिल गया, शुरू हो रहा है...',
     'Remote offer retrieved successfully...': 'रिमोट ऑफर मिल गया...',
     'Ready to send ICE...': 'ICE भेजने के लिए तैयार...',
     'Exchange ICE successfully...': 'ICE एक्सचेंज सफल...',
@@ -302,7 +349,8 @@ export default {
     'Open Microphone': 'माइक्रोफोन खोलें',
     'Close Microphone': 'माइक्रोफोन बंद करें',
     'Device testing': 'डिवाइस परीक्षण',
-    'Testing current device and controller': 'डिवाइस और कंट्रोलर की जाँच हो रही है...',
+    'Testing current device and controller':
+      'डिवाइस और कंट्रोलर की जाँच हो रही है...',
     Rumble1s: '1 सेकंड कंपन',
     'Stop rumble': 'कंपन रोकें',
     ControllerRumble: 'कंट्रोलर कंपन',
@@ -322,7 +370,8 @@ export default {
     Sensor: 'सेंसर',
     Details: 'विवरण',
     'Clear Cache': 'कैश साफ़ करें',
-    'Clear XStreaming Cache Data(Keep login data)': 'कैश साफ़ करें (लॉगिन डेटा रहेगा)',
+    'Clear XStreaming Cache Data(Keep login data)':
+      'कैश साफ़ करें (लॉगिन डेटा रहेगा)',
     History: 'इतिहास',
     HistoryTitle: 'अपडेट इतिहास',
     HistoryDesc: 'अपडेट का इतिहास देखें।',
@@ -336,7 +385,8 @@ export default {
     inner_server_title: 'इनबिल्ट TURN सर्वर',
     inner_server_desc: 'आधिकारिक सर्वर का उपयोग करें।',
     'Auto toggle hold buttons': 'बटन होल्ड ऑटो टॉगल',
-    'Select what buttons become toggle holdable': 'कौन से बटन होल्ड करने योग्य हों, चुनें।',
+    'Select what buttons become toggle holdable':
+      'कौन से बटन होल्ड करने योग्य हों, चुनें।',
     HoldButtonsSettingsDesc: 'बटन को दबाए रखने के लिए इसका उपयोग करें।',
     'Hold Buttons': 'होल्ड बटन',
     FSR_desc: 'FSR के साथ बेहतर स्पष्टता पाएं।',
@@ -357,15 +407,19 @@ export default {
     'Enable virtual macro button': 'मैक्रो बटन चालू करें।',
     'Virtual macro settings': 'मैक्रो सेटिंग्स',
     'Configure short/long press macro actions': 'मैक्रो क्रियाएं सेट करें।',
-    'Enable macro button and edit its action sequence': 'मैक्रो बटन और उसकी क्रियाएं सेट करें।',
-    'Configure one macro button with separate short/long press action chains for accessibility play styles.': 'मैक्रो चेन कॉन्फ़िगर करें।',
+    'Enable macro button and edit its action sequence':
+      'मैक्रो बटन और उसकी क्रियाएं सेट करें।',
+    'Configure one macro button with separate short/long press action chains for accessibility play styles.':
+      'मैक्रो चेन कॉन्फ़िगर करें।',
     'Macro button': 'मैक्रो बटन',
     'Enable or disable': 'सक्षम या अक्षम',
     'Long press threshold': 'लॉन्ग प्रेस समय',
     'Short press actions': 'शॉर्ट प्रेस क्रियाएं',
     'Long press actions': 'लॉन्ग प्रेस क्रियाएं',
-    'Actions executed when macro button is tapped': 'टैप करने पर होने वाली क्रियाएं।',
-    'Actions executed when macro button is held': 'दबाए रखने पर होने वाली क्रियाएं।',
+    'Actions executed when macro button is tapped':
+      'टैप करने पर होने वाली क्रियाएं।',
+    'Actions executed when macro button is held':
+      'दबाए रखने पर होने वाली क्रियाएं।',
     'No action steps, tap + to add': 'कोई क्रिया नहीं है, + दबाएं।',
     Hold: 'होल्ड',
     Wait: 'प्रतीक्षा',
@@ -376,7 +430,8 @@ export default {
     'Hold duration': 'होल्ड समय',
     'Wait after action': 'क्रिया के बाद प्रतीक्षा',
     'Loop macro': 'लूप मैक्रो',
-    'Press macro once to loop, press again to stop': 'लूप शुरू/बंद करने के लिए दबाएं।',
+    'Press macro once to loop, press again to stop':
+      'लूप शुरू/बंद करने के लिए दबाएं।',
     'Loop interval': 'लूप अंतराल',
     'Action type': 'क्रिया प्रकार',
     'Button macro': 'बटन मैक्रो',
@@ -388,8 +443,11 @@ export default {
     'Move duration': 'मूव समय',
     'Macro action sequence': 'मैक्रो क्रिया अनुक्रम',
     'Tap + to add sequence step': 'अनुक्रम जोड़ने के लिए + दबाएं।',
-    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.': 'एक के बाद एक होने वाली क्रियाएं सेट करें।',
-    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.': 'मैक्रो स्विच सेटिंग्स में है।',
-    'Enable macro button and edit its action sequence in one place.': 'एक ही जगह से मैक्रो सेट करें।',
+    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':
+      'एक के बाद एक होने वाली क्रियाएं सेट करें।',
+    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.':
+      'मैक्रो स्विच सेटिंग्स में है।',
+    'Enable macro button and edit its action sequence in one place.':
+      'एक ही जगह से मैक्रो सेट करें।',
   },
 };

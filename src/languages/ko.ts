@@ -17,19 +17,24 @@ export default {
     NoLogin: '로그인되지 않았습니다. 로그인해 주세요.',
     'Fetching user info...': '사용자 정보를 가져오는 중...',
     'Fetching consoles...': '콘솔 목록을 가져오는 중...',
-    'Login successful, refreshing login credentials...': '로그인 성공, 인증 정보를 갱신하는 중...',
+    'Login successful, refreshing login credentials...':
+      '로그인 성공, 인증 정보를 갱신하는 중...',
     'Checking login status...': '로그인 상태 확인 중...',
-    MsalAuthTip: 'QR 코드를 스캔하거나 브라우저 링크를 열고, 만료되기 전에 인증 코드를 입력한 후 완료되면 "완료"를 누르세요.',
+    MsalAuthTip:
+      'QR 코드를 스캔하거나 브라우저 링크를 열고, 만료되기 전에 인증 코드를 입력한 후 완료되면 "완료"를 누르세요.',
     MsalAuthTimeout: '인증 코드 시간이 만료되었습니다. 다시 시도해 주세요.',
     Copied: '복사됨',
-    NoConsoles: '이 계정에서 콘솔을 찾을 수 없습니다. Xbox가 있다면 리모트 플레이가 활성화되어 있고 공식 Xbox 앱에 표시되는지 확인하세요.',
+    NoConsoles:
+      '이 계정에서 콘솔을 찾을 수 없습니다. Xbox가 있다면 리모트 플레이가 활성화되어 있고 공식 Xbox 앱에 표시되는지 확인하세요.',
     Warning: '경고',
-    WaitingForServerToRegister: '콘솔이 Xbox 서버에 연결되지 않아 스트리밍을 시작할 수 없습니다. 콘솔 상태 이상, 업데이트 중 또는 로그인되지 않은 상태일 수 있습니다. 전원 버튼을 길게 누르거나 전원을 10초 이상 차단해 보세요.',
-    XboxstreaminghelperErr: '콘솔 스트리밍 기능이 제대로 작동하지 않습니다. 이는 XStreaming의 오류가 아니라 콘솔 스트리밍 서비스의 문제입니다. 콘솔을 재부팅해 보세요. 오류:',
-    DisabledStreamingErr: '콘솔에서 스트리밍이 비활성화되어 있습니다. 원인:
-1. Xbox 설정 - 장치 및 연결 - 원격 기능이 활성화되지 않음
-2. 스트리밍을 지원하지 않는 지역의 Xbox일 수 있습니다.',
-    'Login has expired or not logged in, please log in again': '로그인이 만료되었거나 로그인되지 않았습니다. 다시 로그인해 주세요.',
+    WaitingForServerToRegister:
+      '콘솔이 Xbox 서버에 연결되지 않아 스트리밍을 시작할 수 없습니다. 콘솔 상태 이상, 업데이트 중 또는 로그인되지 않은 상태일 수 있습니다. 전원 버튼을 길게 누르거나 전원을 10초 이상 차단해 보세요.',
+    XboxstreaminghelperErr:
+      '콘솔 스트리밍 기능이 제대로 작동하지 않습니다. 이는 XStreaming의 오류가 아니라 콘솔 스트리밍 서비스의 문제입니다. 콘솔을 재부팅해 보세요. 오류:',
+    DisabledStreamingErr:
+      '콘솔에서 스트리밍이 비활성화되어 있습니다. 가능한 원인:\n1. Xbox 설정 - 장치 및 연결 - 원격 기능이 활성화되지 않았습니다.\n2. 스트리밍을 지원하지 않는 중국 본토판 Xbox일 수 있습니다.',
+    'Login has expired or not logged in, please log in again':
+      '로그인이 만료되었거나 로그인되지 않았습니다. 다시 로그인해 주세요.',
     AuthFailDesc: '인증에 실패했습니다. 다시 로그인하세요. 오류:',
     XalAuthFailDesc: 'XAL 인증에 실패했습니다. MSAL 로그인을 시도하세요. 오류:',
     'Loading...': '로딩 중...',
@@ -45,7 +50,8 @@ export default {
     'Long press Nexus': 'Nexus 길게 누르기',
     Disconnect: '연결 끊기',
     'Disconnect and power off': '연결 끊고 전원 끄기',
-    NoXGP: 'XGPU가 없거나 해당 지역에서 xCloud를 사용할 수 없습니다. 계정 권한을 확인하거나 설정에서 지역을 변경하세요.',
+    NoXGP:
+      'XGPU가 없거나 해당 지역에서 xCloud를 사용할 수 없습니다. 계정 권한을 확인하거나 설정에서 지역을 변경하세요.',
     Recently: '최근 항목',
     Newest: '최신순',
     Stars: '즐겨찾기',
@@ -57,45 +63,60 @@ export default {
     'App language': '앱 언어',
     'Set language of XStreaming': 'XStreaming 언어 설정',
     Resolution: '해상도',
-    'Set resolution, support 720P/1080P/1080P(HQ)': '해상도 설정 (720P/1080P 지원)',
-    resolutionTips: '1080P(HQ)는 더 나은 화질을 위해 높은 비트레이트를 지원합니다. 콘솔은 최대 1080P까지만 지원합니다.',
+    'Set resolution, support 720P/1080P/1080P(HQ)':
+      '해상도 설정 (720P/1080P 지원)',
+    resolutionTips:
+      '1080P(HQ)는 더 나은 화질을 위해 높은 비트레이트를 지원합니다. 콘솔은 최대 1080P까지만 지원합니다.',
     'Host stream bitrate': '호스트 비트레이트',
     'Cloud stream bitrate': '클라우드 비트레이트',
     'Audio bitrate': '오디오 비트레이트',
     'Set the streaming audio bitrate': '오디오 비트레이트 설정',
-    'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)': '호스트 스트리밍 비트레이트 설정',
-    'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)': '클라우드 스트리밍 비트레이트 설정',
+    'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
+      '호스트 스트리밍 비트레이트 설정',
+    'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
+      '클라우드 스트리밍 비트레이트 설정',
     Codec: '코덱',
-    'If your device supports newer codecs, it can reduce the video bandwidth requirements': '최신 코덱은 데이터 사용량을 줄일 수 있습니다.',
+    'If your device supports newer codecs, it can reduce the video bandwidth requirements':
+      '최신 코덱은 데이터 사용량을 줄일 수 있습니다.',
     Vibration: '진동',
     'Video stream format': '비디오 형식',
-    'Select video stream format, if you want video fullscreen, please select Stretch or Zoom': '화면 비율을 선택하세요. 전체 화면은 늘리기 또는 확장을 선택하세요.',
-    'In Native mode, only scaling can be set for the rendering engine.': '네이티브 모드에서는 스케일링만 설정 가능합니다.',
+    'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
+      '화면 비율을 선택하세요. 전체 화면은 늘리기 또는 확장을 선택하세요.',
+    'In Native mode, only scaling can be set for the rendering engine.':
+      '네이티브 모드에서는 스케일링만 설정 가능합니다.',
     'Aspect ratio': '화면 비율',
-    'Native: Use native gamepad kernal to vibrate': '네이티브: 시스템 커널 진동 사용',
+    'Native: Use native gamepad kernal to vibrate':
+      '네이티브: 시스템 커널 진동 사용',
     "Device: Use Phone/Pad's vibrate": '기기: 휴대폰 진동 사용',
-    'Webview: Use Chromium kernal to vibrate': 'Webview: 브라우저 커널 진동 사용',
+    'Webview: Use Chromium kernal to vibrate':
+      'Webview: 브라우저 커널 진동 사용',
     Stretch: '늘리기',
     Zoom: '확장',
     'Gamepad kernal': '게임패드 커널',
-    'If your controller supports vibration, you can set whether it vibrates during the game': '게임 중 진동 여부를 설정합니다.',
+    'If your controller supports vibration, you can set whether it vibrates during the game':
+      '게임 중 진동 여부를 설정합니다.',
     'Vibration mode': '진동 모드',
-    'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode': '진동이 작동하지 않으면 네이티브 모드를 시도하세요.',
+    'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode':
+      '진동이 작동하지 않으면 네이티브 모드를 시도하세요.',
     'Vibration intensity': '진동 세기',
     'Config vibration intensity of controller': '컨트롤러 진동 세기 설정',
     'Joystick dead zone': '조이스틱 데드존',
     'Config joystick dead zone': '스틱 쏠림 방지를 위해 데드존을 설정하세요.',
     'Joystick edge compensation': '조이스틱 에지 보정',
-    "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation": "스틱이 끝까지 인식되지 않으면 보정하세요.",
+    "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation":
+      '스틱이 끝까지 인식되지 않으면 보정하세요.',
     'Set region': '지역 설정',
-    'Changing the region allows you to use XGPU services without a proxy': '지역 변경으로 프록시 없이 이용 가능합니다.',
-    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option': '연결 문제 시 이 서버 설정을 변경하세요.',
+    'Changing the region allows you to use XGPU services without a proxy':
+      '지역 변경으로 프록시 없이 이용 가능합니다.',
+    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
+      '연결 문제 시 이 서버 설정을 변경하세요.',
     'Prioritize using IPv6 connection': 'IPv6 연결 우선 사용',
     'Preferred language of game': '게임 언어',
     'Set language of cloud game': '클라우드 게임 언어 설정',
     'Key mapping': '키 매핑',
     'Mapping key of gamepad': '버튼 매핑 설정',
-    'Currently no network connection, please connect and try again': '네트워크 연결이 없습니다.',
+    'Currently no network connection, please connect and try again':
+      '네트워크 연결이 없습니다.',
     Logout: '로그아웃',
     'Do you want to logout?': '로그아웃하시겠습니까?',
     'Current user': '현재 사용자',
@@ -104,39 +125,51 @@ export default {
     PoweredOnSentText: '전원 켜기 명령 전송됨',
     PoweredOffSentText: '전원 끄기 명령 전송됨',
     Theme: '테마',
-    'Set the app theme to take effect on the next launch': '다음 실행 시 테마가 적용됩니다.',
+    'Set the app theme to take effect on the next launch':
+      '다음 실행 시 테마가 적용됩니다.',
     'Theme primary color': '테마 기본 색상',
-    'Choose app primary color, takes effect on next launch': '앱 기본 색상 선택',
-    'Choose from preset palette for best readability': '가독성 좋은 색상을 선택하세요.',
+    'Choose app primary color, takes effect on next launch':
+      '앱 기본 색상 선택',
+    'Choose from preset palette for best readability':
+      '가독성 좋은 색상을 선택하세요.',
     'Signal server': '시그널 서버',
     'Virtual gamepad': '가상 패드',
     'Always display the virtual gamepad': '항상 가상 패드 표시',
-    'Select gamepad kernal, you can not use virtual gamepad in Web kernal': '웹 커널에서는 가상 패드를 사용할 수 없습니다.',
+    'Select gamepad kernal, you can not use virtual gamepad in Web kernal':
+      '웹 커널에서는 가상 패드를 사용할 수 없습니다.',
     'Config opacity of virtual gamepad': '가상 패드 투명도',
     'Display settings': '디스플레이 설정',
-    'Set parameters such as screen clarity and saturation': '화면 선명도 및 채도 설정',
-    'Display settings is not working in native render engine.': '네이티브 엔진에서는 작동하지 않습니다.',
+    'Set parameters such as screen clarity and saturation':
+      '화면 선명도 및 채도 설정',
+    'Display settings is not working in native render engine.':
+      '네이티브 엔진에서는 작동하지 않습니다.',
     'Override native Xbox gamepad support': '네이티브 패드 지원 오버라이드',
     bind_usb_device_description: 'USB 컨트롤러를 직접 제어하도록 설정합니다.',
     bind_usb_device_tips: '유선 연결 컨트롤러 전용입니다.',
     'Power on when streaming': '스트리밍 시 전원 켜기',
     power_on_description: '스트리밍 시작 시 콘솔을 깨웁니다.',
     'Low Latency Mode': '저지연 모드',
-    low_latency_mode_description: '최상의 스트리밍을 위해 Wi-Fi 성능 모드를 사용합니다.',
-    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy': '버튼 위치가 실제와 다를 수 있습니다.',
+    low_latency_mode_description:
+      '최상의 스트리밍을 위해 Wi-Fi 성능 모드를 사용합니다.',
+    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
+      '버튼 위치가 실제와 다를 수 있습니다.',
     'Customize virtual buttons': '가상 버튼 사용자 지정',
     'Customize buttons of virtual gamepad': '가상 패드 레이아웃 편집',
     'Edit Virtual Gamepad': '가상 패드 편집',
-    'Click on an element to set its size and display': '크기 및 표시 설정을 위해 클릭하세요.',
+    'Click on an element to set its size and display':
+      '크기 및 표시 설정을 위해 클릭하세요.',
     'Drag elements to adjust their position': '드래그하여 위치 조정',
     'Name can not be empty': '이름은 필수입니다.',
     'Show performance': '성능 표시',
     'Always display the performance panel': '항상 성능 패널 표시',
     'Performance show style': '성능 표시 스타일',
     'Setting performance show style': '성능 표시 스타일 설정 (가로/세로)',
-    'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive': 'USB 연결 해제 시 게임 재시작이 필요할 수 있습니다.',
-    'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first': '버튼이 안 눌리면 홈 버튼을 먼저 누르세요.',
-    'After replacing the Android controller driver, controller button mapping is temporarily not supported': '드라이버 교체 후 매핑은 아직 지원되지 않습니다.',
+    'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
+      'USB 연결 해제 시 게임 재시작이 필요할 수 있습니다.',
+    'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':
+      '버튼이 안 눌리면 홈 버튼을 먼저 누르세요.',
+    'After replacing the Android controller driver, controller button mapping is temporarily not supported':
+      '드라이버 교체 후 매핑은 아직 지원되지 않습니다.',
     'Short Trigger': '숏 트리거',
     ShortTriggerDesc: '빠른 반응을 위해 트리거 범위를 좁힙니다.',
     noAllow: '권한이 없습니다. 로그인 및 구독을 확인하세요.',
@@ -290,7 +323,8 @@ export default {
     'Modify controller response rate': '응답 속도 수정',
     'Connecting...': '연결 중...',
     'Disconnecting...': '연결 해제 중...',
-    'Configuration obtained successfully, initiating offer...': '구성 완료, 시작 중...',
+    'Configuration obtained successfully, initiating offer...':
+      '구성 완료, 시작 중...',
     'Remote offer retrieved successfully...': '원격 오퍼 수신 완료...',
     'Ready to send ICE...': 'ICE 전송 준비 완료',
     'Exchange ICE successfully...': 'ICE 교환 성공',
@@ -360,7 +394,8 @@ export default {
     'Virtual macro settings': '매크로 설정',
     'Configure short/long press macro actions': '매크로 동작 설정',
     'Enable macro button and edit its action sequence': '매크로 시퀀스 편집',
-    'Configure one macro button with separate short/long press action chains for accessibility play styles.': '매크로 체인 구성',
+    'Configure one macro button with separate short/long press action chains for accessibility play styles.':
+      '매크로 체인 구성',
     'Macro button': '매크로 버튼',
     'Enable or disable': '활성화/비활성화',
     'Long press threshold': '길게 누르기 시간',
@@ -390,8 +425,11 @@ export default {
     'Move duration': '이동 시간',
     'Macro action sequence': '매크로 시퀀스',
     'Tap + to add sequence step': '단계 추가',
-    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.': '연속 매크로 구성',
-    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.': '설정에서 매크로 활성화 가능',
-    'Enable macro button and edit its action sequence in one place.': '매크로 설정 및 편집',
+    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':
+      '연속 매크로 구성',
+    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.':
+      '설정에서 매크로 활성화 가능',
+    'Enable macro button and edit its action sequence in one place.':
+      '매크로 설정 및 편집',
   },
 };

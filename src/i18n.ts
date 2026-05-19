@@ -6,6 +6,9 @@ import zht from './languages/zht';
 import de from './languages/de';
 import es from './languages/es';
 import pt from './languages/pt';
+import ko from './languages/ko';
+import ja from './languages/ja';
+import hi from './languages/hi';
 import {getSettings} from './store/settingStore';
 import {normalizeAppLocale} from './utils/locale';
 
@@ -18,6 +21,9 @@ const resources = {
   de,
   es,
   pt,
+  ko,
+  ja,
+  hi,
 };
 
 i18n

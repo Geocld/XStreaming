@@ -17,19 +17,27 @@ export default {
     NoLogin: 'ログインしていません。ログインしてください。',
     'Fetching user info...': 'ユーザー情報を取得中...',
     'Fetching consoles...': 'コンソールを取得中...',
-    'Login successful, refreshing login credentials...': 'ログイン成功、認証情報を更新中...',
+    'Login successful, refreshing login credentials...':
+      'ログイン成功、認証情報を更新中...',
     'Checking login status...': 'ログイン状態を確認中...',
-    MsalAuthTip: 'QRコードをスキャンするかブラウザのリンクを開き、期限が切れる前に認証コードを入力して、完了したら「完了」をタップしてください。',
+    MsalAuthTip:
+      'QRコードをスキャンするかブラウザのリンクを開き、期限が切れる前に認証コードを入力して、完了したら「完了」をタップしてください。',
     MsalAuthTimeout: '認証コードの期限が切れました。更新してください।',
     Copied: 'コピーしました',
-    NoConsoles: 'コンソールが見つかりません。リモートプレイが有効であることを確認してください।',
+    NoConsoles:
+      'コンソールが見つかりません。リモートプレイが有効であることを確認してください।',
     Warning: '警告',
-    WaitingForServerToRegister: 'コンソールが接続されていません。電源ボタンを10秒間長押ししてみてください।',
-    XboxstreaminghelperErr: 'ストリーミングサービスに問題があります。コンソールを再起動してください。エラー:',
-    DisabledStreamingErr: 'ストリーミングが無効です।Xboxの設定を確認してください।',
-    'Login has expired or not logged in, please log in again': 'ログインの期限が切れました。再度ログインしてください।',
+    WaitingForServerToRegister:
+      'コンソールが接続されていません。電源ボタンを10秒間長押ししてみてください।',
+    XboxstreaminghelperErr:
+      'ストリーミングサービスに問題があります。コンソールを再起動してください。エラー:',
+    DisabledStreamingErr:
+      'ストリーミングが無効です।Xboxの設定を確認してください।',
+    'Login has expired or not logged in, please log in again':
+      'ログインの期限が切れました。再度ログインしてください।',
     AuthFailDesc: '認証に失敗しました。エラー:',
-    XalAuthFailDesc: 'XAL認証に失敗しました。MSALログインを試してください。エラー:',
+    XalAuthFailDesc:
+      'XAL認証に失敗しました。MSALログインを試してください。エラー:',
     'Loading...': '読み込み中...',
     'Start stream': 'ストリーミング開始',
     'Power on and start stream': '電源を入れて開始',
@@ -43,7 +51,8 @@ export default {
     'Long press Nexus': 'Nexusを長押し',
     Disconnect: '切断',
     'Disconnect and power off': '切断して電源を切る',
-    NoXGP: 'XGPUが見つかりません。サブスクリプションまたは地域設定を確認してください।',
+    NoXGP:
+      'XGPUが見つかりません。サブスクリプションまたは地域設定を確認してください।',
     Recently: '最近',
     Newest: '最新',
     Stars: 'お気に入り',
@@ -55,45 +64,61 @@ export default {
     'App language': 'アプリの言語',
     'Set language of XStreaming': '言語設定',
     Resolution: '解像度',
-    'Set resolution, support 720P/1080P/1080P(HQ)': '解像度設定 (720P/1080P対応)',
-    resolutionTips: '1080P(HQ)には高速な通信環境が必要です。コンソールは最大1080Pまで対応しています।',
+    'Set resolution, support 720P/1080P/1080P(HQ)':
+      '解像度設定 (720P/1080P対応)',
+    resolutionTips:
+      '1080P(HQ)には高速な通信環境が必要です。コンソールは最大1080Pまで対応しています।',
     'Host stream bitrate': 'ホストビットレート',
     'Cloud stream bitrate': 'クラウドビットレート',
     'Audio bitrate': 'オーディオビットレート',
     'Set the streaming audio bitrate': 'オーディオビットレート設定',
-    'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)': 'ホストビットレート設定',
-    'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)': 'クラウドビットレート設定',
+    'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
+      'ホストビットレート設定',
+    'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
+      'クラウドビットレート設定',
     Codec: 'コーデック',
-    'If your device supports newer codecs, it can reduce the video bandwidth requirements': '新しいコーデックはデータ消費を抑えられます।',
+    'If your device supports newer codecs, it can reduce the video bandwidth requirements':
+      '新しいコーデックはデータ消費を抑えられます।',
     Vibration: '振動',
     'Video stream format': 'ビデオ形式',
-    'Select video stream format, if you want video fullscreen, please select Stretch or Zoom': '画面比率を選択。全画面は「引き伸ばし」か「ズーム」を選択।',
-    'In Native mode, only scaling can be set for the rendering engine.': 'ネイティブモードではスケールリングのみ設定可能です।',
+    'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
+      '画面比率を選択。全画面は「引き伸ばし」か「ズーム」を選択।',
+    'In Native mode, only scaling can be set for the rendering engine.':
+      'ネイティブモードではスケールリングのみ設定可能です।',
     'Aspect ratio': 'アスペクト比',
-    'Native: Use native gamepad kernal to vibrate': 'ネイティブ: システムの振動を使用',
+    'Native: Use native gamepad kernal to vibrate':
+      'ネイティブ: システムの振動を使用',
     "Device: Use Phone/Pad's vibrate": 'デバイス: スマホの振動を使用',
-    'Webview: Use Chromium kernal to vibrate': 'Webview: ブラウザエンジンの振動を使用',
+    'Webview: Use Chromium kernal to vibrate':
+      'Webview: ブラウザエンジンの振動を使用',
     Stretch: '引き伸ばし',
     Zoom: 'ズーム',
     'Gamepad kernal': 'ゲームパッドカーネル',
-    'If your controller supports vibration, you can set whether it vibrates during the game': 'ゲーム中の振動設定।',
+    'If your controller supports vibration, you can set whether it vibrates during the game':
+      'ゲーム中の振動設定।',
     'Vibration mode': '振動モード',
-    'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode': '振動しない場合はネイティブモードを試してください।',
+    'By default, the WebView kernel is used for vibration. If the controller does not vibrate, try using the native vibration mode':
+      '振動しない場合はネイティブモードを試してください।',
     'Vibration intensity': '振動の強さ',
     'Config vibration intensity of controller': '振動の強さを設定',
     'Joystick dead zone': 'デッドゾーン',
-    'Config joystick dead zone': 'スティックのドリフトを抑えるために設定してください।',
+    'Config joystick dead zone':
+      'スティックのドリフトを抑えるために設定してください।',
     'Joystick edge compensation': 'エッジ補正',
-    "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation": "スティックが最大まで反応しない場合に設定।",
+    "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation":
+      'スティックが最大まで反応しない場合に設定।',
     'Set region': '地域設定',
-    'Changing the region allows you to use XGPU services without a proxy': '地域変更でプロキシなしで利用可能।',
-    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option': '接続に問題がある場合は変更してください।',
+    'Changing the region allows you to use XGPU services without a proxy':
+      '地域変更でプロキシなしで利用可能।',
+    'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
+      '接続に問題がある場合は変更してください।',
     'Prioritize using IPv6 connection': 'IPv6を優先',
     'Preferred language of game': 'ゲームの言語',
     'Set language of cloud game': 'クラウドゲームの言語設定',
     'Key mapping': 'キーマッピング',
     'Mapping key of gamepad': 'ボタンマッピング設定',
-    'Currently no network connection, please connect and try again': 'ネットワーク接続がありません।',
+    'Currently no network connection, please connect and try again':
+      'ネットワーク接続がありません।',
     Logout: 'ログアウト',
     'Do you want to logout?': 'ログアウトしますか？',
     'Current user': '現在のユーザー',
@@ -102,18 +127,24 @@ export default {
     PoweredOnSentText: '電源オンコマンド送信済み',
     PoweredOffSentText: '電源オフコマンド送信済み',
     Theme: 'テーマ',
-    'Set the app theme to take effect on the next launch': '次回起動時に反映されます।',
+    'Set the app theme to take effect on the next launch':
+      '次回起動時に反映されます।',
     'Theme primary color': 'メインカラー',
-    'Choose app primary color, takes effect on next launch': 'アプリの色を選択।',
-    'Choose from preset palette for best readability': '視認性の良い色を選択してください।',
+    'Choose app primary color, takes effect on next launch':
+      'アプリの色を選択।',
+    'Choose from preset palette for best readability':
+      '視認性の良い色を選択してください।',
     'Signal server': 'シグナルサーバー',
     'Virtual gamepad': '仮想パッド',
     'Always display the virtual gamepad': '常に仮想パッドを表示',
-    'Select gamepad kernal, you can not use virtual gamepad in Web kernal': 'ウェブカーネルでは仮想パッドは使えません।',
+    'Select gamepad kernal, you can not use virtual gamepad in Web kernal':
+      'ウェブカーネルでは仮想パッドは使えません।',
     'Config opacity of virtual gamepad': '仮想パッドの不透明度',
     'Display settings': 'ディスプレイ設定',
-    'Set parameters such as screen clarity and saturation': '鮮明度や彩度を設定।',
-    'Display settings is not working in native render engine.': 'ネイティブエンジンでは機能しません।',
+    'Set parameters such as screen clarity and saturation':
+      '鮮明度や彩度を設定।',
+    'Display settings is not working in native render engine.':
+      'ネイティブエンジンでは機能しません।',
     'Override native Xbox gamepad support': 'ネイティブパッドサポートを上書き',
     bind_usb_device_description: 'USBコントローラーを直接制御します।',
     bind_usb_device_tips: '有線接続専用です।',
@@ -121,20 +152,25 @@ export default {
     power_on_description: '開始時にコンソールを起動します।',
     'Low Latency Mode': '低遅延モード',
     low_latency_mode_description: 'Wi-Fiパフォーマンスモードを使用します।',
-    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy': 'ボタン位置が実際と異なる場合があります।',
+    'The position of custom virtual buttons may have discrepancies with actual rendering. Please refer to the actual effect for accuracy':
+      'ボタン位置が実際と異なる場合があります।',
     'Customize virtual buttons': 'ボタンのカスタマイズ',
     'Customize buttons of virtual gamepad': '仮想パッドのレイアウト編集',
     'Edit Virtual Gamepad': '仮想パッドを編集',
-    'Click on an element to set its size and display': 'クリックしてサイズと表示を設定।',
+    'Click on an element to set its size and display':
+      'クリックしてサイズと表示を設定।',
     'Drag elements to adjust their position': 'ドラッグして位置調整।',
     'Name can not be empty': '名前は必須です',
     'Show performance': 'パフォーマンス表示',
     'Always display the performance panel': '常にパネルを表示',
     'Performance show style': '表示スタイル',
     'Setting performance show style': '表示スタイル設定 (横/縦)',
-    'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive': 'USB切断時はゲームを終了して再接続してください।',
-    'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first': '反応しない場合はホームボタンを押してください।',
-    'After replacing the Android controller driver, controller button mapping is temporarily not supported': 'ドライバー変更後のマッピングは未対応です।',
+    'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
+      'USB切断時はゲームを終了して再接続してください।',
+    'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':
+      '反応しない場合はホームボタンを押してください।',
+    'After replacing the Android controller driver, controller button mapping is temporarily not supported':
+      'ドライバー変更後のマッピングは未対応です।',
     'Short Trigger': 'ショートトリガー',
     ShortTriggerDesc: '反応を速めるためにトリガーを短くします।',
     noAllow: '権限がありません。ログインとサブスクを確認してください।',
@@ -142,7 +178,8 @@ export default {
     Horizon: '横',
     Vertical: '縦',
     'Auto check update': '自動更新',
-    'Whether check XStreaming updates automatically': '自動更新を確認するかどうか',
+    'Whether check XStreaming updates automatically':
+      '自動更新を確認するかどうか',
     BasesSettings: '基本設定',
     DisplaySettings: 'ディスプレイ設定',
     GamepadSettings: 'ゲームパッド設定',
@@ -288,7 +325,8 @@ export default {
     'Modify controller response rate': '応答速度の変更',
     'Connecting...': '接続中...',
     'Disconnecting...': '切断中...',
-    'Configuration obtained successfully, initiating offer...': '構成完了、開始中...',
+    'Configuration obtained successfully, initiating offer...':
+      '構成完了、開始中...',
     'Remote offer retrieved successfully...': 'オファー受信完了...',
     'Ready to send ICE...': 'ICE送信準備完了',
     'Exchange ICE successfully...': 'ICE交換成功',
@@ -322,7 +360,8 @@ export default {
     Sensor: 'センサー',
     Details: '詳細',
     'Clear Cache': 'キャッシュクリア',
-    'Clear XStreaming Cache Data(Keep login data)': 'キャッシュクリア (ログイン保持)',
+    'Clear XStreaming Cache Data(Keep login data)':
+      'キャッシュクリア (ログイン保持)',
     History: '履歴',
     HistoryTitle: '更新履歴',
     HistoryDesc: '履歴を表示',
@@ -358,7 +397,8 @@ export default {
     'Virtual macro settings': 'マクロ設定',
     'Configure short/long press macro actions': '動作設定',
     'Enable macro button and edit its action sequence': 'シーケンス編集',
-    'Configure one macro button with separate short/long press action chains for accessibility play styles.': 'マクロ構成',
+    'Configure one macro button with separate short/long press action chains for accessibility play styles.':
+      'マクロ構成',
     'Macro button': 'マクロボタン',
     'Enable or disable': '有効/無効',
     'Long press threshold': '長押し時間',
@@ -388,8 +428,11 @@ export default {
     'Move duration': '移動時間',
     'Macro action sequence': 'シーケンス',
     'Tap + to add sequence step': 'ステップ追加',
-    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.': '連続マクロ構成',
-    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.': '設定で有効化可能',
-    'Enable macro button and edit its action sequence in one place.': 'マクロ設定',
+    'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.':
+      '連続マクロ構成',
+    'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.':
+      '設定で有効化可能',
+    'Enable macro button and edit its action sequence in one place.':
+      'マクロ設定',
   },
 };

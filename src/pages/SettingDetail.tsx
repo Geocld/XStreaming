@@ -5,7 +5,7 @@ import {
   ScrollView,
   NativeModules,
   ToastAndroid,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import {
   Button,
@@ -53,6 +53,7 @@ function SettingDetailScreen({navigation, route}) {
   const [value2, setValue2] = React.useState<any>('');
   const [currentMetas, setCurrentMetas] = React.useState<any>(null);
   const [settings, setSettings] = React.useState<any>({});
+  const [focusedColorIndex, setFocusedColorIndex] = React.useState(-1);
   const regions = React.useRef<any>([]);
   const xgpuRegions = React.useRef<any>([]);
 
@@ -379,14 +380,24 @@ function SettingDetailScreen({navigation, route}) {
               );
               const selected = selectedColor === colorValue;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={`${colorValue}-${idx}`}
-                  activeOpacity={0.8}
+                  focusable={true}
+                  hasTVPreferredFocus={selected}
+                  accessibilityRole="button"
+                  accessibilityLabel={colorValue}
                   style={[
                     styles.colorItem,
                     selected ? styles.colorItemSelected : null,
                     selected ? selectedColorItemStyle : null,
+                    focusedColorIndex === idx ? styles.colorItemFocused : null,
                   ]}
+                  onFocus={() => setFocusedColorIndex(idx)}
+                  onBlur={() =>
+                    setFocusedColorIndex(focusedIndex => {
+                      return focusedIndex === idx ? -1 : focusedIndex;
+                    })
+                  }
                   onPress={() => setValue(colorValue)}>
                   <View
                     style={[
@@ -396,7 +407,7 @@ function SettingDetailScreen({navigation, route}) {
                       },
                     ]}
                   />
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
@@ -506,9 +517,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   colorItem: {
-    width: 34,
-    height: 34,
-    borderRadius: 18,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1,
     borderColor: '#777',
     alignItems: 'center',
@@ -520,10 +531,15 @@ const styles = StyleSheet.create({
   colorItemSelected: {
     borderWidth: 3,
   },
+  colorItemFocused: {
+    borderWidth: 3,
+    borderColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+  },
   colorInner: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   buttonWrap: {
     position: 'absolute',
