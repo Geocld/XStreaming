@@ -1173,11 +1173,11 @@ export function NativeStreamScreenBase({
       remoteStream.current = new MediaStream(undefined);
 
       webrtcClient.setPollRate(_settings.polling_rate);
-      webrtcClient.setMaxTouchPoints(_settings.native_touch ? 10 : 0);
-      webrtcClient.setSupportedSystemUis(supportedSystemUis);
-      webrtcClient.setSystemUiHandler(
-        Platform.isTV ? undefined : handleSystemUiEvent,
+      webrtcClient.setMaxTouchPoints(
+        Platform.isTV ? 0 : _settings.native_touch ? 10 : 0,
       );
+      webrtcClient.setSupportedSystemUis(supportedSystemUis);
+      webrtcClient.setSystemUiHandler(handleSystemUiEvent);
       webrtcClient.setMessageHandler(handleStreamingMessage);
 
       if (_settings.coop) {
