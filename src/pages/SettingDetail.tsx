@@ -5,7 +5,6 @@ import {
   ScrollView,
   NativeModules,
   ToastAndroid,
-  Pressable,
 } from 'react-native';
 import {
   Button,
@@ -53,7 +52,6 @@ function SettingDetailScreen({navigation, route}) {
   const [value2, setValue2] = React.useState<any>('');
   const [currentMetas, setCurrentMetas] = React.useState<any>(null);
   const [settings, setSettings] = React.useState<any>({});
-  const [focusedColorIndex, setFocusedColorIndex] = React.useState(-1);
   const regions = React.useRef<any>([]);
   const xgpuRegions = React.useRef<any>([]);
 
@@ -352,7 +350,6 @@ function SettingDetailScreen({navigation, route}) {
         value,
         DEFAULT_THEME_PRIMARY_COLOR,
       );
-      const selectedColorItemStyle = {borderColor: primaryColor};
       const colorOptions = Array.isArray(currentMetas.data)
         ? currentMetas.data
         : [];
@@ -372,45 +369,27 @@ function SettingDetailScreen({navigation, route}) {
               ]}
             />
           </View>
-          <View style={styles.colorPalette}>
+          <RadioButton.Group
+            onValueChange={val =>
+              setValue(normalizeHexColor(val, DEFAULT_THEME_PRIMARY_COLOR))
+            }
+            value={selectedColor}>
             {colorOptions.map((item, idx) => {
               const colorValue = normalizeHexColor(
                 typeof item === 'string' ? item : item.value,
                 DEFAULT_THEME_PRIMARY_COLOR,
               );
-              const selected = selectedColor === colorValue;
               return (
-                <Pressable
+                <RadioButton.Item
                   key={`${colorValue}-${idx}`}
-                  focusable={true}
-                  hasTVPreferredFocus={selected}
-                  accessibilityRole="button"
-                  accessibilityLabel={colorValue}
-                  style={[
-                    styles.colorItem,
-                    selected ? styles.colorItemSelected : null,
-                    selected ? selectedColorItemStyle : null,
-                    focusedColorIndex === idx ? styles.colorItemFocused : null,
-                  ]}
-                  onFocus={() => setFocusedColorIndex(idx)}
-                  onBlur={() =>
-                    setFocusedColorIndex(focusedIndex => {
-                      return focusedIndex === idx ? -1 : focusedIndex;
-                    })
-                  }
-                  onPress={() => setValue(colorValue)}>
-                  <View
-                    style={[
-                      styles.colorInner,
-                      {
-                        backgroundColor: colorValue,
-                      },
-                    ]}
-                  />
-                </Pressable>
+                  label={typeof item === 'string' ? colorValue : item.text}
+                  value={colorValue}
+                  color={colorValue}
+                  uncheckedColor={colorValue}
+                />
               );
             })}
-          </View>
+          </RadioButton.Group>
         </View>
       );
     } else if (currentMetas.type === 'slider') {
@@ -511,35 +490,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#666',
-  },
-  colorPalette: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  colorItem: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 1,
-    borderColor: '#777',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-    marginBottom: 10,
-    backgroundColor: 'transparent',
-  },
-  colorItemSelected: {
-    borderWidth: 3,
-  },
-  colorItemFocused: {
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
-  },
-  colorInner: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
   },
   buttonWrap: {
     position: 'absolute',
