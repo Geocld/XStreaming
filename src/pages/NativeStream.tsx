@@ -2384,7 +2384,12 @@ export function NativeStreamScreenBase({
 
   const renderPerformancePanel = () => {
     if (!portraitMode && showPerformance && !isInPictureInPicture) {
-      return <PerfPanel performance={performance} />;
+      return (
+        <PerfPanel
+          performance={performance}
+          streamType={route.params?.streamType}
+        />
+      );
     } else {
       return null;
     }

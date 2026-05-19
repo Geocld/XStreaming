@@ -2,6 +2,29 @@ import i18next from '../../i18n';
 
 const {t} = i18next;
 
+export const xcloudRegionFlags: Record<string, string> = {
+  '203.41.44.20': '🇦🇺',
+  '200.221.11.101': '🇧🇷',
+  '169.150.198.66': '🇧🇷',
+  '194.25.0.68': '🇪🇺',
+  '104.211.224.146': '🇮🇳',
+  '104.211.96.159': '🇮🇳',
+  '138.199.21.239': '🇯🇵',
+  '210.131.113.123': '🇯🇵',
+  '168.126.63.1': '🇰🇷',
+  '121.125.60.151': '🇰🇷',
+  '4.2.2.2': '🇺🇸',
+  '143.244.47.65': '🇺🇸',
+  '45.134.212.66': '🇵🇱',
+};
+
+export const getXcloudRegionFlag = (regionIp?: string) => {
+  if (!regionIp) {
+    return '';
+  }
+  return xcloudRegionFlags[regionIp] || '';
+};
+
 const xcloud = [
   {
     name: 'force_region_ip',

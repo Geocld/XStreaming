@@ -3,20 +3,27 @@ import {StyleSheet, View, NativeModules} from 'react-native';
 import {Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {getSettings} from '../store/settingStore';
+import {getXcloudRegionFlag} from '../common/settings/xcloud';
 
 const {BatteryModule} = NativeModules;
 
 type Props = {
   performance: any;
+  streamType?: string;
 };
 
-const PerfPanel: React.FC<Props> = ({performance = {}}) => {
+const PerfPanel: React.FC<Props> = ({performance = {}, streamType}) => {
   const {t} = useTranslation();
   const settings = getSettings();
   const [battery, setBattery] = React.useState(100);
   const batteryInterval = React.useRef<any>(null);
 
   const isHorizon = settings.performance_style;
+  const xcloudRegionFlag =
+    streamType === 'cloud' ? getXcloudRegionFlag(settings.force_region_ip) : '';
+  const rttLabel = `${t('RTT')}${
+    xcloudRegionFlag ? `(${xcloudRegionFlag})` : ''
+  }`;
 
   React.useEffect(() => {
     const getBattery = () => {
@@ -76,7 +83,7 @@ const PerfPanel: React.FC<Props> = ({performance = {}}) => {
         </View>
         <View>
           <Text style={styles.text}>
-            {t('RTT')}: {performance.rtt || '-1'} {isHorizon ? '| ' : ''}
+            {rttLabel}: {performance.rtt || '-1'} {isHorizon ? '| ' : ''}
           </Text>
         </View>
         <View>

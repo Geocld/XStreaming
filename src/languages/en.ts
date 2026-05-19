@@ -44,7 +44,7 @@ export default {
     'Local connect': 'Local connection',
     'Remote connect': 'Remote connection',
     'Search game': 'Search games',
-    'Toggle Performance': 'Show/hide performance stats',
+    'Toggle Performance': 'Show/hide performance',
     'Toggle Virtual Gamepad': 'Show/hide virtual gamepad',
     'Press Nexus': 'Press Nexus',
     'Long press Nexus': 'Long press Nexus',
