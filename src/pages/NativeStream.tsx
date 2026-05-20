@@ -91,6 +91,29 @@ const SYSTEM_UI_TARGET_SHOW_MESSAGE_DIALOG =
 const SYSTEM_UI_TARGET_SHOW_VIRTUAL_KEYBOARD =
   '/streaming/systemUi/messages/ShowVirtualKeyboard';
 const STREAMING_TOUCHCONTROLS_SCOPE = '/streaming/touchcontrols';
+const STOP_STREAM_TIMEOUT_MS = 5000;
+
+const stopStreamWithTimeout = (streamApi: any) => {
+  if (!streamApi || typeof streamApi.stopStream !== 'function') {
+    return Promise.resolve();
+  }
+
+  let timeoutId: any;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error('STOP_STREAM_TIMEOUT'));
+    }, STOP_STREAM_TIMEOUT_MS);
+  });
+
+  return Promise.race([
+    Promise.resolve().then(() => streamApi.stopStream()),
+    timeoutPromise,
+  ]).finally(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  });
+};
 
 const createGamepadState = (gamepadIndex = 0) => ({
   GamepadIndex: gamepadIndex,
@@ -184,7 +207,9 @@ export function NativeStreamScreenBase({
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
   const systemKeyboardTransactionRef = React.useRef<any>(null);
-  const handleExitRef = React.useRef<(off?: boolean) => void>(() => {});
+  const handleExitRef = React.useRef<(off?: boolean) => void | Promise<void>>(
+    () => {},
+  );
 
   // webrtc
   const [webrtcClient, setWebrtcClient] = React.useState<any>(undefined);
@@ -483,6 +508,29 @@ export function NativeStreamScreenBase({
     }
 
     return true;
+  }, []);
+
+  const getStreamDestination = React.useCallback(() => {
+    return route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+  }, [route.params?.streamType]);
+
+  const finishStreamExit = React.useCallback(() => {
+    setIsExiting(false);
+    setLoading(false);
+    Orientation.unlockAllOrientations();
+    FullScreenManager.immersiveModeOff();
+    navigation.navigate({
+      name: getStreamDestination(),
+      params: {needRefresh: true},
+    });
+  }, [getStreamDestination, navigation]);
+
+  const waitStopStream = React.useCallback(async (api: any) => {
+    try {
+      await stopStreamWithTimeout(api);
+    } catch (error) {
+      log.warn('stopStream failed or timed out:', error);
+    }
   }, []);
 
   // event
@@ -1023,46 +1071,19 @@ export function NativeStreamScreenBase({
           {
             text: t('Confirm'),
             style: 'destructive',
-            onPress: () => {
+            onPress: async () => {
               const _streamApi =
                 route.params?.streamType === 'cloud'
                   ? xCloudApiRef.current
                   : xHomeApiRef.current;
-              const dest =
-                route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
               isRequestExit.current = true;
               setLoading(true);
               setLoadingText(t('Disconnecting...'));
               setIsExiting(true);
               webrtcClient && webrtcClient.close();
               Orientation.unlockAllOrientations();
-              if (_streamApi) {
-                _streamApi
-                  .stopStream()
-                  .then(() => {
-                    setIsExiting(false);
-                    FullScreenManager.immersiveModeOff();
-                    navigation.navigate({
-                      name: dest,
-                      params: {needRefresh: true},
-                    });
-                  })
-                  .catch(() => {
-                    setIsExiting(false);
-                    FullScreenManager.immersiveModeOff();
-                    navigation.navigate({
-                      name: dest,
-                      params: {needRefresh: true},
-                    });
-                  });
-              } else {
-                setIsExiting(false);
-                FullScreenManager.immersiveModeOff();
-                navigation.navigate({
-                  name: dest,
-                  params: {needRefresh: true},
-                });
-              }
+              await waitStopStream(_streamApi);
+              finishStreamExit();
             },
           },
         ]);
@@ -1079,21 +1100,7 @@ export function NativeStreamScreenBase({
               : xHomeApiRef.current;
           setLoading(true);
           setIsExiting(true);
-          if (_streamApi) {
-            _streamApi.stopStream().then(() => {
-              setTimeout(() => {
-                setIsExiting(false);
-                Orientation.unlockAllOrientations();
-                FullScreenManager.immersiveModeOff();
-                const dest =
-                  route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
-                navigation.navigate({
-                  name: dest,
-                  params: {needRefresh: true},
-                });
-              }, 2000);
-            });
-          }
+          waitStopStream(_streamApi).then(finishStreamExit);
         }
       } else {
         if (e.data.action.type !== 'GO_BACK') {
@@ -1434,31 +1441,11 @@ export function NativeStreamScreenBase({
         }
       });
 
-      const exit = () => {
-        const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
+      const exit = async () => {
         setLoading(false);
         webrtcClient && webrtcClient.close();
-        streamApi
-          .stopStream()
-          .then(() => {
-            setTimeout(() => {
-              setIsExiting(false);
-              Orientation.unlockAllOrientations();
-              FullScreenManager.immersiveModeOff();
-              navigation.navigate({
-                name: dest,
-                params: {needRefresh: true},
-              });
-            }, 500);
-          })
-          .catch(() => {
-            Orientation.unlockAllOrientations();
-            FullScreenManager.immersiveModeOff();
-            navigation.navigate({
-              name: dest,
-              params: {needRefresh: true},
-            });
-          });
+        await waitStopStream(streamApi);
+        finishStreamExit();
       };
 
       setLoading(true);
@@ -1743,6 +1730,8 @@ export function NativeStreamScreenBase({
     handleSystemUiEvent,
     handleStreamingMessage,
     closeSystemKeyboardModal,
+    finishStreamExit,
+    waitStopStream,
     supportedSystemUis,
     portraitMode,
     isInPictureInPicture,
@@ -1825,7 +1814,7 @@ export function NativeStreamScreenBase({
   }, [handleSendMessage, messageSending, showNativeInputDialog, t]);
 
   const handleExit = React.useCallback(
-    (off = false) => {
+    async (off = false) => {
       setLoading(true);
       setLoadingText(t('Disconnecting...'));
       if (isExiting) {
@@ -1833,30 +1822,19 @@ export function NativeStreamScreenBase({
       }
       setIsExiting(true);
       webrtcClient && webrtcClient.close();
-      streamApi.stopStream().then(() => {
-        if (off) {
-          handlePowerOff();
-        }
-        setTimeout(() => {
-          setIsExiting(false);
-          setLoading(false);
-          Orientation.unlockAllOrientations();
-          FullScreenManager.immersiveModeOff();
-          const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
-          navigation.navigate({
-            name: dest,
-            params: {needRefresh: true},
-          });
-        }, 500);
-      });
+      await waitStopStream(streamApi);
+      if (off) {
+        handlePowerOff();
+      }
+      finishStreamExit();
     },
     [
+      finishStreamExit,
       handlePowerOff,
       isExiting,
-      navigation,
-      route.params?.streamType,
       streamApi,
       t,
+      waitStopStream,
       webrtcClient,
     ],
   );
