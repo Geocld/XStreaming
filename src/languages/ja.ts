@@ -302,7 +302,7 @@ export default {
     NativePortraitModeDesc: '縦画面ストリーミングを使用',
     'Ultra low latency decoding': '超低遅延デコード',
     UltraLowLatencyDecoderDesc:
-      '超低遅延デコードを有効にします。比較的新しいAndroid端末のみ対応します。黒画面などの問題が発生した場合はこのオプションを無効にしてください。',
+      '超低遅延デコードを有効にします。この機能はすべてのAndroid端末で動作するわけではありません。黒画面などの問題が発生した場合はこのオプションを無効にしてください。',
     'Exit stream?': '終了しますか？',
     Device: 'デバイス',
     Controller: 'コントローラー',

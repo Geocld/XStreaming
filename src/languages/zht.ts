@@ -312,7 +312,7 @@ export default {
       '開啟後原生串流使用豎屏頁面，上方顯示影片，下方顯示虛擬按鍵',
     'Ultra low latency decoding': '超低延遲解碼',
     UltraLowLatencyDecoderDesc:
-      '開啟超低延遲解碼，注意只支援較新的 Android 裝置，如出現黑屏等異常請關閉此選項',
+      '開啟超低延遲解碼，注意該功能不適用於所有 Android 裝置，如出現黑屏等異常請關閉此選項',
     'Exit stream?': '是否退出串流？',
     Device: '裝置',
     Controller: '控制器',

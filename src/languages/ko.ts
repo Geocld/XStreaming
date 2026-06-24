@@ -300,7 +300,7 @@ export default {
     NativePortraitModeDesc: '세로 화면 스트리밍 사용',
     'Ultra low latency decoding': '초저지연 디코딩',
     UltraLowLatencyDecoderDesc:
-      '초저지연 디코딩을 활성화합니다. 비교적 최신 Android 기기에서만 지원됩니다. 검은 화면 등 문제가 발생하면 이 옵션을 끄세요.',
+      '초저지연 디코딩을 활성화합니다. 이 기능은 모든 Android 기기에서 작동하지 않습니다. 검은 화면 등 문제가 발생하면 이 옵션을 끄세요.',
     'Exit stream?': '스트리밍을 종료하시겠습니까?',
     Device: '기기',
     Controller: '컨트롤러',

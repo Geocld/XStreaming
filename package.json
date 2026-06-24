@@ -1,6 +1,6 @@
 {
   "name": "xstreaming",
-  "version": "2.8.1",
+  "version": "2.9.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android --variant devDebug --appId com.dev.xstreaming",

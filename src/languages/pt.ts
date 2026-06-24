@@ -323,7 +323,7 @@ export default {
       'Ao ativar isso, o streaming nativo usa uma página em modo retrato com o vídeo no topo e botões virtuais abaixo.',
     'Ultra low latency decoding': 'Decodificação de latência ultrabaixa',
     UltraLowLatencyDecoderDesc:
-      'Ativa a decodificação de latência ultrabaixa. Compatível apenas com dispositivos Android relativamente novos. Desative esta opção se ocorrer tela preta ou outros problemas.',
+      'Ativa a decodificação de latência ultrabaixa. Este recurso não funciona em todos os dispositivos Android. Desative esta opção se ocorrer tela preta ou outros problemas.',
     'Exit stream?': 'Sair do streaming?',
     Device: 'Dispositivo',
     Controller: 'Controle',

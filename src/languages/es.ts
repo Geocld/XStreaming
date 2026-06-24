@@ -264,7 +264,7 @@ export default {
     NativePortraitModeDesc: 'Juega con la pantalla en vertical.',
     'Ultra low latency decoding': 'Decodificación de latencia ultrabaja',
     UltraLowLatencyDecoderDesc:
-      'Activa la decodificación de latencia ultrabaja. Solo es compatible con dispositivos Android relativamente nuevos. Desactiva esta opción si aparece una pantalla negra u otros problemas.',
+      'Activa la decodificación de latencia ultrabaja. Esta función no funciona en todos los dispositivos Android. Desactiva esta opción si aparece una pantalla negra u otros problemas.',
     'Exit stream?': '¿Cerrar streaming?',
     Device: 'Dispositivo',
     Controller: 'Mando',

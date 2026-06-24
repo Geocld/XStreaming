@@ -324,7 +324,7 @@ export default {
       'After enabling this, native streaming uses a portrait page with video on top and virtual buttons below.',
     'Ultra low latency decoding': 'Ultra-Low-Latency-Dekodierung',
     UltraLowLatencyDecoderDesc:
-      'Aktiviert Ultra-Low-Latency-Dekodierung. Dies wird nur auf relativ neuen Android-Geräten unterstützt. Bei schwarzem Bildschirm oder anderen Problemen diese Option deaktivieren.',
+      'Aktiviert Ultra-Low-Latency-Dekodierung. Diese Funktion funktioniert nicht auf allen Android-Geräten. Bei schwarzem Bildschirm oder anderen Problemen diese Option deaktivieren.',
     'Exit stream?': 'Streaming beenden?',
     Device: 'Gerät',
     Controller: 'Controller',

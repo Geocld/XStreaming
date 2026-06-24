@@ -330,7 +330,7 @@ export default {
       '开启后原生串流使用竖屏页面，上方显示视频，下方显示虚拟按键',
     'Ultra low latency decoding': '超低延迟解码',
     UltraLowLatencyDecoderDesc:
-      '开启超低延迟解码，注意只支持比较新的安卓设备，如出现黑屏等异常请关闭此选项',
+      '开启超低延迟解码，注意该功能不使用所有安卓设备，如出现黑屏等异常请关闭此选项',
     'Exit stream?': '是否退出串流？',
     Device: '设备',
     Controller: '控制器',
