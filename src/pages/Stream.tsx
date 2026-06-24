@@ -61,6 +61,7 @@ const PICTURE_IN_PICTURE_MODE_CHANGED = 'pictureInPictureModeChanged';
 const {
   FullScreenManager,
   GamepadManager,
+  SdlGamepadManager,
   UsbRumbleManager,
   SensorModule,
   GamepadSensorModule,
@@ -204,6 +205,11 @@ function StreamScreen({navigation, route}) {
     if (!isUsbMode && _settings.native_gamepad_maping) {
       gpMaping = sweap(_settings.native_gamepad_maping);
     }
+    const isSdlKernel = !isUsbMode && _settings.gamepad_kernal === 'SDL';
+    const isNativeKernel =
+      !isUsbMode &&
+      (_settings.gamepad_kernal === 'Native' ||
+        _settings.gamepad_kernal === 'SDL');
 
     const normaliseAxis = value => {
       if (_settings.dead_zone) {
@@ -404,8 +410,18 @@ function StreamScreen({navigation, route}) {
       timer.current = setInterval(() => {
         postData2Webview('gamepad', gpState);
       }, 1000 / _settings.polling_rate);
-    } else if (_settings.gamepad_kernal === 'Native') {
-      log.info('Entry native mode');
+    } else if (isNativeKernel) {
+      log.info(isSdlKernel ? 'Entry SDL gamepad mode' : 'Entry native mode');
+      if (isSdlKernel) {
+        Promise.resolve(
+          SdlGamepadManager?.startController?.(
+            _settings.dead_zone ?? 0,
+            _settings.edge_compensation ?? 0,
+            !!_settings.short_trigger,
+            false,
+          ),
+        ).catch(() => {});
+      }
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
@@ -723,7 +739,7 @@ function StreamScreen({navigation, route}) {
         // @ts-ignore
         webviewRef.current && webviewRef.current.requestFocus();
       }
-      if (_settings.gamepad_kernal === 'Native') {
+      if (isNativeKernel) {
         // setFocusable(false);
         // @ts-ignore
         webviewRef.current && webviewRef.current.stopLoading();
@@ -751,6 +767,7 @@ function StreamScreen({navigation, route}) {
       timer.current && clearInterval(timer.current);
       PipManager?.setAutoPipEnabled?.(false);
       GamepadManager.setCurrentScreen('');
+      SdlGamepadManager?.stopController?.();
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
     };
@@ -1399,16 +1416,18 @@ function StreamScreen({navigation, route}) {
   };
 
   const requestVirtualGamepad = () => {
+    const isNativeLikeKernel =
+      settings.gamepad_kernal === 'Native' || settings.gamepad_kernal === 'SDL';
     // Close
     if (showVirtualGamepad) {
       clearMacroTimers();
       setShowVirtualGamepad(false);
-      if (settings.gamepad_kernal !== 'Native') {
+      if (!isNativeLikeKernel) {
         timer.current && clearInterval(timer.current);
       }
     } else {
       setShowVirtualGamepad(true);
-      if (settings.gamepad_kernal !== 'Native') {
+      if (!isNativeLikeKernel) {
         timer.current = setInterval(() => {
           postData2Webview('gamepad', gpState);
         }, 1000 / settings.polling_rate);
@@ -1512,13 +1531,14 @@ function StreamScreen({navigation, route}) {
     settings.gamepad_kernal = 'Web';
   }
 
+  const isNativeLikeKernel =
+    settings.gamepad_kernal === 'Native' || settings.gamepad_kernal === 'SDL';
+
   return (
     <>
-      {!isInPictureInPicture &&
-        showPerformance &&
-        settings.gamepad_kernal === 'Native' && (
-          <PerfPanel performance={performance} />
-        )}
+      {!isInPictureInPicture && showPerformance && isNativeLikeKernel && (
+        <PerfPanel performance={performance} />
+      )}
 
       {renderVirtualGamepad()}
 
@@ -1636,20 +1656,19 @@ function StreamScreen({navigation, route}) {
                     />
                   )}
 
-                  {connectState === CONNECTED &&
-                    settings.gamepad_kernal === 'Native' && (
-                      <List.Item
-                        title={t('Toggle Virtual Gamepad')}
-                        background={background}
-                        onPress={() => {
-                          requestVirtualGamepad();
-                          handleCloseModal();
-                        }}
-                      />
-                    )}
+                  {connectState === CONNECTED && isNativeLikeKernel && (
+                    <List.Item
+                      title={t('Toggle Virtual Gamepad')}
+                      background={background}
+                      onPress={() => {
+                        requestVirtualGamepad();
+                        handleCloseModal();
+                      }}
+                    />
+                  )}
 
                   {connectState === CONNECTED &&
-                    settings.gamepad_kernal === 'Native' &&
+                    isNativeLikeKernel &&
                     showVirtualGamepad && (
                       <List.Item
                         title={t('Edit Virtual Gamepad')}
@@ -1711,7 +1730,7 @@ function StreamScreen({navigation, route}) {
                       title={t('Press Nexus')}
                       background={background}
                       onPress={() => {
-                        if (settings.gamepad_kernal === 'Native') {
+                        if (isNativeLikeKernel) {
                           gpState.Nexus = 1;
                           setTimeout(() => {
                             gpState.Nexus = 0;
@@ -1729,7 +1748,7 @@ function StreamScreen({navigation, route}) {
                         title={t('Long press Nexus')}
                         background={background}
                         onPress={() => {
-                          if (settings.gamepad_kernal === 'Native') {
+                          if (isNativeLikeKernel) {
                             gpState.Nexus = 1;
                             setTimeout(() => {
                               gpState.Nexus = 0;

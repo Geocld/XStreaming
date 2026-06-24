@@ -21,4 +21,9 @@ public class AudioSettingModule extends ReactContextBaseJavaModule {
     public void setStereoEnabled(boolean enabled) {
         AudioConfig.setStereoEnabled(reactContext, enabled);
     }
+
+    @ReactMethod
+    public void setLowLatencyDecoderEnabled(boolean enabled) {
+        LowLatencyDecoderConfig.setEnabled(reactContext, enabled);
+    }
 }

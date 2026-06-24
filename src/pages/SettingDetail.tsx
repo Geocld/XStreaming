@@ -209,7 +209,10 @@ function SettingDetailScreen({navigation, route}) {
       }, 500);
     } else if (current === 'preferred_game_language') {
       clearXcloudData();
-    } else if (current === 'enable_stereo_audio') {
+    } else if (
+      current === 'enable_stereo_audio' ||
+      current === 'native_low_latency_decoder'
+    ) {
       shouldRestart = true;
     } else if (current === 'xhome_bitrate_mode') {
       settings.xhome_bitrate_mode = value;

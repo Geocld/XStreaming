@@ -62,6 +62,7 @@ import HoldButtonsScreen from './pages/HoldButtons';
 import VirtualMacroSettingsScreen from './pages/VirtualMacroSettings';
 import Ds5SettingsScreen from './pages/Ds5Settings';
 import DeviceInfosScreen from './pages/DeviceInfos';
+import GamepadTestScreen from './pages/GamepadTest';
 import ThanksScreen from './pages/Thanks';
 import HistoryScreen from './pages/History';
 import ServerScreen from './pages/Server';
@@ -161,6 +162,7 @@ const VirtualMacroSettingsBackgroundScreen = withPageBackground(
 );
 const Ds5SettingsBackgroundScreen = withPageBackground(Ds5SettingsScreen);
 const DeviceInfosBackgroundScreen = withPageBackground(DeviceInfosScreen);
+const GamepadTestBackgroundScreen = withPageBackground(GamepadTestScreen);
 const ThanksBackgroundScreen = withPageBackground(ThanksScreen);
 const HistoryBackgroundScreen = withPageBackground(HistoryScreen);
 const ServerBackgroundScreen = withPageBackground(ServerScreen);
@@ -499,6 +501,11 @@ function App() {
                   name="DeviceInfos"
                   component={DeviceInfosBackgroundScreen}
                   options={{title: t('Device testing')}}
+                />
+                <RootStack.Screen
+                  name="GamepadTest"
+                  component={GamepadTestBackgroundScreen}
+                  options={{title: t('GamepadTestTitle')}}
                 />
                 <RootStack.Screen
                   name="Debug"

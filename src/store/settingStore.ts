@@ -54,6 +54,7 @@ export type Settings = {
   video_format: string;
   picture_in_picture: boolean;
   native_portrait_mode: boolean;
+  native_low_latency_decoder: boolean;
   show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
   virtual_gamepad_joystick: number;
@@ -131,6 +132,7 @@ const defaultSettings: Settings = {
   video_format: '',
   picture_in_picture: false,
   native_portrait_mode: false,
+  native_low_latency_decoder: false,
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.7,
   custom_virtual_gamepad: '',
@@ -195,8 +197,11 @@ export const saveSettings = (settings: Settings) => {
     NativeModules.AudioSettingModule?.setStereoEnabled?.(
       !!totalSettings.enable_stereo_audio,
     );
+    NativeModules.AudioSettingModule?.setLowLatencyDecoderEnabled?.(
+      !!totalSettings.native_low_latency_decoder,
+    );
   } catch (error) {
-    log.warn('setStereoEnabled failed:', error);
+    log.warn('sync native settings failed:', error);
   }
 };
 

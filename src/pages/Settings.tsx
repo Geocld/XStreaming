@@ -215,6 +215,14 @@ function SettingsScreen({navigation}) {
               />
             );
           })}
+
+          <SettingItem
+            title={t('GamepadTestTitle')}
+            description={t('GamepadTestDescription')}
+            onPress={() => {
+              navigation.navigate('GamepadTest');
+            }}
+          />
         </View>
 
         <View>

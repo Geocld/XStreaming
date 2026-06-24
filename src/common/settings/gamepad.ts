@@ -29,6 +29,7 @@ const gamepad = [
     ),
     data: [
       {value: 'Native', text: 'Native'},
+      {value: 'SDL', text: t('SDL')},
       {value: 'Web', text: 'Web'},
     ],
   },

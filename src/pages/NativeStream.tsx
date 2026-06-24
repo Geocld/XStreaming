@@ -58,6 +58,7 @@ const PICTURE_IN_PICTURE_MODE_CHANGED = 'pictureInPictureModeChanged';
 const {
   FullScreenManager,
   GamepadManager,
+  SdlGamepadManager,
   UsbRumbleManager,
   SensorModule,
   GamepadSensorModule,
@@ -568,6 +569,7 @@ export function NativeStreamScreenBase({
     if (!isUsbMode && _settings.native_gamepad_maping) {
       gpMaping = sweap(_settings.native_gamepad_maping);
     }
+    const isSdlKernel = !isUsbMode && _settings.gamepad_kernal === 'SDL';
 
     const normaliseAxis = value => {
       if (_settings.dead_zone) {
@@ -756,7 +758,17 @@ export function NativeStreamScreenBase({
         webrtcClient && webrtcClient.setGamepadState(gpState);
       }, 1000 / _settings.polling_rate);
     } else {
-      log.info('Entry normal mode');
+      log.info(isSdlKernel ? 'Entry SDL gamepad mode' : 'Entry normal mode');
+      if (isSdlKernel) {
+        Promise.resolve(
+          SdlGamepadManager?.startController?.(
+            _settings.dead_zone ?? 0,
+            _settings.edge_compensation ?? 0,
+            !!_settings.short_trigger,
+            false,
+          ),
+        ).catch(() => {});
+      }
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
@@ -1712,6 +1724,7 @@ export function NativeStreamScreenBase({
       );
       macroSequenceTimersRef.current = [];
       GamepadManager.setCurrentScreen('');
+      SdlGamepadManager?.stopController?.();
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
       closeSystemKeyboardModal();

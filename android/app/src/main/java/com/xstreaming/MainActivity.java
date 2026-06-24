@@ -305,6 +305,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     if (!currentScreen.equals("stream")) {
       return super.onKeyDown(keyCode, event);
     }
+    if (SdlGamepadManager.isActive() && SdlGamepadManager.handleKeyEvent(event)) {
+      return true;
+    }
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
       int finalKeyCode = handleRemapping(keyCode, event, "down");
       WritableMap params = Arguments.createMap();
@@ -322,6 +325,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
 
     if (!currentScreen.equals("stream")) {
       return super.onKeyUp(keyCode, event);
+    }
+    if (SdlGamepadManager.isActive() && SdlGamepadManager.handleKeyEvent(event)) {
+      return true;
     }
     if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
       int finalKeyCode = handleRemapping(keyCode, event, "up");
@@ -373,6 +379,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
 
     if (!currentScreen.equals("stream")) {
       return super.onGenericMotionEvent(event);
+    }
+    if (SdlGamepadManager.isActive() && SdlGamepadManager.handleMotionEvent(event)) {
+      return true;
     }
 
     // DPAD

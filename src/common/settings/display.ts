@@ -63,6 +63,16 @@ const display = [
     ],
   },
   {
+    name: 'native_low_latency_decoder',
+    type: 'radio',
+    title: t('Ultra low latency decoding'),
+    description: t('UltraLowLatencyDecoderDesc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
     name: 'xhome_bitrate_mode',
     type: 'radio',
     title: t('Host stream bitrate'),

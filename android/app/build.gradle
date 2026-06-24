@@ -68,6 +68,10 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
 def webkit_version = rootProject.ext.has('webkitVersion') ? rootProject.ext.get('webkitVersion') : project.properties['ReactNativeWebView_webkitVersion']
+def xstreamingTargetAbis = (project.findProperty("reactNativeArchitectures") ?: "armeabi-v7a,arm64-v8a")
+        .split(",")
+        .collect { it.trim() }
+        .findAll { it }
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -75,6 +79,11 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace "com.xstreaming"
+    sourceSets {
+        main {
+            jniLibs.srcDirs += ["$buildDir/generated/sdlJniLibs"]
+        }
+    }
     defaultConfig {
         versionCode 1
         minSdkVersion rootProject.ext.minSdkVersion
@@ -82,6 +91,9 @@ android {
 //        applicationId "com.gamepass"
 //        versionCode 1999999999
         versionName "2.8.1"
+        ndk {
+            abiFilters(*xstreamingTargetAbis)
+        }
     }
     flavorDimensions "environment"
     productFlavors {
@@ -128,6 +140,26 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
+
+tasks.register("syncSdl2JniLibs") {
+    def outputDir = file("$buildDir/generated/sdlJniLibs")
+    inputs.files(xstreamingTargetAbis.collect { abi -> file("../../third-party/sdl/${abi}/lib/libSDL2.so") })
+    outputs.dir(outputDir)
+    doLast {
+        delete(outputDir)
+        xstreamingTargetAbis.each { abi ->
+            def source = file("../../third-party/sdl/${abi}/lib/libSDL2.so")
+            if (source.exists()) {
+                copy {
+                    from source
+                    into file("$outputDir/${abi}")
+                }
+            }
+        }
+    }
+}
+
+preBuild.dependsOn("syncSdl2JniLibs")
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin

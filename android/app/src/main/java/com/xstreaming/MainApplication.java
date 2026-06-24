@@ -11,10 +11,14 @@ import com.facebook.soloader.SoLoader;
 import com.umeng.commonsdk.UMConfigure;
 
 import com.oney.WebRTCModule.WebRTCModuleOptions;
+import com.oney.WebRTCModule.EglUtils;
+import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoEncoderFactory;
 import com.xstreaming.touchcontrols.AnalogStickPackage;
 import com.xstreaming.touchcontrols.ButtonViewPackage;
+import com.xstreaming.webrtc.LowLatencyVideoDecoderFactory;
 
 import android.media.AudioAttributes;
+import org.webrtc.EglBase;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.util.List;
@@ -78,6 +82,12 @@ public class MainApplication extends Application implements ReactApplication {
 
     // webrtc
     WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
+    EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
+    options.videoEncoderFactory = new H264AndSoftwareVideoEncoderFactory(eglContext);
+    if (LowLatencyDecoderConfig.isEnabled(this)) {
+        options.videoDecoderFactory = new LowLatencyVideoDecoderFactory(eglContext);
+    }
+
     boolean stereoEnabled = AudioConfig.isStereoEnabled(this);
     AudioAttributes audioAttributes = new AudioAttributes.Builder()
           .setUsage(AudioAttributes.USAGE_MEDIA)
