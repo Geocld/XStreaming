@@ -337,6 +337,7 @@ export default {
     x_axies: 'X axis',
     y_axies: 'Y axis',
     all_axies: 'All axes',
+    xy_axies: 'X/Y tauschen',
     DualSense_adaptive_trigger_left: 'Set DualSense left trigger',
     DualSense_adaptive_trigger_left_desc:
       'Set the DualSense left trigger to resistance/trigger/automatic rifle trigger. To enable this, turn on Android override driver in Settings and connect the DualSense controller by cable.',

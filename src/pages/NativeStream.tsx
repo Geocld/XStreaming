@@ -28,8 +28,6 @@ import {debugFactory} from '../utils/debug';
 import {GAMEPAD_MAPING} from '../common';
 import {XBOX_360_GAMEPAD_MAPING} from '../common/usbGamepadMaping';
 import VirtualGamepad from '../components/VirtualGamepad';
-import GamepadButton from '../components/GamepadButton';
-import AnalogStick from '../components/AnalogStick';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import VirtualGamepadEditor, {
   ButtonConfig,
@@ -37,6 +35,9 @@ import VirtualGamepadEditor, {
 import PerfPanel from '../components/PerfPanel';
 import RTCFsrView from '../components/RTCFsrView';
 import NativeTouchOverlay from '../components/NativeTouchOverlay';
+import PortraitVirtualGamepad, {
+  PortraitGamepadControl,
+} from '../components/PortraitVirtualGamepad';
 import type {PointerWireData} from '../webrtc/Channel/Input';
 import {
   normalizeMacroLoopIntervalMs,
@@ -202,6 +203,8 @@ export function NativeStreamScreenBase({
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
+  const [portraitGamepadEditing, setPortraitGamepadEditing] =
+    React.useState(false);
   const [openMicro, setOpenMicro] = React.useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
   const xHomeApiRef = React.useRef<any>(undefined);
@@ -1026,6 +1029,11 @@ export function NativeStreamScreenBase({
               case 3: // All
                 stickX = -stickX;
                 stickY = -stickY;
+                break;
+              case 4: // x <-> y
+                const temp = stickX;
+                stickX = stickY;
+                stickY = temp;
                 break;
               default:
                 break;
@@ -2139,6 +2147,27 @@ export function NativeStreamScreenBase({
     setShowGamepadEditor(false);
   };
 
+  const savePortraitGamepadLayout = React.useCallback(
+    (layout: PortraitGamepadControl[]) => {
+      const nextSettings = {
+        ...getSettings(),
+        native_portrait_gamepad_layout: layout,
+      };
+      saveSettings(nextSettings);
+      setSettings(nextSettings);
+    },
+    [],
+  );
+
+  const resetPortraitGamepadLayout = React.useCallback(() => {
+    const nextSettings = {
+      ...getSettings(),
+      native_portrait_gamepad_layout: [],
+    };
+    saveSettings(nextSettings);
+    setSettings(nextSettings);
+  }, []);
+
   const showNativeOptionsDialog = React.useCallback(
     async (items: Array<{id: string; title: string}>) => {
       if (!NativeInputDialog?.showOptions) {
@@ -2423,81 +2452,23 @@ export function NativeStreamScreenBase({
     );
   };
 
-  const renderPortraitButton = (name: string, style: any) => (
-    <GamepadButton
-      name={name}
-      style={style}
-      onPressIn={handleButtonPressIn}
-      onPressOut={handleButtonPressOut}
-    />
-  );
-
   const renderPortraitVirtualGamepad = () => {
     if (!portraitMode || connectState !== CONNECTED) {
       return null;
     }
 
     return (
-      <View style={styles.portraitGamepad} pointerEvents="box-none">
-        <View style={styles.portraitTriggerRow}>
-          {renderPortraitButton('LeftTrigger', styles.portraitTriggerButton)}
-          {renderPortraitButton('RightTrigger', styles.portraitTriggerButton)}
-        </View>
-
-        <View style={styles.portraitBumperRow}>
-          {renderPortraitButton('LeftShoulder', styles.portraitBumperButton)}
-          {renderPortraitButton('RightShoulder', styles.portraitBumperButton)}
-        </View>
-
-        <View style={styles.portraitMainRow}>
-          <View style={styles.portraitDPadCluster}>
-            {renderPortraitButton('DPadUp', styles.portraitDPadUp)}
-            {renderPortraitButton('DPadLeft', styles.portraitDPadLeft)}
-            {renderPortraitButton('DPadDown', styles.portraitDPadDown)}
-            {renderPortraitButton('DPadRight', styles.portraitDPadRight)}
-          </View>
-
-          <View style={styles.portraitSystemCluster}>
-            <View style={styles.portraitSystemRow}>
-              {renderPortraitButton('View', styles.portraitSystemButton)}
-              {renderPortraitButton('Menu', styles.portraitSystemButton)}
-            </View>
-            {renderPortraitButton('Nexus', styles.portraitNexus)}
-          </View>
-
-          <View style={styles.portraitFaceCluster}>
-            {renderPortraitButton('Y', styles.portraitButtonY)}
-            {renderPortraitButton('X', styles.portraitButtonX)}
-            {renderPortraitButton('B', styles.portraitButtonB)}
-            {renderPortraitButton('A', styles.portraitButtonA)}
-          </View>
-        </View>
-
-        <View style={styles.portraitStickRow}>
-          <View style={styles.portraitStickColumn}>
-            {renderPortraitButton('LeftThumb', styles.portraitStickThumb)}
-            <View style={styles.portraitStickBlock}>
-              <AnalogStick
-                style={styles.portraitAnalogStick}
-                radius={110}
-                handleRadius={70}
-                onStickChange={(data: any) => handleStickMove('left', data)}
-              />
-            </View>
-          </View>
-          <View style={styles.portraitStickColumn}>
-            {renderPortraitButton('RightThumb', styles.portraitStickThumb)}
-            <View style={styles.portraitStickBlock}>
-              <AnalogStick
-                style={styles.portraitAnalogStick}
-                radius={110}
-                handleRadius={70}
-                onStickChange={(data: any) => handleStickMove('right', data)}
-              />
-            </View>
-          </View>
-        </View>
-      </View>
+      <PortraitVirtualGamepad
+        layout={settings.native_portrait_gamepad_layout}
+        opacity={settings.virtual_gamepad_opacity ?? 0.7}
+        editing={portraitGamepadEditing}
+        onEditingChange={setPortraitGamepadEditing}
+        onLayoutChange={savePortraitGamepadLayout}
+        onResetDefault={resetPortraitGamepadLayout}
+        onPressIn={handleButtonPressIn}
+        onPressOut={handleButtonPressOut}
+        onStickMove={handleStickMove}
+      />
     );
   };
 
@@ -2678,164 +2649,6 @@ const styles = StyleSheet.create({
   portraitControls: {
     flex: 1,
     backgroundColor: '#050505',
-  },
-  portraitGamepad: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 14,
-    justifyContent: 'flex-start',
-  },
-  portraitTriggerRow: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  portraitTriggerButton: {
-    width: 58,
-    height: 52,
-    opacity: 0.72,
-  },
-  portraitBumperRow: {
-    height: 46,
-    marginTop: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  portraitBumperButton: {
-    width: 52,
-    height: 46,
-    opacity: 0.72,
-  },
-  portraitDPadUp: {
-    position: 'absolute',
-    left: 48,
-    top: 8,
-    width: 48,
-    height: 48,
-    opacity: 0.72,
-  },
-  portraitDPadLeft: {
-    position: 'absolute',
-    left: 4,
-    top: 52,
-    width: 48,
-    height: 48,
-    opacity: 0.72,
-  },
-  portraitDPadDown: {
-    position: 'absolute',
-    left: 48,
-    top: 96,
-    width: 48,
-    height: 48,
-    opacity: 0.72,
-  },
-  portraitDPadRight: {
-    position: 'absolute',
-    left: 92,
-    top: 52,
-    width: 48,
-    height: 48,
-    opacity: 0.72,
-  },
-  portraitButtonY: {
-    position: 'absolute',
-    left: 42,
-    top: 0,
-    opacity: 0.78,
-  },
-  portraitButtonX: {
-    position: 'absolute',
-    left: 0,
-    top: 44,
-    opacity: 0.78,
-  },
-  portraitButtonB: {
-    position: 'absolute',
-    right: 0,
-    top: 44,
-    opacity: 0.78,
-  },
-  portraitButtonA: {
-    position: 'absolute',
-    left: 42,
-    top: 88,
-    opacity: 0.78,
-  },
-  portraitMainRow: {
-    height: 144,
-    marginTop: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  portraitDPadCluster: {
-    width: 144,
-    height: 144,
-    position: 'relative',
-  },
-  portraitSystemCluster: {
-    width: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  portraitSystemRow: {
-    width: 72,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  portraitSystemButton: {
-    width: 34,
-    height: 34,
-    opacity: 0.68,
-  },
-  portraitNexus: {
-    width: 54,
-    height: 54,
-    marginTop: 8,
-    opacity: 0.68,
-  },
-  portraitFaceCluster: {
-    width: 154,
-    height: 148,
-    position: 'relative',
-  },
-  portraitStickRow: {
-    height: 160,
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-  },
-  portraitStickColumn: {
-    width: 118,
-    height: 160,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  portraitStickBlock: {
-    width: 118,
-    height: 118,
-    borderRadius: 59,
-    overflow: 'hidden',
-  },
-  portraitStickThumb: {
-    width: 40,
-    height: 40,
-    marginBottom: 2,
-    opacity: 0.68,
-    zIndex: 2,
-  },
-  portraitAnalogStick: {
-    width: 118,
-    height: 118,
-    borderRadius: 59,
-    backgroundColor: 'rgba(255, 255, 255, 0.28)',
-    overflow: 'hidden',
   },
   quickMenu: {
     position: 'absolute',

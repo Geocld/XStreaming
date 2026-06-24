@@ -275,6 +275,7 @@ export default {
     x_axies: 'Eje X',
     y_axies: 'Eje Y',
     all_axies: 'Todos los ejes',
+    xy_axies: 'Intercambiar X/Y',
     DualSense_adaptive_trigger_left: 'Gatillo izquierdo DualSense',
     DualSense_adaptive_trigger_left_desc: 'Ajusta la resistencia del gatillo izquierdo.',
     DualSense_adaptive_trigger_right: 'Gatillo derecho DualSense',

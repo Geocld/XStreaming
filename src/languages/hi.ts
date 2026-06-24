@@ -320,6 +320,7 @@ export default {
     x_axies: 'X अक्ष',
     y_axies: 'Y अक्ष',
     all_axies: 'सभी अक्ष',
+    xy_axies: 'X/Y स्वैप करें',
     DualSense_adaptive_trigger_left: 'DualSense बायां ट्रिगर',
     DualSense_adaptive_trigger_left_desc:
       'बाएं ट्रिगर के लिए रेजिस्टेंस सेट करें।',

@@ -313,6 +313,7 @@ export default {
     x_axies: 'X軸',
     y_axies: 'Y軸',
     all_axies: '全軸',
+    xy_axies: 'X/Y入替',
     DualSense_adaptive_trigger_left: 'DualSense左トリガー',
     DualSense_adaptive_trigger_left_desc: '左トリガーの抵抗設定',
     DualSense_adaptive_trigger_right: 'DualSense右トリガー',

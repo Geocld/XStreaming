@@ -336,6 +336,7 @@ export default {
     x_axies: 'Eixo X',
     y_axies: 'Eixo Y',
     all_axies: 'Todos os eixos',
+    xy_axies: 'Trocar X/Y',
     DualSense_adaptive_trigger_left: 'Configurar gatilho esquerdo do DualSense',
     DualSense_adaptive_trigger_left_desc:
       'Configurar o gatilho esquerdo do DualSense para resistência/gatilho/gatilho de rifle automático. Para ativar, ligue a substituição do driver Android nas Configurações e conecte o DualSense via cabo.',

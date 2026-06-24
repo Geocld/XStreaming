@@ -614,6 +614,11 @@ function StreamScreen({navigation, route}) {
                 stickX = -stickX;
                 stickY = -stickY;
                 break;
+              case 4: // x <-> y
+                const temp = stickX;
+                stickX = stickY;
+                stickY = temp;
+                break;
               default:
                 break;
             }

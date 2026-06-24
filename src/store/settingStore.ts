@@ -54,6 +54,7 @@ export type Settings = {
   video_format: string;
   picture_in_picture: boolean;
   native_portrait_mode: boolean;
+  native_portrait_gamepad_layout: any[];
   native_low_latency_decoder: boolean;
   show_virtual_gamead: boolean;
   virtual_gamepad_opacity: number;
@@ -132,6 +133,7 @@ const defaultSettings: Settings = {
   video_format: '',
   picture_in_picture: false,
   native_portrait_mode: false,
+  native_portrait_gamepad_layout: [],
   native_low_latency_decoder: false,
   show_virtual_gamead: false,
   virtual_gamepad_opacity: 0.7,

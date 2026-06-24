@@ -311,6 +311,7 @@ export default {
     x_axies: 'X축',
     y_axies: 'Y축',
     all_axies: '모든 축',
+    xy_axies: 'X/Y 바꾸기',
     DualSense_adaptive_trigger_left: 'DualSense 왼쪽 트리거',
     DualSense_adaptive_trigger_left_desc: '왼쪽 트리거 저항 설정',
     DualSense_adaptive_trigger_right: 'DualSense 오른쪽 트리거',

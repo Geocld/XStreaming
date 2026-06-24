@@ -57,6 +57,7 @@ const sensor = [
       {value: 1, text: t('x_axies')},
       {value: 2, text: t('y_axies')},
       {value: 3, text: t('all_axies')},
+      {value: 4, text: t('xy_axies')},
     ],
   },
 ];

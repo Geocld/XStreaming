@@ -323,6 +323,7 @@ export default {
     x_axies: 'X軸',
     y_axies: 'Y軸',
     all_axies: '全部軸',
+    xy_axies: 'X/Y對調',
     DualSense_adaptive_trigger_left: '設定DualSense左扳機',
     DualSense_adaptive_trigger_left_desc:
       '可以將DualSense左扳機設定為阻尼/扳機/自動步槍扳機(開啟此功能需打開安卓覆蓋驅動(設定-覆蓋安卓手柄支持-開啟)，並將DualSense控制器有線連接)',
