@@ -6,6 +6,12 @@ const STORE_KEY = 'user.tokenstore';
 
 export type AuthenticationMethod = 'xal' | 'msal' | 'none';
 
+export type TokenStoreData = {
+  userToken?: UserTokenData;
+  sisuToken?: SisuTokenData;
+  tokenUpdateTime?: number;
+};
+
 export default class TokenStore {
   private _userToken?: UserToken;
   private _sisuToken?: SisuToken;
@@ -25,11 +31,7 @@ export default class TokenStore {
   }
 
   loadJson(json: string): boolean {
-    const jsonData = JSON.parse(json) as {
-      userToken?: UserTokenData;
-      sisuToken?: SisuTokenData;
-      tokenUpdateTime?: number;
-    };
+    const jsonData = JSON.parse(json) as TokenStoreData;
 
     if (jsonData.userToken) {
       this._userToken = new UserToken(jsonData.userToken);
@@ -42,6 +44,28 @@ export default class TokenStore {
     this._tokenUpdateTime = jsonData.tokenUpdateTime ?? 0;
 
     return true;
+  }
+
+  exportData(): TokenStoreData {
+    return {
+      userToken: this._userToken?.data,
+      sisuToken: this._sisuToken?.data,
+      tokenUpdateTime: this._tokenUpdateTime,
+    };
+  }
+
+  saveData(data: TokenStoreData): void {
+    const normalizedData = {
+      userToken: data?.userToken,
+      sisuToken: data?.sisuToken,
+      tokenUpdateTime: data?.tokenUpdateTime ?? 0,
+    };
+
+    storage.set(STORE_KEY, JSON.stringify(normalizedData));
+    this._userToken = undefined;
+    this._sisuToken = undefined;
+    this._tokenUpdateTime = 0;
+    this.loadJson(JSON.stringify(normalizedData));
   }
 
   setUserToken(userToken: UserToken): void {

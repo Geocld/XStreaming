@@ -427,6 +427,12 @@ function SettingsScreen({navigation}) {
           />
 
           <SettingItem
+            title={t('ConfigTransfer')}
+            description={t('ConfigTransferDescription')}
+            onPress={() => navigation.navigate('Transfer')}
+          />
+
+          <SettingItem
             title={t('Device testing')}
             description={t('Testing current device and controller')}
             onPress={() => navigation.navigate('DeviceInfos')}

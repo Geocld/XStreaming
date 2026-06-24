@@ -51,6 +51,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new RTCFsrVideoViewPackage());
             packages.add(new UpdateManagerPackage());
             packages.add(new NativeInputDialogPackage());
+            packages.add(new ConfigTransferPackage());
           return packages;
         }
 

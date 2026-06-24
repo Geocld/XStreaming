@@ -3,4 +3,7 @@
     <cache-path
         name="update_apks"
         path="updates/" />
+    <cache-path
+        name="config_exports"
+        path="exports/" />
 </paths>

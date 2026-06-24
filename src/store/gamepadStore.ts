@@ -25,6 +25,15 @@ export const saveSettings = (name: string, params: any) => {
   storage.set(STORE_KEY, JSON.stringify(settings));
 };
 
+export const saveAllSettings = (settings: any) => {
+  log.info('SaveAllSettings:', JSON.stringify(settings));
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    storage.set(STORE_KEY, JSON.stringify({}));
+    return;
+  }
+  storage.set(STORE_KEY, JSON.stringify(settings));
+};
+
 export const deleteSetting = (name: string) => {
   log.info('deleteSetting:', name);
   let settings: any = storage.getString(STORE_KEY);

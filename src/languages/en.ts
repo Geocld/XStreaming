@@ -13,6 +13,23 @@ export default {
     Close: 'Close',
     More: 'More',
     Success: 'Success',
+    ConfigTransfer: 'Config transfer',
+    ConfigTransferDescription:
+      'Export or import account, settings, virtual gamepad, and macro configuration.',
+    ConfigTransferUnavailable: 'Config transfer is unavailable on this device.',
+    ExportDesc: 'Export configuration',
+    ExportTips:
+      'Exports account tokens, settings, custom virtual buttons, and macro settings as a plain JSON file.',
+    ExportSettings: 'Export settings',
+    ExportSuccess: 'Export successful',
+    ExportFail: 'Export failed',
+    ImportDesc: 'Import configuration',
+    ImportTips:
+      'Imports a previously exported XStreaming JSON file and restarts the app after recovery.',
+    ImportSettings: 'Import settings',
+    ImportSuccess: 'Import successful',
+    ImportFail: 'Import failed',
+    UserCancel: 'Canceled',
     GameMap: 'Gamepad mapping',
     NoLogin: 'Not logged in. Please log in.',
     'Fetching user info...': 'Fetching user info...',
@@ -251,7 +268,8 @@ export default {
     Default: 'Default',
     SDL: 'SDL',
     GamepadTestTitle: 'Gamepad test',
-    GamepadTestDescription: 'Test the current gamepad buttons, sticks, triggers, and rumble',
+    GamepadTestDescription:
+      'Test the current gamepad buttons, sticks, triggers, and rumble',
     GamepadKernelTitle: 'Current kernel',
     GamepadTestRumble: 'Test rumble',
     GamepadTestButtons: 'Buttons',
