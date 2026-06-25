@@ -3,8 +3,6 @@ import {StyleSheet, View} from 'react-native';
 import {IconButton, useTheme} from 'react-native-paper';
 import Draggable from 'react-native-draggable';
 import {useTranslation} from 'react-i18next';
-import GamepadButton from './GamepadButton';
-import AnalogStick from './AnalogStick';
 import PreviewButton from './CustomGamepad/Button';
 
 export type PortraitGamepadControl = {
@@ -30,6 +28,13 @@ type Props = {
   onPressIn: (name: string) => void;
   onPressOut: (name: string) => void;
   onStickMove: (id: string, data: any) => void;
+};
+
+type StickName = 'left' | 'right';
+type TouchPoint = {
+  identifier: number;
+  locationX: number;
+  locationY: number;
 };
 
 const clamp = (value: number, min: number, max: number) => {
@@ -181,6 +186,26 @@ const persistableLayout = (
     containerHeight: height,
   }));
 
+const isInsideControl = (item: PortraitGamepadControl, x: number, y: number) =>
+  item.show !== false &&
+  x >= item.x &&
+  x <= item.x + item.width &&
+  y >= item.y &&
+  y <= item.y + item.height;
+
+const getStickName = (name: string): StickName =>
+  name === 'RightStick' ? 'right' : 'left';
+
+const getButtonPreviewScale = (item: PortraitGamepadControl) => {
+  if (['A', 'B', 'X', 'Y'].includes(item.name)) {
+    return item.width / 100;
+  }
+  if (item.name.indexOf('DPad') > -1) {
+    return item.width / 70;
+  }
+  return 1;
+};
+
 const PortraitVirtualGamepad: React.FC<Props> = ({
   layout,
   opacity,
@@ -196,6 +221,12 @@ const PortraitVirtualGamepad: React.FC<Props> = ({
   const theme = useTheme();
   const [size, setSize] = React.useState({width: 0, height: 0});
   const [reloadKey, setReloadKey] = React.useState(0);
+  const [stickVisuals, setStickVisuals] = React.useState({
+    left: {x: 0, y: 0},
+    right: {x: 0, y: 0},
+  });
+  const activeButtonsRef = React.useRef<Map<number, string>>(new Map());
+  const activeSticksRef = React.useRef<Map<StickName, number>>(new Map());
   const controls = React.useMemo(
     () => normalizeLayout(layout, size.width, size.height),
     [layout, size.height, size.width],
@@ -209,6 +240,158 @@ const PortraitVirtualGamepad: React.FC<Props> = ({
       onLayoutChange(persistableLayout(next, size.width, size.height));
     },
     [controls, onLayoutChange, size.height, size.width],
+  );
+
+  const visibleControls = React.useMemo(
+    () => controls.filter(item => item.show !== false),
+    [controls],
+  );
+
+  const findButtonAt = React.useCallback(
+    (x: number, y: number) => {
+      for (let i = visibleControls.length - 1; i >= 0; i--) {
+        const item = visibleControls[i];
+        if (item.kind === 'button' && isInsideControl(item, x, y)) {
+          return item;
+        }
+      }
+      return null;
+    },
+    [visibleControls],
+  );
+
+  const findStickAt = React.useCallback(
+    (x: number, y: number) => {
+      for (let i = visibleControls.length - 1; i >= 0; i--) {
+        const item = visibleControls[i];
+        if (item.kind === 'stick' && isInsideControl(item, x, y)) {
+          return item;
+        }
+      }
+      return null;
+    },
+    [visibleControls],
+  );
+
+  const setStickVisual = React.useCallback(
+    (stick: StickName, x: number, y: number) => {
+      setStickVisuals(prev => {
+        const current = prev[stick];
+        if (current.x === x && current.y === y) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [stick]: {x, y},
+        };
+      });
+    },
+    [],
+  );
+
+  const resetStick = React.useCallback(
+    (stick: StickName) => {
+      activeSticksRef.current.delete(stick);
+      setStickVisual(stick, 0, 0);
+      onStickMove(stick, {x: 0, y: 0});
+    },
+    [onStickMove, setStickVisual],
+  );
+
+  const releaseAllTouches = React.useCallback(() => {
+    activeButtonsRef.current.forEach(name => {
+      onPressOut(name);
+    });
+    activeButtonsRef.current.clear();
+    resetStick('left');
+    resetStick('right');
+  }, [onPressOut, resetStick]);
+
+  React.useEffect(() => {
+    if (editing) {
+      releaseAllTouches();
+    }
+  }, [editing, releaseAllTouches]);
+
+  React.useEffect(() => releaseAllTouches, [releaseAllTouches]);
+
+  const updateStickFromTouch = React.useCallback(
+    (item: PortraitGamepadControl, touch: TouchPoint) => {
+      const stick = getStickName(item.name);
+      const centerX = item.x + item.width / 2;
+      const centerY = item.y + item.height / 2;
+      const radius = Math.max(1, Math.min(item.width, item.height) / 2);
+      const x = clamp((touch.locationX - centerX) / radius, -1, 1);
+      const y = clamp((touch.locationY - centerY) / radius, -1, 1);
+
+      setStickVisual(stick, x, y);
+      onStickMove(stick, {x, y});
+    },
+    [onStickMove, setStickVisual],
+  );
+
+  const handleTouchStart = React.useCallback(
+    (event: any) => {
+      event.nativeEvent.changedTouches.forEach((touch: TouchPoint) => {
+        const button = findButtonAt(touch.locationX, touch.locationY);
+        if (button) {
+          activeButtonsRef.current.set(touch.identifier, button.name);
+          onPressIn(button.name);
+          return;
+        }
+
+        const stick = findStickAt(touch.locationX, touch.locationY);
+        if (!stick) {
+          return;
+        }
+
+        const stickName = getStickName(stick.name);
+        if (activeSticksRef.current.has(stickName)) {
+          return;
+        }
+        activeSticksRef.current.set(stickName, touch.identifier);
+        updateStickFromTouch(stick, touch);
+      });
+    },
+    [findButtonAt, findStickAt, onPressIn, updateStickFromTouch],
+  );
+
+  const handleTouchMove = React.useCallback(
+    (event: any) => {
+      const touches: TouchPoint[] = event.nativeEvent.touches;
+      activeSticksRef.current.forEach((identifier, stickName) => {
+        const touch = touches.find(item => item.identifier === identifier);
+        const stick = visibleControls.find(
+          item =>
+            item.kind === 'stick' && getStickName(item.name) === stickName,
+        );
+        if (!touch || !stick) {
+          resetStick(stickName);
+          return;
+        }
+        updateStickFromTouch(stick, touch);
+      });
+    },
+    [resetStick, updateStickFromTouch, visibleControls],
+  );
+
+  const handleTouchEnd = React.useCallback(
+    (event: any) => {
+      event.nativeEvent.changedTouches.forEach((touch: TouchPoint) => {
+        const button = activeButtonsRef.current.get(touch.identifier);
+        if (button) {
+          activeButtonsRef.current.delete(touch.identifier);
+          onPressOut(button);
+        }
+
+        activeSticksRef.current.forEach((identifier, stickName) => {
+          if (identifier === touch.identifier) {
+            resetStick(stickName);
+          }
+        });
+      });
+    },
+    [onPressOut, resetStick],
   );
 
   const renderPlayControl = (item: PortraitGamepadControl) => {
@@ -228,31 +411,49 @@ const PortraitVirtualGamepad: React.FC<Props> = ({
     ];
 
     if (item.kind === 'stick') {
+      const stick = getStickName(item.name);
+      const visual = stickVisuals[stick];
+      const handleSize = Math.max(36, item.width * 0.46);
+      const travel = item.width / 2 - handleSize / 2;
       return (
-        <View key={item.name} style={itemStyle}>
-          <AnalogStick
+        <View key={item.name} style={itemStyle} pointerEvents="none">
+          <View
             style={[
               styles.analogStick,
-              {width: item.width, height: item.height},
-            ]}
-            radius={110}
-            handleRadius={70}
-            onStickChange={(data: any) =>
-              onStickMove(item.name === 'LeftStick' ? 'left' : 'right', data)
-            }
-          />
+              {
+                width: item.width,
+                height: item.height,
+                borderRadius: item.width / 2,
+              },
+            ]}>
+            <View
+              style={[
+                styles.analogStickHandle,
+                {
+                  width: handleSize,
+                  height: handleSize,
+                  borderRadius: handleSize / 2,
+                  transform: [
+                    {translateX: visual.x * travel},
+                    {translateY: visual.y * travel},
+                  ],
+                },
+              ]}
+            />
+          </View>
         </View>
       );
     }
 
     return (
-      <GamepadButton
-        key={item.name}
-        name={item.name}
-        style={itemStyle}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-      />
+      <View key={item.name} style={itemStyle} pointerEvents="none">
+        <PreviewButton
+          name={item.name}
+          width={item.width}
+          height={item.height}
+          scale={getButtonPreviewScale(item)}
+        />
+      </View>
     );
   };
 
@@ -327,6 +528,15 @@ const PortraitVirtualGamepad: React.FC<Props> = ({
       }}>
       {size.width > 0 && size.height > 0 && (
         <>
+          {!editing && (
+            <View
+              style={styles.touchLayer}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={releaseAllTouches}
+            />
+          )}
           {editing
             ? controls.map(renderEditControl)
             : controls.map(renderPlayControl)}
@@ -370,15 +580,27 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
   },
+  touchLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
+  },
   control: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1,
   },
   analogStick: {
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 59,
     backgroundColor: 'rgba(255, 255, 255, 0.28)',
     overflow: 'hidden',
+  },
+  analogStickHandle: {
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.92)',
   },
   toolbar: {
     position: 'absolute',

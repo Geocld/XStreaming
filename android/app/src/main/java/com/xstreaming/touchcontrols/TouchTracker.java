@@ -38,8 +38,10 @@ public class TouchTracker {
 
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
+            case MotionEvent.ACTION_CANCEL:
                 if (pointerId != -1) {
-                    if (event.getPointerId(event.getActionIndex()) == pointerId) {
+                    if (event.getActionMasked() == MotionEvent.ACTION_CANCEL ||
+                            event.getPointerId(event.getActionIndex()) == pointerId) {
                         pointerId = -1;
                         setCurrentPosition(null);
                     }

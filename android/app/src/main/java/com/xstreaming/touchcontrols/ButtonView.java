@@ -214,6 +214,7 @@ public class ButtonView extends CustomView {
             }
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
+            case MotionEvent.ACTION_CANCEL:
                 setButtonPressed(false);
                 break;
         }
