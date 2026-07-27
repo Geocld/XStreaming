@@ -41,8 +41,6 @@ If you are looking for Windows/MacOS/Linux(steamOS) Xbox streaming application, 
 ## Atmosphere on Nintendo Switch
 The outstanding open-source project [LunarNX](https://github.com/thinkzhou/LunarNX) is highly recommended. It operates natively within the Atmosphere environment, offering support for both console streaming and xCloud, with a maximum output of 1080p HQ. The developer is currently in active iteration; contributions and interest are warmly welcomed.
 
-上面翻译为英文
-
 ## Features
 
 - Stream video and audio from the Xbox One and Xbox Series S/X
