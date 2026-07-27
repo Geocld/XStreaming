@@ -35,6 +35,9 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 
 如果你在找 Windows/MacOS/Linux(steamOS) 平台的xbox串流应用, 请使用 [XStreaming-desktop](https://github.com/Geocld/XStreaming-desktop) 或 [Greenlight](https://github.com/unknownskl/greenlight).
 
+## 大气层Switch
+推荐使用优秀开源项目[LunarNX](https://github.com/thinkzhou/LunarNX)，原生大气层运行，支持主机串流和xCloud，最高支持1080P HQ，目前作者正在积极迭代，欢迎关注参与开发.
+
 ## 功能
 
 - 串流Xbox One、Xbox Series S/X的音视频
