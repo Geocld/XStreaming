@@ -198,6 +198,8 @@ export default {
     'Short Trigger': '短扳机',
     ShortTriggerDesc:
       '如果你希望将控制器的线性扳机输入为短扳机输入，或者你使用了非线性扳机的控制器(如Switch/NS pro)，请打开此选项',
+    'Auto Sprint': '自动冲刺',
+    AutoSprintDesc: '左摇杆有效推动时自动按下 L3，左摇杆回中时自动松开 L3',
     noAllow:
       '你没有权限开始云游戏，请检查登录是否过期并尝试重新登录，如果你正在尝试游玩云游戏，请确保你是XGPU，如果你正在尝试游玩非XGPU游戏，请确保你已经购买此游戏',
     homeNoAllow: '串流权限检查失败，请检查登录是否过期并尝试重新登录',

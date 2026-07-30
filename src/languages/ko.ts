@@ -172,6 +172,9 @@ export default {
       '드라이버 교체 후 매핑은 아직 지원되지 않습니다.',
     'Short Trigger': '숏 트리거',
     ShortTriggerDesc: '빠른 반응을 위해 트리거 범위를 좁힙니다.',
+    'Auto Sprint': '자동 달리기',
+    AutoSprintDesc:
+      '왼쪽 스틱을 움직이면 L3를 자동으로 누르고, 스틱이 중앙으로 돌아오면 놓습니다.',
     noAllow: '권한이 없습니다. 로그인 및 구독을 확인하세요.',
     homeNoAllow: '권한 확인 실패. 다시 로그인하세요.',
     Horizon: '가로',

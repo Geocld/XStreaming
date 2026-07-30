@@ -137,6 +137,9 @@ export default {
     'After replacing the Android controller driver, controller button mapping is temporarily not supported': 'La asignación no está disponible tras cambiar el driver.',
     'Short Trigger': 'Gatillo corto',
     ShortTriggerDesc: 'Acorta el recorrido del gatillo para respuesta rápida.',
+    'Auto Sprint': 'Sprint automático',
+    AutoSprintDesc:
+      'Pulsa L3 automáticamente al mover el stick izquierdo y lo suelta al volver al centro.',
     noAllow: 'Sin permiso para iniciar. Revisa el login y la suscripción.',
     homeNoAllow: 'Fallo en la comprobación de permisos. Reicia sesión.',
     Horizon: 'Horizontal',

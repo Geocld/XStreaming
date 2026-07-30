@@ -184,6 +184,9 @@ export default {
     'Short Trigger': 'Kurzer Trigger',
     ShortTriggerDesc:
       'Enable this if you want linear trigger input to behave as a short trigger, or if you use a controller with non-linear triggers such as Switch/NS Pro.',
+    'Auto Sprint': 'Automatischer Sprint',
+    AutoSprintDesc:
+      'Drueckt automatisch L3, solange der linke Stick bewegt wird, und laesst L3 los, wenn der Stick wieder zentriert ist.',
     noAllow:
       'You do not have permission to start cloud gaming. Check whether login has expired and log in again. For cloud games, make sure you have XGPU. For non-XGPU games, make sure you own the game.',
     homeNoAllow:

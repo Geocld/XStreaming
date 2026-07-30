@@ -184,6 +184,9 @@ export default {
     'Short Trigger': 'Gatilho curto',
     ShortTriggerDesc:
       'Ative se quiser que a entrada linear do gatilho se comporte como um gatilho curto, ou se usar um controle com gatilhos não lineares como o Switch/NS Pro.',
+    'Auto Sprint': 'Corrida automática',
+    AutoSprintDesc:
+      'Pressiona L3 automaticamente enquanto o analógico esquerdo se move e solta quando ele volta ao centro.',
     noAllow:
       'Você não tem permissão para iniciar jogos na nuvem. Verifique se o login expirou e entre novamente. Para jogos na nuvem, certifique-se de ter o XGPU. Para jogos fora do XGPU, certifique-se de possuir o jogo.',
     homeNoAllow:

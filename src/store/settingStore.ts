@@ -51,6 +51,7 @@ export type Settings = {
   dead_zone: number;
   edge_compensation: number;
   short_trigger: boolean;
+  auto_sprint: boolean;
   video_format: string;
   picture_in_picture: boolean;
   native_portrait_mode: boolean;
@@ -130,6 +131,7 @@ const defaultSettings: Settings = {
   dead_zone: 0.1,
   edge_compensation: 0,
   short_trigger: false,
+  auto_sprint: false,
   video_format: '',
   picture_in_picture: false,
   native_portrait_mode: false,

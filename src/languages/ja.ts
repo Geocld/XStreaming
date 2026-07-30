@@ -173,6 +173,9 @@ export default {
       'ドライバー変更後のマッピングは未対応です।',
     'Short Trigger': 'ショートトリガー',
     ShortTriggerDesc: '反応を速めるためにトリガーを短くします।',
+    'Auto Sprint': 'オートスプリント',
+    AutoSprintDesc:
+      '左スティックを動かしている間は自動で L3 を押し、中央に戻ると離します。',
     noAllow: '権限がありません。ログインとサブスクを確認してください।',
     homeNoAllow: '確認に失敗しました।再ログインしてください।',
     Horizon: '横',

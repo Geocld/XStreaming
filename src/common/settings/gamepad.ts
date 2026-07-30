@@ -136,6 +136,16 @@ ${t('Webview: Use Chromium kernal to vibrate')}`,
       {value: true, text: t('Enable')},
     ],
   },
+  {
+    name: 'auto_sprint',
+    type: 'radio',
+    title: t('Auto Sprint'),
+    description: t('AutoSprintDesc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
 ];
 
 export default gamepad;

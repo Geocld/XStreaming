@@ -179,6 +179,8 @@ export default {
     'Short Trigger': '短扳機',
     ShortTriggerDesc:
       '如果你希望將控制器的線性扳機輸入為數位扳機輸入，或者你使用了非線性扳機的控制器(如Switch/NS Pro)，請開啟此選項',
+    'Auto Sprint': '自動衝刺',
+    AutoSprintDesc: '左搖桿有效推動時自動按下 L3，左搖桿回中時自動鬆開 L3',
     noAllow:
       'Permission denied for streaming or cloud gaming. Please verify your login status and try logging in again. For cloud gaming, ensure you have an active XGPU subscription. For non-XGPU games, verify that you own the game',
     homeNoAllow: '串流權限檢查失敗，請檢查登入是否過期並嘗試重新登入',
