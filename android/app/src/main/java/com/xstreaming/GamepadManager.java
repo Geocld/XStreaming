@@ -15,6 +15,8 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.media.AudioAttributes;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
@@ -35,9 +37,14 @@ import java.util.concurrent.Executors;
 
 public class GamepadManager extends ReactContextBaseJavaModule {
 
+    private static final int STOP_PULSE_DURATION_MS = 20;
+    private static final int STOP_PULSE_CANCEL_DELAY_MS = 40;
+
     private boolean hasGameController;
 
     private final ExecutorService executorService;
+
+    private final Handler vibrationHandler = new Handler(Looper.getMainLooper());
 
     private static String currentScreen = "";
 
@@ -82,7 +89,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
             // NB: We cannot simply check lowFreqMotor == highFreqMotor == 0
             // because our simulatedAmplitude could be 0 even though our inputs
             // are not (ex: lowFreqMotor == 0 && highFreqMotor == 1).
-            vibrator.cancel();
+            forceStopVibrator(vibrator);
             return;
         }
 
@@ -111,15 +118,9 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         // This keeps rumble length predictable across different controller drivers.
         int safeDuration = Math.max(1, duration);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            VibrationAttributes vibrationAttributes = new VibrationAttributes.Builder()
-                    .setUsage(VibrationAttributes.USAGE_MEDIA)
-                    .build();
+            Log.d("GamepadManager", "vibrate without VibrationAttributes");
             vibrator.vibrate(
-                    VibrationEffect.createOneShot(
-                            safeDuration,
-                            VibrationEffect.DEFAULT_AMPLITUDE
-                    ),
-                    vibrationAttributes
+                    VibrationEffect.createOneShot(safeDuration, VibrationEffect.DEFAULT_AMPLITUDE)
             );
         }
         else {
@@ -136,6 +137,92 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                 );
             } else {
                 vibrator.vibrate(safeDuration);
+            }
+        }
+    }
+
+    private void vibrateStopPulse(Vibrator vibrator) {
+        if (vibrator == null) {
+            return;
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                VibrationEffect effect = VibrationEffect.createOneShot(
+                        STOP_PULSE_DURATION_MS,
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                );
+                vibrator.vibrate(effect);
+            } else {
+                vibrator.vibrate(STOP_PULSE_DURATION_MS);
+            }
+        } catch (Exception e) {
+            Log.e("GamepadManager", "Error during stop pulse", e);
+        }
+    }
+
+    private void cancelVibratorDelayed(Vibrator vibrator) {
+        if (vibrator == null) {
+            return;
+        }
+
+        vibrationHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    vibrator.cancel();
+                } catch (Exception e) {
+                    Log.e("GamepadManager", "Error cancelling vibrator after delayed stop pulse", e);
+                }
+            }
+        }, STOP_PULSE_CANCEL_DELAY_MS);
+    }
+
+    private void forceStopVibrator(Vibrator vibrator) {
+        Log.d("GamepadManager", "forceStopVibrator");
+
+        try {
+            if (vibrator != null) {
+                vibrator.cancel();
+            }
+        } catch (Exception e) {
+            Log.e("GamepadManager", "Error cancelling vibrator", e);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                VibratorManager vibratorManager =
+                        (VibratorManager) reactContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
+                if (vibratorManager != null) {
+                    vibratorManager.cancel();
+                    Vibrator defaultVibrator = vibratorManager.getDefaultVibrator();
+                    if (defaultVibrator != null) {
+                        defaultVibrator.cancel();
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("GamepadManager", "Error cancelling vibrator manager", e);
+            }
+        }
+
+        // Some devices keep a long DEFAULT_AMPLITUDE media vibration alive even
+        // after cancel(). Replacing it with a short vibration mirrors the
+        // double-tap workaround: the new request overwrites the stuck one, then
+        // we cancel after the system has had time to commit it.
+        vibrateStopPulse(vibrator);
+        cancelVibratorDelayed(vibrator);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                VibratorManager vibratorManager =
+                        (VibratorManager) reactContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
+                if (vibratorManager != null) {
+                    Vibrator defaultVibrator = vibratorManager.getDefaultVibrator();
+                    vibrateStopPulse(defaultVibrator);
+                    cancelVibratorDelayed(defaultVibrator);
+                }
+            } catch (Exception e) {
+                Log.e("GamepadManager", "Error sending default vibrator stop pulse", e);
             }
         }
     }
