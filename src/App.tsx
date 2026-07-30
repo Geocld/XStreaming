@@ -22,6 +22,7 @@ import {
 
 import {createStackNavigator} from '@react-navigation/stack';
 import {
+  createNavigationContainerRef,
   NavigationContainer,
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme,
@@ -32,6 +33,7 @@ import {Provider} from 'react-redux';
 import store from './store';
 import {getSettings, saveSettings} from './store/settingStore';
 import {saveServerData} from './store/serverStore';
+import {findTitleByProductId} from './store/shortcutStore';
 
 import customLightTheme from './theme/index';
 import customDarkTheme from './theme/index.dark';
@@ -84,9 +86,12 @@ import './i18n';
 import SearchScreen from './pages/Search';
 
 const RootStack = createStackNavigator();
+const navigationRef = createNavigationContainerRef<any>();
 
-const {UsbRumbleManager, FullScreenManager, UpdateManager} = NativeModules;
+const {UsbRumbleManager, FullScreenManager, UpdateManager, ShortcutManager} =
+  NativeModules;
 const UPDATE_PROGRESS_EVENT = 'UpdateManagerProgress';
+const TITLE_SHORTCUT_EVENT = 'onTitleShortcutOpen';
 
 const formatUpdateBytes = (bytes?: number) => {
   if (!bytes || bytes <= 0) {
@@ -176,6 +181,7 @@ function App() {
   const settings = getSettings();
   const deviceInfos = FullScreenManager.getDeviceInfos();
   const updateCheckedRef = React.useRef(false);
+  const pendingTitleShortcutRef = React.useRef<any>(null);
   const [updateProgressVisible, setUpdateProgressVisible] =
     React.useState(false);
   const [updateProgress, setUpdateProgress] = React.useState({
@@ -202,6 +208,49 @@ function App() {
       subscription.remove();
     };
   }, []);
+
+  const openTitleShortcut = React.useCallback(
+    (shortcut: any) => {
+      if (!shortcut?.productId) {
+        return;
+      }
+
+      if (!navigationRef.isReady()) {
+        pendingTitleShortcutRef.current = shortcut;
+        return;
+      }
+
+      const titleItem = findTitleByProductId(shortcut.productId);
+      if (!titleItem) {
+        Alert.alert(t('Warning'), t('TitleShortcutExpired'));
+        return;
+      }
+
+      navigationRef.navigate('TitleDetail', {titleItem});
+    },
+    [t],
+  );
+
+  React.useEffect(() => {
+    if (!ShortcutManager?.getInitialShortcut) {
+      return;
+    }
+
+    ShortcutManager.getInitialShortcut()
+      .then((shortcut: any) => {
+        openTitleShortcut(shortcut);
+      })
+      .catch(() => {});
+
+    const subscription = DeviceEventEmitter.addListener(
+      TITLE_SHORTCUT_EVENT,
+      openTitleShortcut,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [openTitleShortcut]);
 
   React.useEffect(() => {
     if (!settings.check_update || updateCheckedRef.current) {
@@ -369,7 +418,16 @@ function App() {
     <>
       <Provider store={store}>
         <PaperProvider theme={paperTheme}>
-          <NavigationContainer theme={navigationTheme}>
+          <NavigationContainer
+            ref={navigationRef}
+            theme={navigationTheme}
+            onReady={() => {
+              if (pendingTitleShortcutRef.current) {
+                const shortcut = pendingTitleShortcutRef.current;
+                pendingTitleShortcutRef.current = null;
+                openTitleShortcut(shortcut);
+              }
+            }}>
             <RootStack.Navigator>
               <RootStack.Group>
                 <RootStack.Screen

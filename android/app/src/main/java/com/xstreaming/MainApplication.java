@@ -52,6 +52,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new UpdateManagerPackage());
             packages.add(new NativeInputDialogPackage());
             packages.add(new ConfigTransferPackage());
+            packages.add(new ShortcutManagerPackage());
           return packages;
         }
 

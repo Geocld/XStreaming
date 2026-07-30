@@ -488,5 +488,11 @@ export default {
       '宏按键开关在设置页的“虚拟宏按键”中控制，此页面仅编辑动作序列。',
     'Enable macro button and edit its action sequence in one place.':
       '在同一页面中启用宏按键并编辑动作序列。',
+    'Add to desktop': '添加到桌面',
+    TitleShortcutRequested: '已发起添加桌面快捷方式请求',
+    TitleShortcutUnavailable: '当前设备或桌面启动器不支持添加该快捷方式。',
+    TitleShortcutMissingProduct: '当前游戏缺少 productId，无法添加到桌面。',
+    TitleShortcutFailed: '添加桌面快捷方式失败',
+    TitleShortcutExpired: '快捷方式数据不可用，请刷新云游戏列表后重试。',
   },
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   StyleSheet,
   View,
   ScrollView,
@@ -7,6 +8,7 @@ import {
   NativeModules,
   Platform,
   Pressable,
+  ToastAndroid,
   useWindowDimensions,
 } from 'react-native';
 import {
@@ -22,11 +24,17 @@ import Spinner from '../components/Spinner';
 import {useDispatch} from 'react-redux';
 import {getSettings} from '../store/settingStore';
 import {getXcloudData, saveXcloudData} from '../store/xcloudStore';
+import {
+  findTitleByProductId,
+  getTitleProductId,
+  getTitleStreamingId,
+  saveTitleShortcutSnapshot,
+} from '../store/shortcutStore';
 import {useTranslation} from 'react-i18next';
 import {debugFactory} from '../utils/debug';
 import games from '../mock/games.json';
 
-const {UsbRumbleManager, FullScreenManager} = NativeModules;
+const {UsbRumbleManager, FullScreenManager, ShortcutManager} = NativeModules;
 
 const log = debugFactory('TitleDetailScreen');
 
@@ -40,10 +48,15 @@ function TitleDetail({navigation, route}) {
   const [titleItem, setTitleItem] = React.useState<any>(null);
   const [settings, setSettings] = React.useState<any>({});
   const [starTitles, setStarTitles] = React.useState<any>([]);
+  const [shortcutLoadFailed, setShortcutLoadFailed] = React.useState(false);
   // const streamingTokens = useSelector(state => state.streamingTokens);
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
   const isLandscape = screenWidth > screenHeight;
   const isLargeScreen = Platform.isTV || isLandscape;
+  const canAddTitleShortcut =
+    Platform.OS === 'android' &&
+    !Platform.isTV &&
+    !!ShortcutManager?.addTitleShortcut;
 
   React.useEffect(() => {
     log.info('TitleDetail titleItem:', route.params?.titleItem);
@@ -51,8 +64,17 @@ function TitleDetail({navigation, route}) {
     //   'TitleDetail titleItem:',
     //   JSON.stringify(route.params?.titleItem),
     // );
-    if (route.params?.titleItem) {
-      setTitleItem(route.params.titleItem);
+    let nextTitleItem = route.params?.titleItem;
+    if (!nextTitleItem && route.params?.productId) {
+      nextTitleItem = findTitleByProductId(route.params.productId);
+    }
+
+    if (nextTitleItem) {
+      setTitleItem(nextTitleItem);
+      setShortcutLoadFailed(false);
+    } else if (route.params?.productId) {
+      setTitleItem(null);
+      setShortcutLoadFailed(true);
     }
     const _settings = getSettings();
     setSettings(_settings);
@@ -64,9 +86,9 @@ function TitleDetail({navigation, route}) {
     }
 
     navigation.setOptions({
-      title: route.params?.titleItem.ProductTitle || '',
+      title: nextTitleItem?.ProductTitle || '',
     });
-  }, [route.params?.titleItem, navigation]);
+  }, [route.params?.titleItem, route.params?.productId, navigation]);
 
   const handleStartGame = async () => {
     const titleId = titleItem.titleId || titleItem.XCloudTitleId;
@@ -204,6 +226,44 @@ function TitleDetail({navigation, route}) {
     }
   };
 
+  const handleAddToDesktop = async () => {
+    if (!titleItem || !ShortcutManager?.addTitleShortcut) {
+      Alert.alert(t('Warning'), t('TitleShortcutUnavailable'));
+      return;
+    }
+
+    const productId = getTitleProductId(titleItem);
+    if (!productId) {
+      Alert.alert(t('Warning'), t('TitleShortcutMissingProduct'));
+      return;
+    }
+
+    const titleName = titleItem.ProductTitle || productId;
+    const iconUrl = titleItem.Image_Poster?.URL
+      ? `https:${titleItem.Image_Poster.URL}`
+      : '';
+
+    saveTitleShortcutSnapshot(titleItem);
+
+    try {
+      await ShortcutManager.addTitleShortcut({
+        productId,
+        titleId: getTitleStreamingId(titleItem),
+        xCloudTitleId: titleItem.XCloudTitleId || '',
+        titleName,
+        iconUrl,
+      });
+      ToastAndroid.show(t('TitleShortcutRequested'), ToastAndroid.SHORT);
+    } catch (e: any) {
+      const message =
+        e?.code === 'SHORTCUT_UNSUPPORTED' ||
+        e?.code === 'UNSUPPORTED_ANDROID_VERSION'
+          ? t('TitleShortcutUnavailable')
+          : `${t('TitleShortcutFailed')}: ${e?.message || e}`;
+      Alert.alert(t('Warning'), message);
+    }
+  };
+
   let isByorg = false;
   if (titleItem && titleItem.details && !titleItem.details.hasEntitlement) {
     isByorg = true;
@@ -242,7 +302,7 @@ function TitleDetail({navigation, route}) {
             ? 'rgba(255, 255, 255, 0.18)'
             : 'rgba(16, 124, 16, 0.16)',
         }}
-        style={({focused, pressed}) => [
+        style={({focused, pressed}: any) => [
           styles.tvActionButton,
           primary ? styles.tvActionButtonPrimary : styles.tvActionButtonPlain,
           focused && styles.tvActionButtonFocused,
@@ -268,6 +328,8 @@ function TitleDetail({navigation, route}) {
         {isLargeScreen ? (
           <>
             {renderLargeActionButton(t('Start game'), handleStartGame, true)}
+            {canAddTitleShortcut &&
+              renderLargeActionButton(t('Add to desktop'), handleAddToDesktop)}
             {renderLargeActionButton(t('Back'), () => navigation.goBack())}
           </>
         ) : (
@@ -278,6 +340,15 @@ function TitleDetail({navigation, route}) {
               onPress={handleStartGame}>
               &nbsp;{t('Start game')} &nbsp;
             </Button>
+            {canAddTitleShortcut && (
+              <Button
+                mode="outlined"
+                icon="plus-box-outline"
+                style={styles.button}
+                onPress={handleAddToDesktop}>
+                {t('Add to desktop')}
+              </Button>
+            )}
             <Button
               mode="text"
               style={styles.button}
@@ -292,9 +363,23 @@ function TitleDetail({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      <Spinner loading={!titleItem} text={t('Loading...')} />
+      <Spinner
+        loading={!titleItem && !shortcutLoadFailed}
+        text={t('Loading...')}
+      />
 
       {renderUsbWarningModal()}
+
+      {shortcutLoadFailed && (
+        <View style={styles.errorWrap}>
+          <HelperText type="error" visible={true}>
+            {t('TitleShortcutExpired')}
+          </HelperText>
+          <Button mode="text" onPress={() => navigation.goBack()}>
+            {t('Back')}
+          </Button>
+        </View>
+      )}
 
       {titleItem && (
         <>
@@ -405,6 +490,12 @@ function TitleDetail({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  errorWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
   },
   scrollView: {
     flex: 1,

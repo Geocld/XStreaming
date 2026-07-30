@@ -697,6 +697,17 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   }
 
   @Override
+  public void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    setIntent(intent);
+
+    WritableMap shortcutParams = TitleShortcutManagerModule.createShortcutParams(intent);
+    if (shortcutParams != null) {
+      sendEvent(TitleShortcutManagerModule.EVENT_OPEN_TITLE_SHORTCUT, shortcutParams);
+    }
+  }
+
+  @Override
   protected void onResume() {
     super.onResume();
 

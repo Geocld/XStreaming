@@ -512,5 +512,14 @@ export default {
       'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.',
     'Enable macro button and edit its action sequence in one place.':
       'Enable macro button and edit its action sequence in one place.',
+    'Add to desktop': 'Add to home screen',
+    TitleShortcutRequested: 'Shortcut add request sent',
+    TitleShortcutUnavailable:
+      'The current device or launcher does not support adding this shortcut.',
+    TitleShortcutMissingProduct:
+      'This title is missing product data and cannot be added to the home screen.',
+    TitleShortcutFailed: 'Failed to add shortcut',
+    TitleShortcutExpired:
+      'Shortcut data is unavailable. Please refresh the cloud game list and try again.',
   },
 };
