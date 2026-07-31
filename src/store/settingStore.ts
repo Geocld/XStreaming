@@ -23,7 +23,7 @@ export type Settings = {
   locale: string;
   locale_follow_system: boolean;
   resolution: number;
-  render_engine: 'web' | 'native';
+  render_engine: 'web' | 'native' | 'nano';
   xhome_bitrate_mode: string;
   xhome_bitrate: number | string;
   xcloud_bitrate_mode: string;

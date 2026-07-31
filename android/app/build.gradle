@@ -81,7 +81,7 @@ android {
     namespace "com.xstreaming"
     sourceSets {
         main {
-            jniLibs.srcDirs += ["$buildDir/generated/sdlJniLibs"]
+            jniLibs.srcDirs += ["$buildDir/generated/sdlJniLibs", "$buildDir/generated/nanoJniLibs"]
         }
     }
     defaultConfig {
@@ -159,7 +159,87 @@ tasks.register("syncSdl2JniLibs") {
     }
 }
 
+def nanoRustTargetMap = [
+        "armeabi-v7a": "armv7-linux-androideabi",
+        "arm64-v8a"  : "aarch64-linux-android",
+        "x86_64"     : "x86_64-linux-android",
+]
+
+def nanoRustHostTag = { ndkDir ->
+    def armTag = file("${ndkDir}/toolchains/llvm/prebuilt/darwin-arm64")
+    if (armTag.exists()) {
+        return "darwin-arm64"
+    }
+    return "darwin-x86_64"
+}
+
+def nanoRustClangPrefix = { triple ->
+    if (triple == "armv7-linux-androideabi") {
+        return "armv7a-linux-androideabi"
+    }
+    if (triple == "aarch64-linux-android") {
+        return "aarch64-linux-android"
+    }
+    return "x86_64-linux-android"
+}
+
+tasks.register("syncNanoRustJniLibs") {
+    def outputDir = file("$buildDir/generated/nanoJniLibs")
+    inputs.files(fileTree("../../nano-rs") {
+        include "Cargo.toml"
+        include "Cargo.lock"
+        include "build.rs"
+        include "src/**/*.rs"
+    })
+    inputs.property("xstreamingTargetAbis", xstreamingTargetAbis.join(","))
+    outputs.dir(outputDir)
+    doLast {
+        def ndkDir = android.ndkDirectory
+        if (ndkDir == null || !ndkDir.exists()) {
+            throw new GradleException("Android NDK directory not found")
+        }
+
+        delete(outputDir)
+        xstreamingTargetAbis.each { abi ->
+            def targetTriple = nanoRustTargetMap[abi]
+            if (targetTriple == null) {
+                return
+            }
+
+            def hostTag = nanoRustHostTag(ndkDir)
+            def prebuiltDir = file("${ndkDir}/toolchains/llvm/prebuilt/${hostTag}")
+            def clangPrefix = nanoRustClangPrefix(targetTriple)
+            def apiLevel = rootProject.ext.minSdkVersion
+            def clangPath = file("${prebuiltDir}/bin/${clangPrefix}${apiLevel}-clang")
+            def arPath = file("${prebuiltDir}/bin/llvm-ar")
+
+            if (!clangPath.exists()) {
+                throw new GradleException("NDK clang not found for ${abi}: ${clangPath}")
+            }
+
+            exec {
+                workingDir file("../../nano-rs")
+                commandLine "cargo", "build", "--manifest-path", "Cargo.toml", "--target", targetTriple, "--release"
+                environment "CARGO_TARGET_${targetTriple.toUpperCase().replace('-', '_')}_LINKER", clangPath.absolutePath
+                environment "CC_${targetTriple.replace('-', '_')}", clangPath.absolutePath
+                environment "AR_${targetTriple.replace('-', '_')}", arPath.absolutePath
+            }
+
+            def builtLib = file("../../nano-rs/target/${targetTriple}/release/libnano_rs.so")
+            if (!builtLib.exists()) {
+                throw new GradleException("Built Rust library missing for ${abi}: ${builtLib}")
+            }
+
+            copy {
+                from builtLib
+                into file("$outputDir/${abi}")
+            }
+        }
+    }
+}
+
 preBuild.dependsOn("syncSdl2JniLibs")
+preBuild.dependsOn("syncNanoRustJniLibs")
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin

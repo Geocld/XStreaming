@@ -51,6 +51,7 @@ const bases = [
     tips: t('renderEngineTips'),
     data: [
       {value: 'native', text: t('Native')},
+      {value: 'nano', text: 'Nano'},
       {value: 'web', text: t('Webview')},
     ],
   },

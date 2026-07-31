@@ -127,10 +127,12 @@ function TitleDetail({navigation, route}) {
       routeName = settings.native_portrait_mode
         ? 'NativePortraitStream'
         : 'NativeStream';
+    } else if (settings.render_engine === 'nano') {
+      routeName = 'NanoStream';
     }
 
     // Lagecy user force to native stream
-    if (isLagecy) {
+    if (isLagecy && routeName === 'Stream') {
       routeName = settings.native_portrait_mode
         ? 'NativePortraitStream'
         : 'NativeStream';
@@ -138,8 +140,8 @@ function TitleDetail({navigation, route}) {
 
     // Below titles use webview stream
     if (
-      warnTitles.indexOf(titleId) > -1 ||
-      webviewTitles.indexOf(titleId) > -1
+      routeName !== 'NanoStream' &&
+      (warnTitles.indexOf(titleId) > -1 || webviewTitles.indexOf(titleId) > -1)
     ) {
       routeName = 'Stream';
     }
