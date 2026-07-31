@@ -7,6 +7,8 @@ import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 
@@ -18,6 +20,19 @@ import java.nio.ByteOrder;
 public final class NanoRustBridge {
     private static final String TAG = "NanoRustBridge";
     private static final boolean NATIVE_AVAILABLE;
+    private static final long VIDEO_OUTPUT_DRAIN_INTERVAL_MS = 1L;
+
+    public interface RumbleListener {
+        void onRumble(
+                double startDelay,
+                int duration,
+                int delayMs,
+                int repeat,
+                double weakMagnitude,
+                double strongMagnitude,
+                double leftTrigger,
+                double rightTrigger);
+    }
 
     static {
         boolean loaded;
@@ -45,6 +60,26 @@ public final class NanoRustBridge {
     private long queuedVideoFrameCount = 0L;
     private long renderedVideoFrameCount = 0L;
     private long queuedVideoByteCount = 0L;
+    private long videoInputTimestampUs = 0L;
+    @Nullable
+    private HandlerThread videoOutputThread;
+    @Nullable
+    private Handler videoOutputHandler;
+    private volatile boolean videoOutputDrainRunning = false;
+    private final Runnable videoOutputDrainRunnable = new Runnable() {
+        @Override
+        public void run() {
+            synchronized (videoDecoderLock) {
+                if (videoOutputDrainRunning && videoDecoder != null) {
+                    drainVideoDecoderLocked();
+                }
+            }
+            Handler handler = videoOutputHandler;
+            if (videoOutputDrainRunning && handler != null) {
+                handler.postDelayed(this, VIDEO_OUTPUT_DRAIN_INTERVAL_MS);
+            }
+        }
+    };
     private final Object audioDecoderLock = new Object();
     @Nullable
     private MediaCodec audioDecoder;
@@ -67,10 +102,16 @@ public final class NanoRustBridge {
     private volatile double webRtcPacketLossPercent = -1.0;
     private volatile double webRtcBitrateMbps = -1.0;
     private volatile double webRtcDecodeMs = -1.0;
+    @Nullable
+    private RumbleListener rumbleListener;
 
     public NanoRustBridge() {
         nativeHandle = NATIVE_AVAILABLE ? nativeCreateBridge() : 0L;
         Log.i(TAG, "bridge constructed nativeAvailable=" + NATIVE_AVAILABLE + " handle=" + nativeHandle);
+    }
+
+    public void setRumbleListener(@Nullable RumbleListener listener) {
+        rumbleListener = listener;
     }
 
     public boolean isNativeAvailable() {
@@ -273,13 +314,15 @@ public final class NanoRustBridge {
                 }
                 inputBuffer.put(data);
                 int flags = keyframe ? MediaCodec.BUFFER_FLAG_KEY_FRAME : 0;
-                videoDecoder.queueInputBuffer(inputIndex, 0, data.length, Math.max(0L, ptsUs), flags);
+                long codecPtsUs = videoInputTimestampUs++;
+                videoDecoder.queueInputBuffer(inputIndex, 0, data.length, codecPtsUs, flags);
                 queuedVideoFrameCount += 1;
                 queuedVideoByteCount += data.length;
                 if (queuedVideoFrameCount == 1 || keyframe || queuedVideoFrameCount % 120 == 0) {
                     Log.i(TAG, "queueVideoFrame count=" + queuedVideoFrameCount
                             + " bytes=" + data.length
-                            + " ptsUs=" + ptsUs
+                            + " sourcePtsUs=" + ptsUs
+                            + " codecPtsUs=" + codecPtsUs
                             + " keyframe=" + keyframe);
                 }
                 drainVideoDecoderLocked();
@@ -434,6 +477,36 @@ public final class NanoRustBridge {
                 + " decodeMs=" + decodeMs);
     }
 
+    public void onRumble(
+            double startDelay,
+            int duration,
+            int delayMs,
+            int repeat,
+            double weakMagnitude,
+            double strongMagnitude,
+            double leftTrigger,
+            double rightTrigger) {
+        Log.i(TAG, "rumble duration=" + duration
+                + " weak=" + weakMagnitude
+                + " strong=" + strongMagnitude
+                + " lt=" + leftTrigger
+                + " rt=" + rightTrigger
+                + " delayMs=" + delayMs
+                + " repeat=" + repeat);
+        RumbleListener listener = rumbleListener;
+        if (listener != null) {
+            listener.onRumble(
+                    startDelay,
+                    duration,
+                    delayMs,
+                    repeat,
+                    weakMagnitude,
+                    strongMagnitude,
+                    leftTrigger,
+                    rightTrigger);
+        }
+    }
+
     public void release() {
         if (nativeHandle == 0L) {
             return;
@@ -491,6 +564,7 @@ public final class NanoRustBridge {
             codec.start();
             videoDecoder = codec;
             videoDecoderName = codecName;
+            startVideoOutputDrainLocked();
             Log.i(TAG, "Video decoder started: " + (codecName == null ? mime : codecName));
             return true;
         } catch (Throwable error) {
@@ -501,12 +575,14 @@ public final class NanoRustBridge {
     }
 
     private void releaseVideoDecoderLocked() {
+        stopVideoOutputDrainLocked();
         MediaCodec codec = videoDecoder;
         videoDecoder = null;
         videoDecoderName = null;
         queuedVideoFrameCount = 0L;
         renderedVideoFrameCount = 0L;
         queuedVideoByteCount = 0L;
+        videoInputTimestampUs = 0L;
         if (codec == null) {
             return;
         }
@@ -518,6 +594,39 @@ public final class NanoRustBridge {
         try {
             codec.release();
         } catch (Throwable ignored) {
+        }
+    }
+
+    private void startVideoOutputDrainLocked() {
+        if (videoOutputThread != null) {
+            return;
+        }
+        videoOutputDrainRunning = true;
+        HandlerThread thread = new HandlerThread("NanoVideoOutput");
+        thread.start();
+        Handler handler = new Handler(thread.getLooper());
+        videoOutputThread = thread;
+        videoOutputHandler = handler;
+        handler.post(videoOutputDrainRunnable);
+        Log.i(TAG, "video output drain thread started");
+    }
+
+    private void stopVideoOutputDrainLocked() {
+        videoOutputDrainRunning = false;
+        Handler handler = videoOutputHandler;
+        HandlerThread thread = videoOutputThread;
+        videoOutputHandler = null;
+        videoOutputThread = null;
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
+        if (thread != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                thread.quitSafely();
+            } else {
+                thread.quit();
+            }
+            Log.i(TAG, "video output drain thread stopped");
         }
     }
 
@@ -569,7 +678,7 @@ public final class NanoRustBridge {
         }
 
         try {
-            codec.releaseOutputBuffer(latestOutputIndex, true);
+            releaseVideoOutputBufferNow(codec, latestOutputIndex);
             renderedVideoFrameCount += 1;
             if (renderedVideoFrameCount == 1 || renderedVideoFrameCount % 120 == 0) {
                 Log.i(TAG, "video output rendered count=" + renderedVideoFrameCount
@@ -580,6 +689,18 @@ public final class NanoRustBridge {
             Log.w(TAG, "Video decoder latest output release failed", error);
             releaseVideoDecoderLocked();
         }
+    }
+
+    private void releaseVideoOutputBufferNow(MediaCodec codec, int outputIndex) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            try {
+                codec.releaseOutputBuffer(outputIndex, System.nanoTime());
+                return;
+            } catch (Throwable error) {
+                Log.w(TAG, "Video decoder timed output release failed, fallback render=true", error);
+            }
+        }
+        codec.releaseOutputBuffer(outputIndex, true);
     }
 
     private boolean ensureAudioDecoderLocked() {

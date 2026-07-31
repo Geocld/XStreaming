@@ -1196,6 +1196,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "webrtc",
+ "webrtc-media",
 ]
 
 [[package]]

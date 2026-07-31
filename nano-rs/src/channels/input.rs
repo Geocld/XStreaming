@@ -159,6 +159,25 @@ pub struct MetadataFrame {
     pub frame_rendered_time_ms: u32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RumbleData {
+    pub start_delay_ms: u16,
+    pub duration_ms: u16,
+    pub weak_magnitude: f32,
+    pub strong_magnitude: f32,
+    pub left_trigger: f32,
+    pub right_trigger: f32,
+    pub delay_ms: u16,
+    pub repeat: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct InputServerMessage {
+    pub server_width: Option<u32>,
+    pub server_height: Option<u32>,
+    pub rumble: Option<RumbleData>,
+}
+
 impl InputPacket {
     pub fn client_metadata(sequence: u32, max_touchpoints: u8) -> Self {
         Self {
@@ -413,6 +432,57 @@ impl InputPacket {
     }
 }
 
+pub fn parse_server_message(data: &[u8]) -> Option<InputServerMessage> {
+    if data.len() < 2 {
+        return None;
+    }
+
+    let report_type = read_u16(data, 0)?;
+    let mut offset = 2;
+    let mut message = InputServerMessage {
+        server_width: None,
+        server_height: None,
+        rumble: None,
+    };
+
+    if report_type & ReportType::ServerMetadata as u16 != 0 {
+        if data.len() < offset + 8 {
+            return None;
+        }
+        message.server_height = Some(read_u32(data, offset)?);
+        message.server_width = Some(read_u32(data, offset + 4)?);
+        offset += 8;
+    }
+
+    if report_type & ReportType::Vibration as u16 != 0 {
+        if data.len() < offset + 11 {
+            return None;
+        }
+        let _rumble_type = data[offset];
+        let _gamepad_index = data[offset + 1];
+        let left_motor_percent = data[offset + 2] as f32 / 100.0;
+        let right_motor_percent = data[offset + 3] as f32 / 100.0;
+        let left_trigger_percent = data[offset + 4] as f32 / 100.0;
+        let right_trigger_percent = data[offset + 5] as f32 / 100.0;
+        let duration_ms = read_u16(data, offset + 6)?;
+        let delay_ms = read_u16(data, offset + 8)?;
+        let repeat = data[offset + 10];
+
+        message.rumble = Some(RumbleData {
+            start_delay_ms: 0,
+            duration_ms,
+            weak_magnitude: right_motor_percent,
+            strong_magnitude: left_motor_percent,
+            left_trigger: left_trigger_percent,
+            right_trigger: right_trigger_percent,
+            delay_ms,
+            repeat,
+        });
+    }
+
+    Some(message)
+}
+
 fn normalize_trigger_value(value: f32) -> u16 {
     if value < 0.0 {
         0
@@ -530,4 +600,14 @@ fn write_u32(buf: &mut [u8], offset: usize, value: u32) {
 
 fn write_f64(buf: &mut [u8], offset: usize, value: f64) {
     buf[offset..offset + 8].copy_from_slice(&value.to_le_bytes());
+}
+
+fn read_u16(buf: &[u8], offset: usize) -> Option<u16> {
+    let bytes = buf.get(offset..offset + 2)?;
+    Some(u16::from_le_bytes([bytes[0], bytes[1]]))
+}
+
+fn read_u32(buf: &[u8], offset: usize) -> Option<u32> {
+    let bytes = buf.get(offset..offset + 4)?;
+    Some(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
 }

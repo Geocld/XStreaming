@@ -54,6 +54,9 @@ public class NanoStreamViewManager extends SimpleViewManager<NanoStreamView> {
     @ReactProp(name = "onNativeStateChange")
     public void setOnNativeStateChange(NanoStreamView view, @Nullable Boolean unused) {}
 
+    @ReactProp(name = "onNanoRumble")
+    public void setOnNanoRumble(NanoStreamView view, @Nullable Boolean unused) {}
+
     @Override
     public @Nullable Map<String, Integer> getCommandsMap() {
         return MapBuilder.<String, Integer>builder()
@@ -138,6 +141,7 @@ public class NanoStreamViewManager extends SimpleViewManager<NanoStreamView> {
     public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
         return MapBuilder.<String, Object>builder()
                 .put("topNativeStateChange", MapBuilder.of("registrationName", "onNativeStateChange"))
+                .put("topNanoRumble", MapBuilder.of("registrationName", "onNanoRumble"))
                 .build();
     }
 }

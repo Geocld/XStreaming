@@ -1,0 +1,148 @@
+2026-07-31 19:07:21.855 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/play status=202 Accepted elapsedMs=1358 bodyLen=153
+2026-07-31 19:07:21.855 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session play response recorded
+2026-07-31 19:07:21.855 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:22.101 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=245 bodyLen=46
+2026-07-31 19:07:22.101 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=ReadyToConnect
+2026-07-31 19:07:22.101 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=POST url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/connect auth=true accept=application/json contentType=application/json deviceInfo=false bodyLen=580
+2026-07-31 19:07:22.362 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/connect status=202 Accepted elapsedMs=260 bodyLen=0
+2026-07-31 19:07:23.364 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:23.588 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=224 bodyLen=44
+2026-07-31 19:07:23.589 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioning
+2026-07-31 19:07:24.590 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:24.855 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=265 bodyLen=44
+2026-07-31 19:07:24.855 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioning
+2026-07-31 19:07:25.857 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:26.144 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=287 bodyLen=44
+2026-07-31 19:07:26.145 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioning
+2026-07-31 19:07:27.145 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:27.367 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=221 bodyLen=44
+2026-07-31 19:07:27.367 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioning
+2026-07-31 19:07:28.369 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:28.629 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=260 bodyLen=44
+2026-07-31 19:07:28.629 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioning
+2026-07-31 19:07:29.631 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:29.836 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=205 bodyLen=44
+2026-07-31 19:07:29.837 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioning
+2026-07-31 19:07:30.837 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:31.046 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=208 bodyLen=44
+2026-07-31 19:07:31.046 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioning
+2026-07-31 19:07:32.047 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:32.304 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/state status=200 OK elapsedMs=256 bodyLen=43
+2026-07-31 19:07:32.305 15836-18680 nano_rs                 com.dev.xstreaming                   I  state poll state=Provisioned
+2026-07-31 19:07:32.305 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session provisioned connectSent=true
+2026-07-31 19:07:32.305 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/configuration auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:32.613 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/configuration status=200 OK elapsedMs=308 bodyLen=624
+2026-07-31 19:07:32.613 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session configuration recorded
+2026-07-31 19:07:32.614 15836-18680 nano_rs                 com.dev.xstreaming                   I  peer new transceivers=2 channels=4 iceServers=7 videoSink=true audioSink=true
+2026-07-31 19:07:32.618 15836-18680 nano_rs                 com.dev.xstreaming                   I  open data channel name=input protocol=1.0 ordered=true
+2026-07-31 19:07:32.618 15836-18680 nano_rs                 com.dev.xstreaming                   I  open data channel name=chat protocol=chatV1 ordered=false
+2026-07-31 19:07:32.618 15836-18680 nano_rs                 com.dev.xstreaming                   I  open data channel name=control protocol=controlV1 ordered=false
+2026-07-31 19:07:32.618 15836-18680 nano_rs                 com.dev.xstreaming                   I  open data channel name=message protocol=messageV1 ordered=false
+2026-07-31 19:07:32.618 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session peer created
+2026-07-31 19:07:32.618 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer stereoAudio=true
+2026-07-31 19:07:32.618 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer begin
+2026-07-31 19:07:32.621 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer raw sdp len=5098
+2026-07-31 19:07:32.621 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer stereo rewrite applied
+2026-07-31 19:07:32.621 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer set local description begin
+2026-07-31 19:07:32.622 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer set local description done
+2026-07-31 19:07:32.622 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer wait ice begin
+2026-07-31 19:07:32.622 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.623 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.623 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.623 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.623 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.623 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.673 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.806 15836-18688 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.816 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.836 15836-18688 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.861 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.868 15836-18688 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:32.960 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:33.350 15836-18680 nano_rs                 com.dev.xstreaming                   I  create offer wait ice done
+2026-07-31 19:07:33.350 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session local offer created
+2026-07-31 19:07:33.351 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=POST url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/sdp auth=true accept=application/json contentType=application/json deviceInfo=false bodyLen=5830
+2026-07-31 19:07:33.737 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/sdp status=202 Accepted elapsedMs=386 bodyLen=0
+2026-07-31 19:07:33.737 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session local offer posted
+2026-07-31 19:07:33.737 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/sdp auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:33.948 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/sdp status=200 OK elapsedMs=211 bodyLen=3302
+2026-07-31 19:07:33.949 15836-18680 nano_rs                 com.dev.xstreaming                   I  sdp answer received
+2026-07-31 19:07:33.949 15836-18680 nano_rs                 com.dev.xstreaming                   I  set remote answer len=2804
+2026-07-31 19:07:33.950 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session remote answer set
+2026-07-31 19:07:33.950 15836-18680 nano_rs                 com.dev.xstreaming                   I  drain local candidates count=13
+2026-07-31 19:07:33.950 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session posting local candidates count=13
+2026-07-31 19:07:33.950 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=POST url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/ice auth=true accept=application/json contentType=application/json deviceInfo=false bodyLen=2224
+2026-07-31 19:07:33.952 15836-18688 nano_rs                 com.dev.xstreaming                   I  peer state=Connecting
+2026-07-31 19:07:34.211 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/ice status=202 Accepted elapsedMs=261 bodyLen=0
+2026-07-31 19:07:34.211 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=GET url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/ice auth=true accept= contentType=application/json deviceInfo=false bodyLen=0
+2026-07-31 19:07:34.432 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/ice status=200 OK elapsedMs=220 bodyLen=451
+2026-07-31 19:07:34.432 15836-18680 nano_rs                 com.dev.xstreaming                   I  remote ice received count=2
+2026-07-31 19:07:34.432 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session remote candidates count=2
+2026-07-31 19:07:34.432 15836-18680 nano_rs                 com.dev.xstreaming                   I  add remote candidate mid=0 mline=0
+2026-07-31 19:07:34.432 15836-18680 nano_rs                 com.dev.xstreaming                   I  add remote candidate mid=0 mline=0
+2026-07-31 19:07:34.432 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session keepalive interval seconds=60
+2026-07-31 19:07:34.433 15836-18680 nano_rs                 com.dev.xstreaming                   I  run-session keepalive
+2026-07-31 19:07:34.433 15836-18680 nano_rs                 com.dev.xstreaming                   I  http request start method=POST url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/keepalive auth=true accept=application/json contentType=application/json deviceInfo=false bodyLen=2
+2026-07-31 19:07:34.671 15836-18680 nano_rs                 com.dev.xstreaming                   I  http response url=https://ckr.core.gssv-play-prod.xboxlive.com/v5/sessions/cloud/2DDBDFBE-2221-4179-8E02-EBEBA3FEF692/keepalive status=200 OK elapsedMs=237 bodyLen=37
+2026-07-31 19:07:34.994 15836-18691 nano_rs                 com.dev.xstreaming                   I  peer state=Connected
+2026-07-31 19:07:35.100 15836-18688 nano_rs                 com.dev.xstreaming                   I  input channel open
+2026-07-31 19:07:35.100 15836-18688 nano_rs                 com.dev.xstreaming                   I  input client metadata sent
+2026-07-31 19:07:35.100 15836-18688 nano_rs                 com.dev.xstreaming                   I  data channel opened label=chat
+2026-07-31 19:07:35.100 15836-18688 nano_rs                 com.dev.xstreaming                   I  control channel open
+2026-07-31 19:07:35.100 15836-18688 nano_rs                 com.dev.xstreaming                   I  message channel open
+2026-07-31 19:07:35.406 15836-18691 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:35.453 15836-18688 nano_rs                 com.dev.xstreaming                   I  local ice candidate gathered mid= mline=0
+2026-07-31 19:07:35.483 15836-18688 nano_rs                 com.dev.xstreaming                   I  message handshake ack received
+2026-07-31 19:07:35.484 15836-18688 nano_rs                 com.dev.xstreaming                   I  on-track kind=Audio codec=audio/opus clockRate=48000 ssrc=522495609
+2026-07-31 19:07:35.484 15836-18688 nano_rs                 com.dev.xstreaming                   I  audio track reader start codec=audio/opus sampleRate=48000 channels=2 audioSink=true
+2026-07-31 19:07:35.498 15836-18691 nano_rs                 com.dev.xstreaming                   I  on-track kind=Video codec=video/H264 clockRate=90000 ssrc=119957048
+2026-07-31 19:07:35.498 15836-18691 nano_rs                 com.dev.xstreaming                   I  initial video keyframe requested
+2026-07-31 19:07:35.498 15836-18691 nano_rs                 com.dev.xstreaming                   I  video track reader start
+2026-07-31 19:07:35.539 15836-18688 nano_rs                 com.dev.xstreaming                   I  audio rtp packets=1 bytes=90 ptsUs=0
+2026-07-31 19:07:35.580 15836-18691 nano_rs                 com.dev.xstreaming                   I  video rtp reorder start sequence=28221 buffered=12
+2026-07-31 19:07:35.580 15836-18691 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=initial-keyframe bytes=57
+2026-07-31 19:07:35.580 15836-18691 nano_rs                 com.dev.xstreaming                   W  video short rtp payload ignored count=1 bytes=0 timestamp=2461535598
+2026-07-31 19:07:35.580 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=1 bytes=746 ptsUs=84000 keyframe=true nals=7,8,5
+2026-07-31 19:07:35.631 15836-18691 nano_rs                 com.dev.xstreaming                   W  video rtp sequence gap count=1 expected=28242 actual=28243 buffered=215 waitedMs=47
+2026-07-31 19:07:35.631 15836-18691 nano_rs                 com.dev.xstreaming                   I  video cloud small sequence gap lostPackets=1 totalGaps=1
+2026-07-31 19:07:35.631 15836-18691 nano_rs                 com.dev.xstreaming                   W  video rtp sequence gap count=2 expected=28253 actual=28254 buffered=205 waitedMs=47
+2026-07-31 19:07:35.631 15836-18691 nano_rs                 com.dev.xstreaming                   I  video cloud small sequence gap lostPackets=1 totalGaps=2
+2026-07-31 19:07:35.640 15836-18691 nano_rs                 com.dev.xstreaming                   W  video rtp sequence gap count=4 expected=28269 actual=28271 buffered=197 waitedMs=51
+2026-07-31 19:07:35.640 15836-18691 nano_rs                 com.dev.xstreaming                   I  video cloud small sequence gap lostPackets=2 totalGaps=4
+2026-07-31 19:07:35.640 15836-18691 nano_rs                 com.dev.xstreaming                   W  video rtp sequence gap count=5 expected=28277 actual=28278 buffered=191 waitedMs=50
+2026-07-31 19:07:35.640 15836-18691 nano_rs                 com.dev.xstreaming                   I  video cloud small sequence gap lostPackets=1 totalGaps=5
+2026-07-31 19:07:35.643 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=2 bytes=750 ptsUs=117000 keyframe=true nals=7,8,5
+2026-07-31 19:07:35.837 15836-18688 nano_rs                 com.dev.xstreaming                   I  video access unit frames=5 bytes=750 ptsUs=250000 keyframe=true nals=7,8,5
+2026-07-31 19:07:36.098 15836-18688 nano_rs                 com.dev.xstreaming                   I  input rumble durationMs=2550 weak=0 strong=0 lt=0 rt=0 delayMs=0 repeat=235
+2026-07-31 19:07:36.436 15836-18688 nano_rs                 com.dev.xstreaming                   W  video stale rtp packet dropped count=1 expected=29040 actual=28999 timestamp=2461603188
+2026-07-31 19:07:37.102 15836-18691 nano_rs                 com.dev.xstreaming                   I  input processed frame sent sequence=116
+2026-07-31 19:07:37.985 15836-18688 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:39.032 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=120 bytes=9239 ptsUs=3524000 keyframe=false nals=1
+2026-07-31 19:07:40.029 15836-18688 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:40.711 15836-18688 nano_rs                 com.dev.xstreaming                   W  video rtp sequence gap count=120 expected=30208 actual=30209 buffered=4 waitedMs=69
+2026-07-31 19:07:40.711 15836-18688 nano_rs                 com.dev.xstreaming                   I  video cloud small sequence gap lostPackets=1 totalGaps=120
+2026-07-31 19:07:42.000 15836-18688 nano_rs                 com.dev.xstreaming                   I  audio rtp packets=300 bytes=320 ptsUs=6500000
+2026-07-31 19:07:42.087 15836-18688 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:42.390 15836-18688 nano_rs                 com.dev.xstreaming                   I  video access unit frames=240 bytes=5697 ptsUs=6426000 keyframe=false nals=1
+2026-07-31 19:07:42.734 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=256 bytes=8625 ptsUs=6760000 keyframe=true nals=7,8,5
+2026-07-31 19:07:44.108 15836-18691 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:45.899 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=352 bytes=41736 ptsUs=8764000 keyframe=true nals=7,8,5
+2026-07-31 19:07:45.958 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=360 bytes=386 ptsUs=8898000 keyframe=false nals=1
+2026-07-31 19:07:46.115 15836-18691 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:47.103 15836-18691 nano_rs                 com.dev.xstreaming                   I  input processed frame sent sequence=719
+2026-07-31 19:07:48.230 15836-18688 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:48.360 15836-18688 nano_rs                 com.dev.xstreaming                   I  audio rtp packets=600 bytes=312 ptsUs=12860000
+2026-07-31 19:07:49.487 15836-18691 nano_rs                 com.dev.xstreaming                   W  video stale rtp packet dropped count=120 expected=32156 actual=32113 timestamp=2462536038
+2026-07-31 19:07:49.695 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=480 bytes=3792 ptsUs=11583000 keyframe=false nals=1
+2026-07-31 19:07:50.297 15836-18691 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:50.950 15836-18688 nano_rs                 com.dev.xstreaming                   W  video rtp sequence gap count=240 expected=32549 actual=32550 buffered=2 waitedMs=107
+2026-07-31 19:07:50.950 15836-18688 nano_rs                 com.dev.xstreaming                   I  video cloud small sequence gap lostPackets=1 totalGaps=240
+2026-07-31 19:07:52.334 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=600 bytes=4245 ptsUs=14271000 keyframe=false nals=1
+2026-07-31 19:07:52.414 15836-18688 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:54.492 15836-18688 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:54.614 15836-18691 nano_rs                 com.dev.xstreaming                   I  audio rtp packets=900 bytes=317 ptsUs=19120000
+2026-07-31 19:07:55.265 15836-18688 nano_rs                 com.dev.xstreaming                   I  video access unit frames=720 bytes=4328 ptsUs=16989000 keyframe=false nals=1
+2026-07-31 19:07:56.505 15836-18691 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57
+2026-07-31 19:07:57.104 15836-18688 nano_rs                 com.dev.xstreaming                   I  input processed frame sent sequence=1335
+2026-07-31 19:07:57.857 15836-18691 nano_rs                 com.dev.xstreaming                   I  video access unit frames=840 bytes=3587 ptsUs=19474000 keyframe=false nals=1
+2026-07-31 19:07:58.524 15836-18688 nano_rs                 com.dev.xstreaming                   I  video keyframe requested reason=cloud-sequence-gap bytes=57

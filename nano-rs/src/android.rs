@@ -10,7 +10,7 @@ use jni::{JNIEnv, JavaVM};
 use crate::audio_sink::AudioFrameSink;
 use crate::auth::{AuthBundle, Platform, StreamingTokenSnapshot, WebTokenSnapshot};
 use crate::backend::{AndroidSessionConfig, NanoSessionHandle, SessionEventSink};
-use crate::channels::InputFrame;
+use crate::channels::{InputFrame, RumbleData};
 use crate::error::NanoError;
 use crate::protocol::{default_stream_request, IceServer};
 use crate::stats::StreamStats;
@@ -241,11 +241,11 @@ impl AndroidBridge {
 
     fn send_gamepad_state(&self, frame: InputFrame) {
         let Some(handle) = self.session_handle.as_ref() else {
-            crate::nano_warn!("gamepad input skipped because backend is not running");
+            // crate::nano_warn!("gamepad input skipped because backend is not running");
             return;
         };
-        if let Err(error) = handle.send_gamepad_frame(frame) {
-            crate::nano_warn!("gamepad input enqueue failed: {error}");
+        if let Err(_error) = handle.send_gamepad_frame(frame) {
+            // crate::nano_warn!("gamepad input enqueue failed: {error}");
         }
     }
 
@@ -479,6 +479,27 @@ impl SessionEventSink for AndroidSessionEventSink {
                         .unwrap_or(-1.0),
                 ),
                 JValue::Double(stats.decode_time_ms.unwrap_or(-1.0)),
+            ],
+        );
+    }
+
+    fn on_rumble(&self, rumble: RumbleData) {
+        let Ok(mut env) = self.java_vm.attach_current_thread_as_daemon() else {
+            return;
+        };
+        let _ = env.call_method(
+            self.java_bridge.as_obj(),
+            "onRumble",
+            "(DIIIDDDD)V",
+            &[
+                JValue::Double(rumble.start_delay_ms as f64),
+                JValue::Int(rumble.duration_ms.min(i32::MAX as u16) as jint),
+                JValue::Int(rumble.delay_ms.min(i32::MAX as u16) as jint),
+                JValue::Int(rumble.repeat as jint),
+                JValue::Double(rumble.weak_magnitude as f64),
+                JValue::Double(rumble.strong_magnitude as f64),
+                JValue::Double(rumble.left_trigger as f64),
+                JValue::Double(rumble.right_trigger as f64),
             ],
         );
     }

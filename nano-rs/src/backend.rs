@@ -9,7 +9,7 @@ use tokio::time::sleep;
 
 use crate::audio_sink::AudioFrameSink;
 use crate::auth::AuthBundle;
-use crate::channels::InputFrame;
+use crate::channels::{InputFrame, RumbleData};
 use crate::error::NanoError;
 use crate::protocol::{IceServer, PeerConnectionPlan, SessionBlueprint, StreamRequest};
 use crate::session::NanoWebRtcSession;
@@ -21,6 +21,7 @@ use crate::webrtc_backend::{PeerStatsBaseline, RealNanoPeerConnection};
 pub trait SessionEventSink {
     fn update_status(&self, stage: &str, message: &str, terminal: bool);
     fn update_stats(&self, stats: &StreamStats);
+    fn on_rumble(&self, _rumble: RumbleData) {}
 }
 
 #[derive(Clone)]
@@ -156,6 +157,7 @@ async fn run_session(
     let peer_plan = build_peer_plan(session.blueprint(), &config);
     let peer = RealNanoPeerConnection::new(
         &peer_plan,
+        session.blueprint().platform,
         config.max_touchpoints,
         config.coop,
         config.video_sink.clone(),
@@ -244,6 +246,7 @@ async fn run_session(
         .map(|configuration| configuration.keep_alive_pulse_in_seconds)
         .unwrap_or(20)
         .max(5);
+    crate::nano_log!("run-session keepalive interval seconds={pulse}");
     let mut keepalive = tokio::time::interval(Duration::from_secs(u64::from(pulse)));
 
     loop {

@@ -66,6 +66,7 @@ public class NanoStreamView extends FrameLayout implements SurfaceHolder.Callbac
         Log.i(TAG, "create NanoStreamView");
         reactContext = (ReactContext) context;
         rustBridge = new NanoRustBridge();
+        rustBridge.setRumbleListener(this::emitRumble);
         setBackgroundColor(Color.BLACK);
         setFocusable(true);
         setFocusableInTouchMode(true);
@@ -147,23 +148,34 @@ public class NanoStreamView extends FrameLayout implements SurfaceHolder.Callbac
         iceServerCredential = safeString(settings, "server_credential");
         stereoAudioEnabled = safeBoolean(settings, "enable_stereo_audio", false);
         boolean coop = safeBoolean(settings, "coop", false);
+        baseUri = safeString(streamInfo, "baseUri");
+        gsToken = safeString(streamInfo, "gsToken");
         ReadableMap authInfo = safeMap(streamInfo, "auth");
+        webToken = safeString(authInfo, "connectUserToken");
         ReadableMap webTokenMap = safeMap(authInfo, "webToken");
-        ReadableMap webTokenData = safeMap(webTokenMap, "data");
-        webToken = safeString(webTokenData, "Token");
         if (webToken.isEmpty()) {
-            webToken = safeString(webTokenMap, "raw");
+            ReadableMap webTokenData = safeMap(webTokenMap, "data");
+            webToken = safeString(webTokenData, "Token");
+            if (webToken.isEmpty()) {
+                webToken = safeString(webTokenMap, "raw");
+            }
         }
         hasWebToken = !webToken.isEmpty();
 
         ReadableMap streamingTokens = safeMap(authInfo, "streamingTokens");
-        ReadableMap selectedToken = selectStreamingToken(streamingTokens, streamType);
-        ReadableMap selectedTokenData = safeMap(selectedToken, "data");
-        if (selectedTokenData == null) {
-            selectedTokenData = selectedToken;
+        if (baseUri.isEmpty() || gsToken.isEmpty()) {
+            ReadableMap selectedToken = selectStreamingToken(streamingTokens, streamType);
+            ReadableMap selectedTokenData = safeMap(selectedToken, "data");
+            if (selectedTokenData == null) {
+                selectedTokenData = selectedToken;
+            }
+            if (gsToken.isEmpty()) {
+                gsToken = safeString(selectedTokenData, "gsToken");
+            }
+            if (baseUri.isEmpty()) {
+                baseUri = extractBaseUri(selectedTokenData);
+            }
         }
-        gsToken = safeString(selectedTokenData, "gsToken");
-        baseUri = extractBaseUri(selectedTokenData);
         hasStreamingTokens = !gsToken.isEmpty() && !baseUri.isEmpty();
         authContextReady = hasWebToken || hasStreamingTokens;
         Log.i(TAG, "streamInfo parsed session=" + sessionId
@@ -283,6 +295,7 @@ public class NanoStreamView extends FrameLayout implements SurfaceHolder.Callbac
         try {
             Log.i(TAG, "detached");
             stopStatsTicker();
+            rustBridge.setRumbleListener(null);
             rustBridge.stop();
             rustBridge.releaseSurface();
             rustBridge.release();
@@ -359,6 +372,52 @@ public class NanoStreamView extends FrameLayout implements SurfaceHolder.Callbac
         reactContext
                 .getJSModule(RCTEventEmitter.class)
                 .receiveEvent(getId(), "topNativeStateChange", event);
+    }
+
+    private void emitRumble(
+            double startDelay,
+            int duration,
+            int delayMs,
+            int repeat,
+            double weakMagnitude,
+            double strongMagnitude,
+            double leftTrigger,
+            double rightTrigger) {
+        statsHandler.post(() -> emitRumbleEvent(
+                startDelay,
+                duration,
+                delayMs,
+                repeat,
+                weakMagnitude,
+                strongMagnitude,
+                leftTrigger,
+                rightTrigger));
+    }
+
+    private void emitRumbleEvent(
+            double startDelay,
+            int duration,
+            int delayMs,
+            int repeat,
+            double weakMagnitude,
+            double strongMagnitude,
+            double leftTrigger,
+            double rightTrigger) {
+        if (getId() == -1) {
+            return;
+        }
+        WritableMap event = Arguments.createMap();
+        event.putDouble("startDelay", startDelay);
+        event.putDouble("duration", duration);
+        event.putDouble("delayMs", delayMs);
+        event.putDouble("repeat", repeat);
+        event.putDouble("weakMagnitude", weakMagnitude);
+        event.putDouble("strongMagnitude", strongMagnitude);
+        event.putDouble("leftTrigger", leftTrigger);
+        event.putDouble("rightTrigger", rightTrigger);
+        reactContext
+                .getJSModule(RCTEventEmitter.class)
+                .receiveEvent(getId(), "topNanoRumble", event);
     }
 
     private void startStatsTicker() {

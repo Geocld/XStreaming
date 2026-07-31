@@ -221,6 +221,21 @@ mod tests {
     }
 
     #[test]
+    fn input_server_message_parses_vibration_payload() {
+        let message =
+            channels::parse_input_server_message(&[128, 0, 0, 0, 1, 2, 3, 4, 200, 0, 15, 0, 25])
+                .unwrap();
+        let rumble = message.rumble.unwrap();
+        assert!((rumble.strong_magnitude - 0.01).abs() < f32::EPSILON);
+        assert!((rumble.weak_magnitude - 0.02).abs() < f32::EPSILON);
+        assert!((rumble.left_trigger - 0.03).abs() < f32::EPSILON);
+        assert!((rumble.right_trigger - 0.04).abs() < f32::EPSILON);
+        assert_eq!(rumble.duration_ms, 200);
+        assert_eq!(rumble.delay_ms, 15);
+        assert_eq!(rumble.repeat, 25);
+    }
+
+    #[test]
     fn session_state_machine_tracks_offer_answer_and_connect() {
         let mut auth = AuthBundle::default();
         auth.cloud = Some(StreamingTokenSnapshot {

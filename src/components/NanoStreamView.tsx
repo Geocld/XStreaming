@@ -36,12 +36,24 @@ type NanoStreamStateEvent = NativeSyntheticEvent<{
   decodedAudioBuffers?: number;
 }>;
 
+type NanoRumbleEvent = NativeSyntheticEvent<{
+  startDelay: number;
+  duration: number;
+  weakMagnitude: number;
+  strongMagnitude: number;
+  leftTrigger: number;
+  rightTrigger: number;
+  delayMs: number;
+  repeat: number;
+}>;
+
 type NativeProps = ViewProps & {
   style?: ViewStyle;
   streamInfo?: any;
   showStatus?: boolean;
   statusText?: string;
   onNativeStateChange?: (event: NanoStreamStateEvent) => void;
+  onNanoRumble?: (event: NanoRumbleEvent) => void;
 };
 
 type RefApi = {
