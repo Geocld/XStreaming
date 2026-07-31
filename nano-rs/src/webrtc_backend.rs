@@ -1,12 +1,9 @@
-use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use bytes::{Bytes, BytesMut};
+use bytes::Bytes;
 use rtp::codecs::h264::H264Packet;
-use rtp::packet::Packet as RtpPacket;
-use rtp::packetizer::Depacketizer;
 use tokio::time::{sleep, timeout};
 use webrtc::api::interceptor_registry::register_default_interceptors;
 use webrtc::api::media_engine::MediaEngine;
@@ -28,7 +25,6 @@ use webrtc::track::track_remote::TrackRemote;
 use webrtc_media::io::sample_builder::SampleBuilder;
 
 use crate::audio_sink::AudioFrameSink;
-use crate::auth::Platform;
 use crate::backend::SessionEventSink;
 use crate::channels::{
     initial_system_ui_messages, parse_input_server_message, ControlMessage, InputFrame,
@@ -44,23 +40,8 @@ use crate::video_sink::VideoFrameSink;
 
 const CONTROL_ACCESS_KEY: &str = "4BDB3609-C1F1-4195-9B37-FEFF45DA8B8E";
 const VIDEO_KEYFRAME_REQUEST_MIN_INTERVAL: Duration = Duration::from_secs(1);
-const VIDEO_CLOUD_GAP_KEYFRAME_REQUEST_MIN_INTERVAL: Duration = Duration::from_secs(2);
-const VIDEO_KEYFRAME_REFRESH_INTERVAL: Duration = Duration::from_secs(10);
-const MAX_H264_ACCESS_UNIT_BYTES: usize = 8 * 1024 * 1024;
-const VIDEO_RTP_REORDER_INITIAL_START_PACKETS: usize = 12;
-const VIDEO_RTP_REORDER_STEADY_START_PACKETS: usize = 4;
-const VIDEO_RTP_REORDER_HOME_INITIAL_WAIT: Duration = Duration::from_millis(45);
-const VIDEO_RTP_REORDER_CLOUD_INITIAL_WAIT: Duration = Duration::from_millis(180);
-const VIDEO_RTP_REORDER_HOME_STEADY_WAIT: Duration = Duration::from_millis(14);
-const VIDEO_RTP_REORDER_CLOUD_STEADY_WAIT: Duration = Duration::from_millis(45);
-const VIDEO_RTP_CLOUD_SAMPLE_MAX_DELAY: Duration = Duration::from_millis(120);
-const VIDEO_RTP_REORDER_MAX_BUFFERED_PACKETS: usize = 512;
-const VIDEO_RTP_REORDER_CLOUD_INITIAL_MAX_BUFFERED_PACKETS: usize = 2048;
-
-struct BufferedRtpPacket {
-    packet: RtpPacket,
-    received_at: Instant,
-}
+const VIDEO_SAMPLE_DROP_KEYFRAME_REQUEST_MIN_INTERVAL: Duration = Duration::from_secs(2);
+const VIDEO_RTP_SAMPLE_MAX_DELAY: Duration = Duration::from_millis(120);
 
 #[derive(Debug)]
 struct PeerSharedState {
@@ -80,11 +61,10 @@ struct PeerSharedState {
     video_jitter_us: AtomicU64,
     max_touchpoints: u8,
     coop: bool,
-    cloud_stream: bool,
 }
 
 impl PeerSharedState {
-    fn new(max_touchpoints: u8, coop: bool, cloud_stream: bool) -> Self {
+    fn new(max_touchpoints: u8, coop: bool) -> Self {
         Self {
             local_candidates: Mutex::new(Vec::new()),
             observed_tracks: Mutex::new(Vec::new()),
@@ -102,7 +82,6 @@ impl PeerSharedState {
             video_jitter_us: AtomicU64::new(0),
             max_touchpoints,
             coop,
-            cloud_stream,
         }
     }
 
@@ -165,7 +144,6 @@ pub struct PeerStatsBaseline {
 impl RealNanoPeerConnection {
     pub async fn new(
         plan: &PeerConnectionPlan,
-        platform: Platform,
         max_touchpoints: u8,
         coop: bool,
         video_sink: Option<Arc<dyn VideoFrameSink + Send + Sync>>,
@@ -194,11 +172,7 @@ impl RealNanoPeerConnection {
                 .await
                 .map_err(|error| NanoError::PeerConnectionOwned(error.to_string()))?,
         );
-        let shared = Arc::new(PeerSharedState::new(
-            max_touchpoints,
-            coop,
-            platform == Platform::Cloud,
-        ));
+        let shared = Arc::new(PeerSharedState::new(max_touchpoints, coop));
         let mut peer = Self {
             pc,
             shared,
@@ -313,14 +287,14 @@ impl RealNanoPeerConnection {
                         MediaTrackKind::Video => {
                             let video_control_channel = control_channel.as_ref().map(Arc::clone);
                             if let Some(video_sink) = video_sink {
-                                tokio::spawn(run_video_track(
+                                tokio::spawn(run_sample_builder_video_track(
                                     track,
                                     video_sink,
                                     Arc::clone(&shared),
                                     video_control_channel,
                                 ));
                             } else {
-                                tokio::spawn(run_video_track(
+                                tokio::spawn(run_sample_builder_video_track(
                                     track,
                                     Arc::new(NoopVideoSink),
                                     Arc::clone(&shared),
@@ -917,16 +891,16 @@ async fn run_audio_track(
     crate::nano_warn!("audio track reader stopped packets={packets}");
 }
 
-async fn run_cloud_video_track(
+async fn run_sample_builder_video_track(
     track: Arc<TrackRemote>,
     video_sink: Arc<dyn VideoFrameSink + Send + Sync>,
     shared: Arc<PeerSharedState>,
     control_channel: Option<Arc<RTCDataChannel>>,
 ) {
-    crate::nano_log!("video track reader start mode=cloud-sample-builder");
+    crate::nano_log!("video track reader start mode=sample-builder");
     let clock_rate = track.codec().capability.clock_rate.max(1);
     let mut sample_builder = SampleBuilder::new(512, H264Packet::default(), clock_rate)
-        .with_max_time_delay(VIDEO_RTP_CLOUD_SAMPLE_MAX_DELAY);
+        .with_max_time_delay(VIDEO_RTP_SAMPLE_MAX_DELAY);
     let mut first_timestamp: Option<u32> = None;
     let mut frames = 0u64;
     let mut packets = 0u64;
@@ -956,7 +930,7 @@ async fn run_cloud_video_track(
                 shared.video_frames_dropped.fetch_add(1, Ordering::Relaxed);
                 if samples_with_drops <= 5 || samples_with_drops % 120 == 0 {
                     crate::nano_warn!(
-                        "video cloud sample drops samples={} droppedPackets={} paddingPackets={} packetTimestamp={}",
+                        "video sample drops samples={} droppedPackets={} paddingPackets={} packetTimestamp={}",
                         samples_with_drops,
                         sample.prev_dropped_packets,
                         sample.prev_padding_packets,
@@ -967,8 +941,8 @@ async fn run_cloud_video_track(
                     request_video_keyframe_throttled_with_interval(
                         control_channel.as_ref(),
                         &mut last_keyframe_request,
-                        "cloud-sample-drop",
-                        VIDEO_CLOUD_GAP_KEYFRAME_REQUEST_MIN_INTERVAL,
+                        "sample-drop",
+                        VIDEO_SAMPLE_DROP_KEYFRAME_REQUEST_MIN_INTERVAL,
                     )
                     .await;
                 }
@@ -996,7 +970,7 @@ async fn run_cloud_video_track(
                 .store(frames, Ordering::Relaxed);
             if frames == 1 || keyframe || frames % 120 == 0 {
                 crate::nano_log!(
-                    "video cloud sample frames={} packets={} bytes={} ptsUs={} keyframe={} drops={} nals={}",
+                    "video sample frames={} packets={} bytes={} ptsUs={} keyframe={} drops={} nals={}",
                     frames,
                     packets,
                     sample.data.len(),
@@ -1010,388 +984,7 @@ async fn run_cloud_video_track(
         }
     }
 
-    crate::nano_warn!("video track reader stopped mode=cloud-sample-builder frames={frames}");
-}
-
-async fn run_video_track(
-    track: Arc<TrackRemote>,
-    video_sink: Arc<dyn VideoFrameSink + Send + Sync>,
-    shared: Arc<PeerSharedState>,
-    control_channel: Option<Arc<RTCDataChannel>>,
-) {
-    if shared.cloud_stream {
-        run_cloud_video_track(track, video_sink, shared, control_channel).await;
-        return;
-    }
-
-    crate::nano_log!("video track reader start");
-    let mut depacketizer = H264Packet::default();
-    let clock_rate = track.codec().capability.clock_rate.max(1);
-    let mut first_timestamp: Option<u32> = None;
-    let first_arrival = Instant::now();
-    let mut previous_transit: Option<f64> = None;
-    let mut jitter_rtp_units = 0.0f64;
-    let mut frame_buffer = BytesMut::new();
-    let mut frame_timestamp = 0u32;
-    let mut frames = 0u64;
-    let mut next_sequence: Option<u16> = None;
-    let mut reorder_buffer: BTreeMap<u16, BufferedRtpPacket> = BTreeMap::new();
-    let mut missing_sequence_since: Option<Instant> = None;
-    let mut sequence_gaps = 0u64;
-    let mut stale_packets = 0u64;
-    let mut short_payload_packets = 0u64;
-    let mut depacketize_errors = 0u64;
-    let mut last_keyframe_request: Option<Instant> = None;
-    let mut last_observed_keyframe = Instant::now();
-    let mut observed_keyframe = false;
-    let mut waiting_for_recovery_keyframe = false;
-    let mut drop_current_access_unit = false;
-
-    while let Ok((packet, _)) = track.read_rtp().await {
-        shared
-            .video_packets_received
-            .fetch_add(1, Ordering::Relaxed);
-        shared
-            .video_bytes_received
-            .fetch_add(packet.payload.len() as u64, Ordering::Relaxed);
-
-        let sequence = packet.header.sequence_number;
-        if next_sequence
-            .map(|expected| rtp_sequence_before(sequence, expected))
-            .unwrap_or(false)
-        {
-            stale_packets += 1;
-            if stale_packets == 1 || stale_packets % 120 == 0 {
-                crate::nano_warn!(
-                    "video stale rtp packet dropped count={} expected={} actual={} timestamp={}",
-                    stale_packets,
-                    next_sequence.unwrap_or(sequence),
-                    sequence,
-                    packet.header.timestamp
-                );
-            }
-            continue;
-        }
-        if reorder_buffer
-            .insert(
-                sequence,
-                BufferedRtpPacket {
-                    packet,
-                    received_at: Instant::now(),
-                },
-            )
-            .is_some()
-        {
-            crate::nano_warn!("video duplicate rtp packet dropped sequence={sequence}");
-            continue;
-        }
-
-        if next_sequence.is_none() {
-            let needs_keyframe = !observed_keyframe || waiting_for_recovery_keyframe;
-            let start_packets = if needs_keyframe {
-                VIDEO_RTP_REORDER_INITIAL_START_PACKETS
-            } else {
-                VIDEO_RTP_REORDER_STEADY_START_PACKETS
-            };
-            let ready_to_start = reorder_buffer.len() >= start_packets
-                || (!needs_keyframe
-                    && reorder_buffer
-                        .values()
-                        .any(|buffered| buffered.packet.header.marker));
-            if !ready_to_start {
-                continue;
-            }
-            next_sequence = earliest_buffered_sequence(&reorder_buffer);
-            crate::nano_log!(
-                "video rtp reorder start sequence={} buffered={}",
-                next_sequence.unwrap_or(sequence),
-                reorder_buffer.len()
-            );
-        }
-
-        loop {
-            let Some(expected) = next_sequence else {
-                break;
-            };
-            if let Some(buffered) = reorder_buffer.remove(&expected) {
-                missing_sequence_since = None;
-                next_sequence = Some(expected.wrapping_add(1));
-                process_ordered_video_packet(
-                    buffered.packet,
-                    &mut depacketizer,
-                    clock_rate,
-                    &mut first_timestamp,
-                    first_arrival,
-                    &mut previous_transit,
-                    &mut jitter_rtp_units,
-                    &mut frame_buffer,
-                    &mut frame_timestamp,
-                    &mut frames,
-                    &mut short_payload_packets,
-                    &mut depacketize_errors,
-                    &mut last_keyframe_request,
-                    &mut last_observed_keyframe,
-                    &mut observed_keyframe,
-                    &mut waiting_for_recovery_keyframe,
-                    &mut drop_current_access_unit,
-                    &video_sink,
-                    &shared,
-                    control_channel.as_ref(),
-                )
-                .await;
-                continue;
-            }
-
-            let needs_keyframe = !observed_keyframe || waiting_for_recovery_keyframe;
-            let reorder_wait = if needs_keyframe {
-                if shared.cloud_stream {
-                    VIDEO_RTP_REORDER_CLOUD_INITIAL_WAIT
-                } else {
-                    VIDEO_RTP_REORDER_HOME_INITIAL_WAIT
-                }
-            } else if shared.cloud_stream {
-                VIDEO_RTP_REORDER_CLOUD_STEADY_WAIT
-            } else {
-                VIDEO_RTP_REORDER_HOME_STEADY_WAIT
-            };
-            let waited = missing_sequence_since
-                .get_or_insert_with(|| {
-                    reorder_buffer
-                        .values()
-                        .map(|buffered| buffered.received_at)
-                        .min()
-                        .unwrap_or_else(Instant::now)
-                })
-                .elapsed();
-            let max_buffered_packets = if needs_keyframe && shared.cloud_stream {
-                VIDEO_RTP_REORDER_CLOUD_INITIAL_MAX_BUFFERED_PACKETS
-            } else {
-                VIDEO_RTP_REORDER_MAX_BUFFERED_PACKETS
-            };
-            if waited < reorder_wait && reorder_buffer.len() <= max_buffered_packets {
-                break;
-            }
-
-            let Some(actual) = nearest_buffered_sequence(&reorder_buffer, expected) else {
-                break;
-            };
-            let lost_packets = u64::from(actual.wrapping_sub(expected).max(1));
-            sequence_gaps += lost_packets;
-            shared
-                .video_packets_lost
-                .fetch_add(lost_packets, Ordering::Relaxed);
-            shared.video_frames_dropped.fetch_add(1, Ordering::Relaxed);
-            frame_buffer.clear();
-            depacketizer = H264Packet::default();
-            drop_current_access_unit = true;
-            let strict_recovery = !shared.cloud_stream || !observed_keyframe;
-            if strict_recovery {
-                waiting_for_recovery_keyframe = true;
-            }
-            if sequence_gaps <= 5 || sequence_gaps % 120 == 0 {
-                crate::nano_warn!(
-                    "video rtp sequence gap count={} expected={} actual={} buffered={} waitedMs={}",
-                    sequence_gaps,
-                    expected,
-                    actual,
-                    reorder_buffer.len(),
-                    waited.as_millis()
-                );
-            }
-            let reason = if observed_keyframe {
-                "sequence-gap"
-            } else {
-                "initial-sequence-gap"
-            };
-            let small_cloud_steady_gap =
-                shared.cloud_stream && observed_keyframe && lost_packets <= 4;
-            if small_cloud_steady_gap {
-                if sequence_gaps <= 5 || sequence_gaps % 120 == 0 {
-                    crate::nano_log!(
-                        "video cloud small sequence gap lostPackets={} totalGaps={}",
-                        lost_packets,
-                        sequence_gaps
-                    );
-                }
-                request_video_keyframe_throttled_with_interval(
-                    control_channel.as_ref(),
-                    &mut last_keyframe_request,
-                    "cloud-sequence-gap",
-                    VIDEO_CLOUD_GAP_KEYFRAME_REQUEST_MIN_INTERVAL,
-                )
-                .await;
-            } else {
-                request_video_keyframe_throttled(
-                    control_channel.as_ref(),
-                    &mut last_keyframe_request,
-                    reason,
-                )
-                .await;
-            }
-            missing_sequence_since = None;
-            next_sequence = Some(actual);
-        }
-    }
-    crate::nano_warn!("video track reader stopped frames={frames}");
-}
-
-async fn process_ordered_video_packet(
-    packet: RtpPacket,
-    depacketizer: &mut H264Packet,
-    clock_rate: u32,
-    first_timestamp: &mut Option<u32>,
-    first_arrival: Instant,
-    previous_transit: &mut Option<f64>,
-    jitter_rtp_units: &mut f64,
-    frame_buffer: &mut BytesMut,
-    frame_timestamp: &mut u32,
-    frames: &mut u64,
-    short_payload_packets: &mut u64,
-    depacketize_errors: &mut u64,
-    last_keyframe_request: &mut Option<Instant>,
-    last_observed_keyframe: &mut Instant,
-    observed_keyframe: &mut bool,
-    waiting_for_recovery_keyframe: &mut bool,
-    drop_current_access_unit: &mut bool,
-    video_sink: &Arc<dyn VideoFrameSink + Send + Sync>,
-    shared: &Arc<PeerSharedState>,
-    control_channel: Option<&Arc<RTCDataChannel>>,
-) {
-    if *drop_current_access_unit {
-        if packet.header.marker {
-            *drop_current_access_unit = false;
-        }
-        return;
-    }
-
-    let payload = packet.payload;
-    let nal = match depacketizer.depacketize(&payload) {
-        Ok(bytes) => bytes,
-        Err(error) => {
-            *depacketize_errors += 1;
-            frame_buffer.clear();
-            if payload.len() < 2 {
-                *short_payload_packets += 1;
-                if *short_payload_packets == 1 || *short_payload_packets % 300 == 0 {
-                    crate::nano_warn!(
-                        "video short rtp payload ignored count={} bytes={} timestamp={}",
-                        *short_payload_packets,
-                        payload.len(),
-                        packet.header.timestamp
-                    );
-                }
-            } else {
-                shared.video_frames_dropped.fetch_add(1, Ordering::Relaxed);
-                *depacketizer = H264Packet::default();
-                crate::nano_warn!(
-                    "video depacketize failed count={} error={}",
-                    *depacketize_errors,
-                    error
-                );
-                *drop_current_access_unit = !packet.header.marker;
-                *waiting_for_recovery_keyframe = true;
-                request_video_keyframe_throttled(
-                    control_channel,
-                    last_keyframe_request,
-                    "depacketize",
-                )
-                .await;
-            }
-            return;
-        }
-    };
-    if nal.is_empty() {
-        return;
-    }
-
-    if first_timestamp.is_none() {
-        *first_timestamp = Some(packet.header.timestamp);
-    }
-    if let Some(base_timestamp) = *first_timestamp {
-        let arrival_delta = first_arrival.elapsed().as_secs_f64() * f64::from(clock_rate);
-        let rtp_delta = f64::from(packet.header.timestamp.wrapping_sub(base_timestamp));
-        let transit = arrival_delta - rtp_delta;
-        if let Some(previous_transit_value) = *previous_transit {
-            let delta = (transit - previous_transit_value).abs();
-            *jitter_rtp_units += (delta - *jitter_rtp_units) / 16.0;
-            let jitter_us = ((*jitter_rtp_units / f64::from(clock_rate)) * 1_000_000.0).round();
-            if jitter_us.is_finite() && jitter_us > 0.0 {
-                shared
-                    .video_jitter_us
-                    .store(jitter_us as u64, Ordering::Relaxed);
-            }
-        }
-        *previous_transit = Some(transit);
-    }
-
-    if frame_buffer.is_empty() {
-        *frame_timestamp = packet.header.timestamp;
-    }
-    frame_buffer.extend_from_slice(nal.as_ref());
-    if frame_buffer.len() > MAX_H264_ACCESS_UNIT_BYTES {
-        crate::nano_warn!(
-            "video access unit too large bytes={} max={}",
-            frame_buffer.len(),
-            MAX_H264_ACCESS_UNIT_BYTES
-        );
-        frame_buffer.clear();
-        shared.video_frames_dropped.fetch_add(1, Ordering::Relaxed);
-        *depacketizer = H264Packet::default();
-        *drop_current_access_unit = true;
-        *waiting_for_recovery_keyframe = true;
-        request_video_keyframe_throttled(control_channel, last_keyframe_request, "oversized-au")
-            .await;
-        return;
-    }
-
-    if !packet.header.marker {
-        return;
-    }
-
-    let base_timestamp = (*first_timestamp).unwrap_or(*frame_timestamp);
-    let pts_us = rtp_timestamp_to_us(*frame_timestamp, base_timestamp, clock_rate);
-    let keyframe = contains_idr_nalu(frame_buffer.as_ref());
-    if (!*observed_keyframe || *waiting_for_recovery_keyframe) && !keyframe {
-        let reason = if *observed_keyframe {
-            "recovery-keyframe"
-        } else {
-            "initial-keyframe"
-        };
-        request_video_keyframe_throttled(control_channel, last_keyframe_request, reason).await;
-        frame_buffer.clear();
-        return;
-    }
-    if keyframe {
-        *observed_keyframe = true;
-        *waiting_for_recovery_keyframe = false;
-        *last_observed_keyframe = Instant::now();
-    } else if !shared.cloud_stream
-        && last_observed_keyframe.elapsed() >= VIDEO_KEYFRAME_REFRESH_INTERVAL
-    {
-        request_video_keyframe_throttled(
-            control_channel,
-            last_keyframe_request,
-            "periodic-refresh",
-        )
-        .await;
-        *last_observed_keyframe = Instant::now();
-    }
-    *frames += 1;
-    shared
-        .video_frames_received
-        .store(*frames, Ordering::Relaxed);
-    if *frames == 1 || keyframe || *frames % 120 == 0 {
-        crate::nano_log!(
-            "video access unit frames={} bytes={} ptsUs={} keyframe={} nals={}",
-            *frames,
-            frame_buffer.len(),
-            pts_us,
-            keyframe,
-            h264_nal_summary(frame_buffer.as_ref())
-        );
-    }
-    video_sink.push_h264_access_unit(frame_buffer.as_ref(), pts_us, keyframe);
-    frame_buffer.clear();
+    crate::nano_warn!("video track reader stopped mode=sample-builder frames={frames}");
 }
 
 async fn request_video_keyframe_throttled(
@@ -1437,33 +1030,6 @@ async fn request_video_keyframe_throttled_with_interval(
 fn rtp_timestamp_to_us(timestamp: u32, base_timestamp: u32, clock_rate: u32) -> i64 {
     let delta = timestamp.wrapping_sub(base_timestamp) as u64;
     ((delta * 1_000_000u64) / u64::from(clock_rate.max(1))) as i64
-}
-
-fn rtp_sequence_before(sequence: u16, reference: u16) -> bool {
-    sequence != reference && sequence.wrapping_sub(reference) > u16::MAX / 2
-}
-
-fn nearest_buffered_sequence(
-    buffer: &BTreeMap<u16, BufferedRtpPacket>,
-    expected: u16,
-) -> Option<u16> {
-    buffer
-        .keys()
-        .copied()
-        .filter(|sequence| sequence.wrapping_sub(expected) < u16::MAX / 2)
-        .min_by_key(|sequence| sequence.wrapping_sub(expected))
-}
-
-fn earliest_buffered_sequence(buffer: &BTreeMap<u16, BufferedRtpPacket>) -> Option<u16> {
-    buffer.keys().copied().min_by(|left, right| {
-        if rtp_sequence_before(*left, *right) {
-            std::cmp::Ordering::Less
-        } else if rtp_sequence_before(*right, *left) {
-            std::cmp::Ordering::Greater
-        } else {
-            std::cmp::Ordering::Equal
-        }
-    })
 }
 
 fn contains_idr_nalu(data: &[u8]) -> bool {

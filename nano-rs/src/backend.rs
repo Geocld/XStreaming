@@ -157,7 +157,6 @@ async fn run_session(
     let peer_plan = build_peer_plan(session.blueprint(), &config);
     let peer = RealNanoPeerConnection::new(
         &peer_plan,
-        session.blueprint().platform,
         config.max_touchpoints,
         config.coop,
         config.video_sink.clone(),
