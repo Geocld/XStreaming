@@ -18,7 +18,7 @@ import {
   Modal,
   Card,
   HelperText,
-  FAB,
+  IconButton,
 } from 'react-native-paper';
 import Spinner from '../components/Spinner';
 import {useDispatch} from 'react-redux';
@@ -128,7 +128,7 @@ function TitleDetail({navigation, route}) {
         ? 'NativePortraitStream'
         : 'NativeStream';
     } else if (settings.render_engine === 'nano') {
-      routeName = 'NanoStream';
+      routeName = 'NativeStream';
     }
 
     // Lagecy user force to native stream
@@ -330,8 +330,6 @@ function TitleDetail({navigation, route}) {
         {isLargeScreen ? (
           <>
             {renderLargeActionButton(t('Start game'), handleStartGame, true)}
-            {canAddTitleShortcut &&
-              renderLargeActionButton(t('Add to desktop'), handleAddToDesktop)}
             {renderLargeActionButton(t('Back'), () => navigation.goBack())}
           </>
         ) : (
@@ -342,15 +340,6 @@ function TitleDetail({navigation, route}) {
               onPress={handleStartGame}>
               &nbsp;{t('Start game')} &nbsp;
             </Button>
-            {canAddTitleShortcut && (
-              <Button
-                mode="outlined"
-                icon="plus-box-outline"
-                style={styles.button}
-                onPress={handleAddToDesktop}>
-                {t('Add to desktop')}
-              </Button>
-            )}
             <Button
               mode="text"
               style={styles.button}
@@ -425,12 +414,24 @@ function TitleDetail({navigation, route}) {
                     {titleItem.PublisherName}
                   </Text>
                 </View>
-                <FAB
-                  icon={isStar ? 'cards-heart' : 'cards-heart-outline'}
-                  size={isLargeScreen ? 'small' : 'medium'}
-                  style={[styles.fab, isLargeScreen && styles.fabLarge]}
-                  onPress={handleToggleStar}
-                />
+                <View style={styles.titleActions}>
+                  {canAddTitleShortcut && (
+                    <IconButton
+                      icon="plus-box-outline"
+                      size={isLargeScreen ? 24 : 22}
+                      accessibilityLabel={t('Add to desktop')}
+                      style={styles.titleActionButton}
+                      onPress={handleAddToDesktop}
+                    />
+                  )}
+                  <IconButton
+                    icon={isStar ? 'cards-heart' : 'cards-heart-outline'}
+                    size={isLargeScreen ? 24 : 22}
+                    accessibilityLabel={t('Stars')}
+                    style={styles.titleActionButton}
+                    onPress={handleToggleStar}
+                  />
+                </View>
               </View>
 
               {isByorg && (
@@ -541,6 +542,15 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  titleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+    flexShrink: 0,
+  },
+  titleActionButton: {
+    margin: 0,
+  },
   tagsWrap: {
     paddingVertical: 10,
     display: 'flex',
@@ -637,12 +647,6 @@ const styles = StyleSheet.create({
   },
   tvActionButtonTextPlain: {
     color: '#107C10',
-  },
-  fab: {
-    marginLeft: 12,
-  },
-  fabLarge: {
-    marginLeft: 16,
   },
 });
 

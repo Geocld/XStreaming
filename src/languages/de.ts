@@ -384,11 +384,12 @@ export default {
       'NAT failed. If you are trying remote streaming, make sure the router is configured correctly and port forwarding is set. If remote streaming still cannot be resolved, use the official Xbox app.',
     'Reconnected failed':
       'Network changed and reconnection failed. Please reconnect.',
+    Nano: 'Nano (experimentell)',
     renderEngineTitle: 'Rendering engine',
     renderEngineDesc:
-      'Choose the Native/WebView rendering engine to play the video stream.',
+      'Wähle die Rendering-Engine Native/Nano/WebView, um den Videostream abzuspielen.',
     renderEngineTips:
-      '\nnative: kein WebView nötig, native Wiedergabe mit geringerem Stromverbrauch und besserer Kompatibilität (empfohlen).\n\nwebview: nutzt das System-WebView zur Wiedergabe und benötigt WebView 91 oder neuer.\n\nBeide Engines haben Vor- und Nachteile. Wähle nach dem tatsächlichen Geräteergebnis.',
+      '\nNative: keine System-WebView-Abhängigkeit, nutzt natives Rendering mit geringerem Stromverbrauch und besserer Kompatibilität (empfohlen).\n\nNano: nutzt eine selbst entwickelte Native-Engine und bietet nur die grundlegendsten Funktionen für Nutzer, bei denen bei der Verwendung von Native Probleme auftreten.\n\nWebView: nutzt die System-WebView zur Wiedergabe von Videostreams und erfordert WebView 91 oder neuer.\n\nJede Rendering-Engine hat Vor- und Nachteile. Wähle nach der tatsächlichen Leistung des Geräts.',
     'Open Microphone': 'Mikrofon öffnen',
     'Close Microphone': 'Mikrofon schließen',
     'Device testing': 'Gerätetest',

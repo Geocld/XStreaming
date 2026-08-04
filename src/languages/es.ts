@@ -311,9 +311,12 @@ export default {
     'Streaming is closed': 'Streaming cerrado',
     'NAT failed': 'Fallo de NAT. Revisa el router.',
     'Reconnected failed': 'Fallo al reconectar.',
+    Nano: 'Nano (experimental)',
     renderEngineTitle: 'Motor de renderizado',
-    renderEngineDesc: 'Elige el motor de video.',
-    renderEngineTips: 'El motor nativo es recomendado.',
+    renderEngineDesc:
+      'Elige el motor de renderizado Native/Nano/WebView para reproducir el vídeo.',
+    renderEngineTips:
+      '\nNative: no necesita depender de WebView del sistema, usa renderizado nativo con menor consumo y mejor compatibilidad (recomendado).\n\nNano: usa un motor nativo desarrollado internamente y solo ofrece las funciones más básicas, para usuarios que encuentren problemas al usar Native.\n\nWebView: usa el WebView del sistema para reproducir vídeos y requiere WebView 91 o superior.\n\nCada motor de renderizado tiene sus ventajas y desventajas. Elige según el rendimiento real de tu dispositivo.',
     'Open Microphone': 'Abrir micrófono',
     'Close Microphone': 'Cerrar micrófono',
     'Device testing': 'Prueba de dispositivo',

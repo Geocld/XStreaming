@@ -381,10 +381,11 @@ export default {
     'NAT failed':
       'NAT失败，如果你正在尝试远程串流，请保证已经正确配置路由器，并设置已经设置端口转发，如果无法解决远程串流，请使用官方Xbox应用。',
     'Reconnected failed': '网络发生了变化，重连失败，请重新连接',
+    Nano: 'Nano(实验性)',
     renderEngineTitle: '渲染引擎',
-    renderEngineDesc: '选择Native/Webview渲染引擎，播放视频流',
+    renderEngineDesc: '选择Native/Nano/Webview渲染引擎，播放视频流',
     renderEngineTips:
-      '\nnative: 无需依赖webview，使用原生渲染，具备更低的功耗及更高的兼容性(推荐)。\n\nwebview: 使用系统webview播放视频流，需要webview版本91以上。\n\n不同的渲染引擎各有优缺点，请根据设备实际效果选用。',
+      '\nNative: 无需依赖系统Webview，使用原生渲染，具备更低的功耗及更高的兼容性(推荐)。\n\n Nano: 使用自研Native引擎，只提供最基础功能，供Native使用过程出现异常的用户使用 \n\nWebview: 使用系统Webview播放视频流，需要Webview版本91以上。\n\n不同的渲染引擎各有优缺点，请根据设备实际效果选用。',
     'Open Microphone': '打开麦克风',
     'Close Microphone': '关闭麦克风',
     'Device testing': '设备测试',

@@ -348,9 +348,11 @@ export default {
     'Streaming is closed': '스트리밍 종료',
     'NAT failed': 'NAT 실패. 라우터 설정을 확인하세요.',
     'Reconnected failed': '재연결 실패',
+    Nano: 'Nano (실험용)',
     renderEngineTitle: '렌더링 엔진',
-    renderEngineDesc: '재생 엔진 선택',
-    renderEngineTips: '네이티브 엔진 권장',
+    renderEngineDesc: 'Native/Nano/WebView 렌더링 엔진을 선택하세요.',
+    renderEngineTips:
+      '\nNative: 시스템 WebView에 의존하지 않고 네이티브 렌더링을 사용하며 전력 소모가 더 낮고 호환성이 더 좋습니다(권장).\n\nNano: 자체 개발한 네이티브 엔진을 사용하며, Native 사용 중 문제가 발생한 사용자에게 가장 기본적인 기능만 제공합니다.\n\nWebView: 시스템 WebView를 사용해 동영상 스트림을 재생하며 WebView 91 이상이 필요합니다.\n\n각 렌더링 엔진에는 장단점이 있습니다. 실제 기기 성능에 맞게 선택하세요.',
     'Open Microphone': '마이크 켜기',
     'Close Microphone': '마이크 끄기',
     'Device testing': '기기 테스트',
