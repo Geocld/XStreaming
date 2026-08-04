@@ -749,7 +749,10 @@ function NanoStreamScreen({navigation, route}) {
       const sessionStatusText = String(state.sessionStatusText || '');
       const statusText = sessionStatusText || String(state.statusText || '');
       const sessionStage = String(state.sessionStage || '');
-      if (state.terminalSessionError || sessionStage === 'failed') {
+      if (
+        (state.terminalSessionError || sessionStage === 'failed') &&
+        !statusText.includes('closed')
+      ) {
         setFatalError(statusText || t('NAT failed'));
         return;
       }

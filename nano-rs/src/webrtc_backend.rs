@@ -907,6 +907,7 @@ async fn run_sample_builder_video_track(
     let mut padding_only_drops = 0u64;
     let mut observed_keyframe = false;
     let mut last_keyframe_request: Option<Instant> = None;
+    let mut waiting_clean_keyframe_since: Option<Instant> = None;
 
     while let Ok((packet, _)) = track.read_rtp().await {
         shared
@@ -944,7 +945,11 @@ async fn run_sample_builder_video_track(
                         h264_nal_summary(sample.data.as_ref())
                     );
                 }
-                observed_keyframe = false;
+                let should_wait_clean_keyframe = !observed_keyframe || keyframe;
+                if should_wait_clean_keyframe {
+                    observed_keyframe = false;
+                    waiting_clean_keyframe_since.get_or_insert_with(Instant::now);
+                }
                 request_video_keyframe_throttled(
                     control_channel.as_ref(),
                     &mut last_keyframe_request,
@@ -955,6 +960,12 @@ async fn run_sample_builder_video_track(
                     },
                 )
                 .await;
+                if !should_wait_clean_keyframe && samples_with_drops <= 5 {
+                    crate::nano_log!(
+                        "video continuing after dropped delta sample packetTimestamp={}",
+                        sample.packet_timestamp
+                    );
+                }
                 continue;
             } else if sample.prev_dropped_packets > 0 {
                 padding_only_drops += 1;
@@ -971,6 +982,7 @@ async fn run_sample_builder_video_track(
             }
 
             if !observed_keyframe && !keyframe {
+                waiting_clean_keyframe_since.get_or_insert_with(Instant::now);
                 request_video_keyframe_throttled(
                     control_channel.as_ref(),
                     &mut last_keyframe_request,
@@ -980,9 +992,14 @@ async fn run_sample_builder_video_track(
                 continue;
             }
             if !observed_keyframe && keyframe {
+                let recover_ms = waiting_clean_keyframe_since
+                    .take()
+                    .map(|started| started.elapsed().as_millis())
+                    .unwrap_or(0);
                 crate::nano_log!(
-                    "video clean keyframe accepted packetTimestamp={} nals={}",
+                    "video clean keyframe accepted packetTimestamp={} recoverMs={} nals={}",
                     sample.packet_timestamp,
+                    recover_ms,
                     h264_nal_summary(sample.data.as_ref())
                 );
                 observed_keyframe = true;
