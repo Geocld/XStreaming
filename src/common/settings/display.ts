@@ -38,6 +38,7 @@ const display = [
       {value: 'Zoom', text: t('Zoom')},
       {value: '16:10', text: '16:10'},
       {value: '18:9', text: '18:9'},
+      {value: '20:9', text: '20:9'},
       {value: '21:9', text: '21:9'},
       {value: '4:3', text: '4:3'},
     ],

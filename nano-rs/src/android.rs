@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::ffi::c_void;
 use std::sync::atomic::{AtomicI64, Ordering};
+use std::sync::mpsc::{sync_channel, SyncSender};
 use std::sync::{Arc, Mutex, OnceLock};
+use std::thread;
 
 use jni::objects::{GlobalRef, JClass, JObject, JString, JValue};
 use jni::sys::{jboolean, jfloat, jint, jlong};
@@ -453,6 +455,8 @@ impl SessionEventSink for AndroidSessionEventSink {
                 }),
             ],
         );
+        let _ = env.delete_local_ref(stage_object);
+        let _ = env.delete_local_ref(message_object);
     }
 
     fn update_stats(&self, stats: &StreamStats) {
@@ -506,62 +510,87 @@ impl SessionEventSink for AndroidSessionEventSink {
 }
 
 #[cfg(target_os = "android")]
-#[derive(Clone)]
 struct AndroidVideoSink {
-    java_vm: Arc<JavaVM>,
-    java_bridge: GlobalRef,
+    sender: SyncSender<AndroidVideoFrame>,
 }
 
 #[cfg(target_os = "android")]
 impl AndroidVideoSink {
     fn new(java_vm: Arc<JavaVM>, java_bridge: GlobalRef) -> Self {
-        Self {
-            java_vm,
-            java_bridge,
-        }
+        let (sender, receiver) = sync_channel::<AndroidVideoFrame>(180);
+        thread::Builder::new()
+            .name("NanoAndroidVideoSink".to_owned())
+            .spawn(move || {
+                let Ok(mut env) = java_vm.attach_current_thread_as_daemon() else {
+                    crate::nano_warn!("android video sink worker failed to attach JVM");
+                    return;
+                };
+                crate::nano_log!("android video sink worker started");
+                let mut queued_frames = 0u64;
+                while let Ok(frame) = receiver.recv() {
+                    if frame.data.is_empty() {
+                        continue;
+                    }
+                    let Ok(byte_buffer) = (unsafe {
+                        env.new_direct_byte_buffer(frame.data.as_ptr() as *mut u8, frame.data.len())
+                    }) else {
+                        continue;
+                    };
+                    let byte_object = JObject::from(byte_buffer);
+                    let _ = env.call_method(
+                        java_bridge.as_obj(),
+                        "queueVideoFrame",
+                        "(Ljava/nio/ByteBuffer;JZ)V",
+                        &[
+                            JValue::Object(&byte_object),
+                            JValue::Long(frame.pts_us),
+                            JValue::Bool(if frame.keyframe {
+                                1 as jboolean
+                            } else {
+                                0 as jboolean
+                            }),
+                        ],
+                    );
+                    let _ = env.delete_local_ref(byte_object);
+                    queued_frames += 1;
+                    if queued_frames == 1 || queued_frames % 120 == 0 {
+                        crate::nano_log!(
+                            "android video sink queued frame count={queued_frames} ptsUs={}",
+                            frame.pts_us
+                        );
+                    }
+                }
+                crate::nano_log!("android video sink worker stopped queued={queued_frames}");
+            })
+            .ok();
+        Self { sender }
     }
+}
+
+#[cfg(target_os = "android")]
+struct AndroidVideoFrame {
+    data: Vec<u8>,
+    pts_us: i64,
+    keyframe: bool,
 }
 
 #[cfg(target_os = "android")]
 impl VideoFrameSink for AndroidVideoSink {
     fn push_h264_access_unit(&self, data: &[u8], pts_us: i64, keyframe: bool) {
-        let Ok(mut env) = self.java_vm.attach_current_thread_as_daemon() else {
+        if data.is_empty() {
             return;
-        };
-        let Ok(byte_array) = env.byte_array_from_slice(data) else {
-            return;
-        };
-        let byte_object = JObject::from(byte_array);
-        let _ = env.call_method(
-            self.java_bridge.as_obj(),
-            "queueVideoFrame",
-            "([BJZ)V",
-            &[
-                JValue::Object(&byte_object),
-                JValue::Long(pts_us),
-                JValue::Bool(if keyframe {
-                    1 as jboolean
-                } else {
-                    0 as jboolean
-                }),
-            ],
-        );
+        }
+        if let Err(error) = self.sender.send(AndroidVideoFrame {
+            data: data.to_vec(),
+            pts_us,
+            keyframe,
+        }) {
+            crate::nano_warn!("android video sink send failed: {error}");
+        }
     }
 
     fn drop_pending_output(&self, reason: &str) {
-        let Ok(mut env) = self.java_vm.attach_current_thread_as_daemon() else {
-            return;
-        };
-        let Ok(reason) = env.new_string(reason) else {
-            return;
-        };
-        let reason_object = JObject::from(reason);
-        let _ = env.call_method(
-            self.java_bridge.as_obj(),
-            "dropPendingVideoOutput",
-            "(Ljava/lang/String;)V",
-            &[JValue::Object(&reason_object)],
-        );
+        crate::nano_log!("android video sink drop_pending_output ignored reason={reason}");
     }
 }
 
@@ -588,14 +617,19 @@ impl AudioFrameSink for AndroidAudioSink {
         let Ok(mut env) = self.java_vm.attach_current_thread_as_daemon() else {
             return;
         };
-        let Ok(byte_array) = env.byte_array_from_slice(data) else {
+        if data.is_empty() {
+            return;
+        }
+        let Ok(byte_buffer) =
+            (unsafe { env.new_direct_byte_buffer(data.as_ptr() as *mut u8, data.len()) })
+        else {
             return;
         };
-        let byte_object = JObject::from(byte_array);
+        let byte_object = JObject::from(byte_buffer);
         let _ = env.call_method(
             self.java_bridge.as_obj(),
             "queueAudioFrame",
-            "([BJII)V",
+            "(Ljava/nio/ByteBuffer;JII)V",
             &[
                 JValue::Object(&byte_object),
                 JValue::Long(pts_us),
@@ -603,6 +637,7 @@ impl AudioFrameSink for AndroidAudioSink {
                 JValue::Int(channels.min(i32::MAX as u16) as jint),
             ],
         );
+        let _ = env.delete_local_ref(byte_object);
     }
 }
 

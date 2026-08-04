@@ -88,7 +88,7 @@ public class NanoStreamViewManager extends SimpleViewManager<NanoStreamView> {
             NanoStreamView view,
             int command,
             @Nullable ReadableArray args) {
-        Log.i(TAG, "handleCommand command=" + command + " args=" + (args == null ? 0 : args.size()));
+        // Log.i(TAG, "handleCommand command=" + command + " args=" + (args == null ? 0 : args.size()));
         switch (command) {
             case COMMAND_START_SESSION:
                 view.startSession();

@@ -40,7 +40,6 @@ use crate::video_sink::VideoFrameSink;
 
 const CONTROL_ACCESS_KEY: &str = "4BDB3609-C1F1-4195-9B37-FEFF45DA8B8E";
 const VIDEO_KEYFRAME_REQUEST_MIN_INTERVAL: Duration = Duration::from_secs(1);
-const VIDEO_SAMPLE_DROP_KEYFRAME_REQUEST_MIN_INTERVAL: Duration = Duration::from_secs(2);
 const VIDEO_RTP_SAMPLE_MAX_DELAY: Duration = Duration::from_millis(120);
 
 #[derive(Debug)]
@@ -905,6 +904,7 @@ async fn run_sample_builder_video_track(
     let mut frames = 0u64;
     let mut packets = 0u64;
     let mut samples_with_drops = 0u64;
+    let mut padding_only_drops = 0u64;
     let mut observed_keyframe = false;
     let mut last_keyframe_request: Option<Instant> = None;
 
@@ -922,43 +922,69 @@ async fn run_sample_builder_video_track(
             if sample.data.is_empty() {
                 continue;
             }
-            if sample.prev_dropped_packets > 0 {
+            let keyframe = contains_idr_nalu(sample.data.as_ref());
+            let media_dropped_packets = sample
+                .prev_dropped_packets
+                .saturating_sub(sample.prev_padding_packets);
+            if media_dropped_packets > 0 {
                 samples_with_drops += 1;
                 shared
                     .video_packets_lost
-                    .fetch_add(u64::from(sample.prev_dropped_packets), Ordering::Relaxed);
+                    .fetch_add(u64::from(media_dropped_packets), Ordering::Relaxed);
                 shared.video_frames_dropped.fetch_add(1, Ordering::Relaxed);
                 if samples_with_drops <= 5 || samples_with_drops % 120 == 0 {
                     crate::nano_warn!(
-                        "video sample drops samples={} droppedPackets={} paddingPackets={} packetTimestamp={}",
+                        "video sample dropped incomplete samples={} mediaDroppedPackets={} droppedPackets={} paddingPackets={} packetTimestamp={} keyframe={} nals={}",
                         samples_with_drops,
+                        media_dropped_packets,
                         sample.prev_dropped_packets,
                         sample.prev_padding_packets,
-                        sample.packet_timestamp
+                        sample.packet_timestamp,
+                        keyframe,
+                        h264_nal_summary(sample.data.as_ref())
                     );
                 }
-                if observed_keyframe {
-                    request_video_keyframe_throttled_with_interval(
-                        control_channel.as_ref(),
-                        &mut last_keyframe_request,
-                        "sample-drop",
-                        VIDEO_SAMPLE_DROP_KEYFRAME_REQUEST_MIN_INTERVAL,
-                    )
-                    .await;
+                observed_keyframe = false;
+                request_video_keyframe_throttled(
+                    control_channel.as_ref(),
+                    &mut last_keyframe_request,
+                    if keyframe {
+                        "dropped-incomplete-keyframe"
+                    } else {
+                        "dropped-incomplete-sample"
+                    },
+                )
+                .await;
+                continue;
+            } else if sample.prev_dropped_packets > 0 {
+                padding_only_drops += 1;
+                if padding_only_drops <= 5 || padding_only_drops % 120 == 0 {
+                    crate::nano_log!(
+                        "video sample ignored padding drops samples={} droppedPackets={} paddingPackets={} packetTimestamp={} keyframe={}",
+                        padding_only_drops,
+                        sample.prev_dropped_packets,
+                        sample.prev_padding_packets,
+                        sample.packet_timestamp,
+                        keyframe
+                    );
                 }
             }
 
-            let keyframe = contains_idr_nalu(sample.data.as_ref());
             if !observed_keyframe && !keyframe {
                 request_video_keyframe_throttled(
                     control_channel.as_ref(),
                     &mut last_keyframe_request,
-                    "initial-keyframe",
+                    "waiting-clean-keyframe",
                 )
                 .await;
                 continue;
             }
-            if keyframe {
+            if !observed_keyframe && keyframe {
+                crate::nano_log!(
+                    "video clean keyframe accepted packetTimestamp={} nals={}",
+                    sample.packet_timestamp,
+                    h264_nal_summary(sample.data.as_ref())
+                );
                 observed_keyframe = true;
             }
 

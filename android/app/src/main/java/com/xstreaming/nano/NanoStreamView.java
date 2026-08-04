@@ -265,11 +265,11 @@ public class NanoStreamView extends FrameLayout implements SurfaceHolder.Callbac
                 safeFloat(gamepadState, "RightThumbYAxis"),
                 safeTrigger(gamepadState, "LeftTrigger"),
                 safeTrigger(gamepadState, "RightTrigger"));
-        Log.i(TAG, "sendGamepadState dispatched a=" + safeButton(gamepadState, "A")
-                + " b=" + safeButton(gamepadState, "B")
-                + " lx=" + safeFloat(gamepadState, "LeftThumbXAxis")
-                + " ly=" + safeFloat(gamepadState, "LeftThumbYAxis")
-                + " rt=" + safeTrigger(gamepadState, "RightTrigger"));
+        // Log.i(TAG, "sendGamepadState dispatched a=" + safeButton(gamepadState, "A")
+        //         + " b=" + safeButton(gamepadState, "B")
+        //         + " lx=" + safeFloat(gamepadState, "LeftThumbXAxis")
+        //         + " ly=" + safeFloat(gamepadState, "LeftThumbYAxis")
+        //         + " rt=" + safeTrigger(gamepadState, "RightTrigger"));
     }
 
     public android.view.Surface getOutputSurface() {

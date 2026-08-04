@@ -100,7 +100,7 @@ const NanoStreamView: ForwardRefRenderFunction<RefApi, NativeProps> = (
         });
         return;
       }
-      console.log('[Nano] dispatch command', {commandName, commandId, args});
+      // console.log('[Nano] dispatch command', {commandName, commandId, args});
       UIManager.dispatchViewManagerCommand(viewId, commandId, args);
     },
     [],

@@ -754,7 +754,10 @@ function NanoStreamScreen({navigation, route}) {
         return;
       }
       if (!isConnectedRef.current && sessionStatusText) {
-        setLoadingText(t(sessionStatusText));
+        const nextLoadingText = t(sessionStatusText);
+        setLoadingText(prev =>
+          prev === nextLoadingText ? prev : nextLoadingText,
+        );
       }
 
       const renderedVideoFrames = Number(state.renderedVideoFrames || 0);
@@ -767,28 +770,30 @@ function NanoStreamScreen({navigation, route}) {
             ? `${state.surfaceWidth}x${state.surfaceHeight}`
             : '';
 
-      setPerformance((prev: any) => ({
-        ...prev,
-        resolution: resolution || prev.resolution,
-        rtt: formatMs(state.webRtcRttMs) ?? prev.rtt,
-        jit: formatMs(state.webRtcJitterMs) ?? prev.jit,
-        fps: isFiniteNumber(state.webRtcFps)
-          ? Math.round(Number(state.webRtcFps))
-          : prev.fps,
-        fl:
-          formatCountPercent(
-            state.webRtcFramesDropped,
-            state.webRtcFramesReceived,
-          ) ?? prev.fl,
-        pl:
-          formatCountPercent(
-            state.webRtcPacketsLost,
-            state.webRtcPacketsReceived,
-            state.webRtcPacketLossPercent,
-          ) ?? prev.pl,
-        br: formatMbps(state.webRtcBitrateMbps) ?? prev.br,
-        decode: formatMs(state.webRtcDecodeMs) ?? prev.decode,
-      }));
+      if (showPerformance) {
+        setPerformance((prev: any) => ({
+          ...prev,
+          resolution: resolution || prev.resolution,
+          rtt: formatMs(state.webRtcRttMs) ?? prev.rtt,
+          jit: formatMs(state.webRtcJitterMs) ?? prev.jit,
+          fps: isFiniteNumber(state.webRtcFps)
+            ? Math.round(Number(state.webRtcFps))
+            : prev.fps,
+          fl:
+            formatCountPercent(
+              state.webRtcFramesDropped,
+              state.webRtcFramesReceived,
+            ) ?? prev.fl,
+          pl:
+            formatCountPercent(
+              state.webRtcPacketsLost,
+              state.webRtcPacketsReceived,
+              state.webRtcPacketLossPercent,
+            ) ?? prev.pl,
+          br: formatMbps(state.webRtcBitrateMbps) ?? prev.br,
+          decode: formatMs(state.webRtcDecodeMs) ?? prev.decode,
+        }));
+      }
 
       if (
         (renderedVideoFrames > 0 || sessionStage === 'connected') &&
@@ -806,7 +811,7 @@ function NanoStreamScreen({navigation, route}) {
         }
       }
     },
-    [settings.show_performance, settings.show_virtual_gamead, t],
+    [settings.show_performance, settings.show_virtual_gamead, showPerformance, t],
   );
 
   const handleNanoRumble = React.useCallback(

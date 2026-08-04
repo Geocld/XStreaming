@@ -7,8 +7,7 @@ import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
+import android.os.Process;
 import android.util.Log;
 import android.view.Surface;
 
@@ -16,12 +15,14 @@ import androidx.annotation.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Locale;
 
 public final class NanoRustBridge {
     private static final String TAG = "NanoRustBridge";
     private static final boolean NATIVE_AVAILABLE;
-    private static final long VIDEO_OUTPUT_DRAIN_INTERVAL_MS = 1L;
-
+    private static final long VIDEO_INPUT_BUFFER_TIMEOUT_US = 0L;
+    private static final long VIDEO_OUTPUT_BUFFER_TIMEOUT_US = 100_000L;
+    private static final long VIDEO_OUTPUT_THREAD_JOIN_TIMEOUT_MS = 5_000L;
     public interface RumbleListener {
         void onRumble(
                 double startDelay,
@@ -48,6 +49,9 @@ public final class NanoRustBridge {
     }
 
     private long nativeHandle;
+    private volatile boolean released = false;
+    private volatile boolean sessionActive = false;
+    private volatile boolean videoSurfaceActive = false;
     private final Object videoDecoderLock = new Object();
     @Nullable
     private Surface outputSurface;
@@ -60,26 +64,11 @@ public final class NanoRustBridge {
     private long queuedVideoFrameCount = 0L;
     private long renderedVideoFrameCount = 0L;
     private long queuedVideoByteCount = 0L;
-    private long videoInputTimestampUs = 0L;
+    private long firstVideoPresentationTimeUs = Long.MIN_VALUE;
+    private long lastVideoPresentationTimeUs = Long.MIN_VALUE;
     @Nullable
-    private HandlerThread videoOutputThread;
-    @Nullable
-    private Handler videoOutputHandler;
+    private Thread videoOutputThread;
     private volatile boolean videoOutputDrainRunning = false;
-    private final Runnable videoOutputDrainRunnable = new Runnable() {
-        @Override
-        public void run() {
-            synchronized (videoDecoderLock) {
-                if (videoOutputDrainRunning && videoDecoder != null) {
-                    drainVideoDecoderLocked();
-                }
-            }
-            Handler handler = videoOutputHandler;
-            if (videoOutputDrainRunning && handler != null) {
-                handler.postDelayed(this, VIDEO_OUTPUT_DRAIN_INTERVAL_MS);
-            }
-        }
-    };
     private final Object audioDecoderLock = new Object();
     @Nullable
     private MediaCodec audioDecoder;
@@ -115,7 +104,7 @@ public final class NanoRustBridge {
     }
 
     public boolean isNativeAvailable() {
-        return NATIVE_AVAILABLE && nativeHandle != 0L;
+        return NATIVE_AVAILABLE && nativeHandle != 0L && !released;
     }
 
     public void updateStreamInfo(
@@ -166,7 +155,9 @@ public final class NanoRustBridge {
         updateSessionStatus("stream-info", "Connecting...", false);
         synchronized (videoDecoderLock) {
             updateVideoSizeLocked(resolution);
-            ensureVideoDecoderLocked();
+            if (videoSurfaceActive) {
+                ensureVideoDecoderLocked();
+            }
         }
     }
 
@@ -178,7 +169,12 @@ public final class NanoRustBridge {
         Log.i(TAG, "bindSurface surface=" + (surface != null) + " size=" + width + "x" + height);
         synchronized (videoDecoderLock) {
             outputSurface = surface;
-            ensureVideoDecoderLocked();
+            videoSurfaceActive = surface != null && sessionActive;
+            if (videoSurfaceActive) {
+                ensureVideoDecoderLocked();
+            } else {
+                releaseVideoDecoderLocked();
+            }
         }
         nativeSetSurface(nativeHandle, surface, width, height);
     }
@@ -189,8 +185,12 @@ public final class NanoRustBridge {
             return;
         }
         Log.i(TAG, "start requested handle=" + nativeHandle);
+        sessionActive = true;
         synchronized (videoDecoderLock) {
-            ensureVideoDecoderLocked();
+            videoSurfaceActive = outputSurface != null;
+            if (videoSurfaceActive) {
+                ensureVideoDecoderLocked();
+            }
         }
         nativeStart(nativeHandle);
     }
@@ -201,13 +201,15 @@ public final class NanoRustBridge {
             return;
         }
         Log.i(TAG, "stop requested handle=" + nativeHandle);
-        nativeStop(nativeHandle);
+        sessionActive = false;
+        videoSurfaceActive = false;
         synchronized (videoDecoderLock) {
             releaseVideoDecoderLocked();
         }
         synchronized (audioDecoderLock) {
             releaseAudioDecoderLocked();
         }
+        nativeStop(nativeHandle);
     }
 
     public void releaseSurface() {
@@ -217,6 +219,7 @@ public final class NanoRustBridge {
         }
         Log.i(TAG, "releaseSurface requested handle=" + nativeHandle);
         synchronized (videoDecoderLock) {
+            videoSurfaceActive = false;
             outputSurface = null;
             releaseVideoDecoderLocked();
         }
@@ -276,12 +279,14 @@ public final class NanoRustBridge {
                 rightTrigger);
     }
 
-    public void queueVideoFrame(byte[] data, long ptsUs, boolean keyframe) {
-        if (!isNativeAvailable()) {
-            Log.w(TAG, "queueVideoFrame skipped native unavailable");
+    public void queueVideoFrame(ByteBuffer data, long ptsUs, boolean keyframe) {
+        if (!isNativeAvailable() || !sessionActive || !videoSurfaceActive) {
             return;
         }
         synchronized (videoDecoderLock) {
+            if (!sessionActive || !videoSurfaceActive || outputSurface == null) {
+                return;
+            }
             if (videoDecoder == null && !ensureVideoDecoderLocked()) {
                 return;
             }
@@ -290,12 +295,11 @@ public final class NanoRustBridge {
             }
 
             try {
-                int inputIndex = videoDecoder.dequeueInputBuffer(0);
+                int inputIndex = videoDecoder.dequeueInputBuffer(VIDEO_INPUT_BUFFER_TIMEOUT_US);
                 if (inputIndex < 0) {
-                    drainVideoDecoderLocked();
-                    inputIndex = videoDecoder.dequeueInputBuffer(0);
-                }
-                if (inputIndex < 0) {
+                    if (queuedVideoFrameCount == 0 || queuedVideoFrameCount % 120 == 0) {
+                        Log.w(TAG, "Video decoder input unavailable count=" + queuedVideoFrameCount);
+                    }
                     return;
                 }
 
@@ -306,30 +310,32 @@ public final class NanoRustBridge {
                     return;
                 }
 
+                ByteBuffer sourceBuffer = data.duplicate();
+                sourceBuffer.position(0);
+                sourceBuffer.limit(sourceBuffer.capacity());
                 inputBuffer.clear();
-                if (data.length > inputBuffer.remaining()) {
-                    Log.w(TAG, "Video frame too large data=" + data.length + " remaining=" + inputBuffer.remaining());
+                if (sourceBuffer.remaining() > inputBuffer.remaining()) {
+                    Log.w(TAG, "Video frame too large data=" + sourceBuffer.remaining() + " remaining=" + inputBuffer.remaining());
                     releaseVideoDecoderLocked();
                     return;
                 }
-                inputBuffer.put(data);
+                inputBuffer.put(sourceBuffer);
                 int flags = keyframe ? MediaCodec.BUFFER_FLAG_KEY_FRAME : 0;
-                long codecPtsUs = videoInputTimestampUs++;
-                videoDecoder.queueInputBuffer(inputIndex, 0, data.length, codecPtsUs, flags);
+                long codecPtsUs = normalizeVideoPresentationTimeUs(ptsUs);
+                videoDecoder.queueInputBuffer(inputIndex, 0, sourceBuffer.position(), codecPtsUs, flags);
                 queuedVideoFrameCount += 1;
-                queuedVideoByteCount += data.length;
+                queuedVideoByteCount += sourceBuffer.position();
                 if (queuedVideoFrameCount == 1 || keyframe || queuedVideoFrameCount % 120 == 0) {
                     Log.i(TAG, "queueVideoFrame count=" + queuedVideoFrameCount
-                            + " bytes=" + data.length
+                            + " bytes=" + sourceBuffer.position()
                             + " sourcePtsUs=" + ptsUs
                             + " codecPtsUs=" + codecPtsUs
                             + " keyframe=" + keyframe);
                 }
-                drainVideoDecoderLocked();
                 if (queuedVideoFrameCount % 120 == 0
                         && queuedVideoFrameCount > renderedVideoFrameCount + 240) {
-                    Log.w(TAG, "Video decoder output lag queued=" + queuedVideoFrameCount
-                            + " rendered=" + renderedVideoFrameCount);
+                    Log.w(TAG, "Video decoder release lag queued=" + queuedVideoFrameCount
+                            + " released=" + renderedVideoFrameCount);
                 }
             } catch (Throwable error) {
                 Log.w(TAG, "Video frame queue failed", error);
@@ -338,47 +344,22 @@ public final class NanoRustBridge {
         }
     }
 
+    public boolean shouldDropVideoFrame(boolean keyframe) {
+        return false;
+    }
+
     public void dropPendingVideoOutput(@Nullable String reason) {
         Log.w(TAG, "dropPendingVideoOutput reason=" + (reason == null ? "" : reason));
+        if (!isNativeAvailable() || !sessionActive || !videoSurfaceActive) {
+            return;
+        }
         synchronized (videoDecoderLock) {
-            MediaCodec codec = videoDecoder;
-            if (codec == null) {
-                return;
-            }
-
-            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-            while (true) {
-                int outputIndex;
-                try {
-                    outputIndex = codec.dequeueOutputBuffer(bufferInfo, 0);
-                } catch (Throwable error) {
-                    Log.w(TAG, "Video decoder output drop failed", error);
-                    releaseVideoDecoderLocked();
-                    return;
-                }
-
-                if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
-                        || outputIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-                    continue;
-                }
-                if (outputIndex < 0) {
-                    return;
-                }
-
-                try {
-                    codec.releaseOutputBuffer(outputIndex, false);
-                } catch (Throwable error) {
-                    Log.w(TAG, "Video decoder output drop release failed", error);
-                    releaseVideoDecoderLocked();
-                    return;
-                }
-            }
+            dropPendingVideoOutputLocked();
         }
     }
 
-    public void queueAudioFrame(byte[] data, long ptsUs, int sampleRate, int channelCount) {
-        if (!isNativeAvailable()) {
-            Log.w(TAG, "queueAudioFrame skipped native unavailable");
+    public void queueAudioFrame(ByteBuffer data, long ptsUs, int sampleRate, int channelCount) {
+        if (!isNativeAvailable() || !sessionActive) {
             return;
         }
         synchronized (audioDecoderLock) {
@@ -410,17 +391,20 @@ public final class NanoRustBridge {
                     return;
                 }
 
+                ByteBuffer sourceBuffer = data.duplicate();
+                sourceBuffer.position(0);
+                sourceBuffer.limit(sourceBuffer.capacity());
                 inputBuffer.clear();
-                if (data.length > inputBuffer.remaining()) {
-                    Log.w(TAG, "Audio frame too large data=" + data.length + " remaining=" + inputBuffer.remaining());
+                if (sourceBuffer.remaining() > inputBuffer.remaining()) {
+                    Log.w(TAG, "Audio frame too large data=" + sourceBuffer.remaining() + " remaining=" + inputBuffer.remaining());
                     return;
                 }
-                inputBuffer.put(data);
-                audioDecoder.queueInputBuffer(inputIndex, 0, data.length, Math.max(0L, ptsUs), 0);
+                inputBuffer.put(sourceBuffer);
+                audioDecoder.queueInputBuffer(inputIndex, 0, sourceBuffer.position(), Math.max(0L, ptsUs), 0);
                 queuedAudioFrameCount += 1;
                 if (queuedAudioFrameCount == 1 || queuedAudioFrameCount % 300 == 0) {
                     Log.i(TAG, "queueAudioFrame count=" + queuedAudioFrameCount
-                            + " bytes=" + data.length
+                            + " bytes=" + sourceBuffer.position()
                             + " ptsUs=" + ptsUs
                             + " sampleRate=" + audioSampleRate
                             + " channels=" + audioChannelCount);
@@ -511,7 +495,12 @@ public final class NanoRustBridge {
         if (nativeHandle == 0L) {
             return;
         }
-        Log.i(TAG, "release bridge handle=" + nativeHandle);
+        long handle = nativeHandle;
+        nativeHandle = 0L;
+        released = true;
+        sessionActive = false;
+        videoSurfaceActive = false;
+        Log.i(TAG, "release bridge handle=" + handle);
         synchronized (videoDecoderLock) {
             releaseVideoDecoderLocked();
         }
@@ -519,9 +508,8 @@ public final class NanoRustBridge {
             releaseAudioDecoderLocked();
         }
         if (NATIVE_AVAILABLE) {
-            nativeDestroyBridge(nativeHandle);
+            nativeDestroyBridge(handle);
         }
-        nativeHandle = 0L;
     }
 
     private void updateVideoSizeLocked(int resolution) {
@@ -552,14 +540,7 @@ public final class NanoRustBridge {
                     : MediaCodec.createByCodecName(codecName);
             MediaFormat format = MediaFormat.createVideoFormat(mime, videoWidth, videoHeight);
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, Math.max(4 * 1024 * 1024, videoWidth * videoHeight));
-            format.setInteger(MediaFormat.KEY_OPERATING_RATE, 32767);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-                    && NanoMediaCodecHelper.decoderSupportsLowLatency(codecName, mime)) {
-                try {
-                    format.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
-                } catch (Throwable ignored) {
-                }
-            }
+            applyLowLatencyVideoFormat(format, codecName, mime);
             codec.configure(format, outputSurface, null, 0);
             codec.start();
             videoDecoder = codec;
@@ -582,7 +563,8 @@ public final class NanoRustBridge {
         queuedVideoFrameCount = 0L;
         renderedVideoFrameCount = 0L;
         queuedVideoByteCount = 0L;
-        videoInputTimestampUs = 0L;
+        firstVideoPresentationTimeUs = Long.MIN_VALUE;
+        lastVideoPresentationTimeUs = Long.MIN_VALUE;
         if (codec == null) {
             return;
         }
@@ -602,105 +584,207 @@ public final class NanoRustBridge {
             return;
         }
         videoOutputDrainRunning = true;
-        HandlerThread thread = new HandlerThread("NanoVideoOutput");
-        thread.start();
-        Handler handler = new Handler(thread.getLooper());
+        Thread thread = new Thread(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY);
+            Log.i(TAG, "video output thread started");
+            while (videoOutputDrainRunning) {
+                MediaCodec codec = videoDecoder;
+                if (codec == null) {
+                    break;
+                }
+                if (!drainVideoDecoderOutput(codec, VIDEO_OUTPUT_BUFFER_TIMEOUT_US)) {
+                    break;
+                }
+            }
+            Log.i(TAG, "video output thread finished");
+        }, "NanoVideoOutput");
         videoOutputThread = thread;
-        videoOutputHandler = handler;
-        handler.post(videoOutputDrainRunnable);
-        Log.i(TAG, "video output drain thread started");
+        thread.start();
     }
 
     private void stopVideoOutputDrainLocked() {
         videoOutputDrainRunning = false;
-        Handler handler = videoOutputHandler;
-        HandlerThread thread = videoOutputThread;
-        videoOutputHandler = null;
+        Thread thread = videoOutputThread;
         videoOutputThread = null;
-        if (handler != null) {
-            handler.removeCallbacksAndMessages(null);
-        }
-        if (thread != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                thread.quitSafely();
-            } else {
-                thread.quit();
+        if (thread != null && thread != Thread.currentThread()) {
+            try {
+                thread.join(VIDEO_OUTPUT_THREAD_JOIN_TIMEOUT_MS);
+                if (thread.isAlive()) {
+                    Log.w(TAG, "video output thread did not stop within timeout");
+                }
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
             }
-            Log.i(TAG, "video output drain thread stopped");
         }
     }
 
-    private void drainVideoDecoderLocked() {
+    private boolean drainVideoDecoderOutput(MediaCodec codec, long timeoutUs) {
+        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+        int outputIndex;
+        try {
+            outputIndex = codec.dequeueOutputBuffer(bufferInfo, timeoutUs);
+        } catch (Throwable error) {
+            Log.w(TAG, "Video decoder output dequeue failed", error);
+            releaseVideoDecoderAfterOutputFailure();
+            return false;
+        }
+
+        if (outputIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+            return videoOutputDrainRunning;
+        }
+        if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+            try {
+                Log.i(TAG, "Video decoder output format changed: " + codec.getOutputFormat());
+            } catch (Throwable ignored) {
+            }
+            return videoOutputDrainRunning;
+        }
+        if (outputIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED || outputIndex < 0) {
+            return videoOutputDrainRunning;
+        }
+
+        try {
+            boolean released = releaseVideoOutputBuffer(codec, outputIndex, true);
+            if (!released) {
+                releaseVideoDecoderAfterOutputFailure();
+                return false;
+            }
+            recordRenderedVideoFrame(bufferInfo.presentationTimeUs);
+            return videoOutputDrainRunning;
+        } catch (Throwable error) {
+            Log.w(TAG, "Video decoder output release failed", error);
+            releaseVideoDecoderAfterOutputFailure();
+            return false;
+        }
+    }
+
+    private boolean releaseVideoOutputBuffer(MediaCodec codec, int outputIndex, boolean render) {
+        try {
+            codec.releaseOutputBuffer(outputIndex, render);
+            return true;
+        } catch (Throwable error) {
+            Log.w(TAG, "Video decoder output release failed", error);
+            return false;
+        }
+    }
+
+    private void recordRenderedVideoFrame(long presentationTimeUs) {
+        synchronized (videoDecoderLock) {
+            renderedVideoFrameCount += 1;
+            if (renderedVideoFrameCount == 1 || renderedVideoFrameCount % 120 == 0) {
+                Log.i(TAG, "video output released count=" + renderedVideoFrameCount
+                        + " queued=" + queuedVideoFrameCount
+                        + " ptsUs=" + presentationTimeUs);
+            }
+        }
+    }
+
+    private void releaseVideoDecoderAfterOutputFailure() {
+        synchronized (videoDecoderLock) {
+            releaseVideoDecoderLocked();
+        }
+    }
+
+    private void dropPendingVideoOutputLocked() {
         MediaCodec codec = videoDecoder;
         if (codec == null) {
             return;
         }
 
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-        int latestOutputIndex = -1;
-        long latestPresentationTimeUs = 0L;
         while (true) {
             int outputIndex;
             try {
                 outputIndex = codec.dequeueOutputBuffer(bufferInfo, 0);
             } catch (Throwable error) {
-                Log.w(TAG, "Video decoder drain failed", error);
+                Log.w(TAG, "Video decoder output drop failed", error);
                 releaseVideoDecoderLocked();
                 return;
             }
 
-            if (outputIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                break;
-            }
             if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
                     || outputIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                 continue;
             }
             if (outputIndex < 0) {
-                break;
+                return;
             }
 
             try {
-                if (latestOutputIndex >= 0) {
-                    codec.releaseOutputBuffer(latestOutputIndex, false);
-                }
-                latestOutputIndex = outputIndex;
-                latestPresentationTimeUs = bufferInfo.presentationTimeUs;
+                codec.releaseOutputBuffer(outputIndex, false);
             } catch (Throwable error) {
-                Log.w(TAG, "Video decoder output release failed", error);
+                Log.w(TAG, "Video decoder output drop release failed", error);
                 releaseVideoDecoderLocked();
                 return;
             }
         }
-
-        if (latestOutputIndex < 0) {
-            return;
-        }
-
-        try {
-            releaseVideoOutputBufferNow(codec, latestOutputIndex);
-            renderedVideoFrameCount += 1;
-            if (renderedVideoFrameCount == 1 || renderedVideoFrameCount % 120 == 0) {
-                Log.i(TAG, "video output rendered count=" + renderedVideoFrameCount
-                        + " queued=" + queuedVideoFrameCount
-                        + " ptsUs=" + latestPresentationTimeUs);
-            }
-        } catch (Throwable error) {
-            Log.w(TAG, "Video decoder latest output release failed", error);
-            releaseVideoDecoderLocked();
-        }
     }
 
-    private void releaseVideoOutputBufferNow(MediaCodec codec, int outputIndex) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                codec.releaseOutputBuffer(outputIndex, System.nanoTime());
-                return;
-            } catch (Throwable error) {
-                Log.w(TAG, "Video decoder timed output release failed, fallback render=true", error);
-            }
+    private long normalizeVideoPresentationTimeUs(long ptsUs) {
+        long normalizedPtsUs = Math.max(0L, ptsUs);
+        if (firstVideoPresentationTimeUs == Long.MIN_VALUE) {
+            firstVideoPresentationTimeUs = normalizedPtsUs;
+            lastVideoPresentationTimeUs = 0L;
+            return 0L;
         }
-        codec.releaseOutputBuffer(outputIndex, true);
+
+        long codecPtsUs = normalizedPtsUs - firstVideoPresentationTimeUs;
+        if (codecPtsUs <= lastVideoPresentationTimeUs) {
+            codecPtsUs = lastVideoPresentationTimeUs + 1L;
+        }
+        lastVideoPresentationTimeUs = codecPtsUs;
+        return codecPtsUs;
+    }
+
+    private static void applyLowLatencyVideoFormat(MediaFormat format, @Nullable String codecName, String mime) {
+        putFormatInt(format, MediaFormat.KEY_OPERATING_RATE, 32767);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            putFormatInt(format, "priority", 0);
+        }
+        putFormatInt(format, "allow-frame-drop", 1);
+        putFormatInt(format, "low-latency", 1);
+        putFormatInt(format, "vdec-lowlatency", 1);
+        putFormatInt(format, "vendor.low-latency.enable", 1);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                && NanoMediaCodecHelper.decoderSupportsLowLatency(codecName, mime)) {
+            putFormatInt(format, MediaFormat.KEY_LOW_LATENCY, 1);
+        }
+
+        String normalizedCodecName = codecName == null ? "" : codecName.toLowerCase(Locale.US);
+        if (normalizedCodecName.contains("qcom") || normalizedCodecName.contains("qti")) {
+            putFormatInt(format, "vendor.qti-ext-dec-picture-order.enable", 1);
+            putFormatInt(format, "vendor.qti-ext-dec-low-latency.enable", 1);
+            putFormatInt(format, "vendor.qti-ext-output-sw-fence-enable.value", 1);
+            putFormatInt(format, "vendor.qti-ext-output-fence.enable", 1);
+            putFormatInt(format, "vendor.qti-ext-output-fence.fence_type", 1);
+            putFormatInt(format, "vendor.rtc-ext-dec-low-latency.enable", 1);
+        }
+        if (isHiSiliconDecoder(normalizedCodecName)) {
+            putFormatInt(format, "vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req", 1);
+            putFormatInt(format, "vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1);
+        }
+        Log.i(TAG, "Applied nano low latency video format codec=" + codecName);
+    }
+
+    private static boolean isHiSiliconDecoder(String codecName) {
+        String hardware = Build.HARDWARE == null ? "" : Build.HARDWARE.toLowerCase(Locale.US);
+        String board = Build.BOARD == null ? "" : Build.BOARD.toLowerCase(Locale.US);
+        String manufacturer = Build.MANUFACTURER == null ? "" : Build.MANUFACTURER.toLowerCase(Locale.US);
+        return codecName.contains("hisi")
+                || codecName.contains("kirin")
+                || hardware.contains("hisi")
+                || hardware.contains("kirin")
+                || board.contains("hisi")
+                || board.contains("kirin")
+                || manufacturer.contains("huawei");
+    }
+
+    private static void putFormatInt(MediaFormat format, String key, int value) {
+        try {
+            format.setInteger(key, value);
+        } catch (Throwable error) {
+            Log.w(TAG, "Failed to set video format key " + key, error);
+        }
     }
 
     private boolean ensureAudioDecoderLocked() {
