@@ -179,7 +179,9 @@ function NanoStreamScreen({navigation, route}) {
       selectedStreamingToken?.data?.offeringSettings?.regions ?? [];
     const fallbackRegion =
       regions.find((region: any) => region?.isDefault) ?? regions[0];
-    return fallbackRegion?.baseUri ?? selectedStreamingToken?.data?.baseUri ?? '';
+    return (
+      fallbackRegion?.baseUri ?? selectedStreamingToken?.data?.baseUri ?? ''
+    );
   }, [selectedStreamingToken]);
   const selectedGsToken = React.useMemo(
     () => selectedStreamingToken?.data?.gsToken ?? '',
@@ -469,7 +471,8 @@ function NanoStreamScreen({navigation, route}) {
 
     const syncLeftThumbButton = () => {
       inputStateRef.current.buttons.LeftThumb =
-        manualLeftThumbPressedRef.current || autoSprintLeftThumbPressedRef.current
+        manualLeftThumbPressedRef.current ||
+        autoSprintLeftThumbPressedRef.current
           ? 1
           : 0;
     };
@@ -557,7 +560,9 @@ function NanoStreamScreen({navigation, route}) {
           }
 
           inputStateRef.current.buttons.LeftTrigger = Number(leftTrigger || 0);
-          inputStateRef.current.buttons.RightTrigger = Number(rightTrigger || 0);
+          inputStateRef.current.buttons.RightTrigger = Number(
+            rightTrigger || 0,
+          );
           inputStateRef.current.sticks.left = {
             x: normaliseAxis(Number(leftStickX || 0)),
             y: normaliseAxis(Number(leftStickY || 0)),
@@ -633,8 +638,8 @@ function NanoStreamScreen({navigation, route}) {
           const pressedKeys = Array.isArray(event?.dpadIdxList)
             ? event.dpadIdxList
             : event?.dpadIdx >= 0
-              ? [event.dpadIdx]
-              : [];
+            ? [event.dpadIdx]
+            : [];
           syncDpadState(pressedKeys);
         },
       );
@@ -770,8 +775,8 @@ function NanoStreamScreen({navigation, route}) {
         videoWidth > 0 && videoHeight > 0
           ? `${videoWidth}x${videoHeight}`
           : state.surfaceWidth && state.surfaceHeight
-            ? `${state.surfaceWidth}x${state.surfaceHeight}`
-            : '';
+          ? `${state.surfaceWidth}x${state.surfaceHeight}`
+          : '';
 
       if (showPerformance) {
         setPerformance((prev: any) => ({
@@ -814,7 +819,12 @@ function NanoStreamScreen({navigation, route}) {
         }
       }
     },
-    [settings.show_performance, settings.show_virtual_gamead, showPerformance, t],
+    [
+      settings.show_performance,
+      settings.show_virtual_gamead,
+      showPerformance,
+      t,
+    ],
   );
 
   const handleNanoRumble = React.useCallback(
@@ -913,14 +923,7 @@ function NanoStreamScreen({navigation, route}) {
           rightTrigger <= 0;
         if (shouldStop) {
           isRumblingRef.current = false;
-          GamepadManager.vibrate(
-            0,
-            0,
-            0,
-            0,
-            0,
-            settings.rumble_intensity || 3,
-          );
+          GamepadManager.vibrate(0, 0, 0, 0, 0, settings.rumble_intensity || 3);
           return;
         }
 
@@ -1128,10 +1131,7 @@ function NanoStreamScreen({navigation, route}) {
         />
       </View>
       {showPerformance && (
-        <PerfPanel
-          performance={performance}
-          streamType={streamType}
-        />
+        <PerfPanel performance={performance} streamType={streamType} />
       )}
       {renderVirtualGamepad()}
     </View>

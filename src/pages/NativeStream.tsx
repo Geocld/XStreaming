@@ -94,6 +94,25 @@ const SYSTEM_UI_TARGET_SHOW_VIRTUAL_KEYBOARD =
   '/streaming/systemUi/messages/ShowVirtualKeyboard';
 const STREAMING_TOUCHCONTROLS_SCOPE = '/streaming/touchcontrols';
 const STOP_STREAM_TIMEOUT_MS = 5000;
+const PROCESSED_FRAME_FEEDBACK_DECODE_MS = 10;
+
+const getFrameFeedbackNowMs = () => {
+  return globalThis.performance?.now?.() ?? Date.now();
+};
+
+const createStableResolutionProcessedFrame = () => {
+  const decodedTimeMs = getFrameFeedbackNowMs();
+  const submittedTimeMs =
+    decodedTimeMs - PROCESSED_FRAME_FEEDBACK_DECODE_MS;
+  return {
+    serverDataKey: Date.now(),
+    firstFramePacketArrivalTimeMs: submittedTimeMs,
+    frameSubmittedTimeMs: submittedTimeMs,
+    frameDecodedTimeMs: decodedTimeMs,
+    frameRenderedTimeMs: decodedTimeMs,
+    expectedDisplayTime: decodedTimeMs + 1,
+  };
+};
 
 const stopStreamWithTimeout = (streamApi: any) => {
   if (!streamApi || typeof streamApi.stopStream !== 'function') {
@@ -1296,14 +1315,9 @@ export function NativeStreamScreenBase({
 
           const sendFrame = () => {
             webrtcClient &&
-              webrtcClient.getChannelProcessor('input')?.addProcessedFrame({
-                serverDataKey: new Date().getTime(),
-                firstFramePacketArrivalTimeMs: 9954.2,
-                frameSubmittedTimeMs: 9954.2,
-                frameDecodedTimeMs: 10033,
-                frameRenderedTimeMs: 10033,
-                expectedDisplayTime: 10034,
-              });
+              webrtcClient
+                .getChannelProcessor('input')
+                ?.addProcessedFrame(createStableResolutionProcessedFrame());
           };
           setTimeout(() => {
             sendFrame();
