@@ -102,7 +102,7 @@ function DebugScreen({navigation, route}) {
           GamepadManager.vibrate(60000, 100, 100, 100, 1000, 5);
 
           setTimeout(() => {
-            GamepadManager.vibrate(0, 0, 0, 0, 0, 3);
+            GamepadManager.vibrate(0, 0, 0, 0, 0, 4);
           }, 500);
 
           // setTimeout(() => {
