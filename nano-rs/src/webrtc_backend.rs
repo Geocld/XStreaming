@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use bytes::Bytes;
+use rtcp::payload_feedbacks::picture_loss_indication::PictureLossIndication;
 use rtp::codecs::h264::H264Packet;
 use tokio::time::{sleep, timeout};
 use webrtc::api::interceptor_registry::register_default_interceptors;
@@ -39,8 +40,10 @@ use crate::stats::StreamStats;
 use crate::video_sink::VideoFrameSink;
 
 const CONTROL_ACCESS_KEY: &str = "4BDB3609-C1F1-4195-9B37-FEFF45DA8B8E";
-const VIDEO_KEYFRAME_REQUEST_MIN_INTERVAL: Duration = Duration::from_secs(1);
-const VIDEO_RTP_SAMPLE_MAX_DELAY: Duration = Duration::from_millis(120);
+const PROCESSED_FRAME_FEEDBACK_DECODE_MS: u32 = 10;
+const VIDEO_PLI_REQUEST_MIN_INTERVAL: Duration = Duration::from_millis(500);
+const VIDEO_RTP_SAMPLE_MAX_LATE_PACKETS: u16 = 1024;
+const VIDEO_RTP_SAMPLE_MAX_DELAY: Duration = Duration::from_millis(220);
 
 #[derive(Debug)]
 struct PeerSharedState {
@@ -260,12 +263,14 @@ impl RealNanoPeerConnection {
     async fn bind_callbacks(&self) -> Result<(), NanoError> {
         let shared = Arc::clone(&self.shared);
         let control_channel = self.control_channel.as_ref().map(Arc::clone);
+        let peer_connection = Arc::clone(&self.pc);
         let video_sink = self.video_sink.as_ref().map(Arc::clone);
         let audio_sink = self.audio_sink.as_ref().map(Arc::clone);
         self.pc.on_track(Box::new(
             move |track: Arc<TrackRemote>, _receiver, _transceiver| {
                 let shared = Arc::clone(&shared);
                 let control_channel = control_channel.as_ref().map(Arc::clone);
+                let peer_connection = Arc::clone(&peer_connection);
                 let video_sink = video_sink.as_ref().map(Arc::clone);
                 let audio_sink = audio_sink.as_ref().map(Arc::clone);
                 Box::pin(async move {
@@ -284,20 +289,19 @@ impl RealNanoPeerConnection {
                     );
                     match kind {
                         MediaTrackKind::Video => {
-                            let video_control_channel = control_channel.as_ref().map(Arc::clone);
                             if let Some(video_sink) = video_sink {
                                 tokio::spawn(run_sample_builder_video_track(
                                     track,
                                     video_sink,
                                     Arc::clone(&shared),
-                                    video_control_channel,
+                                    peer_connection,
                                 ));
                             } else {
                                 tokio::spawn(run_sample_builder_video_track(
                                     track,
                                     Arc::new(NoopVideoSink),
                                     Arc::clone(&shared),
-                                    video_control_channel,
+                                    peer_connection,
                                 ));
                             }
                         }
@@ -800,10 +804,11 @@ async fn send_processed_frame(
     let sequence = shared.next_input_sequence();
     let now = performance_now_ms();
     let now_u32 = clamp_f64_to_u32(now);
+    let submitted_time_ms = now_u32.saturating_sub(PROCESSED_FRAME_FEEDBACK_DECODE_MS);
     let frame = MetadataFrame {
         server_data_key: epoch_ms_low_u32(),
-        first_frame_packet_arrival_time_ms: now_u32.saturating_sub(80),
-        frame_submitted_time_ms: now_u32.saturating_sub(80),
+        first_frame_packet_arrival_time_ms: submitted_time_ms,
+        frame_submitted_time_ms: submitted_time_ms,
         frame_decoded_time_ms: now_u32,
         frame_rendered_time_ms: now_u32,
     };
@@ -894,19 +899,28 @@ async fn run_sample_builder_video_track(
     track: Arc<TrackRemote>,
     video_sink: Arc<dyn VideoFrameSink + Send + Sync>,
     shared: Arc<PeerSharedState>,
-    control_channel: Option<Arc<RTCDataChannel>>,
+    peer_connection: Arc<RTCPeerConnection>,
 ) {
-    crate::nano_log!("video track reader start mode=sample-builder");
+    crate::nano_log!(
+        "video track reader start mode=sample-builder maxLatePackets={} maxDelayMs={}",
+        VIDEO_RTP_SAMPLE_MAX_LATE_PACKETS,
+        VIDEO_RTP_SAMPLE_MAX_DELAY.as_millis()
+    );
     let clock_rate = track.codec().capability.clock_rate.max(1);
-    let mut sample_builder = SampleBuilder::new(512, H264Packet::default(), clock_rate)
-        .with_max_time_delay(VIDEO_RTP_SAMPLE_MAX_DELAY);
+    let media_ssrc = track.ssrc();
+    let mut sample_builder = SampleBuilder::new(
+        VIDEO_RTP_SAMPLE_MAX_LATE_PACKETS,
+        H264Packet::default(),
+        clock_rate,
+    )
+    .with_max_time_delay(VIDEO_RTP_SAMPLE_MAX_DELAY);
     let mut first_timestamp: Option<u32> = None;
     let mut frames = 0u64;
     let mut packets = 0u64;
     let mut samples_with_drops = 0u64;
     let mut padding_only_drops = 0u64;
     let mut observed_keyframe = false;
-    let mut last_keyframe_request: Option<Instant> = None;
+    let mut last_pli_request: Option<Instant> = None;
     let mut waiting_clean_keyframe_since: Option<Instant> = None;
 
     while let Ok((packet, _)) = track.read_rtp().await {
@@ -945,14 +959,18 @@ async fn run_sample_builder_video_track(
                         h264_nal_summary(sample.data.as_ref())
                     );
                 }
-                let should_wait_clean_keyframe = !observed_keyframe || keyframe;
-                if should_wait_clean_keyframe {
-                    observed_keyframe = false;
-                    waiting_clean_keyframe_since.get_or_insert_with(Instant::now);
-                }
-                request_video_keyframe_throttled(
-                    control_channel.as_ref(),
-                    &mut last_keyframe_request,
+                observed_keyframe = false;
+                waiting_clean_keyframe_since.get_or_insert_with(Instant::now);
+                crate::nano_warn!(
+                    "video waiting clean keyframe after media drop packetTimestamp={} keyframe={} mediaDroppedPackets={}",
+                    sample.packet_timestamp,
+                    keyframe,
+                    media_dropped_packets
+                );
+                request_video_pli_throttled(
+                    &peer_connection,
+                    media_ssrc,
+                    &mut last_pli_request,
                     if keyframe {
                         "dropped-incomplete-keyframe"
                     } else {
@@ -960,12 +978,6 @@ async fn run_sample_builder_video_track(
                     },
                 )
                 .await;
-                if !should_wait_clean_keyframe && samples_with_drops <= 5 {
-                    crate::nano_log!(
-                        "video continuing after dropped delta sample packetTimestamp={}",
-                        sample.packet_timestamp
-                    );
-                }
                 continue;
             } else if sample.prev_dropped_packets > 0 {
                 padding_only_drops += 1;
@@ -983,9 +995,10 @@ async fn run_sample_builder_video_track(
 
             if !observed_keyframe && !keyframe {
                 waiting_clean_keyframe_since.get_or_insert_with(Instant::now);
-                request_video_keyframe_throttled(
-                    control_channel.as_ref(),
-                    &mut last_keyframe_request,
+                request_video_pli_throttled(
+                    &peer_connection,
+                    media_ssrc,
+                    &mut last_pli_request,
                     "waiting-clean-keyframe",
                 )
                 .await;
@@ -1030,43 +1043,36 @@ async fn run_sample_builder_video_track(
     crate::nano_warn!("video track reader stopped mode=sample-builder frames={frames}");
 }
 
-async fn request_video_keyframe_throttled(
-    control_channel: Option<&Arc<RTCDataChannel>>,
+async fn request_video_pli_throttled(
+    peer_connection: &Arc<RTCPeerConnection>,
+    media_ssrc: u32,
     last_request: &mut Option<Instant>,
     reason: &str,
-) {
-    request_video_keyframe_throttled_with_interval(
-        control_channel,
-        last_request,
-        reason,
-        VIDEO_KEYFRAME_REQUEST_MIN_INTERVAL,
-    )
-    .await;
-}
-
-async fn request_video_keyframe_throttled_with_interval(
-    control_channel: Option<&Arc<RTCDataChannel>>,
-    last_request: &mut Option<Instant>,
-    reason: &str,
-    min_interval: Duration,
 ) {
     let now = Instant::now();
     if last_request
-        .map(|last| now.duration_since(last) < min_interval)
+        .map(|last| now.duration_since(last) < VIDEO_PLI_REQUEST_MIN_INTERVAL)
         .unwrap_or(false)
     {
         return;
     }
     *last_request = Some(now);
 
-    let Some(channel) = control_channel else {
-        crate::nano_warn!("video keyframe request skipped reason={reason} controlChannel=false");
-        return;
+    let pli = PictureLossIndication {
+        sender_ssrc: 0,
+        media_ssrc,
     };
-    let message = ControlMessage::video_keyframe_requested(false).to_json();
-    match channel.send_text(message).await {
-        Ok(bytes) => crate::nano_log!("video keyframe requested reason={reason} bytes={bytes}"),
-        Err(error) => crate::nano_warn!("video keyframe request failed reason={reason}: {error}"),
+    match peer_connection.write_rtcp(&[Box::new(pli)]).await {
+        Ok(bytes) => {
+            crate::nano_log!(
+                "video rtcp pli requested reason={reason} ssrc={media_ssrc} bytes={bytes}"
+            )
+        }
+        Err(error) => {
+            crate::nano_warn!(
+                "video rtcp pli request failed reason={reason} ssrc={media_ssrc}: {error}"
+            )
+        }
     }
 }
 

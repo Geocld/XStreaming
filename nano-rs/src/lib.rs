@@ -188,8 +188,8 @@ mod tests {
             9,
             vec![channels::MetadataFrame {
                 server_data_key: 1234,
-                first_frame_packet_arrival_time_ms: 9954,
-                frame_submitted_time_ms: 9954,
+                first_frame_packet_arrival_time_ms: 10023,
+                frame_submitted_time_ms: 10023,
                 frame_decoded_time_ms: 10033,
                 frame_rendered_time_ms: 10033,
             }],
@@ -212,7 +212,7 @@ mod tests {
         );
         assert_eq!(
             u32::from_le_bytes([packet[19], packet[20], packet[21], packet[22]]),
-            9954
+            10023
         );
         assert_eq!(
             u32::from_le_bytes([packet[35], packet[36], packet[37], packet[38]]),
