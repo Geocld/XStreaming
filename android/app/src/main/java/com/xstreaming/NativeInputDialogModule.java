@@ -21,9 +21,11 @@ import android.content.Context;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -166,6 +168,8 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
 
             int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
             int targetWidth = Math.min(dp(activity, 320), Math.round(screenWidth * 0.5f));
+            boolean showAudioGainControl = getBoolean(options, "showAudioGainControl", false);
+            int audioGain = Math.max(0, Math.min(10, getInt(options, "audioGain", 1)));
 
             FrameLayout root = new FrameLayout(activity);
             root.setLayoutParams(new ViewGroup.LayoutParams(
@@ -199,6 +203,66 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
                     Gravity.CENTER
             );
             root.addView(content, contentParams);
+
+            if (showAudioGainControl) {
+                LinearLayout audioGainContent = new LinearLayout(activity);
+                audioGainContent.setOrientation(LinearLayout.HORIZONTAL);
+                audioGainContent.setGravity(Gravity.CENTER_VERTICAL);
+                audioGainContent.setPadding(dp(activity, 10), dp(activity, 6), dp(activity, 10), dp(activity, 6));
+                audioGainContent.setClickable(true);
+                audioGainContent.setFocusable(false);
+                audioGainContent.setFocusableInTouchMode(false);
+                GradientDrawable audioGainBackground = new GradientDrawable();
+                audioGainBackground.setColor(Color.argb(224, 28, 31, 36));
+                audioGainBackground.setCornerRadius(dp(activity, 10));
+                audioGainContent.setBackground(audioGainBackground);
+
+                TextView audioGainLabel = new TextView(activity);
+                audioGainLabel.setText(audioGain + "x");
+                audioGainLabel.setTextColor(Color.WHITE);
+                audioGainLabel.setTextSize(14);
+                audioGainLabel.setGravity(Gravity.CENTER_VERTICAL);
+                audioGainContent.addView(audioGainLabel, new LinearLayout.LayoutParams(
+                        dp(activity, 36),
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                ));
+
+                SeekBar audioGainSlider = new SeekBar(activity);
+                audioGainSlider.setMax(10);
+                audioGainSlider.setProgress(audioGain);
+                audioGainSlider.setFocusable(false);
+                audioGainSlider.setFocusableInTouchMode(false);
+                audioGainSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        int nextGain = Math.max(0, Math.min(10, progress));
+                        audioGainLabel.setText(nextGain + "x");
+                        if (fromUser) {
+                            emitAudioGainChange(nextGain);
+                        }
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {}
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {}
+                });
+                audioGainContent.addView(audioGainSlider, new LinearLayout.LayoutParams(
+                        0,
+                        dp(activity, 34),
+                        1f
+                ));
+
+                FrameLayout.LayoutParams audioGainParams = new FrameLayout.LayoutParams(
+                        dp(activity, 190),
+                        dp(activity, 46),
+                        Gravity.TOP | Gravity.RIGHT
+                );
+                audioGainParams.topMargin = dp(activity, 18);
+                audioGainParams.rightMargin = dp(activity, 18);
+                root.addView(audioGainContent, audioGainParams);
+            }
 
             final TextView[] optionViews = new TextView[labels.length];
             final int[] focusedIndex = {0};
@@ -313,6 +377,14 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
         }
     }
 
+    private void emitAudioGainChange(int gain) {
+        WritableMap event = Arguments.createMap();
+        event.putInt("value", Math.max(0, Math.min(10, gain)));
+        getReactApplicationContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("NativeInputDialogAudioGainChange", event);
+    }
+
     private StateListDrawable createOptionBackground(Context context) {
         StateListDrawable states = new StateListDrawable();
 
@@ -385,6 +457,13 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
     private int getInt(ReadableMap map, String key, int fallback) {
         if (map != null && map.hasKey(key) && !map.isNull(key)) {
             return map.getInt(key);
+        }
+        return fallback;
+    }
+
+    private boolean getBoolean(ReadableMap map, String key, boolean fallback) {
+        if (map != null && map.hasKey(key) && !map.isNull(key)) {
+            return map.getBoolean(key);
         }
         return fallback;
     }

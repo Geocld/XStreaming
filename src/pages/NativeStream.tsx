@@ -102,8 +102,7 @@ const getFrameFeedbackNowMs = () => {
 
 const createStableResolutionProcessedFrame = () => {
   const decodedTimeMs = getFrameFeedbackNowMs();
-  const submittedTimeMs =
-    decodedTimeMs - PROCESSED_FRAME_FEEDBACK_DECODE_MS;
+  const submittedTimeMs = decodedTimeMs - PROCESSED_FRAME_FEEDBACK_DECODE_MS;
   return {
     serverDataKey: Date.now(),
     firstFramePacketArrivalTimeMs: submittedTimeMs,
@@ -222,6 +221,7 @@ export function NativeStreamScreenBase({
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
+  const [audioGain, setAudioGain] = React.useState(1);
   const [portraitGamepadEditing, setPortraitGamepadEditing] =
     React.useState(false);
   const [openMicro, setOpenMicro] = React.useState(false);
@@ -238,6 +238,7 @@ export function NativeStreamScreenBase({
   const [webrtcClient, setWebrtcClient] = React.useState<any>(undefined);
   const [remote, setRemote] = React.useState<any>(null);
   const remoteStream = React.useRef<any>(null);
+  const audioGainRef = React.useRef(1);
   const keepaliveInterval = React.useRef<any>(null);
   const performanceInterval = React.useRef<any>(null);
   const connectStateRef = React.useRef<any>('');
@@ -256,6 +257,7 @@ export function NativeStreamScreenBase({
   const audioRumbleTimer = React.useRef<any>(undefined);
   const appStateSubscription = React.useRef<any>(undefined);
   const pipEventListener = React.useRef<any>(undefined);
+  const audioGainEventListener = React.useRef<any>(undefined);
   const isRequestExit = React.useRef(false);
   const isConnected = React.useRef(false);
   const optionsDialogOpenRef = React.useRef(false);
@@ -568,6 +570,27 @@ export function NativeStreamScreenBase({
     return true;
   }, []);
 
+  const applyRemoteAudioGain = React.useCallback((gain?: number) => {
+    const nextGain =
+      typeof gain === 'number' && Number.isFinite(gain)
+        ? Math.max(0, Math.min(10, gain))
+        : audioGainRef.current;
+    const audioTracks = remoteStream.current?.getAudioTracks?.() ?? [];
+    audioTracks.forEach((track: any) => {
+      track?._setVolume?.(nextGain);
+    });
+  }, []);
+
+  const handleAudioGainChange = React.useCallback(
+    (value: number) => {
+      const nextGain = Math.max(0, Math.min(10, Math.round(value)));
+      audioGainRef.current = nextGain;
+      setAudioGain(nextGain);
+      applyRemoteAudioGain(nextGain);
+    },
+    [applyRemoteAudioGain],
+  );
+
   const getStreamDestination = React.useCallback(() => {
     return route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
   }, [route.params?.streamType]);
@@ -762,6 +785,12 @@ export function NativeStreamScreenBase({
           macroSequenceTimersRef.current = [];
           closeSystemKeyboardModal();
         }
+      },
+    );
+    audioGainEventListener.current = eventEmitter.addListener(
+      'NativeInputDialogAudioGainChange',
+      event => {
+        handleAudioGainChange(Number(event?.value ?? 1));
       },
     );
 
@@ -1266,6 +1295,9 @@ export function NativeStreamScreenBase({
           remoteStream.current = new MediaStream();
         }
         remoteStream.current.addTrack(track, remoteStream.current);
+        if (track?.kind === 'audio') {
+          track?._setVolume?.(audioGainRef.current);
+        }
       });
 
       webrtcClient.setSdpHandler((client, offer) => {
@@ -1768,6 +1800,7 @@ export function NativeStreamScreenBase({
       sensorEventListener.current && sensorEventListener.current.remove();
       appStateSubscription.current && appStateSubscription.current.remove();
       pipEventListener.current && pipEventListener.current.remove();
+      audioGainEventListener.current && audioGainEventListener.current.remove();
       PipManager?.setAutoPipEnabled?.(false);
       if (timer.current) {
         clearInterval(timer.current);
@@ -1819,6 +1852,8 @@ export function NativeStreamScreenBase({
     authentication,
     handleSystemUiEvent,
     handleStreamingMessage,
+    applyRemoteAudioGain,
+    handleAudioGainChange,
     closeSystemKeyboardModal,
     finishStreamExit,
     waitStopStream,
@@ -2277,7 +2312,7 @@ export function NativeStreamScreenBase({
   }, []);
 
   const showNativeOptionsDialog = React.useCallback(
-    async (items: Array<{id: string; title: string}>) => {
+    async (items: Array<{id: string; title: string}>, options: any = {}) => {
       if (!NativeInputDialog?.showOptions) {
         return null;
       }
@@ -2285,6 +2320,7 @@ export function NativeStreamScreenBase({
       try {
         return await NativeInputDialog.showOptions({
           items,
+          ...options,
         });
       } catch (error) {
         return null;
@@ -2353,7 +2389,10 @@ export function NativeStreamScreenBase({
       title: t('Disconnect'),
     });
 
-    const result = await showNativeOptionsDialog(items);
+    const result = await showNativeOptionsDialog(items, {
+      showAudioGainControl: connectState === CONNECTED,
+      audioGain,
+    });
     optionsDialogOpenRef.current = false;
 
     if (result?.action !== 'select') {
@@ -2405,6 +2444,7 @@ export function NativeStreamScreenBase({
     }
   }, [
     clearMacroTimers,
+    audioGain,
     connectState,
     handleCloseModal,
     handleOpenGamepadEditor,
