@@ -23,6 +23,9 @@ public final class NanoRustBridge {
     private static final long VIDEO_INPUT_BUFFER_TIMEOUT_US = 0L;
     private static final long VIDEO_OUTPUT_BUFFER_TIMEOUT_US = 100_000L;
     private static final long VIDEO_OUTPUT_THREAD_JOIN_TIMEOUT_MS = 5_000L;
+    private static final long VIDEO_RENDER_START_DELAY_NS = 8_000_000L;
+    private static final long VIDEO_RENDER_MAX_FUTURE_NS = 35_000_000L;
+    private static final long VIDEO_RENDER_LATE_THRESHOLD_NS = 12_000_000L;
     public interface RumbleListener {
         void onRumble(
                 double startDelay,
@@ -66,6 +69,8 @@ public final class NanoRustBridge {
     private long queuedVideoByteCount = 0L;
     private long firstVideoPresentationTimeUs = Long.MIN_VALUE;
     private long lastVideoPresentationTimeUs = Long.MIN_VALUE;
+    private long firstVideoRenderPresentationTimeUs = Long.MIN_VALUE;
+    private long firstVideoRenderTimeNs = Long.MIN_VALUE;
     @Nullable
     private Thread videoOutputThread;
     private volatile boolean videoOutputDrainRunning = false;
@@ -565,6 +570,8 @@ public final class NanoRustBridge {
         queuedVideoByteCount = 0L;
         firstVideoPresentationTimeUs = Long.MIN_VALUE;
         lastVideoPresentationTimeUs = Long.MIN_VALUE;
+        firstVideoRenderPresentationTimeUs = Long.MIN_VALUE;
+        firstVideoRenderTimeNs = Long.MIN_VALUE;
         if (codec == null) {
             return;
         }
@@ -644,7 +651,7 @@ public final class NanoRustBridge {
         }
 
         try {
-            boolean released = releaseVideoOutputBuffer(codec, outputIndex, true);
+            boolean released = releaseVideoOutputBuffer(codec, outputIndex, bufferInfo.presentationTimeUs, true);
             if (!released) {
                 releaseVideoDecoderAfterOutputFailure();
                 return false;
@@ -658,9 +665,18 @@ public final class NanoRustBridge {
         }
     }
 
-    private boolean releaseVideoOutputBuffer(MediaCodec codec, int outputIndex, boolean render) {
+    private boolean releaseVideoOutputBuffer(MediaCodec codec, int outputIndex, long presentationTimeUs, boolean render) {
         try {
-            codec.releaseOutputBuffer(outputIndex, render);
+            if (!render) {
+                codec.releaseOutputBuffer(outputIndex, false);
+                return true;
+            }
+            long renderTimeNs = getVideoRenderTimeNs(presentationTimeUs);
+            if (renderTimeNs <= 0L) {
+                codec.releaseOutputBuffer(outputIndex, true);
+            } else {
+                codec.releaseOutputBuffer(outputIndex, renderTimeNs);
+            }
             return true;
         } catch (Throwable error) {
             Log.w(TAG, "Video decoder output release failed", error);
@@ -734,6 +750,30 @@ public final class NanoRustBridge {
         }
         lastVideoPresentationTimeUs = codecPtsUs;
         return codecPtsUs;
+    }
+
+    private long getVideoRenderTimeNs(long presentationTimeUs) {
+        long nowNs = System.nanoTime();
+        if (firstVideoRenderPresentationTimeUs == Long.MIN_VALUE) {
+            firstVideoRenderPresentationTimeUs = presentationTimeUs;
+            firstVideoRenderTimeNs = nowNs + VIDEO_RENDER_START_DELAY_NS;
+            return firstVideoRenderTimeNs;
+        }
+
+        long targetNs = firstVideoRenderTimeNs
+                + Math.max(0L, presentationTimeUs - firstVideoRenderPresentationTimeUs) * 1000L;
+        if (targetNs - nowNs > VIDEO_RENDER_MAX_FUTURE_NS) {
+            long clampedNs = nowNs + VIDEO_RENDER_START_DELAY_NS;
+            firstVideoRenderPresentationTimeUs = presentationTimeUs;
+            firstVideoRenderTimeNs = clampedNs;
+            return clampedNs;
+        }
+        if (nowNs - targetNs > VIDEO_RENDER_LATE_THRESHOLD_NS) {
+            firstVideoRenderPresentationTimeUs = presentationTimeUs;
+            firstVideoRenderTimeNs = nowNs;
+            return 0L;
+        }
+        return targetNs;
     }
 
     private static void applyLowLatencyVideoFormat(MediaFormat format, @Nullable String codecName, String mime) {
