@@ -83,6 +83,7 @@ class webRTCClient {
 
   _webrtcDataChannels: any = {};
   _webrtcChannelProcessors: any = {};
+  _baseIceServerCount = this._webrtcConfiguration.iceServers.length;
 
   _isResetting = false;
   _gamepad_deadzone = 0.2;
@@ -116,6 +117,11 @@ class webRTCClient {
   _audioLevel = 0;
   _audioEnergySnapshot: AudioEnergySnapshot | null = null;
   _hasAudioLevelSample = false;
+  // Share getStats() between the audio and video timers.
+  _statsCache: any = null;
+  _statsCacheAt = 0;
+  _statsRequest: Promise<any> | null = null;
+  _statsCacheTtlMs = 250;
   _hasVideoTrack = false;
   _hasAudioTrack = false;
   _hasSentInitialVideoKeyframeRequest = false;
@@ -127,9 +133,16 @@ class webRTCClient {
   }
 
   init() {
+    this._isResetting = false;
     const settings = getSettings();
     this._resetAudioLevelTracking();
     this._resetVideoTrackState();
+    this._iceCandidates.length = 0;
+    this._webrtcStates.iceCandidates = [];
+    this._webrtcConfiguration.iceServers = this._webrtcConfiguration.iceServers.slice(
+      0,
+      this._baseIceServerCount,
+    );
 
     // Use custom STUN/TURN server
     if (
@@ -210,7 +223,7 @@ class webRTCClient {
         'connectionstatechange:',
         this._webrtcClient?.connectionState,
       );
-      this._connectedHandler(this._webrtcClient?.connectionState);
+      this._connectedHandler?.(this._webrtcClient?.connectionState);
     });
 
     // this._webrtcClient.addEventListener('iceconnectionstatechange', _ => {
@@ -284,6 +297,11 @@ class webRTCClient {
     return this._iceCandidates;
   }
 
+  clearIceCandidates() {
+    this._iceCandidates.length = 0;
+    this._webrtcStates.iceCandidates = [];
+  }
+
   setIceCandidates(iceDetails: any) {
     for (const candidate in iceDetails) {
       if (iceDetails[candidate].candidate === 'a=end-of-candidates') {
@@ -311,7 +329,19 @@ class webRTCClient {
       this._isResetting = true;
       this._webrtcClient?.close();
       this._resetAudioLevelTracking();
+      this._clearStatsCache();
+      globalThis._lastStat = null;
+      this._webrtcClient = undefined;
       this._resetVideoTrackState();
+      this._iceCandidates.length = 0;
+      this._webrtcStates.iceCandidates = [];
+
+      for (const name in this._webrtcDataChannels) {
+        try {
+          this._webrtcDataChannels[name]?.close?.();
+        } catch (_) {}
+      }
+      this._webrtcDataChannels = {};
 
       for (const name in this._webrtcChannelProcessors) {
         this._webrtcChannelProcessors[name].destroy();
@@ -319,7 +349,15 @@ class webRTCClient {
 
       this._webrtcChannelProcessors = {};
 
-      this._inputDriver.stop();
+      this._inputDriver?.stop();
+      this._inputDriver = undefined;
+      this._trackHandler = undefined;
+      this._trackAddHandler = undefined;
+      this._connectedHandler = undefined;
+      this._sdpHandler = undefined;
+      this._rumbleHandler = undefined;
+      this._systemUiHandler = undefined;
+      this._messageHandler = undefined;
     }
   }
 
@@ -358,7 +396,7 @@ class webRTCClient {
   _sdpHandler: any;
   sdpNegotiationChat() {
     this.createOffer().then(offer => {
-      this._sdpHandler(this, offer);
+      this._sdpHandler?.(this, offer);
     });
   }
 
@@ -530,13 +568,44 @@ class webRTCClient {
     this._gpState = gpState;
   }
 
+  _getStatsCached() {
+    const now = Date.now();
+    if (this._statsCache && now - this._statsCacheAt < this._statsCacheTtlMs) {
+      return Promise.resolve(this._statsCache);
+    }
+    if (this._statsRequest) {
+      return this._statsRequest;
+    }
+    if (!this._webrtcClient) {
+      return Promise.resolve(null);
+    }
+    this._statsRequest = this._webrtcClient
+      .getStats()
+      .then(stats => {
+        this._statsCache = stats;
+        this._statsCacheAt = Date.now();
+        return stats;
+      })
+      .finally(() => {
+        this._statsRequest = null;
+      });
+    return this._statsRequest;
+  }
+  _clearStatsCache() {
+    this._statsCache = null;
+    this._statsCacheAt = 0;
+    this._statsRequest = null;
+  }
   getAudioVolume() {
     return new Promise(resolve => {
       let volume = 0;
       if (this._webrtcClient) {
-        this._webrtcClient
-          .getStats()
+        this._getStatsCached()
           .then(stats => {
+            if (!stats) {
+              resolve(volume);
+              return;
+            }
             stats.forEach((stat: any) => {
               if (
                 stat.type === 'inbound-rtp' &&
@@ -575,9 +644,12 @@ class webRTCClient {
         decode: '',
       };
       if (this._webrtcClient) {
-        this._webrtcClient
-          .getStats()
+        this._getStatsCached()
           .then(stats => {
+            if (!stats) {
+              resove(performances);
+              return;
+            }
             stats.forEach((stat: any) => {
               if (
                 stat.type === 'inbound-rtp' &&

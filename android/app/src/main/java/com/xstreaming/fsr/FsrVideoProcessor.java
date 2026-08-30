@@ -58,14 +58,19 @@ public class FsrVideoProcessor implements VideoProcessor {
     private boolean mobileHasSharpness;
     private boolean mobileHasHdrToneMap;
     private boolean twoPassFailureLogged;
+    private long lastGlErrorLogTimestamp;
 
     private boolean fsrEnabled = true;
     private boolean hdrInputEnabled;
     private boolean usingPqWindow;
+    private boolean softwareHdrToneMap;
 
     private int outputWidth = -1;
     private int outputHeight = -1;
-    private float[] outputSize = new float[2];
+    private final float[] outputSize = new float[2];
+    private final float[] inputTextureSize = new float[2];
+    private int inputTextureWidth = -1;
+    private int inputTextureHeight = -1;
 
     public FsrVideoProcessor(Context context) {
         this.context = context.getApplicationContext();
@@ -93,9 +98,6 @@ public class FsrVideoProcessor implements VideoProcessor {
         } else if (glMajorVersion >= 3) {
             Log.w(TAG, "GLES3 context without GL_OES_EGL_image_external_essl3, force FSR 2.0 shaders");
         }
-
-        Log.i(TAG, "FSR preferred shader dir: " + preferredDir);
-        Log.i(TAG, "OpenGL extensions: " + extensions);
 
         boolean skipTwoPassForDriverStability = !ENABLE_TWO_PASS_PIPELINE;
         if (skipTwoPassForDriverStability) {
@@ -149,10 +151,10 @@ public class FsrVideoProcessor implements VideoProcessor {
         if (outputWidth == width && outputHeight == height) {
             return;
         }
-        Log.i(TAG, "setSurfaceSize(" + width + "," + height + ")");
         outputWidth = width;
         outputHeight = height;
-        outputSize = new float[]{width, height};
+        outputSize[0] = width;
+        outputSize[1] = height;
 
         if (pipelineMode == PIPELINE_TWO_PASS) {
             deleteFramebuffer();
@@ -190,12 +192,7 @@ public class FsrVideoProcessor implements VideoProcessor {
 
     public void setHdrToneMappingEnabled(boolean enabled) {
         hdrInputEnabled = enabled;
-        if (enabled && !FORCE_SOFTWARE_HDR_TONE_MAP) {
-            Log.i(
-                    TAG,
-                    "HDR stream detected; software HDR tone-map disabled."
-            );
-        }
+        updateSoftwareHdrToneMapState();
     }
 
     public void setSharpness(float value) {
@@ -203,13 +200,6 @@ public class FsrVideoProcessor implements VideoProcessor {
         mobileSharpness = clamped;
         // Map [0..2] (stronger as larger) to RCAS stop domain [2..0].
         rcasSharpness = 2f - clamped;
-        Log.i(
-                TAG,
-                "Sharpness request=" + value + ", clamped=" + clamped
-                        + ", mobileApplied=" + mobileSharpness
-                        + ", rcasApplied=" + rcasSharpness
-        );
-        logEffectiveSharpness("setSharpness");
     }
 
     public void resetSharpness() {
@@ -347,17 +337,18 @@ public class FsrVideoProcessor implements VideoProcessor {
             }
         }
 
-        float[] inputTextureSize = null;
-        if (needInputSize) {
-            inputTextureSize = (frameWidth > 0 && frameHeight > 0)
-                    ? new float[]{frameWidth, frameHeight}
-                    : new float[]{0f, 0f};
+        if (needInputSize
+                && (frameWidth != inputTextureWidth || frameHeight != inputTextureHeight)) {
+            inputTextureSize[0] = frameWidth > 0 ? frameWidth : 0f;
+            inputTextureSize[1] = frameHeight > 0 ? frameHeight : 0f;
+            inputTextureWidth = frameWidth;
+            inputTextureHeight = frameHeight;
         }
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffers[0]);
         try {
             easu.setSamplerTexIdUniform("inputTexture", frameTexture, 0);
-            if (inputTextureSize != null) {
+            if (needInputSize) {
                 easu.setFloatsUniform("inputTextureSize", inputTextureSize);
             }
             easu.setFloatsUniform("outputTextureSize", outputSize);
@@ -425,16 +416,17 @@ public class FsrVideoProcessor implements VideoProcessor {
             return drawPassthrough(frameTexture, transformMatrix);
         }
 
-        float[] inputTextureSize = null;
-        if (needInputSize) {
-            inputTextureSize = (frameWidth > 0 && frameHeight > 0)
-                    ? new float[]{frameWidth, frameHeight}
-                    : new float[]{0f, 0f};
+        if (needInputSize
+                && (frameWidth != inputTextureWidth || frameHeight != inputTextureHeight)) {
+            inputTextureSize[0] = frameWidth > 0 ? frameWidth : 0f;
+            inputTextureSize[1] = frameHeight > 0 ? frameHeight : 0f;
+            inputTextureWidth = frameWidth;
+            inputTextureHeight = frameHeight;
         }
 
         try {
             program.setSamplerTexIdUniform("inputTexture", frameTexture, 0);
-            if (inputTextureSize != null) {
+            if (needInputSize) {
                 program.setFloatsUniform("inputTextureSize", inputTextureSize);
             }
             program.setFloatsUniform("outputTextureSize", outputSize);
@@ -612,7 +604,11 @@ public class FsrVideoProcessor implements VideoProcessor {
             GlUtil.checkGlError();
             return true;
         } catch (GlException e) {
-            Log.e(TAG, message, e);
+            long now = System.currentTimeMillis();
+            if (now - lastGlErrorLogTimestamp >= 5000L) {
+                lastGlErrorLogTimestamp = now;
+                Log.e(TAG, message, e);
+            }
             return false;
         }
     }
@@ -638,18 +634,16 @@ public class FsrVideoProcessor implements VideoProcessor {
     }
 
     private boolean shouldApplySoftwareHdrToneMap() {
-        if (!hdrInputEnabled) {
-            return false;
-        }
-        if (usingPqWindow) {
-            // PQ output window should preserve HDR signal and avoid SDR tone map in this shader path.
-            return false;
-        }
-        return FORCE_SOFTWARE_HDR_TONE_MAP;
+        return softwareHdrToneMap;
+    }
+
+    private void updateSoftwareHdrToneMapState() {
+        softwareHdrToneMap = hdrInputEnabled && !usingPqWindow && FORCE_SOFTWARE_HDR_TONE_MAP;
     }
 
     private void detectHdrWindowState() {
         usingPqWindow = false;
+        updateSoftwareHdrToneMapState();
         android.opengl.EGLDisplay display = EGL14.eglGetCurrentDisplay();
         android.opengl.EGLSurface drawSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
         if (display == null || display == EGL14.EGL_NO_DISPLAY
@@ -670,6 +664,7 @@ public class FsrVideoProcessor implements VideoProcessor {
         if (EGL14.eglQuerySurface(display, drawSurface, EGL_GL_COLORSPACE_KHR, colorspace, 0)) {
             usingPqWindow = colorspace[0] == EGL_GL_COLORSPACE_BT2020_PQ_EXT;
         }
+        updateSoftwareHdrToneMapState();
 
         Log.i(
                 TAG,

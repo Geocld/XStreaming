@@ -60,6 +60,8 @@ export interface KeyboardFrame {
   key: string;
 }
 
+const MAX_FRAME_METADATA_QUEUE = 60;
+
 export default class InputChannel extends BaseChannel {
   _inputSequenceNum = 0;
 
@@ -132,10 +134,12 @@ export default class InputChannel extends BaseChannel {
   }
 
   onMessage(event: any) {
-    console.log(
-      'Channel/Input.ts - [' + this._channelName + '] onMessage:',
-      event,
-    );
+    if (__DEV__) {
+      console.log(
+        'Channel/Input.ts - [' + this._channelName + '] onMessage:',
+        event,
+      );
+    }
 
     const dataView = new DataView(event.data);
 
@@ -187,12 +191,18 @@ export default class InputChannel extends BaseChannel {
 
   onClose(event: any) {
     clearInterval(this._inputInterval);
-
+    this._inputInterval = null;
+    this._frameMetadataQueue.length = 0;
+    this._gamepadFrames.length = 0;
+    this._pointerFrames.length = 0;
     super.onClose(event);
-    console.log(
-      'Channel/Input.ts - [' + this._channelName + '] onClose:',
-      event,
-    );
+
+    if (__DEV__) {
+      console.log(
+        'Channel/Input.ts - [' + this._channelName + '] onClose:',
+        event,
+      );
+    }
   }
 
   getGamepadQueue(size = 30) {
@@ -259,13 +269,21 @@ export default class InputChannel extends BaseChannel {
 
   destroy() {
     clearInterval(this._inputInterval);
+    this._inputInterval = null;
+    this._frameMetadataQueue.length = 0;
+    this._gamepadFrames.length = 0;
+    this._pointerFrames.length = 0;
     super.destroy();
   }
-
   addProcessedFrame(frame: any) {
     frame.frameRenderedTimeMs = performance.now();
+    if (this._frameMetadataQueue.length >= MAX_FRAME_METADATA_QUEUE) {
+      // Drop stale feedback instead of allowing an unbounded backlog.
+      this._frameMetadataQueue.shift();
+    }
     this._frameMetadataQueue.push(frame);
   }
+
 
   getMetadataQueue(size = 30) {
     return this._frameMetadataQueue.splice(0, size - 1);

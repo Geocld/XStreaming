@@ -47,6 +47,11 @@ public class RTCFsrVideoViewManager extends SimpleViewManager<RTCFsrVideoView> {
         view.setFsrEnabled(enabled);
     }
 
+    @ReactProp(name = "autoDisableFsrOnLowMemory", defaultBoolean = false)
+    public void setAutoDisableFsrOnLowMemory(RTCFsrVideoView view, boolean enabled) {
+        view.setAutoDisableFsrOnLowMemory(enabled);
+    }
+
     @ReactProp(name = "fsrSharpness", defaultFloat = 2f)
     public void setFsrSharpness(RTCFsrVideoView view, float sharpness) {
         view.setFsrSharpness(sharpness);

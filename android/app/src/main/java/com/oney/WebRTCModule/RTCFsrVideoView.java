@@ -1,6 +1,7 @@
 package com.oney.WebRTCModule;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -52,6 +53,12 @@ public class RTCFsrVideoView extends ViewGroup {
     private int frameWidth;
     private boolean mirror;
     private boolean rendererAttached;
+    private boolean rendererCleanupInProgress;
+    private boolean hasAppliedLayout;
+    private int appliedLayoutLeft;
+    private int appliedLayoutTop;
+    private int appliedLayoutRight;
+    private int appliedLayoutBottom;
     private ScalingType scalingType;
     private int videoFormatMode = VIDEO_FORMAT_MODE_AUTO;
     private float videoFormatAspectRatio;
@@ -61,10 +68,17 @@ public class RTCFsrVideoView extends ViewGroup {
     private VideoTrack videoTrack;
 
     private boolean fsrEnabled = true;
+    private boolean autoDisableFsrOnLowMemory;
+    private boolean fsrFallbackActive;
     private float fsrSharpness = 2f;
     private boolean fsrInitialized;
+    private float appliedFsrSharpness = Float.NaN;
+    private int appliedSurfaceWidth = -1;
+    private int appliedSurfaceHeight = -1;
     private Object fsrDrawerProxy;
     private Object fallbackDrawer;
+    private Method fallbackDrawOesMethod;
+    private Method fallbackReleaseMethod;
 
     private final FsrVideoProcessor fsrVideoProcessor;
 
@@ -228,34 +242,58 @@ public class RTCFsrVideoView extends ViewGroup {
             }
         }
 
+        if (hasAppliedLayout
+                && appliedLayoutLeft == l
+                && appliedLayoutTop == t
+                && appliedLayoutRight == r
+                && appliedLayoutBottom == b) {
+            return;
+        }
+        appliedLayoutLeft = l;
+        appliedLayoutTop = t;
+        appliedLayoutRight = r;
+        appliedLayoutBottom = b;
+        hasAppliedLayout = true;
         surfaceViewRenderer.layout(l, t, r, b);
         applyRendererLayoutAspectRatio(r - l, b - t);
     }
 
     private void removeRendererFromVideoTrack() {
-        if (rendererAttached) {
-            if (videoTrack != null) {
-                ThreadUtils.runOnExecutor(() -> {
-                    try {
-                        videoTrack.removeSink(surfaceViewRenderer);
-                    } catch (Throwable ignored) {
-                        // Ignore track lifecycle race.
+        if (!rendererAttached || rendererCleanupInProgress) {
+            return;
+        }
+
+        rendererAttached = false;
+        rendererCleanupInProgress = true;
+        VideoTrack track = videoTrack;
+        ThreadUtils.runOnExecutor(() -> {
+            try {
+                if (track != null) {
+                    track.removeSink(surfaceViewRenderer);
+                }
+            } catch (Throwable ignored) {
+                // Ignore track lifecycle race.
+            } finally {
+                surfaceViewRenderer.release();
+                releaseDrawerResources();
+                if (surfaceViewRendererInstances > 0) {
+                    surfaceViewRendererInstances--;
+                }
+                post(() -> {
+                    rendererCleanupInProgress = false;
+                    synchronized (layoutSyncRoot) {
+                        frameHeight = 0;
+                        frameRotation = 0;
+                        frameWidth = 0;
+                    }
+                    hasAppliedLayout = false;
+                    requestSurfaceViewRendererLayout();
+                    if (videoTrack != null && ViewCompat.isAttachedToWindow(this)) {
+                        tryAddRendererToVideoTrack();
                     }
                 });
             }
-
-            surfaceViewRenderer.release();
-            releaseDrawerResources();
-            surfaceViewRendererInstances--;
-            rendererAttached = false;
-
-            synchronized (layoutSyncRoot) {
-                frameHeight = 0;
-                frameRotation = 0;
-                frameWidth = 0;
-            }
-            requestSurfaceViewRendererLayout();
-        }
+        });
     }
 
     @SuppressLint("WrongCall")
@@ -489,16 +527,40 @@ public class RTCFsrVideoView extends ViewGroup {
 
     public void setFsrEnabled(boolean enabled) {
         fsrEnabled = enabled;
-        fsrVideoProcessor.setFsrEnabled(enabled);
+        if (enabled) {
+            fsrFallbackActive = false;
+        }
+        applyEffectiveFsrEnabled();
+    }
+
+    public void setAutoDisableFsrOnLowMemory(boolean enabled) {
+        autoDisableFsrOnLowMemory = enabled;
+        applyEffectiveFsrEnabled();
+    }
+
+    private void applyEffectiveFsrEnabled() {
+        boolean lowMemoryDevice = false;
+        if (autoDisableFsrOnLowMemory) {
+            ActivityManager activityManager =
+                    (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
+            lowMemoryDevice = activityManager != null && activityManager.isLowRamDevice();
+        }
+        boolean effectiveEnabled = fsrEnabled && !lowMemoryDevice;
+        if (effectiveEnabled) {
+            fsrFallbackActive = false;
+        }
+        fsrVideoProcessor.setFsrEnabled(effectiveEnabled);
     }
 
     public void setFsrSharpness(float sharpness) {
         fsrSharpness = sharpness;
+        appliedFsrSharpness = Float.NaN;
         fsrVideoProcessor.setSharpness(sharpness / 10f);
     }
 
     private void tryAddRendererToVideoTrack() {
-        if (!rendererAttached && videoTrack != null && ViewCompat.isAttachedToWindow(this)) {
+        if (!rendererAttached && !rendererCleanupInProgress
+                && videoTrack != null && ViewCompat.isAttachedToWindow(this)) {
             EglBase.Context sharedContext = EglUtils.getRootEglBaseContext();
 
             if (sharedContext == null) {
@@ -627,7 +689,7 @@ public class RTCFsrVideoView extends ViewGroup {
                 return;
             }
 
-            if (!fsrEnabled) {
+            if (!fsrEnabled || fsrFallbackActive) {
                 invokeFallbackDrawer("drawOes", args);
                 return;
             }
@@ -652,11 +714,18 @@ public class RTCFsrVideoView extends ViewGroup {
                 }
 
                 ensureFsrInitialized();
-                fsrVideoProcessor.setSharpness(fsrSharpness / 10f);
-                if (viewportWidth > 0 && viewportHeight > 0) {
-                    fsrVideoProcessor.setSurfaceSize(viewportWidth, viewportHeight);
-                } else if (frameWidth > 0 && frameHeight > 0) {
-                    fsrVideoProcessor.setSurfaceSize(frameWidth, frameHeight);
+                float requestedSharpness = fsrSharpness / 10f;
+                if (Float.compare(appliedFsrSharpness, requestedSharpness) != 0) {
+                    fsrVideoProcessor.setSharpness(requestedSharpness);
+                    appliedFsrSharpness = requestedSharpness;
+                }
+                int surfaceWidth = viewportWidth > 0 ? viewportWidth : frameWidth;
+                int surfaceHeight = viewportHeight > 0 ? viewportHeight : frameHeight;
+                if (surfaceWidth > 0 && surfaceHeight > 0
+                        && (surfaceWidth != appliedSurfaceWidth || surfaceHeight != appliedSurfaceHeight)) {
+                    fsrVideoProcessor.setSurfaceSize(surfaceWidth, surfaceHeight);
+                    appliedSurfaceWidth = surfaceWidth;
+                    appliedSurfaceHeight = surfaceHeight;
                 }
 
                 boolean rendered = fsrVideoProcessor.draw(
@@ -667,10 +736,15 @@ public class RTCFsrVideoView extends ViewGroup {
                         texMatrix
                 );
                 if (!rendered) {
+                    // Release FSR resources and keep using the stable fallback after a failed draw.
+                    releaseDrawerResources();
+                    fsrFallbackActive = true;
                     invokeFallbackDrawer("drawOes", args);
                 }
             } catch (Throwable t) {
                 Log.e(TAG, "FSR draw failed, fallback to default OES drawer.", t);
+                releaseDrawerResources();
+                fsrFallbackActive = true;
                 invokeFallbackDrawer("drawOes", args);
             }
         }
@@ -711,7 +785,7 @@ public class RTCFsrVideoView extends ViewGroup {
 
         String extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS);
         fsrVideoProcessor.initialize(major, minor, extensions == null ? "" : extensions);
-        fsrVideoProcessor.setFsrEnabled(fsrEnabled);
+        applyEffectiveFsrEnabled();
         fsrVideoProcessor.setSharpness(fsrSharpness / 10f);
         fsrInitialized = true;
     }
@@ -743,13 +817,21 @@ public class RTCFsrVideoView extends ViewGroup {
         if (drawer == null) {
             return;
         }
-
         try {
-            Method target = findByNameAndArgCount(drawer.getClass(), methodName, args == null ? 0 : args.length);
+            Method target;
+            if ("drawOes".equals(methodName)) {
+                if (fallbackDrawOesMethod == null) {
+                    fallbackDrawOesMethod = findByNameAndArgCount(drawer.getClass(), methodName, args == null ? 0 : args.length);
+                }
+                target = fallbackDrawOesMethod;
+            } else {
+                target = findByNameAndArgCount(drawer.getClass(), methodName, args == null ? 0 : args.length);
+            }
             if (target == null) {
                 return;
             }
             target.invoke(drawer, args == null ? new Object[0] : args);
+
         } catch (Throwable t) {
             Log.e(TAG, "Fallback drawer invocation failed: " + methodName, t);
         }
@@ -772,18 +854,26 @@ public class RTCFsrVideoView extends ViewGroup {
                 Log.w(TAG, "Failed to release FSR processor", t);
             }
             fsrInitialized = false;
+            fsrFallbackActive = false;
+            appliedFsrSharpness = Float.NaN;
+            appliedSurfaceWidth = -1;
+            appliedSurfaceHeight = -1;
         }
-
         if (fallbackDrawer != null) {
             try {
-                Method release = findByNameAndArgCount(fallbackDrawer.getClass(), "release", 0);
-                if (release != null) {
-                    release.invoke(fallbackDrawer);
+                if (fallbackReleaseMethod == null) {
+                    fallbackReleaseMethod = findByNameAndArgCount(fallbackDrawer.getClass(), "release", 0);
                 }
+                if (fallbackReleaseMethod != null) {
+                    fallbackReleaseMethod.invoke(fallbackDrawer);
+                }
+
             } catch (Throwable t) {
                 Log.w(TAG, "Failed to release fallback drawer", t);
             }
             fallbackDrawer = null;
+            fallbackDrawOesMethod = null;
+            fallbackReleaseMethod = null;
         }
     }
 }

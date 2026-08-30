@@ -55,6 +55,7 @@ const FAILED = 'failed';
 const DUALSENSE = 'DualSenseController';
 const LIVE_GAMEPAD_PROFILE = 'LiveLayout';
 const PICTURE_IN_PICTURE_MODE_CHANGED = 'pictureInPictureModeChanged';
+const isAndroidTv = Platform.OS === 'android' && Platform.isTV === true;
 
 const {
   FullScreenManager,
@@ -226,6 +227,7 @@ export function NativeStreamScreenBase({
     React.useState(false);
   const [openMicro, setOpenMicro] = React.useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
+  const [appState, setAppState] = React.useState(AppState.currentState);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
@@ -241,6 +243,7 @@ export function NativeStreamScreenBase({
   const audioGainRef = React.useRef(1);
   const keepaliveInterval = React.useRef<any>(null);
   const performanceInterval = React.useRef<any>(null);
+  const performanceRequestInFlight = React.useRef(false);
   const connectStateRef = React.useRef<any>('');
 
   const gpDownEventListener = React.useRef<any>(undefined);
@@ -305,22 +308,16 @@ export function NativeStreamScreenBase({
   );
 
   React.useEffect(() => {
-    let layoutTimer: any = null;
     const lockTimer = setTimeout(() => {
       if (portraitMode) {
         Orientation.lockToPortrait();
       } else {
         Orientation.lockToLandscape();
       }
-
-      layoutTimer = setTimeout(() => {}, 100);
     }, 500);
 
     return () => {
       clearTimeout(lockTimer);
-      if (layoutTimer) {
-        clearTimeout(layoutTimer);
-      }
       Orientation.unlockAllOrientations();
     };
   }, [route.params?.sessionId, route.params?.streamType, portraitMode]);
@@ -754,6 +751,7 @@ export function NativeStreamScreenBase({
     appStateSubscription.current = AppState.addEventListener(
       'change',
       async state => {
+        setAppState(state);
         if (
           !portraitMode &&
           state === 'background' &&
@@ -1090,7 +1088,7 @@ export function NativeStreamScreenBase({
     }
 
     // Sensor
-    if (_settings.sensor) {
+    if (_settings.sensor && !isAndroidTv) {
       const sensorManager =
         _settings.sensor === 2 ? GamepadSensorModule : SensorModule;
 
@@ -1334,7 +1332,7 @@ export function NativeStreamScreenBase({
           );
 
           // Alway show virtual gamepad
-          if (portraitMode || _settings.show_virtual_gamead) {
+          if (!isAndroidTv && (portraitMode || _settings.show_virtual_gamead)) {
             setShowVirtualGamepad(true);
           }
 
@@ -1394,7 +1392,7 @@ export function NativeStreamScreenBase({
                   );
                 }
               });
-            }, 16);
+            }, 50);
           }
         } else if (state === CLOSED) {
           if (isRequestExit.current) {
@@ -1702,6 +1700,7 @@ export function NativeStreamScreenBase({
                         JSON.stringify(iceDetails),
                       );
                       webrtcClient.setIceCandidates(iceDetails);
+                      webrtcClient.clearIceCandidates?.();
                       setLoadingText(`${t('Exchange ICE successfully...')}`);
                     })
                     .catch(e => {
@@ -1790,6 +1789,9 @@ export function NativeStreamScreenBase({
       FullScreenManager.immersiveModeOff();
       stopVibrate();
       webrtcClient && webrtcClient.close();
+      remoteStream.current?.getTracks?.().forEach(track => track.stop?.());
+      remoteStream.current = null;
+      performanceRequestInFlight.current = false;
       usbGpEventListener.current && usbGpEventListener.current.remove();
       gpDownEventListener.current && gpDownEventListener.current.remove();
       gpUpEventListener.current && gpUpEventListener.current.remove();
@@ -1868,6 +1870,7 @@ export function NativeStreamScreenBase({
   React.useEffect(() => {
     if (
       connectState !== CONNECTED ||
+      appState !== 'active' ||
       !showPerformance ||
       !webrtcClient ||
       typeof webrtcClient.getStreamState !== 'function'
@@ -1880,16 +1883,38 @@ export function NativeStreamScreenBase({
     }
 
     const updatePerformance = () => {
+      if (performanceRequestInFlight.current) {
+        return;
+      }
+      performanceRequestInFlight.current = true;
       webrtcClient
         .getStreamState()
         .then(res => {
-          setPerformance(res);
+          setPerformance(previous => {
+            if (
+              previous.resolution === res.resolution &&
+              previous.rtt === res.rtt &&
+              previous.jit === res.jit &&
+              previous.fps === res.fps &&
+              previous.pl === res.pl &&
+              previous.fl === res.fl &&
+              previous.br === res.br &&
+              previous.decode === res.decode
+            ) {
+              return previous;
+            }
+            return res;
+          });
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          performanceRequestInFlight.current = false;
+        });
     };
 
     updatePerformance();
-    performanceInterval.current = setInterval(updatePerformance, 1000);
+    // Telemetry is auxiliary; 2 Hz reduces JS-thread work during gameplay.
+    performanceInterval.current = setInterval(updatePerformance, 2000);
 
     return () => {
       if (performanceInterval.current) {
@@ -1897,7 +1922,7 @@ export function NativeStreamScreenBase({
         performanceInterval.current = null;
       }
     };
-  }, [connectState, showPerformance, webrtcClient]);
+  }, [appState, connectState, showPerformance, webrtcClient]);
 
   const handlePowerOff = React.useCallback(async () => {
     const webApi = new WebApi(webToken);
@@ -2234,7 +2259,7 @@ export function NativeStreamScreenBase({
       setShowVirtualGamepad(false);
       webrtcClient && webrtcClient.close();
       setShowModal(false);
-      if (settings.sensor) {
+      if (settings.sensor && !isAndroidTv) {
         SensorModule.stopSensor();
         GamepadSensorModule.stopSensor();
       }
@@ -2470,7 +2495,7 @@ export function NativeStreamScreenBase({
   }, [openOptionsModal, showModal]);
 
   const renderVirtualGamepad = () => {
-    if (portraitMode) {
+    if (portraitMode || isAndroidTv) {
       return null;
     }
     if (isInPictureInPicture || !showVirtualGamepad) {
@@ -2533,18 +2558,19 @@ export function NativeStreamScreenBase({
 
   const useFsrRenderer = !!settings.fsr;
   const fsrSharpness = settings.fsr_display_options?.sharpness ?? 2;
+  const nativeTouchEnabled = !!settings.native_touch && !isAndroidTv;
   const handleNativePointerInput = React.useCallback(
     (event: PointerWireData) => {
-      if (!webrtcClient || !settings.native_touch) {
+      if (!webrtcClient || !nativeTouchEnabled) {
         return;
       }
 
       webrtcClient.getChannelProcessor('input')?.queuePointerInput([event]);
     },
-    [settings.native_touch, webrtcClient],
+    [nativeTouchEnabled, webrtcClient],
   );
 
-  const video_format = settings.native_touch ? '' : settings.video_format;
+  const video_format = nativeTouchEnabled ? '' : settings.video_format;
   const loadingPosterUrl =
     typeof route.params?.postUrl === 'string' ? route.params.postUrl : '';
   const showLoadingPoster = loading && !!loadingPosterUrl;
@@ -2571,13 +2597,16 @@ export function NativeStreamScreenBase({
             streamURL={remote}
             videoFormat={video_format || ''}
             fsrEnabled={true}
+            autoDisableFsrOnLowMemory={true}
             fsrSharpness={fsrSharpness}
           />
-          <NativeTouchOverlay
-            enabled={!!settings.native_touch && !isInPictureInPicture}
-            videoFormat={video_format || ''}
-            onPointerInput={handleNativePointerInput}
-          />
+          {nativeTouchEnabled && !isInPictureInPicture ? (
+            <NativeTouchOverlay
+              enabled
+              videoFormat={video_format || ''}
+              onPointerInput={handleNativePointerInput}
+            />
+          ) : null}
         </View>
       );
     }
@@ -2591,17 +2620,19 @@ export function NativeStreamScreenBase({
           streamURL={remote}
           videoFormat={video_format || ''}
         />
-        <NativeTouchOverlay
-          enabled={!!settings.native_touch && !isInPictureInPicture}
-          videoFormat={video_format || ''}
-          onPointerInput={handleNativePointerInput}
-        />
+        {nativeTouchEnabled && !isInPictureInPicture ? (
+          <NativeTouchOverlay
+            enabled
+            videoFormat={video_format || ''}
+            onPointerInput={handleNativePointerInput}
+          />
+        ) : null}
       </View>
     );
   };
 
   const renderPortraitVirtualGamepad = () => {
-    if (!portraitMode || connectState !== CONNECTED) {
+    if (!portraitMode || isAndroidTv || connectState !== CONNECTED) {
       return null;
     }
 
@@ -2728,12 +2759,14 @@ export function NativeStreamScreenBase({
 
       {renderVirtualGamepad()}
 
-      <VirtualGamepadEditor
-        visible={!portraitMode && showGamepadEditor && !isInPictureInPicture}
-        profileName={editorProfile || getActiveProfileName()}
-        onSave={handleSaveGamepadLayout}
-        onCancel={() => setShowGamepadEditor(false)}
-      />
+      {!isAndroidTv ? (
+        <VirtualGamepadEditor
+          visible={!portraitMode && showGamepadEditor && !isInPictureInPicture}
+          profileName={editorProfile || getActiveProfileName()}
+          onSave={handleSaveGamepadLayout}
+          onCancel={() => setShowGamepadEditor(false)}
+        />
+      ) : null}
 
       {renderMenu()}
     </View>

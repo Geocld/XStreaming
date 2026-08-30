@@ -14,6 +14,7 @@ type Props = ViewProps & {
   zOrder?: number;
   videoFormat?: string;
   fsrEnabled?: boolean;
+  autoDisableFsrOnLowMemory?: boolean;
   fsrSharpness?: number;
 };
 

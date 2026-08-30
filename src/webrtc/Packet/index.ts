@@ -400,13 +400,11 @@ export default class InputPacket {
   }
 
   _convertToInt16(e: any) {
-    const int = new Int16Array(1);
-    return (int[0] = e), int[0];
+    return (e << 16) >> 16;
   }
 
   _convertToUInt16(e: any) {
-    const int = new Uint16Array(1);
-    return (int[0] = e), int[0];
+    return e & 0xffff;
   }
 
   _clampUint8(value: number) {

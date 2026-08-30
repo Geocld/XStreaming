@@ -57,6 +57,7 @@ const CONNECTED = 'connected';
 const DUALSENSE = 'DualSenseController';
 const LIVE_GAMEPAD_PROFILE = 'LiveLayout';
 const PICTURE_IN_PICTURE_MODE_CHANGED = 'pictureInPictureModeChanged';
+const isAndroidTv = Platform.OS === 'android' && Platform.isTV === true;
 
 const {
   FullScreenManager,
@@ -151,21 +152,14 @@ function StreamScreen({navigation, route}) {
   const webviewRef = React.useRef(null);
 
   React.useEffect(() => {
-    let layoutTimer: any = null;
     const lockTimer = setTimeout(() => {
       Orientation.lockToLandscape();
-
-      layoutTimer = setTimeout(() => {
-        const {height: dHeight} = Dimensions.get('window');
-        setModalMaxHeight(dHeight - 50);
-      }, 100);
+      const {height: dHeight} = Dimensions.get('window');
+      setModalMaxHeight(dHeight - 50);
     }, 500);
 
     return () => {
       clearTimeout(lockTimer);
-      if (layoutTimer) {
-        clearTimeout(layoutTimer);
-      }
       Orientation.unlockAllOrientations();
     };
   }, [route.params?.sessionId, route.params?.streamType]);
@@ -574,7 +568,7 @@ function StreamScreen({navigation, route}) {
       }, 1000 / _settings.polling_rate);
     }
 
-    if (_settings.sensor) {
+    if (_settings.sensor && !isAndroidTv) {
       const sensorManager =
         _settings.sensor === 2 ? GamepadSensorModule : SensorModule;
 
@@ -1424,6 +1418,9 @@ function StreamScreen({navigation, route}) {
     const isNativeLikeKernel =
       settings.gamepad_kernal === 'Native' || settings.gamepad_kernal === 'SDL';
     // Close
+    if (isAndroidTv) {
+      return;
+    }
     if (showVirtualGamepad) {
       clearMacroTimers();
       setShowVirtualGamepad(false);
@@ -1446,10 +1443,11 @@ function StreamScreen({navigation, route}) {
     setShowVirtualGamepad(false);
     postData2Webview('disconnect', {});
     setShowModal(false);
-    if (settings.sensor) {
+    if (settings.sensor && !isAndroidTv) {
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
     }
+
   };
 
   const background = {
@@ -1505,7 +1503,7 @@ function StreamScreen({navigation, route}) {
   };
 
   const renderVirtualGamepad = () => {
-    if (isInPictureInPicture || !showVirtualGamepad) {
+    if (isAndroidTv || isInPictureInPicture || !showVirtualGamepad) {
       return null;
     }
     const useCustomVirtualGamepad = settings.custom_virtual_gamepad !== '';
@@ -1545,14 +1543,16 @@ function StreamScreen({navigation, route}) {
         <PerfPanel performance={performance} />
       )}
 
-      {renderVirtualGamepad()}
+      {!isAndroidTv && renderVirtualGamepad()}
 
-      <VirtualGamepadEditor
-        visible={showGamepadEditor && !isInPictureInPicture}
-        profileName={editorProfile || getActiveProfileName()}
-        onSave={handleSaveGamepadLayout}
-        onCancel={() => setShowGamepadEditor(false)}
-      />
+      {!isAndroidTv ? (
+        <VirtualGamepadEditor
+          visible={showGamepadEditor && !isInPictureInPicture}
+          profileName={editorProfile || getActiveProfileName()}
+          onSave={handleSaveGamepadLayout}
+          onCancel={() => setShowGamepadEditor(false)}
+        />
+      ) : null}
 
       <Portal>
         <Modal
@@ -1838,7 +1838,7 @@ function StreamScreen({navigation, route}) {
           injectedJavaScriptObject={{
             settings,
             streamType: route.params?.streamType,
-            inputTouch: settings.native_touch,
+            inputTouch: !!settings.native_touch && !isAndroidTv,
           }}
           onMessage={event => {
             handleWebviewMessage(event);
