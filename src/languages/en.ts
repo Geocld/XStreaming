@@ -543,5 +543,7 @@ export default {
     'Ubisoft+ Classic': 'Ubisoft+ Classic',
     'Stream your own game': 'Stream your own game',
     'Leaving soon': 'Leaving soon',
+    'Show all': 'Show all',
+    'Tampilkan semua': 'Show all',
   },
 };

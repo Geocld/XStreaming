@@ -515,5 +515,7 @@ export default {
     'Ubisoft+ Classic': 'Ubisoft+ 经典',
     'Stream your own game': '串流你拥有的游戏',
     'Leaving soon': '即将离开',
+    'Show all': '显示全部',
+    'Tampilkan semua': '显示全部',
   },
 };

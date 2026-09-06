@@ -42,11 +42,86 @@ const warnTitles: any = [];
 const webviewTitles: any = [];
 
 // Official Microsoft Xbox Cloud Gaming SIGL IDs (reverse-engineered from xbox.com/play)
-const SIGL_MOST_POPULAR = '6a589fa0-d493-472b-8e20-3813699d7056'; // Play with Game Pass / Most popular on cloud
+const SIGL_GAME_PASS = 'af206485-e87d-4624-9007-cb7f6d0cc42e'; // Play with Game Pass (AllGamePassGames)
 const SIGL_RECENTLY_ADDED = '06323672-b8c8-43cc-b0de-32d5a9834749'; // Recently added
 const SIGL_UBISOFT_CLASSICS = '66ec875c-a391-44f5-9a54-a28bd6f976ce'; // Ubisoft+ Classics (Nakatomi)
 const SIGL_STREAM_YOUR_OWN = 'e4c1d680-2c70-45e4-a38d-8a292c68c700'; // Stream your own games (FresnoSYOG)
 const SIGL_LEAVING_SOON = '31ff2361-2772-4622-849b-f4f1abb4ad1b'; // Leaving soon
+
+// Strict validator for authentic Game Pass subscription titles (excludes Free-to-Play like Fortnite and Buy-to-play / owned games like Cyberpunk, GTA, etc.)
+const isGamePassSubscriptionTitle = (item: any): boolean => {
+  if (!item) return false;
+  const title = (item.ProductTitle || '').toLowerCase();
+
+  // Exclude Free-to-Play games that do not require Game Pass
+  if (
+    title.includes('fortnite') ||
+    title.includes('warframe') ||
+    title.includes('roblox') ||
+    title.includes('destiny 2') ||
+    title.includes('fall guys') ||
+    title.includes('brawlhalla') ||
+    title.includes('apex legends') ||
+    title.includes('genshin') ||
+    title.includes('zenless zone') ||
+    title.includes('pubg')
+  ) {
+    return false;
+  }
+
+  // Exclude Buy-to-play / owned-only games (Stream Your Own Games)
+  const nonGamePassKeywords = [
+    'cyberpunk',
+    'witcher 3',
+    'hogwarts legacy',
+    "baldur's gate 3",
+    'grand theft auto v',
+    'gta v',
+    'red dead redemption',
+    'nba 2k',
+    'dying light 2',
+    'elden ring',
+    'star wars outlaws',
+    'avatar: frontiers',
+    'final fantasy xvi',
+    'final fantasy vii',
+    'dragons dogma 2',
+    'suicide squad',
+    'mortal kombat 1',
+    'call of duty: modern warfare iii',
+    'call of duty: modern warfare ii',
+    'warhammer 40,000: space marine 2',
+    'space marine 2',
+    'black myth',
+  ];
+  if (nonGamePassKeywords.some(kw => title.includes(kw))) {
+    return false;
+  }
+
+  // If item details explicitly list programs, ensure it has a Game Pass / EA Play program
+  const progs = item.details?.programs || [];
+  const userProgs = item.details?.userPrograms || [];
+  const userSubs = item.details?.userSubscriptions || [];
+  const allPrograms = [...progs, ...userProgs, ...userSubs].map((p: string) =>
+    String(p).toUpperCase(),
+  );
+  if (allPrograms.length > 0) {
+    const hasGp = allPrograms.some(
+      p =>
+        p.includes('GP') ||
+        p.includes('GAMEPASS') ||
+        p.includes('ULTIMATE') ||
+        p.includes('CORE') ||
+        p.includes('STANDARD') ||
+        p.includes('EA'),
+    );
+    if (!hasGp) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 // Strict validator for authentic Ubisoft+ Classic games (strictly excludes unreleased games like Assassin's Creed Shadows)
 const isUbisoftTitle = (item: any): boolean => {
@@ -242,6 +317,15 @@ function CloudScreen({navigation, route}: any) {
   const isLandscape = screenWidth > screenHeight;
   const isLargeScreen = Platform.isTV || isLandscape;
 
+  // Floating bottom navigation bar layout calculations
+  const bottomBarWidth = isLandscape
+    ? Math.min(480, screenWidth - 64)
+    : screenWidth - 32;
+  const bottomBarLeft = (screenWidth - bottomBarWidth) / 2;
+  const bottomBarBottom = isLandscape ? 28 : (Platform.OS === 'android' ? 14 : 24);
+  const bottomBarHeight = isLandscape ? 56 : 64;
+  const bottomBarRadius = isLandscape ? 28 : 32;
+
   // Unified padding constant across the entire screen for pixel-perfect left alignment
   const PADDING_H = isLargeScreen ? 20 : 14;
   const GAP = 10;
@@ -338,22 +422,13 @@ function CloudScreen({navigation, route}: any) {
     return getRegionDisplayInfo('KoreaCentral');
   }, [currentRegionName, streamingTokens]);
 
-  // 1. Play with Game Pass (Official CloudMostPopular SIGL from xbox.com/play)
+  // 1. Play with Game Pass (Official AllGamePassGames SIGL from xbox.com/play - strictly subscription titles only)
   const playWithGamePassTitles = React.useMemo(() => {
     if (playWithGamePassTitlesState.length > 0) {
-      return playWithGamePassTitlesState;
+      return playWithGamePassTitlesState.filter(isGamePassSubscriptionTitle);
     }
     if (titles.length === 0) return [];
-    const priorityKeywords = [
-      'halo', 'forza', 'starfield', 'gears', 'sea of thieves',
-      'palworld', 'flight simulator', 'hi-fi', 'persona', 'fallout',
-      'elder scrolls', 'doom', 'minecraft', 'diablo', 'lies of p',
-    ];
-    const featured = titles.filter(item => {
-      const title = (item.ProductTitle || '').toLowerCase();
-      return priorityKeywords.some(kw => title.includes(kw));
-    });
-    return featured.length >= 6 ? featured.slice(0, 20) : titles.slice(0, 20);
+    return titles.filter(isGamePassSubscriptionTitle).slice(0, 30);
   }, [playWithGamePassTitlesState, titles]);
 
   // 2. Ubisoft+ Classic Collection (Official Nakatomi SIGL from xbox.com/play - strictly excluding Assassin's Creed Shadows)
@@ -487,15 +562,16 @@ function CloudScreen({navigation, route}: any) {
 
               // Concurrently fetch all official Microsoft Xbox Cloud Gaming channels directly from catalog endpoints
               Promise.allSettled([
-                fetchSiglTitles(SIGL_MOST_POPULAR, _titleMap),
+                fetchSiglTitles(SIGL_GAME_PASS, _titleMap, isGamePassSubscriptionTitle),
                 fetchSiglTitles(SIGL_RECENTLY_ADDED, _titleMap),
                 fetchSiglTitles(SIGL_UBISOFT_CLASSICS, _titleMap, isUbisoftTitle),
                 fetchSiglTitles(SIGL_STREAM_YOUR_OWN, _titleMap),
                 fetchSiglTitles(SIGL_LEAVING_SOON, _titleMap),
                 _xCloudApi.getRecentTitles(),
               ]).then(([popRes, newRes, ubiRes, ownRes, leaveRes, recentRes]) => {
-                const _popTitles =
-                  popRes.status === 'fulfilled' ? popRes.value : [];
+                const _popTitles = (
+                  popRes.status === 'fulfilled' ? popRes.value : []
+                ).filter(isGamePassSubscriptionTitle);
                 const _newTitles =
                   newRes.status === 'fulfilled' ? newRes.value : [];
                 const _ubiTitles = (
@@ -579,7 +655,9 @@ function CloudScreen({navigation, route}: any) {
         setNewTitles(_newTitles || []);
         setRecentTitles(_recentTitles || []);
         if (_playWithGamePassTitles) {
-          setPlayWithGamePassTitlesState(_playWithGamePassTitles);
+          setPlayWithGamePassTitlesState(
+            _playWithGamePassTitles.filter(isGamePassSubscriptionTitle),
+          );
         }
         if (_ubisoftTitles) {
           setUbisoftTitlesState(_ubisoftTitles.filter(isUbisoftTitle));
@@ -775,6 +853,91 @@ function CloudScreen({navigation, route}: any) {
     return starTitles.includes(id);
   };
 
+  const handleShowAll = (categoryKey: any) => {
+    setFilterCategory(categoryKey);
+    setActiveBottomTab('library');
+    setCurrentPage(1);
+    scrollToTop();
+  };
+
+  // Reusable horizontal carousel section with 10-item limit and "Tampilkan semua" button
+  const renderCarouselSection = (
+    title: string,
+    data: any[],
+    categoryKey: any,
+    idPrefix: string,
+  ) => {
+    if (!data || data.length === 0) return null;
+    const hasMoreThanTen = data.length > 10;
+    const displayData = hasMoreThanTen ? data.slice(0, 10) : data;
+
+    return (
+      <View style={styles.carouselSection}>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          {hasMoreThanTen && (
+            <Pressable
+              onPress={() => handleShowAll(categoryKey)}
+              android_ripple={{color: 'rgba(46, 213, 115, 0.2)'}}
+              style={({pressed}) => [
+                styles.showAllHeaderButton,
+                pressed && styles.showAllHeaderButtonPressed,
+              ]}>
+              <Text style={styles.showAllHeaderText}>{t('Tampilkan semua')}</Text>
+              <Icon source="chevron-right" size={15} color="#2ed573" />
+            </Pressable>
+          )}
+        </View>
+
+        <FlatList
+          horizontal
+          data={displayData}
+          keyExtractor={(item, index) =>
+            `${idPrefix}_${item.titleId || item.XCloudTitleId || index}`
+          }
+          showsHorizontalScrollIndicator={false}
+          style={styles.horizontalListWrap}
+          contentContainerStyle={styles.horizontalListContent}
+          renderItem={({item}) => (
+            <XStreamingGameCard
+              titleItem={item}
+              width={horizontalCardWidth}
+              height={horizontalCardHeight}
+              isStarred={isItemStarred(item)}
+              onPress={handleViewDetail}
+              onPlayPress={handleDirectPlay}
+              onBookmarkPress={handleToggleStar}
+              style={styles.horizontalCardMargin}
+            />
+          )}
+          ListFooterComponent={() =>
+            hasMoreThanTen ? (
+              <Pressable
+                onPress={() => handleShowAll(categoryKey)}
+                android_ripple={{color: 'rgba(46, 213, 115, 0.2)'}}
+                style={({pressed}) => [
+                  styles.showAllCard,
+                  {
+                    width: horizontalCardWidth,
+                    height: horizontalCardHeight,
+                  },
+                  pressed && styles.showAllCardPressed,
+                ]}>
+                <View style={styles.showAllIconCircle}>
+                  <Icon source="arrow-right" size={24} color="#2ed573" />
+                </View>
+                <Text style={styles.showAllCardTitle}>{t('Tampilkan semua')}</Text>
+                <Text style={styles.showAllCardSubtitle}>
+                  {`+${data.length - 10} ${t('available')}`}
+                </Text>
+              </Pressable>
+            ) : null
+          }
+        />
+      </View>
+    );
+  };
+
   // Render Horizontal Channels based on Xbox Cloud Gaming on Xbox.com
   const renderCarouselsHeader = () => {
     if (activeBottomTab === 'favorites' || filterCategory !== 'all' || keyword.length > 0) {
@@ -784,166 +947,22 @@ function CloudScreen({navigation, route}: any) {
     return (
       <View style={styles.carouselsContainer}>
         {/* 1. Jump back in (Terakhir dimainkan - if user has played games) */}
-        {recentTitles.length > 0 && (
-          <View style={styles.carouselSection}>
-            <Text style={styles.sectionTitle}>{t('Jump back in')}</Text>
-            <FlatList
-              horizontal
-              data={recentTitles}
-              keyExtractor={(item, index) => `recent_${item.titleId || item.XCloudTitleId || index}`}
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalListWrap}
-              contentContainerStyle={styles.horizontalListContent}
-              renderItem={({item}) => (
-                <XStreamingGameCard
-                  titleItem={item}
-                  width={horizontalCardWidth}
-                  height={horizontalCardHeight}
-                  isStarred={isItemStarred(item)}
-                  onPress={handleViewDetail}
-                  onPlayPress={handleDirectPlay}
-                  onBookmarkPress={handleToggleStar}
-                  style={styles.horizontalCardMargin}
-                />
-              )}
-            />
-          </View>
-        )}
+        {renderCarouselSection(t('Jump back in'), recentTitles, 'recent', 'recent')}
 
-        {/* 2. Play with Game Pass */}
-        {playWithGamePassTitles.length > 0 && (
-          <View style={styles.carouselSection}>
-            <Text style={styles.sectionTitle}>{t('Play with Game Pass')}</Text>
-            <FlatList
-              horizontal
-              data={playWithGamePassTitles}
-              keyExtractor={(item, index) => `gp_${item.titleId || item.XCloudTitleId || index}`}
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalListWrap}
-              contentContainerStyle={styles.horizontalListContent}
-              renderItem={({item}) => (
-                <XStreamingGameCard
-                  titleItem={item}
-                  width={horizontalCardWidth}
-                  height={horizontalCardHeight}
-                  isStarred={isItemStarred(item)}
-                  onPress={handleViewDetail}
-                  onPlayPress={handleDirectPlay}
-                  onBookmarkPress={handleToggleStar}
-                  style={styles.horizontalCardMargin}
-                />
-              )}
-            />
-          </View>
-        )}
+        {/* 2. Play with Game Pass (Game Pass subscription titles only) */}
+        {renderCarouselSection(t('Play with Game Pass'), playWithGamePassTitles, 'play_gamepass', 'gp')}
 
         {/* 3. Recently Added */}
-        {newTitles.length > 0 && (
-          <View style={styles.carouselSection}>
-            <Text style={styles.sectionTitle}>{t('Recently Added')}</Text>
-            <FlatList
-              horizontal
-              data={newTitles}
-              keyExtractor={(item, index) => `new_${item.titleId || item.XCloudTitleId || index}`}
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalListWrap}
-              contentContainerStyle={styles.horizontalListContent}
-              renderItem={({item}) => (
-                <XStreamingGameCard
-                  titleItem={item}
-                  width={horizontalCardWidth}
-                  height={horizontalCardHeight}
-                  isStarred={isItemStarred(item)}
-                  onPress={handleViewDetail}
-                  onPlayPress={handleDirectPlay}
-                  onBookmarkPress={handleToggleStar}
-                  style={styles.horizontalCardMargin}
-                />
-              )}
-            />
-          </View>
-        )}
+        {renderCarouselSection(t('Recently Added'), newTitles, 'new', 'new')}
 
         {/* 4. Ubisoft+ Classic */}
-        {ubisoftTitles.length > 0 && (
-          <View style={styles.carouselSection}>
-            <Text style={styles.sectionTitle}>{t('Ubisoft+ Classic')}</Text>
-            <FlatList
-              horizontal
-              data={ubisoftTitles}
-              keyExtractor={(item, index) => `ubi_${item.titleId || item.XCloudTitleId || index}`}
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalListWrap}
-              contentContainerStyle={styles.horizontalListContent}
-              renderItem={({item}) => (
-                <XStreamingGameCard
-                  titleItem={item}
-                  width={horizontalCardWidth}
-                  height={horizontalCardHeight}
-                  isStarred={isItemStarred(item)}
-                  onPress={handleViewDetail}
-                  onPlayPress={handleDirectPlay}
-                  onBookmarkPress={handleToggleStar}
-                  style={styles.horizontalCardMargin}
-                />
-              )}
-            />
-          </View>
-        )}
+        {renderCarouselSection(t('Ubisoft+ Classic'), ubisoftTitles, 'ubisoft', 'ubi')}
 
         {/* 5. Stream your own game */}
-        {streamYourOwnTitles.length > 0 && (
-          <View style={styles.carouselSection}>
-            <Text style={styles.sectionTitle}>{t('Stream your own game')}</Text>
-            <FlatList
-              horizontal
-              data={streamYourOwnTitles}
-              keyExtractor={(item, index) => `own_${item.titleId || item.XCloudTitleId || index}`}
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalListWrap}
-              contentContainerStyle={styles.horizontalListContent}
-              renderItem={({item}) => (
-                <XStreamingGameCard
-                  titleItem={item}
-                  width={horizontalCardWidth}
-                  height={horizontalCardHeight}
-                  isStarred={isItemStarred(item)}
-                  onPress={handleViewDetail}
-                  onPlayPress={handleDirectPlay}
-                  onBookmarkPress={handleToggleStar}
-                  style={styles.horizontalCardMargin}
-                />
-              )}
-            />
-          </View>
-        )}
+        {renderCarouselSection(t('Stream your own game'), streamYourOwnTitles, 'own', 'own')}
 
         {/* 6. Leaving soon */}
-        {leavingSoonList.length > 0 && (
-          <View style={styles.carouselSection}>
-            <Text style={styles.sectionTitle}>{t('Leaving soon')}</Text>
-            <FlatList
-              horizontal
-              data={leavingSoonList}
-              keyExtractor={(item, index) => `leave_${item.titleId || item.XCloudTitleId || index}`}
-              showsHorizontalScrollIndicator={false}
-              style={styles.horizontalListWrap}
-              contentContainerStyle={styles.horizontalListContent}
-              renderItem={({item}) => (
-                <XStreamingGameCard
-                  titleItem={item}
-                  width={horizontalCardWidth}
-                  height={horizontalCardHeight}
-                  isStarred={isItemStarred(item)}
-                  onPress={handleViewDetail}
-                  onPlayPress={handleDirectPlay}
-                  onBookmarkPress={handleToggleStar}
-                  style={styles.horizontalCardMargin}
-                />
-              )}
-            />
-          </View>
-        )}
+        {renderCarouselSection(t('Leaving soon'), leavingSoonList, 'leaving', 'leave')}
 
         {/* 7. Tab "Semua" placed at the bottom, perfectly aligned flush with items above */}
         <View style={styles.catalogDividerHeader}>
@@ -1142,7 +1161,17 @@ function CloudScreen({navigation, route}: any) {
           )}
 
           {/* Floating Pill Bottom Navigation Bar */}
-          <View style={[styles.floatingBottomBar, isLargeScreen && styles.floatingBottomBarLarge]}>
+          <View
+            style={[
+              styles.floatingBottomBar,
+              {
+                width: bottomBarWidth,
+                left: bottomBarLeft,
+                bottom: bottomBarBottom,
+                height: bottomBarHeight,
+                borderRadius: bottomBarRadius,
+              },
+            ]}>
             {/* Pustaka (Library / Catalog) Tab */}
             <Pressable
               onPress={() => handleTabPress('library')}
@@ -1150,17 +1179,19 @@ function CloudScreen({navigation, route}: any) {
               <View
                 style={[
                   styles.tabIconWrap,
+                  isLandscape && styles.tabIconWrapLandscape,
                   activeBottomTab === 'library' && styles.tabIconWrapActive,
                 ]}>
                 <Icon
                   source={activeBottomTab === 'library' ? 'view-grid' : 'view-grid-outline'}
-                  size={22}
+                  size={isLandscape ? 20 : 22}
                   color={activeBottomTab === 'library' ? '#2ed573' : '#8b949e'}
                 />
               </View>
               <Text
                 style={[
                   styles.tabLabel,
+                  isLandscape && styles.tabLabelLandscape,
                   activeBottomTab === 'library' && styles.tabLabelActive,
                 ]}>
                 {t('Library')}
@@ -1171,10 +1202,16 @@ function CloudScreen({navigation, route}: any) {
             <Pressable
               onPress={() => handleTabPress('search')}
               style={styles.tabItem}>
-              <View style={styles.tabIconWrap}>
-                <Icon source="magnify" size={22} color="#8b949e" />
+              <View
+                style={[
+                  styles.tabIconWrap,
+                  isLandscape && styles.tabIconWrapLandscape,
+                ]}>
+                <Icon source="magnify" size={isLandscape ? 20 : 22} color="#8b949e" />
               </View>
-              <Text style={styles.tabLabel}>{t('Search')}</Text>
+              <Text style={[styles.tabLabel, isLandscape && styles.tabLabelLandscape]}>
+                {t('Search')}
+              </Text>
             </Pressable>
 
             {/* Favorit (Favorites) Tab */}
@@ -1184,17 +1221,19 @@ function CloudScreen({navigation, route}: any) {
               <View
                 style={[
                   styles.tabIconWrap,
+                  isLandscape && styles.tabIconWrapLandscape,
                   activeBottomTab === 'favorites' && styles.tabIconWrapActive,
                 ]}>
                 <Icon
                   source={activeBottomTab === 'favorites' ? 'bookmark' : 'bookmark-outline'}
-                  size={22}
+                  size={isLandscape ? 20 : 22}
                   color={activeBottomTab === 'favorites' ? '#2ed573' : '#8b949e'}
                 />
               </View>
               <Text
                 style={[
                   styles.tabLabel,
+                  isLandscape && styles.tabLabelLandscape,
                   activeBottomTab === 'favorites' && styles.tabLabelActive,
                 ]}>
                 {t('Favorites')}
@@ -1205,10 +1244,16 @@ function CloudScreen({navigation, route}: any) {
             <Pressable
               onPress={() => handleTabPress('settings')}
               style={styles.tabItem}>
-              <View style={styles.tabIconWrap}>
-                <Icon source="cog-outline" size={22} color="#8b949e" />
+              <View
+                style={[
+                  styles.tabIconWrap,
+                  isLandscape && styles.tabIconWrapLandscape,
+                ]}>
+                <Icon source="cog-outline" size={isLandscape ? 20 : 22} color="#8b949e" />
               </View>
-              <Text style={styles.tabLabel}>{t('Settings')}</Text>
+              <Text style={[styles.tabLabel, isLandscape && styles.tabLabelLandscape]}>
+                {t('Settings')}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -1580,13 +1625,71 @@ const styles = StyleSheet.create({
   carouselSection: {
     marginBottom: 22,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
   sectionTitle: {
     color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '700',
-    marginHorizontal: 0,
-    marginBottom: 10,
     letterSpacing: 0.2,
+  },
+  showAllHeaderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(46, 213, 115, 0.1)',
+  },
+  showAllHeaderButtonPressed: {
+    backgroundColor: 'rgba(46, 213, 115, 0.22)',
+  },
+  showAllHeaderText: {
+    color: '#2ed573',
+    fontSize: 12,
+    fontWeight: '600',
+    marginRight: 2,
+  },
+  showAllCard: {
+    borderRadius: 10,
+    backgroundColor: '#161922',
+    borderWidth: 1,
+    borderColor: 'rgba(46, 213, 115, 0.3)',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+    marginRight: 10,
+  },
+  showAllCardPressed: {
+    backgroundColor: 'rgba(46, 213, 115, 0.08)',
+    borderColor: '#2ed573',
+  },
+  showAllIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(46, 213, 115, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  showAllCardTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  showAllCardSubtitle: {
+    color: '#2ed573',
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   horizontalListWrap: {
     marginHorizontal: -14,
@@ -1643,12 +1746,7 @@ const styles = StyleSheet.create({
   // Floating Pill Bottom Navigation Bar
   floatingBottomBar: {
     position: 'absolute',
-    bottom: Platform.OS === 'android' ? 14 : 24,
-    left: 16,
-    right: 16,
-    height: 64,
     backgroundColor: '#141824',
-    borderRadius: 32,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
     flexDirection: 'row',
@@ -1660,14 +1758,9 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.35,
     shadowRadius: 10,
+    zIndex: 99,
   },
-  floatingBottomBarLarge: {
-    maxWidth: 520,
-    left: 'auto',
-    right: 'auto',
-    alignSelf: 'center',
-    width: '100%',
-  },
+  floatingBottomBarLarge: {},
   tabItem: {
     flex: 1,
     alignItems: 'center',
@@ -1680,6 +1773,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  tabIconWrapLandscape: {
+    width: 44,
+    height: 26,
+    borderRadius: 13,
+  },
   tabIconWrapActive: {
     backgroundColor: 'rgba(46, 213, 115, 0.2)',
   },
@@ -1688,6 +1786,10 @@ const styles = StyleSheet.create({
     color: '#8b949e',
     fontWeight: '500',
     marginTop: 2,
+  },
+  tabLabelLandscape: {
+    fontSize: 10,
+    marginTop: 1,
   },
   tabLabelActive: {
     color: '#2ed573',

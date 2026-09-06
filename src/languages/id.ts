@@ -548,5 +548,7 @@ export default {
     'Ubisoft+ Classic': 'Ubisoft+ Classic',
     'Stream your own game': 'Stream game milik Anda',
     'Leaving soon': 'Segera berakhir',
+    'Show all': 'Tampilkan semua',
+    'Tampilkan semua': 'Tampilkan semua',
   },
 };
