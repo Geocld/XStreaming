@@ -11,94 +11,66 @@ import {
   Image,
   ToastAndroid,
   ScrollView,
+  NativeModules,
 } from 'react-native';
 import {Text, Portal, Modal, Card, Icon, Button} from 'react-native-paper';
 import axios from 'axios';
-import Spinner from '../components/Spinner';
 import {useSelector, useDispatch} from 'react-redux';
+import {useTranslation} from 'react-i18next';
+
+import Spinner from '../components/Spinner';
 import XStreamingGameCard from '../components/XStreamingGameCard';
 import XboxLogo from '../components/XboxLogo';
-import XcloudApi from '../xCloud';
 import Empty from '../components/Empty';
+import XcloudApi from '../xCloud';
+import WebApi from '../web';
+import TokenStore from '../xal/tokenstore';
 import {debugFactory} from '../utils/debug';
-import {useTranslation} from 'react-i18next';
-import {
-  getXcloudData,
-  saveXcloudData,
-  isxCloudDataValid,
-} from '../store/xcloudStore';
-import {getSettings, saveSettings} from '../store/settingStore';
+import {getXcloudData, saveXcloudData, isxCloudDataValid} from '../store/xcloudStore';
+import {getSettings} from '../store/settingStore';
 import {getWebToken, isWebTokenValid} from '../store/webTokenStore';
 import {storage} from '../store/mmkv';
-import TokenStore from '../xal/tokenstore';
-import WebApi from '../web';
-import {syncRegionSettings, getRegionIpForCloudName} from '../utils/regionSync';
-import {NativeModules} from 'react-native';
+import {syncRegionSettings} from '../utils/regionSync';
 
 const {UsbRumbleManager, FullScreenManager} = NativeModules;
 const log = debugFactory('CloudScreen');
 
-const warnTitles: any = [];
-const webviewTitles: any = [];
-
-// Official Microsoft Xbox Cloud Gaming SIGL IDs (reverse-engineered from xbox.com/play)
-const SIGL_GAME_PASS = 'af206485-e87d-4624-9007-cb7f6d0cc42e'; // Play with Game Pass (AllGamePassGames)
+// Microsoft Xbox Cloud Gaming SIGL IDs from xbox.com/play
+const SIGL_GAME_PASS = 'af206485-e87d-4624-9007-cb7f6d0cc42e'; // AllGamePassGames
 const SIGL_RECENTLY_ADDED = '06323672-b8c8-43cc-b0de-32d5a9834749'; // Recently added
-const SIGL_UBISOFT_CLASSICS = '66ec875c-a391-44f5-9a54-a28bd6f976ce'; // Ubisoft+ Classics (Nakatomi)
-const SIGL_STREAM_YOUR_OWN = 'e4c1d680-2c70-45e4-a38d-8a292c68c700'; // Stream your own games (FresnoSYOG)
+const SIGL_UBISOFT_CLASSICS = '66ec875c-a391-44f5-9a54-a28bd6f976ce'; // Ubisoft+ Classics
+const SIGL_STREAM_YOUR_OWN = 'e4c1d680-2c70-45e4-a38d-8a292c68c700'; // Stream your own games
 const SIGL_LEAVING_SOON = '31ff2361-2772-4622-849b-f4f1abb4ad1b'; // Leaving soon
 
-// Strict validator for authentic Game Pass subscription titles (excludes Free-to-Play like Fortnite and Buy-to-play / owned games like Cyberpunk, GTA, etc.)
+// Validator for Game Pass subscription titles (excludes F2P and buy-to-play games)
 const isGamePassSubscriptionTitle = (item: any): boolean => {
   if (!item) return false;
   const title = (item.ProductTitle || '').toLowerCase();
 
-  // Exclude Free-to-Play games that do not require Game Pass
-  if (
-    title.includes('fortnite') ||
-    title.includes('warframe') ||
-    title.includes('roblox') ||
-    title.includes('destiny 2') ||
-    title.includes('fall guys') ||
-    title.includes('brawlhalla') ||
-    title.includes('apex legends') ||
-    title.includes('genshin') ||
-    title.includes('zenless zone') ||
-    title.includes('pubg')
-  ) {
-    return false;
-  }
-
-  // Exclude Buy-to-play / owned-only games (Stream Your Own Games)
-  const nonGamePassKeywords = [
-    'cyberpunk',
-    'witcher 3',
-    'hogwarts legacy',
-    "baldur's gate 3",
-    'grand theft auto v',
-    'gta v',
-    'red dead redemption',
-    'nba 2k',
-    'dying light 2',
-    'elden ring',
-    'star wars outlaws',
-    'avatar: frontiers',
-    'final fantasy xvi',
-    'final fantasy vii',
-    'dragons dogma 2',
-    'suicide squad',
-    'mortal kombat 1',
-    'call of duty: modern warfare iii',
-    'call of duty: modern warfare ii',
-    'warhammer 40,000: space marine 2',
-    'space marine 2',
-    'black myth',
+  // Exclude Free-to-Play titles
+  const f2pTitles = [
+    'fortnite', 'warframe', 'roblox', 'destiny 2', 'fall guys',
+    'brawlhalla', 'apex legends', 'genshin', 'zenless zone', 'pubg',
   ];
-  if (nonGamePassKeywords.some(kw => title.includes(kw))) {
+  if (f2pTitles.some(kw => title.includes(kw))) {
     return false;
   }
 
-  // If item details explicitly list programs, ensure it has a Game Pass / EA Play program
+  // Exclude Buy-to-Play titles
+  const nonSubscriptionTitles = [
+    'cyberpunk', 'witcher 3', 'hogwarts legacy', "baldur's gate 3",
+    'grand theft auto v', 'gta v', 'red dead redemption', 'nba 2k',
+    'dying light 2', 'elden ring', 'star wars outlaws', 'avatar: frontiers',
+    'final fantasy xvi', 'final fantasy vii', 'dragons dogma 2',
+    'suicide squad', 'mortal kombat 1', 'call of duty: modern warfare iii',
+    'call of duty: modern warfare ii', 'warhammer 40,000: space marine 2',
+    'space marine 2', 'black myth',
+  ];
+  if (nonSubscriptionTitles.some(kw => title.includes(kw))) {
+    return false;
+  }
+
+  // Verify entitlement program if present
   const progs = item.details?.programs || [];
   const userProgs = item.details?.userPrograms || [];
   const userSubs = item.details?.userSubscriptions || [];
@@ -106,16 +78,18 @@ const isGamePassSubscriptionTitle = (item: any): boolean => {
     String(p).toUpperCase(),
   );
   if (allPrograms.length > 0) {
-    const hasGp = allPrograms.some(
+    const hasGpProgram = allPrograms.some(
       p =>
         p.includes('GP') ||
         p.includes('GAMEPASS') ||
         p.includes('ULTIMATE') ||
-        p.includes('CORE') ||
+        p.includes('PREMIUM') ||
+        p.includes('ESSENTIAL') ||
         p.includes('STANDARD') ||
+        p.includes('CORE') ||
         p.includes('EA'),
     );
-    if (!hasGp) {
+    if (!hasGpProgram) {
       return false;
     }
   }
@@ -123,11 +97,10 @@ const isGamePassSubscriptionTitle = (item: any): boolean => {
   return true;
 };
 
-// Strict validator for authentic Ubisoft+ Classic games (strictly excludes unreleased games like Assassin's Creed Shadows)
+// Validator for authentic Ubisoft+ Classic titles
 const isUbisoftTitle = (item: any): boolean => {
   if (!item) return false;
   const title = (item.ProductTitle || '').toLowerCase();
-  // Specifically exclude Assassin's Creed Shadows
   if (title.includes('shadows')) {
     return false;
   }
@@ -154,7 +127,7 @@ const isUbisoftTitle = (item: any): boolean => {
   );
 };
 
-// Fetch products from official Microsoft catalog SIGL endpoint and match with active cloud title map
+// Fetch titles from Microsoft SIGL endpoint and match with active cloud title map
 const fetchSiglTitles = async (
   siglId: string,
   titleMap: Record<string, any>,
@@ -169,20 +142,18 @@ const fetchSiglTitles = async (
       const list: any[] = [];
       const seen = new Set<string>();
       res.data.forEach((item: any) => {
-        if (item.id) {
-          const matched =
-            titleMap[item.id] ||
-            titleMap[item.id.toUpperCase()] ||
-            titleMap[item.id.toLowerCase()];
-          if (matched) {
-            const key =
-              matched.titleId || matched.XCloudTitleId || matched.productId;
-            if (key && !seen.has(key)) {
-              if (!filterFn || filterFn(matched)) {
-                seen.add(key);
-                list.push(matched);
-              }
-            }
+        if (!item?.id) return;
+        const matched =
+          titleMap[item.id] ||
+          titleMap[item.id.toUpperCase()] ||
+          titleMap[item.id.toLowerCase()];
+        if (!matched) return;
+
+        const key = matched.titleId || matched.XCloudTitleId || matched.productId;
+        if (key && !seen.has(key)) {
+          if (!filterFn || filterFn(matched)) {
+            seen.add(key);
+            list.push(matched);
           }
         }
       });
@@ -194,6 +165,7 @@ const fetchSiglTitles = async (
   return [];
 };
 
+// Region metadata display helper
 const getRegionDisplayInfo = (regionName: string) => {
   if (!regionName) return {flag: '🌐', code: 'AUTO', name: 'Auto'};
   const lower = regionName.toLowerCase();
@@ -249,6 +221,360 @@ const getRegionDisplayInfo = (regionName: string) => {
   };
 };
 
+// Account tier detector from cloud titles (Essential, Premium, Ultimate)
+const detectAccountTier = (titleResults: any[], hasToken: boolean): string => {
+  let detected = hasToken ? 'Ultimate' : 'FREE';
+  for (const item of titleResults) {
+    const subs = item.details?.userSubscriptions || [];
+    const progs = item.details?.userPrograms || [];
+    if (subs.includes('XGPULTIMATE') || progs.includes('GPULTIMATE')) {
+      return 'Ultimate';
+    }
+    if (
+      subs.includes('XGPPREMIUM') ||
+      progs.includes('GPPREMIUM') ||
+      subs.includes('XGPSTANDARD') ||
+      progs.includes('GPSTANDARD')
+    ) {
+      detected = 'Premium';
+    } else if (
+      subs.includes('XGPESSENTIAL') ||
+      progs.includes('GPESSENTIAL') ||
+      subs.includes('XGPCORE') ||
+      progs.includes('GPCORE')
+    ) {
+      detected = 'Essential';
+    }
+  }
+  return detected;
+};
+
+// Build fast lookup map for product and title IDs
+const buildTitleLookupMap = (items: any[]): Record<string, any> => {
+  const map: Record<string, any> = {};
+  items.forEach((item: any) => {
+    if (item.productId) {
+      map[item.productId] = item;
+      map[item.productId.toUpperCase()] = item;
+      map[item.productId.toLowerCase()] = item;
+    }
+    if (item.details?.productId) {
+      map[item.details.productId] = item;
+      map[item.details.productId.toUpperCase()] = item;
+      map[item.details.productId.toLowerCase()] = item;
+    }
+    if (item.titleId) {
+      map[item.titleId] = item;
+      map[item.titleId.toUpperCase()] = item;
+    }
+    if (item.XCloudTitleId) {
+      map[item.XCloudTitleId] = item;
+      map[item.XCloudTitleId.toUpperCase()] = item;
+    }
+  });
+  return map;
+};
+
+// Resolve Xbox gamertag across tokens and cache
+const resolveXboxGamertag = (
+  fetchedGamertag: string,
+  profile: any,
+  webToken: any,
+  streamingTokens: any,
+): string => {
+  if (fetchedGamertag) return fetchedGamertag;
+  if (profile?.Gamertag) return profile.Gamertag;
+  if (profile?.gamertag) return profile.gamertag;
+
+  const cachedGtg = storage.getString('user.gamertag');
+  if (cachedGtg) return cachedGtg;
+
+  const curWebToken = webToken?.data ? webToken : getWebToken();
+  const webGtg = curWebToken?.data?.DisplayClaims?.xui?.[0]?.gtg;
+  if (webGtg) return webGtg;
+
+  try {
+    const tokenStore = new TokenStore();
+    tokenStore.load();
+    const sisu = tokenStore.getSisuToken();
+    const sisuGtg =
+      sisu?.getGamertag?.() ||
+      sisu?.data?.AuthorizationToken?.DisplayClaims?.xui?.[0]?.gtg;
+    if (sisuGtg) return sisuGtg;
+  } catch {}
+
+  if (streamingTokens?.xHomeToken?.getGamertag) {
+    const gt = streamingTokens.xHomeToken.getGamertag();
+    if (gt) return gt;
+  }
+  if (streamingTokens?.xCloudToken?.getGamertag) {
+    const gt = streamingTokens.xCloudToken.getGamertag();
+    if (gt) return gt;
+  }
+
+  return 'Xbox Gamer';
+};
+
+// Region selection modal component
+interface RegionSelectModalProps {
+  visible: boolean;
+  onDismiss: () => void;
+  availableRegions: any[];
+  currentRegionName: string;
+  onSelectRegion: (name: string) => void;
+  screenHeight: number;
+  t: (key: string) => string;
+}
+
+const RegionSelectModal: React.FC<RegionSelectModalProps> = ({
+  visible,
+  onDismiss,
+  availableRegions,
+  currentRegionName,
+  onSelectRegion,
+  screenHeight,
+  t,
+}) => (
+  <Portal>
+    <Modal
+      visible={visible}
+      onDismiss={onDismiss}
+      contentContainerStyle={[styles.dialogContainer, {maxHeight: screenHeight * 0.76}]}>
+      <Card style={styles.modalCard}>
+        <Card.Title
+          title={t('Select Cloud Server')}
+          titleStyle={styles.modalTitle}
+          left={props => <Icon {...props} source="earth" color="#2ed573" size={24} />}
+        />
+        <ScrollView
+          style={{maxHeight: screenHeight * 0.58}}
+          contentContainerStyle={styles.modalScrollContent}
+          showsVerticalScrollIndicator={true}
+          nestedScrollEnabled={true}>
+          {availableRegions.map(reg => {
+            const info = getRegionDisplayInfo(reg.name);
+            const isSelected =
+              currentRegionName === reg.name || (!currentRegionName && reg.isDefault);
+            return (
+              <Pressable
+                key={reg.name}
+                onPress={() => onSelectRegion(reg.name)}
+                style={[styles.regionModalOption, isSelected && styles.modalOptionActive]}>
+                <View style={styles.regionOptionLeft}>
+                  <Text style={styles.modalRegionFlag}>{info.flag}</Text>
+                  <View style={styles.modalRegionInfo}>
+                    <Text
+                      numberOfLines={1}
+                      style={[styles.modalOptionTitle, isSelected && styles.modalOptionTextActive]}>
+                      {info.name}
+                    </Text>
+                    <Text numberOfLines={1} style={styles.modalRegionCode}>
+                      {reg.name}
+                    </Text>
+                  </View>
+                </View>
+                {isSelected && <Icon source="check" size={20} color="#2ed573" />}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </Card>
+    </Modal>
+  </Portal>
+);
+
+// Sort options modal component
+interface SortOptionModalProps {
+  visible: boolean;
+  onDismiss: () => void;
+  sortBy: string;
+  onSelectSort: (key: any) => void;
+  t: (key: string) => string;
+}
+
+const SortOptionModal: React.FC<SortOptionModalProps> = ({
+  visible,
+  onDismiss,
+  sortBy,
+  onSelectSort,
+  t,
+}) => {
+  const options = [
+    {key: 'relevance', label: t('Relevance')},
+    {key: 'az', label: 'A - Z'},
+    {key: 'za', label: 'Z - A'},
+    {key: 'newest', label: t('Newest')},
+  ];
+
+  return (
+    <Portal>
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={styles.dialogContainer}>
+        <Card style={styles.modalCard}>
+          <Card.Title
+            title={t('Sort: Relevance')}
+            titleStyle={styles.modalTitle}
+            left={props => <Icon {...props} source="sort-variant" color="#2ed573" size={24} />}
+          />
+          <Card.Content>
+            {options.map(opt => (
+              <Pressable
+                key={opt.key}
+                onPress={() => onSelectSort(opt.key)}
+                style={[styles.modalOption, sortBy === opt.key && styles.modalOptionActive]}>
+                <Text
+                  style={[
+                    styles.modalOptionText,
+                    sortBy === opt.key && styles.modalOptionTextActive,
+                  ]}>
+                  {opt.label}
+                </Text>
+                {sortBy === opt.key && <Icon source="check" size={18} color="#2ed573" />}
+              </Pressable>
+            ))}
+          </Card.Content>
+        </Card>
+      </Modal>
+    </Portal>
+  );
+};
+
+// Filter options modal component
+interface FilterOptionModalProps {
+  visible: boolean;
+  onDismiss: () => void;
+  filterCategory: string;
+  onSelectFilter: (key: any) => void;
+  t: (key: string) => string;
+}
+
+const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
+  visible,
+  onDismiss,
+  filterCategory,
+  onSelectFilter,
+  t,
+}) => {
+  const filterOptions = [
+    {key: 'all', label: t('All')},
+    {key: 'play_gamepass', label: t('Play with Game Pass')},
+    {key: 'new', label: t('Recently Added')},
+    {key: 'ubisoft', label: t('Ubisoft+ Classic')},
+    {key: 'own', label: t('Stream your own game')},
+    {key: 'leaving', label: t('Leaving soon')},
+    {key: 'recent', label: t('Recently')},
+    {key: 'favorites', label: t('Favorites')},
+  ];
+
+  return (
+    <Portal>
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={styles.dialogContainer}>
+        <Card style={styles.modalCard}>
+          <Card.Title
+            title={t('Filters')}
+            titleStyle={styles.modalTitle}
+            left={props => <Icon {...props} source="filter-variant" color="#2ed573" size={24} />}
+          />
+          <Card.Content>
+            {filterOptions.map(opt => (
+              <Pressable
+                key={opt.key}
+                onPress={() => onSelectFilter(opt.key)}
+                style={[styles.modalOption, filterCategory === opt.key && styles.modalOptionActive]}>
+                <Text
+                  style={[
+                    styles.modalOptionText,
+                    filterCategory === opt.key && styles.modalOptionTextActive,
+                  ]}>
+                  {opt.label}
+                </Text>
+                {filterCategory === opt.key && <Icon source="check" size={18} color="#2ed573" />}
+              </Pressable>
+            ))}
+          </Card.Content>
+        </Card>
+      </Modal>
+    </Portal>
+  );
+};
+
+// USB connection warning modal component
+interface UsbWarningModalProps {
+  visible: boolean;
+  onDismiss: () => void;
+  onConfirm: () => void;
+  t: (key: string) => string;
+}
+
+const UsbWarningModal: React.FC<UsbWarningModalProps> = ({
+  visible,
+  onDismiss,
+  onConfirm,
+  t,
+}) => (
+  <Portal>
+    <Modal
+      visible={visible}
+      onDismiss={onDismiss}
+      contentContainerStyle={styles.dialogContainer}>
+      <Card style={styles.modalCard}>
+        <Card.Content>
+          <Text style={styles.usbWarningText}>
+            {t(
+              'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive',
+            )}
+          </Text>
+          <Button
+            mode="contained"
+            buttonColor="#2ed573"
+            textColor="#000000"
+            onPress={onConfirm}>
+            {t('Confirm')}
+          </Button>
+        </Card.Content>
+      </Card>
+    </Modal>
+  </Portal>
+);
+
+// Cloud gaming acceleration guide modal
+interface TutorialModalProps {
+  visible: boolean;
+  onDismiss: () => void;
+}
+
+const TutorialModal: React.FC<TutorialModalProps> = ({visible, onDismiss}) => (
+  <Portal>
+    <Modal
+      visible={visible}
+      onDismiss={onDismiss}
+      contentContainerStyle={styles.tutorialModalContainer}>
+      <Card style={styles.modalCard}>
+        <Card.Content>
+          <Text variant="bodyMedium" style={styles.tutorialLeadText}>
+            如果你在中国大陆地区，因为云游戏服务器均在海外，云游戏延迟和丢包率高都是正常现象，
+            如果你需要使用加速器提升云游戏质量，请按照以下操作顺序加速云游戏。
+          </Text>
+          <Text variant="bodyMedium" style={styles.tutorialStepText}>
+            1. 打开XStreaming，设置 - 云游戏 - 地区选择日本或韩国，选择后记得保存。
+          </Text>
+          <Text variant="bodyMedium" style={styles.tutorialStepText}>
+            2. 进入云游戏栏目，选择游戏直接开始，待连接成功显示游戏画面后，将XStreaming切到后台。
+          </Text>
+          <Text variant="bodyMedium" style={styles.tutorialStepText}>
+            3. 打开加速器，选择加速『XStreaming』，等待加速成功后切回游戏。
+          </Text>
+        </Card.Content>
+      </Card>
+    </Modal>
+  </Portal>
+);
+
 function CloudScreen({navigation, route}: any) {
   const {t, i18n} = useTranslation();
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
@@ -261,44 +587,46 @@ function CloudScreen({navigation, route}: any) {
 
   const currentLanguage = i18n.language;
 
+  // Catalog and loading states
   const [loading, setLoading] = React.useState(false);
-  const [loadmoring, setLoadmoring] = React.useState(false);
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [isLimited, setIsLimited] = React.useState(false);
-  const [showToturial, setShowToturial] = React.useState(false);
+  const [showTutorial, setShowTutorial] = React.useState(false);
+
   const [titles, setTitles] = React.useState<any[]>([]);
+  const [titleMap, setTitleMap] = React.useState<Record<string, any>>({});
   const [newTitles, setNewTitles] = React.useState<any[]>([]);
-  const [_titlesMap, setTitlesMap] = React.useState<Record<string, any>>({});
   const [recentTitles, setRecentTitles] = React.useState<any[]>([]);
   const [leavingSoonTitles, setLeavingSoonTitles] = React.useState<any[]>([]);
-  const [playWithGamePassTitlesState, setPlayWithGamePassTitlesState] = React.useState<any[]>([]);
-  const [ubisoftTitlesState, setUbisoftTitlesState] = React.useState<any[]>([]);
-  const [streamYourOwnTitlesState, setStreamYourOwnTitlesState] = React.useState<any[]>([]);
+  const [gamePassTitles, setGamePassTitles] = React.useState<any[]>([]);
+  const [ubisoftTitlesData, setUbisoftTitlesData] = React.useState<any[]>([]);
+  const [streamYourOwnTitlesData, setStreamYourOwnTitlesData] = React.useState<any[]>([]);
+
   const [keyword, setKeyword] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
 
-  // Dynamic Gamertag State
+  // User profile states
   const [fetchedGamertag, setFetchedGamertag] = React.useState<string>(() => {
     return storage.getString('user.gamertag') || '';
   });
-
-  // Dynamic Gamerpic State (Xbox profile picture)
   const [gamerpic, setGamerpic] = React.useState<string>(() => {
     return storage.getString('user.gamerpic') || '';
   });
-
-  // Real Account Tier (auto-detected, non-modifiable)
   const [accountTier, setAccountTier] = React.useState<string>(() => {
-    return storage.getString('user.account_tier') || '';
+    const cached = storage.getString('user.account_tier') || '';
+    if (cached === 'Core') return 'Essential';
+    if (cached === 'Standard') return 'Premium';
+    return cached;
   });
 
-  // Server Region State
+  // Server region state
   const [currentRegionName, setCurrentRegionName] = React.useState<string>(() => {
     const settings = getSettings();
     return settings.signaling_cloud_name || '';
   });
   const [showRegionModal, setShowRegionModal] = React.useState(false);
 
-  // Navigation & Filter states: 'library' (all games), 'favorites' (starred games)
+  // Navigation and filter states
   const [activeBottomTab, setActiveBottomTab] = React.useState<'library' | 'favorites'>('library');
   const [sortBy, setSortBy] = React.useState<'relevance' | 'az' | 'za' | 'newest'>('relevance');
   const [filterCategory, setFilterCategory] = React.useState<
@@ -307,17 +635,17 @@ function CloudScreen({navigation, route}: any) {
   const [showSortModal, setShowSortModal] = React.useState(false);
   const [showFilterModal, setShowFilterModal] = React.useState(false);
 
-  // USB warning state
+  // USB controller state
   const [showUsbWarnModal, setShowUsbWarnModal] = React.useState(false);
   const [pendingLaunchTitle, setPendingLaunchTitle] = React.useState<any>(null);
 
   const flatListRef = React.useRef<any>(null);
-  const isFetchGame = React.useRef(false);
+  const hasFetchedGamesRef = React.useRef(false);
 
+  // Orientation and dimension calculations
   const isLandscape = screenWidth > screenHeight;
   const isLargeScreen = Platform.isTV || isLandscape;
 
-  // Floating bottom navigation bar layout calculations
   const bottomBarWidth = isLandscape
     ? Math.min(480, screenWidth - 64)
     : screenWidth - 32;
@@ -326,7 +654,6 @@ function CloudScreen({navigation, route}: any) {
   const bottomBarHeight = isLandscape ? 56 : 64;
   const bottomBarRadius = isLandscape ? 28 : 32;
 
-  // Unified padding constant across the entire screen for pixel-perfect left alignment
   const PADDING_H = isLargeScreen ? 20 : 14;
   const GAP = 10;
   const numColumns = React.useMemo(() => {
@@ -350,48 +677,20 @@ function CloudScreen({navigation, route}: any) {
   const horizontalCardHeight = Math.round(horizontalCardWidth * 1.38);
   const pageSize = isLargeScreen ? 36 : 24;
 
-  // Resolve Real Xbox Gamertag
+  // Resolved user Gamertag
   const gamertag = React.useMemo(() => {
-    if (fetchedGamertag) return fetchedGamertag;
-    if (profile?.Gamertag) return profile.Gamertag;
-    if (profile?.gamertag) return profile.gamertag;
-
-    const cachedGtg = storage.getString('user.gamertag');
-    if (cachedGtg) return cachedGtg;
-
-    const curWebToken = webToken?.data ? webToken : getWebToken();
-    const webGtg = curWebToken?.data?.DisplayClaims?.xui?.[0]?.gtg;
-    if (webGtg) return webGtg;
-
-    try {
-      const tokenStore = new TokenStore();
-      tokenStore.load();
-      const sisu = tokenStore.getSisuToken();
-      const sisuGtg =
-        sisu?.getGamertag?.() ||
-        sisu?.data?.AuthorizationToken?.DisplayClaims?.xui?.[0]?.gtg;
-      if (sisuGtg) return sisuGtg;
-    } catch {}
-
-    if (streamingTokens?.xHomeToken?.getGamertag) {
-      const gt = streamingTokens.xHomeToken.getGamertag();
-      if (gt) return gt;
-    }
-    if (streamingTokens?.xCloudToken?.getGamertag) {
-      const gt = streamingTokens.xCloudToken.getGamertag();
-      if (gt) return gt;
-    }
-
-    return 'Xbox Gamer';
+    return resolveXboxGamertag(fetchedGamertag, profile, webToken, streamingTokens);
   }, [fetchedGamertag, profile, webToken, streamingTokens]);
 
-  // Subscription Tier Display (detected purely from account)
+  // Subscription tier label (Essential, Premium, Ultimate)
   const displayTier = React.useMemo(() => {
+    if (accountTier === 'Core') return 'Essential';
+    if (accountTier === 'Standard') return 'Premium';
     if (accountTier) return accountTier;
     return streamingTokens?.xCloudToken ? 'Ultimate' : 'FREE';
   }, [accountTier, streamingTokens.xCloudToken]);
 
-  // Available xCloud server regions
+  // Available server regions
   const availableRegions = React.useMemo(() => {
     const tokenRegions = streamingTokens?.xCloudToken?.getRegions?.() || [];
     if (tokenRegions.length > 0) {
@@ -410,7 +709,7 @@ function CloudScreen({navigation, route}: any) {
     ];
   }, [streamingTokens]);
 
-  // Active region info
+  // Current server region info
   const currentRegionInfo = React.useMemo(() => {
     if (currentRegionName) {
       return getRegionDisplayInfo(currentRegionName);
@@ -422,27 +721,27 @@ function CloudScreen({navigation, route}: any) {
     return getRegionDisplayInfo('KoreaCentral');
   }, [currentRegionName, streamingTokens]);
 
-  // 1. Play with Game Pass (Official AllGamePassGames SIGL from xbox.com/play - strictly subscription titles only)
+  // Game Pass channel titles
   const playWithGamePassTitles = React.useMemo(() => {
-    if (playWithGamePassTitlesState.length > 0) {
-      return playWithGamePassTitlesState.filter(isGamePassSubscriptionTitle);
+    if (gamePassTitles.length > 0) {
+      return gamePassTitles.filter(isGamePassSubscriptionTitle);
     }
     if (titles.length === 0) return [];
     return titles.filter(isGamePassSubscriptionTitle).slice(0, 30);
-  }, [playWithGamePassTitlesState, titles]);
+  }, [gamePassTitles, titles]);
 
-  // 2. Ubisoft+ Classic Collection (Official Nakatomi SIGL from xbox.com/play - strictly excluding Assassin's Creed Shadows)
+  // Ubisoft+ Classic channel titles
   const ubisoftTitles = React.useMemo(() => {
-    if (ubisoftTitlesState.length > 0) {
-      return ubisoftTitlesState.filter(isUbisoftTitle);
+    if (ubisoftTitlesData.length > 0) {
+      return ubisoftTitlesData.filter(isUbisoftTitle);
     }
     return titles.filter(isUbisoftTitle);
-  }, [ubisoftTitlesState, titles]);
+  }, [ubisoftTitlesData, titles]);
 
-  // 3. Stream your own game (Official FresnoSYOG SIGL from xbox.com/play)
+  // Stream your own games channel titles
   const streamYourOwnTitles = React.useMemo(() => {
-    if (streamYourOwnTitlesState.length > 0) {
-      return streamYourOwnTitlesState;
+    if (streamYourOwnTitlesData.length > 0) {
+      return streamYourOwnTitlesData;
     }
     const ownedKeywords = [
       'cyberpunk', 'witcher', 'hogwarts', "baldur's gate",
@@ -460,15 +759,120 @@ function CloudScreen({navigation, route}: any) {
       );
     });
     return found.length >= 4 ? found : titles.slice(8, 22);
-  }, [streamYourOwnTitlesState, titles]);
+  }, [streamYourOwnTitlesData, titles]);
 
-  // 4. Leaving soon titles (Official CloudLeavingSoon SIGL from xbox.com/play)
+  // Leaving soon channel titles
   const leavingSoonList = React.useMemo(() => {
     if (leavingSoonTitles.length > 0) return leavingSoonTitles;
     return titles.length > 15 ? titles.slice(titles.length - 12) : [];
   }, [leavingSoonTitles, titles]);
 
-  // Fetch games & live user profile
+  // Fetch user profile from WebApi
+  const fetchUserProfile = async (token: any) => {
+    if (!token || !isWebTokenValid(token)) return;
+    try {
+      const webApi = new WebApi(token);
+      const res = await webApi.getUserProfile();
+      if (res?.Gamertag) {
+        setFetchedGamertag(res.Gamertag);
+        storage.set('user.gamertag', res.Gamertag);
+      }
+      if (res?.GameDisplayPicRaw) {
+        setGamerpic(res.GameDisplayPicRaw);
+        storage.set('user.gamerpic', res.GameDisplayPicRaw);
+      }
+      dispatch({type: 'SET_PROFILE', payload: res});
+    } catch (err) {
+      log.info('fetchUserProfile error:', err);
+    }
+  };
+
+  // Fetch full cloud catalog and SIGL channels
+  const fetchCatalog = async (silent = false) => {
+    if (!streamingTokens.xCloudToken) return;
+    if (!silent) setLoading(true);
+
+    try {
+      const baseUri = streamingTokens.xCloudToken.getDefaultRegion().baseUri;
+      const gsToken = streamingTokens.xCloudToken.data.gsToken;
+      const api = new XcloudApi(baseUri, gsToken, 'cloud');
+
+      const titleRes = await api.getTitles();
+      if (!titleRes?.results?.length) {
+        if (!silent) setLoading(false);
+        return;
+      }
+
+      // Detect account tier (Essential, Premium, Ultimate)
+      const tier = detectAccountTier(titleRes.results, true);
+      setAccountTier(tier);
+      storage.set('user.account_tier', tier);
+
+      const rawTitles = await api.getGamePassProducts(titleRes.results);
+      setTitles(rawTitles);
+
+      const lookupMap = buildTitleLookupMap(rawTitles);
+      setTitleMap(lookupMap);
+
+      // Concurrently fetch SIGL collections
+      const [gpRes, newRes, ubiRes, ownRes, leaveRes, recentRes] =
+        await Promise.allSettled([
+          fetchSiglTitles(SIGL_GAME_PASS, lookupMap, isGamePassSubscriptionTitle),
+          fetchSiglTitles(SIGL_RECENTLY_ADDED, lookupMap),
+          fetchSiglTitles(SIGL_UBISOFT_CLASSICS, lookupMap, isUbisoftTitle),
+          fetchSiglTitles(SIGL_STREAM_YOUR_OWN, lookupMap),
+          fetchSiglTitles(SIGL_LEAVING_SOON, lookupMap),
+          api.getRecentTitles(),
+        ]);
+
+      const gpList = (gpRes.status === 'fulfilled' ? gpRes.value : []).filter(
+        isGamePassSubscriptionTitle,
+      );
+      const newList = newRes.status === 'fulfilled' ? newRes.value : [];
+      const ubiList = (ubiRes.status === 'fulfilled' ? ubiRes.value : []).filter(
+        isUbisoftTitle,
+      );
+      const ownList = ownRes.status === 'fulfilled' ? ownRes.value : [];
+      const leaveList = leaveRes.status === 'fulfilled' ? leaveRes.value : [];
+
+      if (gpList.length > 0) setGamePassTitles(gpList);
+      if (newList.length > 0) setNewTitles(newList);
+      if (ubiList.length > 0) setUbisoftTitlesData(ubiList);
+      if (ownList.length > 0) setStreamYourOwnTitlesData(ownList);
+      if (leaveList.length > 0) setLeavingSoonTitles(leaveList);
+
+      const recentList: any[] = [];
+      if (recentRes.status === 'fulfilled' && recentRes.value?.results) {
+        recentRes.value.results.forEach((item: any) => {
+          const pid = item.details?.productId;
+          if (pid && (lookupMap[pid] || lookupMap[pid.toUpperCase()])) {
+            recentList.push(lookupMap[pid] || lookupMap[pid.toUpperCase()]);
+          }
+        });
+        setRecentTitles(recentList);
+      }
+
+      // Update cache
+      const cached = getXcloudData();
+      saveXcloudData({
+        ...cached,
+        titles: rawTitles,
+        titleMap: lookupMap,
+        playWithGamePassTitles: gpList,
+        newTitles: newList,
+        ubisoftTitles: ubiList,
+        streamYourOwnTitles: ownList,
+        leavingSoonTitles: leaveList,
+        recentTitles: recentList,
+      });
+    } catch (err) {
+      log.info('fetchCatalog error:', err);
+    } finally {
+      setLoading(false);
+      hasFetchedGamesRef.current = true;
+    }
+  };
+
   React.useEffect(() => {
     if (typeof route.params?.keyword === 'string') {
       setKeyword(route.params.keyword);
@@ -477,164 +881,10 @@ function CloudScreen({navigation, route}: any) {
       setIsLimited(true);
     }
 
-    // Fetch user profile from WebApi if available to guarantee real gamertag and gamerpic
     const curWebToken = webToken?.data ? webToken : getWebToken();
-    if (curWebToken && isWebTokenValid(curWebToken)) {
-      try {
-        const webApi = new WebApi(curWebToken);
-        webApi
-          .getUserProfile()
-          .then((res: any) => {
-            if (res?.Gamertag) {
-              setFetchedGamertag(res.Gamertag);
-              storage.set('user.gamertag', res.Gamertag);
-            }
-            if (res?.GameDisplayPicRaw) {
-              setGamerpic(res.GameDisplayPicRaw);
-              storage.set('user.gamerpic', res.GameDisplayPicRaw);
-            }
-            dispatch({type: 'SET_PROFILE', payload: res});
-          })
-          .catch(err => {
-            log.info('getUserProfile error:', err);
-          });
-      } catch (e) {
-        log.info('WebApi init error:', e);
-      }
-    }
+    fetchUserProfile(curWebToken);
 
-    const fetchGames = (silent = false) => {
-      if (silent) {
-        log.info('Fetch games silent');
-      }
-      if (streamingTokens.xCloudToken) {
-        const _xCloudApi = new XcloudApi(
-          streamingTokens.xCloudToken.getDefaultRegion().baseUri,
-          streamingTokens.xCloudToken.data.gsToken,
-          'cloud',
-        );
-
-        !silent && setLoading(true);
-        _xCloudApi.getTitles().then((res: any) => {
-          if (res.results && res.results.length > 0) {
-            // Auto-detect authentic account subscription tier
-            let detected = streamingTokens.xCloudToken ? 'Ultimate' : 'FREE';
-            for (const item of res.results) {
-              const subs = item.details?.userSubscriptions || [];
-              const progs = item.details?.userPrograms || [];
-              if (subs.includes('XGPULTIMATE') || progs.includes('GPULTIMATE')) {
-                detected = 'Ultimate';
-                break;
-              } else if (subs.includes('XGPCORE') || progs.includes('GPCORE')) {
-                detected = 'Core';
-              } else if (subs.includes('XGPSTANDARD') || progs.includes('GPSTANDARD')) {
-                detected = 'Standard';
-              }
-            }
-            setAccountTier(detected);
-            storage.set('user.account_tier', detected);
-
-            _xCloudApi.getGamePassProducts(res.results).then((_titles: any) => {
-              setTitles(_titles);
-
-              const _titleMap: Record<string, any> = {};
-              _titles.forEach((item: any) => {
-                if (item.productId) {
-                  _titleMap[item.productId] = item;
-                  _titleMap[item.productId.toUpperCase()] = item;
-                  _titleMap[item.productId.toLowerCase()] = item;
-                }
-                if (item.details?.productId) {
-                  _titleMap[item.details.productId] = item;
-                  _titleMap[item.details.productId.toUpperCase()] = item;
-                  _titleMap[item.details.productId.toLowerCase()] = item;
-                }
-                if (item.titleId) {
-                  _titleMap[item.titleId] = item;
-                  _titleMap[item.titleId.toUpperCase()] = item;
-                }
-                if (item.XCloudTitleId) {
-                  _titleMap[item.XCloudTitleId] = item;
-                  _titleMap[item.XCloudTitleId.toUpperCase()] = item;
-                }
-              });
-              setTitlesMap(_titleMap);
-
-              // Concurrently fetch all official Microsoft Xbox Cloud Gaming channels directly from catalog endpoints
-              Promise.allSettled([
-                fetchSiglTitles(SIGL_GAME_PASS, _titleMap, isGamePassSubscriptionTitle),
-                fetchSiglTitles(SIGL_RECENTLY_ADDED, _titleMap),
-                fetchSiglTitles(SIGL_UBISOFT_CLASSICS, _titleMap, isUbisoftTitle),
-                fetchSiglTitles(SIGL_STREAM_YOUR_OWN, _titleMap),
-                fetchSiglTitles(SIGL_LEAVING_SOON, _titleMap),
-                _xCloudApi.getRecentTitles(),
-              ]).then(([popRes, newRes, ubiRes, ownRes, leaveRes, recentRes]) => {
-                const _popTitles = (
-                  popRes.status === 'fulfilled' ? popRes.value : []
-                ).filter(isGamePassSubscriptionTitle);
-                const _newTitles =
-                  newRes.status === 'fulfilled' ? newRes.value : [];
-                const _ubiTitles = (
-                  ubiRes.status === 'fulfilled' ? ubiRes.value : []
-                ).filter(isUbisoftTitle);
-                const _ownTitles =
-                  ownRes.status === 'fulfilled' ? ownRes.value : [];
-                const _leaveTitles =
-                  leaveRes.status === 'fulfilled' ? leaveRes.value : [];
-
-                if (_popTitles.length > 0) {
-                  setPlayWithGamePassTitlesState(_popTitles);
-                }
-                if (_newTitles.length > 0) {
-                  setNewTitles(_newTitles);
-                }
-                if (_ubiTitles.length > 0) {
-                  setUbisoftTitlesState(_ubiTitles);
-                }
-                if (_ownTitles.length > 0) {
-                  setStreamYourOwnTitlesState(_ownTitles);
-                }
-                if (_leaveTitles.length > 0) {
-                  setLeavingSoonTitles(_leaveTitles);
-                }
-
-                const _recentTitles: any[] = [];
-                if (recentRes.status === 'fulfilled' && recentRes.value?.results) {
-                  recentRes.value.results.forEach((item: any) => {
-                    const pid = item.details?.productId;
-                    if (pid && (_titleMap[pid] || _titleMap[pid.toUpperCase()])) {
-                      _recentTitles.push(
-                        _titleMap[pid] || _titleMap[pid.toUpperCase()],
-                      );
-                    }
-                  });
-                  setRecentTitles(_recentTitles);
-                }
-
-                setLoading(false);
-                isFetchGame.current = true;
-
-                // Update cache with all official Microsoft channels
-                const cacheData = getXcloudData();
-                saveXcloudData({
-                  ...cacheData,
-                  titles: _titles,
-                  titleMap: _titleMap,
-                  playWithGamePassTitles: _popTitles,
-                  newTitles: _newTitles,
-                  ubisoftTitles: _ubiTitles,
-                  streamYourOwnTitles: _ownTitles,
-                  leavingSoonTitles: _leaveTitles,
-                  recentTitles: _recentTitles,
-                });
-              });
-            });
-          }
-        });
-      }
-    };
-
-    if (!isFetchGame.current) {
+    if (!hasFetchedGamesRef.current) {
       const cacheData = getXcloudData();
       if (cacheData && isxCloudDataValid(cacheData)) {
         log.info('Get xcloud data from cache');
@@ -644,39 +894,33 @@ function CloudScreen({navigation, route}: any) {
           newTitles: _newTitles,
           starTitles: _starTitles,
           recentTitles: _recentTitles,
-          playWithGamePassTitles: _playWithGamePassTitles,
-          ubisoftTitles: _ubisoftTitles,
-          streamYourOwnTitles: _streamYourOwnTitles,
-          leavingSoonTitles: _leavingSoonTitles,
+          playWithGamePassTitles: _gpTitles,
+          ubisoftTitles: _ubiTitles,
+          streamYourOwnTitles: _ownTitles,
+          leavingSoonTitles: _leaveTitles,
         } = cacheData;
 
         setTitles(_titles || []);
-        setTitlesMap(_titleMap || {});
+        setTitleMap(_titleMap || {});
         setNewTitles(_newTitles || []);
         setRecentTitles(_recentTitles || []);
-        if (_playWithGamePassTitles) {
-          setPlayWithGamePassTitlesState(
-            _playWithGamePassTitles.filter(isGamePassSubscriptionTitle),
-          );
+        if (_gpTitles) {
+          setGamePassTitles(_gpTitles.filter(isGamePassSubscriptionTitle));
         }
-        if (_ubisoftTitles) {
-          setUbisoftTitlesState(_ubisoftTitles.filter(isUbisoftTitle));
+        if (_ubiTitles) {
+          setUbisoftTitlesData(_ubiTitles.filter(isUbisoftTitle));
         }
-        if (_streamYourOwnTitles) {
-          setStreamYourOwnTitlesState(_streamYourOwnTitles);
+        if (_ownTitles) {
+          setStreamYourOwnTitlesData(_ownTitles);
         }
-        if (_leavingSoonTitles) {
-          setLeavingSoonTitles(_leavingSoonTitles);
+        if (_leaveTitles) {
+          setLeavingSoonTitles(_leaveTitles);
         }
 
-        dispatch({
-          type: 'SET_STARS',
-          payload: _starTitles || [],
-        });
-
-        fetchGames(true);
+        dispatch({type: 'SET_STARS', payload: _starTitles || []});
+        fetchCatalog(true);
       } else {
-        fetchGames();
+        fetchCatalog();
       }
     }
   }, [route.params?.keyword, streamingTokens.xCloudToken, webToken, navigation, dispatch]);
@@ -693,7 +937,7 @@ function CloudScreen({navigation, route}: any) {
     flatListRef.current?.scrollToOffset({animated: true, offset: 0});
   };
 
-  // Toggle favorite / star
+  // Toggle favorite / bookmark
   const handleToggleStar = (titleItem: any) => {
     if (!titleItem) return;
     const targetId = titleItem.XCloudTitleId || titleItem.titleId;
@@ -704,10 +948,7 @@ function CloudScreen({navigation, route}: any) {
       ? starTitles.filter((id: string) => id !== targetId)
       : [...starTitles, targetId];
 
-    dispatch({
-      type: 'SET_STARS',
-      payload: newStarTitles,
-    });
+    dispatch({type: 'SET_STARS', payload: newStarTitles});
 
     if (cacheData) {
       cacheData.starTitles = newStarTitles;
@@ -715,7 +956,7 @@ function CloudScreen({navigation, route}: any) {
     }
   };
 
-  // Handle Server Region Selection: automatically syncs signaling_cloud_name & force_region_ip
+  // Select server region
   const handleSelectRegion = (regionName: string) => {
     const newSettings = syncRegionSettings(regionName, 'cloud');
     setCurrentRegionName(regionName);
@@ -729,7 +970,7 @@ function CloudScreen({navigation, route}: any) {
     }
   };
 
-  // Quick Direct Play
+  // Direct game launch handler
   const handleDirectPlay = async (titleItem: any) => {
     if (!titleItem) return;
     const settings = getSettings();
@@ -774,7 +1015,7 @@ function CloudScreen({navigation, route}: any) {
     });
   };
 
-  // Filtered and Sorted Titles
+  // Filter and sort titles
   const filteredTitles = React.useMemo(() => {
     let list: any[] = [];
     if (activeBottomTab === 'favorites' || filterCategory === 'favorites') {
@@ -799,12 +1040,11 @@ function CloudScreen({navigation, route}: any) {
     }
 
     if (keyword.length > 0) {
-      list = list.filter(item => {
-        return item.ProductTitle?.toUpperCase().includes(keyword.toUpperCase());
-      });
+      list = list.filter(item =>
+        item.ProductTitle?.toUpperCase().includes(keyword.toUpperCase()),
+      );
     }
 
-    // Apply sorting
     if (sortBy === 'az') {
       list = [...list].sort((a, b) =>
         (a.ProductTitle || '').localeCompare(b.ProductTitle || ''),
@@ -839,15 +1079,14 @@ function CloudScreen({navigation, route}: any) {
 
   const loadMoreData = () => {
     if (currentPage < totalPages) {
-      setLoadmoring(true);
+      setLoadingMore(true);
       setCurrentPage(prev => prev + 1);
       setTimeout(() => {
-        setLoadmoring(false);
+        setLoadingMore(false);
       }, 800);
     }
   };
 
-  // Check if title is starred
   const isItemStarred = (item: any) => {
     const id = item.XCloudTitleId || item.titleId;
     return starTitles.includes(id);
@@ -860,7 +1099,7 @@ function CloudScreen({navigation, route}: any) {
     scrollToTop();
   };
 
-  // Reusable horizontal carousel section with 10-item limit and "Tampilkan semua" button
+  // Horizontal carousel section
   const renderCarouselSection = (
     title: string,
     data: any[],
@@ -872,7 +1111,7 @@ function CloudScreen({navigation, route}: any) {
     const displayData = hasMoreThanTen ? data.slice(0, 10) : data;
 
     return (
-      <View style={styles.carouselSection}>
+      <View key={`${idPrefix}_sec`} style={styles.carouselSection}>
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>{title}</Text>
           {hasMoreThanTen && (
@@ -883,7 +1122,7 @@ function CloudScreen({navigation, route}: any) {
                 styles.showAllHeaderButton,
                 pressed && styles.showAllHeaderButtonPressed,
               ]}>
-              <Text style={styles.showAllHeaderText}>{t('Tampilkan semua')}</Text>
+              <Text style={styles.showAllHeaderText}>{t('Show all')}</Text>
               <Icon source="chevron-right" size={15} color="#2ed573" />
             </Pressable>
           )}
@@ -926,7 +1165,7 @@ function CloudScreen({navigation, route}: any) {
                 <View style={styles.showAllIconCircle}>
                   <Icon source="arrow-right" size={24} color="#2ed573" />
                 </View>
-                <Text style={styles.showAllCardTitle}>{t('Tampilkan semua')}</Text>
+                <Text style={styles.showAllCardTitle}>{t('Show all')}</Text>
                 <Text style={styles.showAllCardSubtitle}>
                   {`+${data.length - 10} ${t('available')}`}
                 </Text>
@@ -938,7 +1177,7 @@ function CloudScreen({navigation, route}: any) {
     );
   };
 
-  // Render Horizontal Channels based on Xbox Cloud Gaming on Xbox.com
+  // Channel carousels header
   const renderCarouselsHeader = () => {
     if (activeBottomTab === 'favorites' || filterCategory !== 'all' || keyword.length > 0) {
       return null;
@@ -946,25 +1185,25 @@ function CloudScreen({navigation, route}: any) {
 
     return (
       <View style={styles.carouselsContainer}>
-        {/* 1. Jump back in (Terakhir dimainkan - if user has played games) */}
+        {/* Jump back in */}
         {renderCarouselSection(t('Jump back in'), recentTitles, 'recent', 'recent')}
 
-        {/* 2. Play with Game Pass (Game Pass subscription titles only) */}
+        {/* Play with Game Pass */}
         {renderCarouselSection(t('Play with Game Pass'), playWithGamePassTitles, 'play_gamepass', 'gp')}
 
-        {/* 3. Recently Added */}
+        {/* Recently added */}
         {renderCarouselSection(t('Recently Added'), newTitles, 'new', 'new')}
 
-        {/* 4. Ubisoft+ Classic */}
+        {/* Ubisoft+ Classic */}
         {renderCarouselSection(t('Ubisoft+ Classic'), ubisoftTitles, 'ubisoft', 'ubi')}
 
-        {/* 5. Stream your own game */}
+        {/* Stream your own game */}
         {renderCarouselSection(t('Stream your own game'), streamYourOwnTitles, 'own', 'own')}
 
-        {/* 6. Leaving soon */}
+        {/* Leaving soon */}
         {renderCarouselSection(t('Leaving soon'), leavingSoonList, 'leaving', 'leave')}
 
-        {/* 7. Tab "Semua" placed at the bottom, perfectly aligned flush with items above */}
+        {/* All games section divider */}
         <View style={styles.catalogDividerHeader}>
           <Text style={styles.catalogSectionTitle}>{t('All')}</Text>
         </View>
@@ -972,7 +1211,7 @@ function CloudScreen({navigation, route}: any) {
     );
   };
 
-  // Render Sort Label
+  // Sort label display
   const sortLabel = React.useMemo(() => {
     switch (sortBy) {
       case 'az':
@@ -986,7 +1225,7 @@ function CloudScreen({navigation, route}: any) {
     }
   }, [sortBy, t]);
 
-  // Render Filter Label
+  // Filter label display
   const filterLabel = React.useMemo(() => {
     switch (filterCategory) {
       case 'favorites':
@@ -1008,7 +1247,7 @@ function CloudScreen({navigation, route}: any) {
     }
   }, [filterCategory, t]);
 
-  // Bottom navigation tab click handlers
+  // Bottom navigation tab clicks
   const handleTabPress = (tab: 'library' | 'search' | 'favorites' | 'settings') => {
     if (tab === 'library') {
       setActiveBottomTab('library');
@@ -1027,10 +1266,10 @@ function CloudScreen({navigation, route}: any) {
     }
   };
 
-  // Footer component with bottom clearance spacer
+  // Footer loading and clearance indicator
   const renderListFooter = () => (
     <View style={styles.footerWrap}>
-      {loadmoring && (
+      {loadingMore && (
         <ActivityIndicator
           size="small"
           color="#2ed573"
@@ -1048,10 +1287,9 @@ function CloudScreen({navigation, route}: any) {
 
       {!isLimited && (
         <View style={styles.mainContainer}>
-          {/* Top Profile / Brand Header with Xbox Gamerpic & Server Shortcut */}
+          {/* Header row with Gamerpic and Server Region shortcut */}
           <View style={[styles.topHeader, isLargeScreen && styles.topHeaderLarge]}>
             <View style={styles.headerMainRow}>
-              {/* Profile Info (Left) */}
               <View style={styles.profileRow}>
                 {gamerpic ? (
                   <Image source={{uri: gamerpic}} style={styles.gamerpicImage} />
@@ -1062,7 +1300,6 @@ function CloudScreen({navigation, route}: any) {
                   <Text style={styles.gamertagText} numberOfLines={1}>
                     {gamertag}
                   </Text>
-                  {/* Account Tier Badge (purely from account, non-clickable) */}
                   <View style={styles.subscriptionBadgeWrap}>
                     <View style={styles.subscriptionDot} />
                     <Text style={styles.subscriptionBadge}>{displayTier}</Text>
@@ -1070,7 +1307,6 @@ function CloudScreen({navigation, route}: any) {
                 </View>
               </View>
 
-              {/* Server Region Shortcut Button (Top Right) */}
               <Pressable
                 onPress={() => setShowRegionModal(true)}
                 android_ripple={{color: 'rgba(255, 255, 255, 0.18)'}}
@@ -1082,9 +1318,8 @@ function CloudScreen({navigation, route}: any) {
             </View>
           </View>
 
-          {/* Filter & Sort Chips Row */}
+          {/* Filter and sort chips */}
           <View style={[styles.filterRow, isLargeScreen && styles.filterRowLarge]}>
-            {/* Sort Pill */}
             <Pressable
               onPress={() => setShowSortModal(true)}
               android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
@@ -1094,7 +1329,6 @@ function CloudScreen({navigation, route}: any) {
               </Text>
             </Pressable>
 
-            {/* Filter Pill */}
             <Pressable
               onPress={() => setShowFilterModal(true)}
               android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
@@ -1104,7 +1338,6 @@ function CloudScreen({navigation, route}: any) {
               </Text>
             </Pressable>
 
-            {/* Count Pill */}
             <View style={styles.countPill}>
               <Text style={styles.countText}>
                 {`${filteredTitles.length} ${t('available')}`}
@@ -1112,24 +1345,24 @@ function CloudScreen({navigation, route}: any) {
             </View>
           </View>
 
-          {/* Accelerate tutorial link (if Chinese) */}
+          {/* Acceleration guide link */}
           {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
             <Text
               variant="labelSmall"
               style={styles.tutorialText}
-              onPress={() => setShowToturial(true)}>
+              onPress={() => setShowTutorial(true)}>
               🚀 点击查看云游戏加速指引
             </Text>
           )}
 
-          {/* Empty State */}
+          {/* Empty state */}
           {!loading && !filteredTitles.length && (
             <View style={styles.emptyContainer}>
               <Empty />
             </View>
           )}
 
-          {/* 3-Column Portrait Catalog Grid */}
+          {/* Catalog grid */}
           {pagedTitles.length > 0 && (
             <FlatList
               ref={flatListRef}
@@ -1160,7 +1393,7 @@ function CloudScreen({navigation, route}: any) {
             />
           )}
 
-          {/* Floating Pill Bottom Navigation Bar */}
+          {/* Floating bottom navigation bar */}
           <View
             style={[
               styles.floatingBottomBar,
@@ -1172,7 +1405,7 @@ function CloudScreen({navigation, route}: any) {
                 borderRadius: bottomBarRadius,
               },
             ]}>
-            {/* Pustaka (Library / Catalog) Tab */}
+            {/* Library tab */}
             <Pressable
               onPress={() => handleTabPress('library')}
               style={styles.tabItem}>
@@ -1198,7 +1431,7 @@ function CloudScreen({navigation, route}: any) {
               </Text>
             </Pressable>
 
-            {/* Cari (Search) Tab */}
+            {/* Search tab */}
             <Pressable
               onPress={() => handleTabPress('search')}
               style={styles.tabItem}>
@@ -1214,7 +1447,7 @@ function CloudScreen({navigation, route}: any) {
               </Text>
             </Pressable>
 
-            {/* Favorit (Favorites) Tab */}
+            {/* Favorites tab */}
             <Pressable
               onPress={() => handleTabPress('favorites')}
               style={styles.tabItem}>
@@ -1240,7 +1473,7 @@ function CloudScreen({navigation, route}: any) {
               </Text>
             </Pressable>
 
-            {/* Pengaturan (Settings) Tab */}
+            {/* Settings tab */}
             <Pressable
               onPress={() => handleTabPress('settings')}
               style={styles.tabItem}>
@@ -1259,7 +1492,7 @@ function CloudScreen({navigation, route}: any) {
         </View>
       )}
 
-      {/* Limited Gamepass State */}
+      {/* Limited view state */}
       {isLimited && (
         <View style={styles.limitedContainer}>
           <Text style={styles.tips} variant="bodyLarge">
@@ -1268,204 +1501,62 @@ function CloudScreen({navigation, route}: any) {
         </View>
       )}
 
-      {/* Server Region Selection Modal with Smooth ScrollView & Fixed Spacing */}
-      <Portal>
-        <Modal
-          visible={showRegionModal}
-          onDismiss={() => setShowRegionModal(false)}
-          contentContainerStyle={[
-            styles.dialogContainer,
-            {maxHeight: screenHeight * 0.76},
-          ]}>
-          <Card style={styles.modalCard}>
-            <Card.Title
-              title={t('Select Cloud Server')}
-              titleStyle={styles.modalTitle}
-              left={props => <Icon {...props} source="earth" color="#2ed573" size={24} />}
-            />
-            <ScrollView
-              style={{maxHeight: screenHeight * 0.58}}
-              contentContainerStyle={styles.modalScrollContent}
-              showsVerticalScrollIndicator={true}
-              nestedScrollEnabled={true}>
-              {availableRegions.map(reg => {
-                const info = getRegionDisplayInfo(reg.name);
-                const isSelected =
-                  currentRegionName === reg.name ||
-                  (!currentRegionName && reg.isDefault);
-                return (
-                  <Pressable
-                    key={reg.name}
-                    onPress={() => handleSelectRegion(reg.name)}
-                    style={[
-                      styles.regionModalOption,
-                      isSelected && styles.modalOptionActive,
-                    ]}>
-                    <View style={styles.regionOptionLeft}>
-                      <Text style={styles.modalRegionFlag}>{info.flag}</Text>
-                      <View style={styles.modalRegionInfo}>
-                        <Text
-                          numberOfLines={1}
-                          style={[
-                            styles.modalOptionTitle,
-                            isSelected && styles.modalOptionTextActive,
-                          ]}>
-                          {info.name}
-                        </Text>
-                        <Text numberOfLines={1} style={styles.modalRegionCode}>
-                          {reg.name}
-                        </Text>
-                      </View>
-                    </View>
-                    {isSelected && <Icon source="check" size={20} color="#2ed573" />}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </Card>
-        </Modal>
-      </Portal>
+      {/* Modals */}
+      <RegionSelectModal
+        visible={showRegionModal}
+        onDismiss={() => setShowRegionModal(false)}
+        availableRegions={availableRegions}
+        currentRegionName={currentRegionName}
+        onSelectRegion={handleSelectRegion}
+        screenHeight={screenHeight}
+        t={t}
+      />
 
-      {/* Sort Dialog Modal */}
-      <Portal>
-        <Modal
-          visible={showSortModal}
-          onDismiss={() => setShowSortModal(false)}
-          contentContainerStyle={styles.dialogContainer}>
-          <Card style={styles.modalCard}>
-            <Card.Title
-              title={t('Sort: Relevance')}
-              titleStyle={styles.modalTitle}
-              left={props => <Icon {...props} source="sort-variant" color="#2ed573" size={24} />}
-            />
-            <Card.Content>
-              {[
-                {key: 'relevance', label: t('Relevance')},
-                {key: 'az', label: 'A - Z'},
-                {key: 'za', label: 'Z - A'},
-                {key: 'newest', label: t('Newest')},
-              ].map(opt => (
-                <Pressable
-                  key={opt.key}
-                  onPress={() => {
-                    setSortBy(opt.key as any);
-                    setShowSortModal(false);
-                    setCurrentPage(1);
-                  }}
-                  style={[styles.modalOption, sortBy === opt.key && styles.modalOptionActive]}>
-                  <Text style={[styles.modalOptionText, sortBy === opt.key && styles.modalOptionTextActive]}>
-                    {opt.label}
-                  </Text>
-                  {sortBy === opt.key && <Icon source="check" size={18} color="#2ed573" />}
-                </Pressable>
-              ))}
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
+      <SortOptionModal
+        visible={showSortModal}
+        onDismiss={() => setShowSortModal(false)}
+        sortBy={sortBy}
+        onSelectSort={optKey => {
+          setSortBy(optKey);
+          setShowSortModal(false);
+          setCurrentPage(1);
+        }}
+        t={t}
+      />
 
-      {/* Filter Dialog Modal with xbox.com/play Channel Filters */}
-      <Portal>
-        <Modal
-          visible={showFilterModal}
-          onDismiss={() => setShowFilterModal(false)}
-          contentContainerStyle={styles.dialogContainer}>
-          <Card style={styles.modalCard}>
-            <Card.Title
-              title={t('Filters')}
-              titleStyle={styles.modalTitle}
-              left={props => <Icon {...props} source="filter-variant" color="#2ed573" size={24} />}
-            />
-            <Card.Content>
-              {[
-                {key: 'all', label: t('All')},
-                {key: 'play_gamepass', label: t('Play with Game Pass')},
-                {key: 'new', label: t('Recently Added')},
-                {key: 'ubisoft', label: t('Ubisoft+ Classic')},
-                {key: 'own', label: t('Stream your own game')},
-                {key: 'leaving', label: t('Leaving soon')},
-                {key: 'recent', label: t('Recently')},
-                {key: 'favorites', label: t('Favorites')},
-              ].map(opt => (
-                <Pressable
-                  key={opt.key}
-                  onPress={() => {
-                    setFilterCategory(opt.key as any);
-                    if (opt.key === 'favorites') {
-                      setActiveBottomTab('favorites');
-                    } else if (opt.key === 'all') {
-                      setActiveBottomTab('library');
-                    }
-                    setShowFilterModal(false);
-                    setCurrentPage(1);
-                  }}
-                  style={[styles.modalOption, filterCategory === opt.key && styles.modalOptionActive]}>
-                  <Text style={[styles.modalOptionText, filterCategory === opt.key && styles.modalOptionTextActive]}>
-                    {opt.label}
-                  </Text>
-                  {filterCategory === opt.key && <Icon source="check" size={18} color="#2ed573" />}
-                </Pressable>
-              ))}
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
+      <FilterOptionModal
+        visible={showFilterModal}
+        onDismiss={() => setShowFilterModal(false)}
+        filterCategory={filterCategory}
+        onSelectFilter={optKey => {
+          setFilterCategory(optKey);
+          if (optKey === 'favorites') {
+            setActiveBottomTab('favorites');
+          } else if (optKey === 'all') {
+            setActiveBottomTab('library');
+          }
+          setShowFilterModal(false);
+          setCurrentPage(1);
+        }}
+        t={t}
+      />
 
-      {/* USB Warning Modal */}
-      <Portal>
-        <Modal
-          visible={showUsbWarnModal}
-          onDismiss={() => setShowUsbWarnModal(false)}
-          contentContainerStyle={styles.dialogContainer}>
-          <Card style={styles.modalCard}>
-            <Card.Content>
-              <Text style={{color: '#ffffff', marginBottom: 10, lineHeight: 20}}>
-                {t(
-                  'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive',
-                )}
-              </Text>
-              <Button
-                mode="contained"
-                buttonColor="#2ed573"
-                textColor="#000000"
-                onPress={() => {
-                  setShowUsbWarnModal(false);
-                  if (pendingLaunchTitle) {
-                    executeLaunchStream(pendingLaunchTitle);
-                  }
-                }}>
-                {t('Confirm')}
-              </Button>
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
+      <UsbWarningModal
+        visible={showUsbWarnModal}
+        onDismiss={() => setShowUsbWarnModal(false)}
+        onConfirm={() => {
+          setShowUsbWarnModal(false);
+          if (pendingLaunchTitle) {
+            executeLaunchStream(pendingLaunchTitle);
+          }
+        }}
+        t={t}
+      />
 
-      {/* Tutorial Modal */}
-      <Portal>
-        <Modal
-          visible={showToturial}
-          onDismiss={() => setShowToturial(false)}
-          contentContainerStyle={{marginLeft: '8%', marginRight: '8%'}}>
-          <Card style={styles.modalCard}>
-            <Card.Content>
-              <Text variant="bodyMedium" style={{color: '#ffffff'}}>
-                如果你在中国大陆地区，因为云游戏服务器均在海外，云游戏延迟和丢包率高都是正常现象，
-                如果你需要使用加速器提升云游戏质量，请按照以下操作顺序加速云游戏。
-              </Text>
-              <Text variant="bodyMedium" style={{marginTop: 10, color: '#dddddd'}}>
-                1. 打开XStreaming，设置 - 云游戏 - 地区选择日本或韩国，选择后记得保存。
-              </Text>
-              <Text variant="bodyMedium" style={{marginTop: 8, color: '#dddddd'}}>
-                2. 进入云游戏栏目，选择游戏直接开始，待连接成功显示游戏画面后，将XStreaming切到后台。
-              </Text>
-              <Text variant="bodyMedium" style={{marginTop: 8, color: '#dddddd'}}>
-                3. 打开加速器，选择加速『XStreaming』，等待加速成功后切回游戏。
-              </Text>
-            </Card.Content>
-          </Card>
-        </Modal>
-      </Portal>
+      <TutorialModal
+        visible={showTutorial}
+        onDismiss={() => setShowTutorial(false)}
+      />
     </View>
   );
 }
@@ -1743,7 +1834,6 @@ const styles = StyleSheet.create({
     color: '#2ed573',
     paddingBottom: 8,
   },
-  // Floating Pill Bottom Navigation Bar
   floatingBottomBar: {
     position: 'absolute',
     backgroundColor: '#141824',
@@ -1760,7 +1850,6 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     zIndex: 99,
   },
-  floatingBottomBarLarge: {},
   tabItem: {
     flex: 1,
     alignItems: 'center',
@@ -1870,6 +1959,22 @@ const styles = StyleSheet.create({
   modalOptionTextActive: {
     color: '#2ed573',
     fontWeight: '700',
+  },
+  usbWarningText: {
+    color: '#ffffff',
+    marginBottom: 10,
+    lineHeight: 20,
+  },
+  tutorialModalContainer: {
+    marginLeft: '8%',
+    marginRight: '8%',
+  },
+  tutorialLeadText: {
+    color: '#ffffff',
+  },
+  tutorialStepText: {
+    marginTop: 8,
+    color: '#dddddd',
   },
 });
 
