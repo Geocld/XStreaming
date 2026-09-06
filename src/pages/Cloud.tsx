@@ -466,7 +466,6 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
     {key: 'own', label: t('Stream your own game')},
     {key: 'leaving', label: t('Leaving soon')},
     {key: 'recent', label: t('Recently')},
-    {key: 'favorites', label: t('Favorites')},
   ];
 
   return (
@@ -628,10 +627,10 @@ function CloudScreen({navigation, route}: any) {
   const [showRegionModal, setShowRegionModal] = React.useState(false);
 
   // Navigation and filter states
-  const [activeBottomTab, setActiveBottomTab] = React.useState<'library' | 'favorites'>('library');
+  const [activeBottomTab, setActiveBottomTab] = React.useState<'library'>('library');
   const [sortBy, setSortBy] = React.useState<'relevance' | 'az' | 'za' | 'newest'>('relevance');
   const [filterCategory, setFilterCategory] = React.useState<
-    'all' | 'play_gamepass' | 'new' | 'ubisoft' | 'own' | 'leaving' | 'recent' | 'favorites'
+    'all' | 'play_gamepass' | 'new' | 'ubisoft' | 'own' | 'leaving' | 'recent'
   >('all');
   const [showSortModal, setShowSortModal] = React.useState(false);
   const [showFilterModal, setShowFilterModal] = React.useState(false);
@@ -648,12 +647,12 @@ function CloudScreen({navigation, route}: any) {
   const isLargeScreen = Platform.isTV || isLandscape;
 
   const bottomBarWidth = isLandscape
-    ? Math.min(480, screenWidth - 64)
-    : screenWidth - 32;
+    ? Math.min(220, screenWidth - 64)
+    : Math.min(180, screenWidth - 48);
   const bottomBarLeft = (screenWidth - bottomBarWidth) / 2;
-  const bottomBarBottom = isLandscape ? 28 : (Platform.OS === 'android' ? 14 : 24);
-  const bottomBarHeight = isLandscape ? 56 : 64;
-  const bottomBarRadius = isLandscape ? 28 : 32;
+  const bottomBarBottom = isLandscape ? 32 : (Platform.OS === 'android' ? 26 : 28);
+  const bottomBarHeight = isLandscape ? 50 : 54;
+  const bottomBarRadius = isLandscape ? 25 : 27;
 
   const PADDING_H = isLargeScreen ? 20 : 14;
   const GAP = 10;
@@ -926,9 +925,12 @@ function CloudScreen({navigation, route}: any) {
     }
   }, [route.params?.keyword, streamingTokens.xCloudToken, webToken, navigation, dispatch]);
 
-  const handleViewDetail = (titleItem: any) => {
-    navigation.navigate('TitleDetail', {titleItem});
-  };
+  const handleViewDetail = React.useCallback(
+    (titleItem: any) => {
+      navigation.navigate('TitleDetail', {titleItem});
+    },
+    [navigation],
+  );
 
   const handleOpenSearch = () => {
     navigation.navigate('Search', {keyword});
@@ -971,60 +973,61 @@ function CloudScreen({navigation, route}: any) {
     }
   };
 
+  const executeLaunchStream = React.useCallback(
+    (titleItem: any) => {
+      const settings = getSettings();
+      const titleId = titleItem.titleId || titleItem.XCloudTitleId;
+      if (!titleId) return;
+
+      if (settings.render_engine === 'web' && FullScreenManager) {
+        FullScreenManager.immersiveMode();
+      }
+
+      const isUsbMode = settings.bind_usb_device;
+      const usbController = isUsbMode ? 1 : 0;
+      const postUrl = `${streamingTokens.xCloudToken.getDefaultRegion().baseUri}/v5/sessions/cloud/play`;
+
+      const streamPage =
+        settings.render_engine === 'web'
+          ? 'Stream'
+          : settings.render_engine === 'native'
+          ? 'NativeStream'
+          : 'NanoStream';
+
+      navigation.navigate(streamPage, {
+        sessionId: titleId,
+        settings,
+        streamType: 'cloud',
+        postUrl,
+        isUsbMode,
+        usbController,
+      });
+    },
+    [navigation, streamingTokens.xCloudToken],
+  );
+
   // Direct game launch handler
-  const handleDirectPlay = async (titleItem: any) => {
-    if (!titleItem) return;
-    const settings = getSettings();
-    const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
-    const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
+  const handleDirectPlay = React.useCallback(
+    async (titleItem: any) => {
+      if (!titleItem) return;
+      const settings = getSettings();
+      const hasValidUsbDevice = await UsbRumbleManager.getHasValidUsbDevice();
+      const isUsbMode = settings.bind_usb_device && hasValidUsbDevice;
 
-    if (isUsbMode) {
-      setPendingLaunchTitle(titleItem);
-      setShowUsbWarnModal(true);
-    } else {
-      executeLaunchStream(titleItem);
-    }
-  };
-
-  const executeLaunchStream = (titleItem: any) => {
-    const settings = getSettings();
-    const titleId = titleItem.titleId || titleItem.XCloudTitleId;
-    if (!titleId) return;
-
-    if (settings.render_engine === 'web' && FullScreenManager) {
-      FullScreenManager.immersiveMode();
-    }
-
-    const isUsbMode = settings.bind_usb_device;
-    const usbController = isUsbMode ? 1 : 0;
-    const postUrl = `${streamingTokens.xCloudToken.getDefaultRegion().baseUri}/v5/sessions/cloud/play`;
-
-    const streamPage =
-      settings.render_engine === 'web'
-        ? 'Stream'
-        : settings.render_engine === 'native'
-        ? 'NativeStream'
-        : 'NanoStream';
-
-    navigation.navigate(streamPage, {
-      sessionId: titleId,
-      settings,
-      streamType: 'cloud',
-      postUrl,
-      isUsbMode,
-      usbController,
-    });
-  };
+      if (isUsbMode) {
+        setPendingLaunchTitle(titleItem);
+        setShowUsbWarnModal(true);
+      } else {
+        executeLaunchStream(titleItem);
+      }
+    },
+    [executeLaunchStream],
+  );
 
   // Filter and sort titles
   const filteredTitles = React.useMemo(() => {
     let list: any[] = [];
-    if (activeBottomTab === 'favorites' || filterCategory === 'favorites') {
-      list = titles.filter(item => {
-        const id = item.XCloudTitleId || item.titleId;
-        return starTitles.includes(id);
-      });
-    } else if (filterCategory === 'recent') {
+    if (filterCategory === 'recent') {
       list = recentTitles;
     } else if (filterCategory === 'new') {
       list = newTitles;
@@ -1066,27 +1069,26 @@ function CloudScreen({navigation, route}: any) {
     playWithGamePassTitles,
     ubisoftTitles,
     streamYourOwnTitles,
-    leavingSoonList,
-    starTitles,
-    activeBottomTab,
     filterCategory,
     keyword,
     sortBy,
   ]);
 
   const totalPages = Math.ceil(filteredTitles.length / pageSize);
-  const endIdx = currentPage * pageSize;
-  const pagedTitles = filteredTitles.slice(0, endIdx);
+  const pagedTitles = React.useMemo(() => {
+    const endIdx = currentPage * pageSize;
+    return filteredTitles.slice(0, endIdx);
+  }, [filteredTitles, currentPage, pageSize]);
 
-  const loadMoreData = () => {
+  const loadMoreData = React.useCallback(() => {
     if (currentPage < totalPages) {
       setLoadingMore(true);
       setCurrentPage(prev => prev + 1);
       setTimeout(() => {
         setLoadingMore(false);
-      }, 800);
+      }, 500);
     }
-  };
+  }, [currentPage, totalPages]);
 
   const isItemStarred = (item: any) => {
     const id = item.XCloudTitleId || item.titleId;
@@ -1165,15 +1167,17 @@ function CloudScreen({navigation, route}: any) {
           showsHorizontalScrollIndicator={false}
           style={styles.horizontalListWrap}
           contentContainerStyle={styles.horizontalListContent}
+          initialNumToRender={4}
+          maxToRenderPerBatch={4}
+          windowSize={3}
+          removeClippedSubviews={Platform.OS === 'android'}
           renderItem={({item}) => (
             <XStreamingGameCard
               titleItem={item}
               width={horizontalCardWidth}
               height={horizontalCardHeight}
-              isStarred={isItemStarred(item)}
               onPress={handleViewDetail}
               onPlayPress={handleDirectPlay}
-              onBookmarkPress={handleToggleStar}
               style={styles.horizontalCardMargin}
             />
           )}
@@ -1206,8 +1210,8 @@ function CloudScreen({navigation, route}: any) {
   };
 
   // Channel carousels header
-  const renderCarouselsHeader = () => {
-    if (activeBottomTab === 'favorites' || filterCategory !== 'all' || keyword.length > 0) {
+  const renderCarouselsHeader = React.useCallback(() => {
+    if (filterCategory !== 'all' || keyword.length > 0) {
       return null;
     }
 
@@ -1237,7 +1241,40 @@ function CloudScreen({navigation, route}: any) {
         </View>
       </View>
     );
-  };
+  }, [
+    filterCategory,
+    keyword,
+    recentTitles,
+    playWithGamePassTitles,
+    newTitles,
+    ubisoftTitles,
+    streamYourOwnTitles,
+    leavingSoonList,
+    horizontalCardWidth,
+    horizontalCardHeight,
+    handleViewDetail,
+    handleDirectPlay,
+    t,
+  ]);
+
+  // Grid item renderer
+  const renderGridItem = React.useCallback(
+    ({item}: {item: any}) => (
+      <XStreamingGameCard
+        titleItem={item}
+        width={cardWidth}
+        height={cardHeight}
+        onPress={handleViewDetail}
+        onPlayPress={handleDirectPlay}
+      />
+    ),
+    [cardWidth, cardHeight, handleViewDetail, handleDirectPlay],
+  );
+
+  const itemKeyExtractor = React.useCallback(
+    (item: any, index: number) => `${item.titleId || item.XCloudTitleId || index}`,
+    [],
+  );
 
   // Sort label display
   const sortLabel = React.useMemo(() => {
@@ -1256,8 +1293,6 @@ function CloudScreen({navigation, route}: any) {
   // Filter label display
   const filterLabel = React.useMemo(() => {
     switch (filterCategory) {
-      case 'favorites':
-        return t('Favorites');
       case 'new':
         return t('Recently Added');
       case 'play_gamepass':
@@ -1276,17 +1311,10 @@ function CloudScreen({navigation, route}: any) {
   }, [filterCategory, t]);
 
   // Bottom navigation tab clicks
-  const handleTabPress = (tab: 'library' | 'search' | 'favorites' | 'settings') => {
+  const handleTabPress = (tab: 'library' | 'settings') => {
     if (tab === 'library') {
       setActiveBottomTab('library');
       setFilterCategory('all');
-      setCurrentPage(1);
-      scrollToTop();
-    } else if (tab === 'search') {
-      handleOpenSearch();
-    } else if (tab === 'favorites') {
-      setActiveBottomTab('favorites');
-      setFilterCategory('favorites');
       setCurrentPage(1);
       scrollToTop();
     } else if (tab === 'settings') {
@@ -1344,6 +1372,33 @@ function CloudScreen({navigation, route}: any) {
                 <Icon source="chevron-down" size={14} color="#8b949e" />
               </Pressable>
             </View>
+
+            {/* Wide Search Bar Button under Profile */}
+            <Pressable
+              onPress={handleOpenSearch}
+              android_ripple={{color: 'rgba(255, 255, 255, 0.12)'}}
+              style={({pressed}) => [
+                styles.searchBarButton,
+                pressed && styles.searchBarButtonPressed,
+              ]}>
+              <Icon source="magnify" size={20} color={keyword ? '#2ed573' : '#8b949e'} />
+              <Text
+                style={[styles.searchBarText, keyword.length > 0 && styles.searchBarTextActive]}
+                numberOfLines={1}>
+                {keyword || t('Find games')}
+              </Text>
+              {keyword.length > 0 && (
+                <Pressable
+                  onPress={e => {
+                    e?.stopPropagation?.();
+                    setKeyword('');
+                    navigation.setParams({keyword: ''});
+                  }}
+                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                  <Icon source="close-circle" size={18} color="#8b949e" />
+                </Pressable>
+              )}
+            </Pressable>
           </View>
 
           {/* Filter row or Category Navigation Bar */}
@@ -1435,26 +1490,20 @@ function CloudScreen({navigation, route}: any) {
               data={pagedTitles}
               key={numColumns}
               numColumns={numColumns}
-              keyExtractor={(item, index) => `${item.titleId || item.XCloudTitleId || index}`}
+              keyExtractor={itemKeyExtractor}
               columnWrapperStyle={styles.columnWrapper}
               contentContainerStyle={[
                 styles.gridContentContainer,
                 isLargeScreen && styles.gridContentContainerLarge,
               ]}
               ListHeaderComponent={renderCarouselsHeader}
-              renderItem={({item}) => (
-                <XStreamingGameCard
-                  titleItem={item}
-                  width={cardWidth}
-                  height={cardHeight}
-                  isStarred={isItemStarred(item)}
-                  onPress={handleViewDetail}
-                  onPlayPress={handleDirectPlay}
-                  onBookmarkPress={handleToggleStar}
-                />
-              )}
+              renderItem={renderGridItem}
+              initialNumToRender={isLargeScreen ? 12 : 9}
+              maxToRenderPerBatch={isLargeScreen ? 12 : 9}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === 'android'}
               onEndReached={loadMoreData}
-              onEndReachedThreshold={0.15}
+              onEndReachedThreshold={0.2}
               ListFooterComponent={renderListFooter}
             />
           )}
@@ -1483,7 +1532,7 @@ function CloudScreen({navigation, route}: any) {
                 ]}>
                 <Icon
                   source={activeBottomTab === 'library' ? 'view-grid' : 'view-grid-outline'}
-                  size={isLandscape ? 20 : 22}
+                  size={isLandscape ? 18 : 20}
                   color={activeBottomTab === 'library' ? '#2ed573' : '#8b949e'}
                 />
               </View>
@@ -1497,48 +1546,6 @@ function CloudScreen({navigation, route}: any) {
               </Text>
             </Pressable>
 
-            {/* Search tab */}
-            <Pressable
-              onPress={() => handleTabPress('search')}
-              style={styles.tabItem}>
-              <View
-                style={[
-                  styles.tabIconWrap,
-                  isLandscape && styles.tabIconWrapLandscape,
-                ]}>
-                <Icon source="magnify" size={isLandscape ? 20 : 22} color="#8b949e" />
-              </View>
-              <Text style={[styles.tabLabel, isLandscape && styles.tabLabelLandscape]}>
-                {t('Search')}
-              </Text>
-            </Pressable>
-
-            {/* Favorites tab */}
-            <Pressable
-              onPress={() => handleTabPress('favorites')}
-              style={styles.tabItem}>
-              <View
-                style={[
-                  styles.tabIconWrap,
-                  isLandscape && styles.tabIconWrapLandscape,
-                  activeBottomTab === 'favorites' && styles.tabIconWrapActive,
-                ]}>
-                <Icon
-                  source={activeBottomTab === 'favorites' ? 'bookmark' : 'bookmark-outline'}
-                  size={isLandscape ? 20 : 22}
-                  color={activeBottomTab === 'favorites' ? '#2ed573' : '#8b949e'}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.tabLabel,
-                  isLandscape && styles.tabLabelLandscape,
-                  activeBottomTab === 'favorites' && styles.tabLabelActive,
-                ]}>
-                {t('Favorites')}
-              </Text>
-            </Pressable>
-
             {/* Settings tab */}
             <Pressable
               onPress={() => handleTabPress('settings')}
@@ -1548,7 +1555,7 @@ function CloudScreen({navigation, route}: any) {
                   styles.tabIconWrap,
                   isLandscape && styles.tabIconWrapLandscape,
                 ]}>
-                <Icon source="cog-outline" size={isLandscape ? 20 : 22} color="#8b949e" />
+                <Icon source="cog-outline" size={isLandscape ? 18 : 20} color="#8b949e" />
               </View>
               <Text style={[styles.tabLabel, isLandscape && styles.tabLabelLandscape]}>
                 {t('Settings')}
@@ -1596,11 +1603,6 @@ function CloudScreen({navigation, route}: any) {
         filterCategory={filterCategory}
         onSelectFilter={optKey => {
           setFilterCategory(optKey);
-          if (optKey === 'favorites') {
-            setActiveBottomTab('favorites');
-          } else if (optKey === 'all') {
-            setActiveBottomTab('library');
-          }
           setShowFilterModal(false);
           setCurrentPage(1);
         }}
@@ -1734,6 +1736,32 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.5,
     marginRight: 2,
+  },
+  searchBarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#161b26',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 22,
+    height: 44,
+    paddingHorizontal: 16,
+    marginTop: 12,
+  },
+  searchBarButtonPressed: {
+    backgroundColor: '#1e2535',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  searchBarText: {
+    color: '#8b949e',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 10,
+    flex: 1,
+  },
+  searchBarTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   filterRow: {
     flexDirection: 'row',
@@ -1978,29 +2006,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabIconWrap: {
-    width: 50,
-    height: 30,
-    borderRadius: 15,
+    width: 42,
+    height: 25,
+    borderRadius: 12.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabIconWrapLandscape: {
-    width: 44,
-    height: 26,
-    borderRadius: 13,
+    width: 38,
+    height: 22,
+    borderRadius: 11,
   },
   tabIconWrapActive: {
     backgroundColor: 'rgba(46, 213, 115, 0.2)',
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#8b949e',
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: 1,
   },
   tabLabelLandscape: {
-    fontSize: 10,
-    marginTop: 1,
+    fontSize: 9,
+    marginTop: 0,
   },
   tabLabelActive: {
     color: '#2ed573',

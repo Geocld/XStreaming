@@ -517,5 +517,6 @@ export default {
     'Leaving soon': '即将离开',
     'Show all': '显示全部',
     'Tampilkan semua': '显示全部',
+    'Find games': '搜索游戏',
   },
 };

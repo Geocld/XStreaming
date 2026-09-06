@@ -474,5 +474,6 @@ export default {
       '巨集按鍵開關在設定頁的「虛擬巨集按鍵」中控制，此頁面僅編輯動作序列。',
     'Enable macro button and edit its action sequence in one place.':
       '在同一頁面中啟用巨集按鍵並編輯動作序列。',
+    'Find games': '搜尋遊戲',
   },
 };

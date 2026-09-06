@@ -550,5 +550,6 @@ export default {
     'Leaving soon': 'Segera berakhir',
     'Show all': 'Lihat semua',
     'Tampilkan semua': 'Lihat semua',
+    'Find games': 'Cari game',
   },
 };

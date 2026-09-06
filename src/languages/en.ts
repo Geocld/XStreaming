@@ -545,5 +545,6 @@ export default {
     'Leaving soon': 'Leaving soon',
     'Show all': 'Show all',
     'Tampilkan semua': 'Show all',
+    'Find games': 'Find games',
   },
 };

@@ -4,7 +4,6 @@ import {
   View,
   Image,
   Pressable,
-  ActivityIndicator,
   Text,
 } from 'react-native';
 import {Icon} from 'react-native-paper';
@@ -24,32 +23,29 @@ const XStreamingGameCard: React.FC<Props> = ({
   titleItem,
   onPress,
   onPlayPress,
-  onBookmarkPress,
-  isStarred = false,
   width,
   height,
   style,
 }) => {
-  const [imageLoading, setImageLoading] = React.useState(true);
   const [imageError, setImageError] = React.useState(false);
 
-  const handlePressCard = () => {
-    onPress && onPress(titleItem);
-  };
+  const onPressRef = React.useRef(onPress);
+  onPressRef.current = onPress;
+  const onPlayPressRef = React.useRef(onPlayPress);
+  onPlayPressRef.current = onPlayPress;
 
-  const handlePressPlay = (e: any) => {
+  const handlePressCard = React.useCallback(() => {
+    onPressRef.current && onPressRef.current(titleItem);
+  }, [titleItem]);
+
+  const handlePressPlay = React.useCallback((e: any) => {
     e?.stopPropagation?.();
-    if (onPlayPress) {
-      onPlayPress(titleItem);
+    if (onPlayPressRef.current) {
+      onPlayPressRef.current(titleItem);
     } else {
-      onPress && onPress(titleItem);
+      onPressRef.current && onPressRef.current(titleItem);
     }
-  };
-
-  const handlePressBookmark = (e: any) => {
-    e?.stopPropagation?.();
-    onBookmarkPress && onBookmarkPress(titleItem);
-  };
+  }, [titleItem]);
 
   const posterUrl = React.useMemo(() => {
     if (!titleItem) {
@@ -88,9 +84,8 @@ const XStreamingGameCard: React.FC<Props> = ({
             source={{uri: posterUrl}}
             style={styles.posterImage}
             resizeMode="cover"
-            onLoadEnd={() => setImageLoading(false)}
+            fadeDuration={100}
             onError={() => {
-              setImageLoading(false);
               setImageError(true);
             }}
           />
@@ -103,32 +98,8 @@ const XStreamingGameCard: React.FC<Props> = ({
           </View>
         )}
 
-        {/* Loading spinner */}
-        {imageLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#2ed573" />
-          </View>
-        )}
-
-        {/* Action buttons overlay at the bottom */}
+        {/* Action button overlay at the bottom */}
         <View style={styles.actionOverlay} pointerEvents="box-none">
-          {/* Bookmark Button */}
-          <Pressable
-            onPress={handlePressBookmark}
-            hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}
-            android_ripple={{color: 'rgba(255, 255, 255, 0.25)', borderless: true}}
-            style={({pressed}) => [
-              styles.bookmarkButton,
-              isStarred && styles.bookmarkButtonActive,
-              pressed && styles.actionButtonPressed,
-            ]}>
-            <Icon
-              source={isStarred ? 'bookmark' : 'bookmark-outline'}
-              size={18}
-              color={isStarred ? '#2ed573' : '#FFFFFF'}
-            />
-          </Pressable>
-
           {/* Quick Play Button */}
           <Pressable
             onPress={handlePressPlay}
@@ -168,12 +139,6 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#1a1d26',
   },
-  loadingContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(18, 20, 26, 0.4)',
-  },
   fallbackContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -194,22 +159,8 @@ const styles = StyleSheet.create({
     right: 8,
     bottom: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  bookmarkButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(15, 17, 23, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  bookmarkButtonActive: {
-    borderColor: 'rgba(46, 213, 115, 0.6)',
-    backgroundColor: 'rgba(15, 17, 23, 0.85)',
   },
   playButton: {
     width: 38,
@@ -231,4 +182,13 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(XStreamingGameCard);
+export default React.memo(XStreamingGameCard, (prev, next) => {
+  const prevId = prev.titleItem?.XCloudTitleId || prev.titleItem?.titleId;
+  const nextId = next.titleItem?.XCloudTitleId || next.titleItem?.titleId;
+  return (
+    prevId === nextId &&
+    prev.width === next.width &&
+    prev.height === next.height &&
+    prev.style === next.style
+  );
+});
