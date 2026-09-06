@@ -442,7 +442,7 @@ function App() {
                 <RootStack.Screen
                   name="Cloud"
                   component={CloudBackgroundScreen}
-                  options={{title: t('Xcloud')}}
+                  options={{headerShown: false}}
                 />
                 <RootStack.Screen
                   name="Settings"

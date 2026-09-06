@@ -96,7 +96,16 @@ const gpState = {
   RightThumbYAxis: 0.0,
 };
 
-function StreamScreen({navigation, route}) {
+function StreamScreen({navigation, route}: any) {
+  if (route?.params?.params) {
+    route = {
+      ...route,
+      params: {
+        ...route.params.params,
+        ...route.params,
+      },
+    };
+  }
   const {t} = useTranslation();
   const authentication = useSelector((state: any) => state.authentication);
   const streamingTokens = useSelector((state: any) => state.streamingTokens);

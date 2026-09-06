@@ -201,6 +201,15 @@ export function NativeStreamScreenBase({
   route,
   portraitMode = false,
 }: NativeStreamScreenProps) {
+  if (route?.params?.params) {
+    route = {
+      ...route,
+      params: {
+        ...route.params.params,
+        ...route.params,
+      },
+    };
+  }
   const {t} = useTranslation();
   const {width: screenWidth} = useWindowDimensions();
   const authentication = useSelector((state: any) => state.authentication);

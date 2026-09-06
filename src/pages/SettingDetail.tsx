@@ -40,6 +40,10 @@ import {
   normalizeHexColor,
   shiftColor,
 } from '../utils/themeColor';
+import {
+  getRegionIpForCloudName,
+  getCloudNameForRegionIp,
+} from '../utils/regionSync';
 
 const {UsbRumbleManager} = NativeModules;
 
@@ -175,8 +179,20 @@ function SettingDetailScreen({navigation, route}) {
           ? 'signaling_home_name'
           : 'signaling_cloud_name'
       ] = settingValue;
+      if (currentMetas.name === 'signaling_cloud') {
+        const matchingIp = getRegionIpForCloudName(settingValue);
+        if (matchingIp) {
+          settings.force_region_ip = matchingIp;
+        }
+      }
     } else if (settings[current] !== undefined) {
       settings[current] = settingValue;
+      if (current === 'force_region_ip') {
+        const matchingCloud = getCloudNameForRegionIp(settingValue);
+        if (matchingCloud) {
+          settings.signaling_cloud_name = matchingCloud;
+        }
+      }
     }
 
     setSettings(settings);

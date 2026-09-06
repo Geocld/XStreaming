@@ -121,7 +121,16 @@ const buildNanoGamepadState = (state: any) => ({
   RightTrigger: Number(state.buttons.RightTrigger || 0),
 });
 
-function NanoStreamScreen({navigation, route}) {
+function NanoStreamScreen({navigation, route}: any) {
+  if (route?.params?.params) {
+    route = {
+      ...route,
+      params: {
+        ...route.params.params,
+        ...route.params,
+      },
+    };
+  }
   const {t} = useTranslation();
   const viewRef = React.useRef<any>(null);
   const nativeStateRef = React.useRef<any>(null);
