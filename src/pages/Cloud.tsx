@@ -12,6 +12,7 @@ import {
   ToastAndroid,
   ScrollView,
   NativeModules,
+  BackHandler,
 } from 'react-native';
 import {Text, Portal, Modal, Card, Icon, Button} from 'react-native-paper';
 import axios from 'axios';
@@ -1099,6 +1100,30 @@ function CloudScreen({navigation, route}: any) {
     scrollToTop();
   };
 
+  const handleBackToHome = () => {
+    setFilterCategory('all');
+    setActiveBottomTab('library');
+    setCurrentPage(1);
+    scrollToTop();
+  };
+
+  // Hardware and gesture back button handling for category view
+  React.useEffect(() => {
+    const onBackPress = () => {
+      if (filterCategory !== 'all') {
+        handleBackToHome();
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBackPress,
+    );
+    return () => backHandler.remove();
+  }, [filterCategory]);
+
   // Horizontal carousel section
   const renderCarouselSection = (
     title: string,
@@ -1113,17 +1138,20 @@ function CloudScreen({navigation, route}: any) {
     return (
       <View key={`${idPrefix}_sec`} style={styles.carouselSection}>
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>{title}</Text>
+          <Text style={styles.sectionTitle} numberOfLines={1}>
+            {title}
+          </Text>
           {hasMoreThanTen && (
             <Pressable
               onPress={() => handleShowAll(categoryKey)}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
               android_ripple={{color: 'rgba(46, 213, 115, 0.2)'}}
               style={({pressed}) => [
                 styles.showAllHeaderButton,
                 pressed && styles.showAllHeaderButtonPressed,
               ]}>
               <Text style={styles.showAllHeaderText}>{t('Show all')}</Text>
-              <Icon source="chevron-right" size={15} color="#2ed573" />
+              <Icon source="chevron-right" size={13} color="#2ed573" />
             </Pressable>
           )}
         </View>
@@ -1318,32 +1346,70 @@ function CloudScreen({navigation, route}: any) {
             </View>
           </View>
 
-          {/* Filter and sort chips */}
-          <View style={[styles.filterRow, isLargeScreen && styles.filterRowLarge]}>
-            <Pressable
-              onPress={() => setShowSortModal(true)}
-              android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
-              style={({pressed}) => [styles.pillButton, pressed && styles.pillPressed]}>
-              <Text style={styles.pillText} numberOfLines={1}>
-                {sortLabel}
-              </Text>
-            </Pressable>
+          {/* Filter row or Category Navigation Bar */}
+          {filterCategory !== 'all' ? (
+            <View style={[styles.categoryHeaderBar, isLargeScreen && styles.categoryHeaderBarLarge]}>
+              <Pressable
+                onPress={handleBackToHome}
+                android_ripple={{color: 'rgba(46, 213, 115, 0.25)', borderless: true}}
+                style={({pressed}) => [
+                  styles.categoryBackButton,
+                  pressed && styles.categoryBackButtonPressed,
+                ]}>
+                <Icon source="arrow-left" size={18} color="#2ed573" />
+                <Text style={styles.categoryBackText}>{t('Back')}</Text>
+              </Pressable>
 
-            <Pressable
-              onPress={() => setShowFilterModal(true)}
-              android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
-              style={({pressed}) => [styles.pillButton, pressed && styles.pillPressed]}>
-              <Text style={styles.pillText} numberOfLines={1}>
-                {filterLabel}
-              </Text>
-            </Pressable>
+              <View style={styles.categoryTitleWrap}>
+                <Text style={styles.categoryTitleText} numberOfLines={1}>
+                  {filterLabel}
+                </Text>
+                <Text style={styles.categoryCountText}>
+                  {`${filteredTitles.length} ${t('available')}`}
+                </Text>
+              </View>
 
-            <View style={styles.countPill}>
-              <Text style={styles.countText}>
-                {`${filteredTitles.length} ${t('available')}`}
-              </Text>
+              <Pressable
+                onPress={() => setShowSortModal(true)}
+                android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
+                style={({pressed}) => [
+                  styles.pillButton,
+                  styles.categorySortButton,
+                  pressed && styles.pillPressed,
+                ]}>
+                <Icon source="sort-variant" size={14} color="#8b949e" style={{marginRight: 4}} />
+                <Text style={styles.pillText} numberOfLines={1}>
+                  {sortLabel}
+                </Text>
+              </Pressable>
             </View>
-          </View>
+          ) : (
+            <View style={[styles.filterRow, isLargeScreen && styles.filterRowLarge]}>
+              <Pressable
+                onPress={() => setShowSortModal(true)}
+                android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
+                style={({pressed}) => [styles.pillButton, pressed && styles.pillPressed]}>
+                <Text style={styles.pillText} numberOfLines={1}>
+                  {sortLabel}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setShowFilterModal(true)}
+                android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
+                style={({pressed}) => [styles.pillButton, pressed && styles.pillPressed]}>
+                <Text style={styles.pillText} numberOfLines={1}>
+                  {filterLabel}
+                </Text>
+              </Pressable>
+
+              <View style={styles.countPill}>
+                <Text style={styles.countText}>
+                  {`${filteredTitles.length} ${t('available')}`}
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Acceleration guide link */}
           {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
@@ -1678,6 +1744,58 @@ const styles = StyleSheet.create({
   filterRowLarge: {
     paddingHorizontal: 20,
   },
+  categoryHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+    justifyContent: 'space-between',
+  },
+  categoryHeaderBarLarge: {
+    paddingHorizontal: 20,
+  },
+  categoryBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(46, 213, 115, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(46, 213, 115, 0.3)',
+    borderRadius: 18,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 10,
+    flexShrink: 0,
+  },
+  categoryBackButtonPressed: {
+    backgroundColor: 'rgba(46, 213, 115, 0.24)',
+  },
+  categoryBackText: {
+    color: '#2ed573',
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 4,
+  },
+  categoryTitleWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  categoryTitleText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  categoryCountText: {
+    color: '#8b949e',
+    fontSize: 11,
+    marginTop: 1,
+  },
+  categorySortButton: {
+    marginRight: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    flexShrink: 0,
+  },
   pillButton: {
     borderRadius: 20,
     borderWidth: 1,
@@ -1721,27 +1839,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
+    gap: 8,
   },
   sectionTitle: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.2,
+    flex: 1,
+    marginRight: 8,
   },
   showAllHeaderButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 7,
     borderRadius: 12,
     backgroundColor: 'rgba(46, 213, 115, 0.1)',
+    flexShrink: 0,
   },
   showAllHeaderButtonPressed: {
     backgroundColor: 'rgba(46, 213, 115, 0.22)',
   },
   showAllHeaderText: {
     color: '#2ed573',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     marginRight: 2,
   },
