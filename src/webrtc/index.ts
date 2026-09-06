@@ -770,6 +770,8 @@ class webRTCClient {
     }
     const opusParams = sdpTransform.parseParams(opusFMTP.config);
     opusParams.stereo = 1;
+    opusParams.minptime = 10;
+    opusParams.useinbandfec = 1;
     const newParams = Object.entries(opusParams)
       .map(([k, v]) => `${k}=${v}`)
       .join(';');
