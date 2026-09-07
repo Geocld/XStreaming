@@ -22,6 +22,7 @@ import Spinner from '../components/Spinner';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
+import sessionStatsTracker from '../utils/sessionStatsTracker';
 
 const {FullScreenManager, GamepadManager, NativeInputDialog, UsbRumbleManager} =
   NativeModules;
@@ -364,10 +365,11 @@ function NanoStreamScreen({navigation, route}: any) {
     FullScreenManager?.immersiveModeOff?.();
     GamepadManager?.setCurrentScreen?.('');
 
+    const sessionReport = sessionStatsTracker.finishSession();
     const dest = streamType === 'cloud' ? 'Cloud' : 'Home';
     navigation.navigate({
       name: dest,
-      params: {needRefresh: true},
+      params: {needRefresh: true, sessionReport},
     });
   }, [navigation, streamInfo.sessionId, streamType, t]);
 
@@ -812,11 +814,35 @@ function NanoStreamScreen({navigation, route}: any) {
         }));
       }
 
+      sessionStatsTracker.recordSample({
+        rtt: state.webRtcRttMs,
+        jitter: state.webRtcJitterMs,
+        fps: state.webRtcFps,
+        packetLoss: state.webRtcPacketLossPercent,
+        bitrate: state.webRtcBitrateMbps,
+        decode: state.webRtcDecodeMs,
+        resolution,
+      });
+
       if (
         (renderedVideoFrames > 0 || sessionStage === 'connected') &&
         !isConnectedRef.current
       ) {
         isConnectedRef.current = true;
+        const gameTitle =
+          route.params?.gameTitle ||
+          route.params?.titleItem?.ProductTitle ||
+          route.params?.titleItem?.titleName ||
+          route.params?.titleItem?.Title ||
+          (streamType === 'cloud' ? 'Xbox Cloud Gaming' : 'Xbox Console');
+
+        sessionStatsTracker.startSession({
+          gameTitle,
+          streamType,
+          codec: settings?.codec,
+          resolution: settings?.resolution ? `${settings.resolution}p` : undefined,
+        });
+
         setLoadingText(t('connected'));
         setLoading(false);
         ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);

@@ -50,6 +50,7 @@ import {
   VIRTUAL_MACRO_BUTTON_NAME,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
+import sessionStatsTracker from '../utils/sessionStatsTracker';
 
 const log = debugFactory('StreamScreen');
 
@@ -690,22 +691,24 @@ function StreamScreen({navigation, route}: any) {
                 setIsExiting(false);
                 Orientation.unlockAllOrientations();
                 FullScreenManager.immersiveModeOff();
+                const sessionReport = sessionStatsTracker.finishSession();
                 const dest =
                   route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
                 navigation.navigate({
                   name: dest,
-                  params: {needRefresh: true},
+                  params: {needRefresh: true, sessionReport},
                 });
               }, 2000);
             });
           } else {
             Orientation.unlockAllOrientations();
             FullScreenManager.immersiveModeOff();
+            const sessionReport = sessionStatsTracker.finishSession();
             const dest =
               route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
             navigation.navigate({
               name: dest,
-              params: {needRefresh: true},
+              params: {needRefresh: true, sessionReport},
             });
           }
         }
@@ -833,10 +836,11 @@ function StreamScreen({navigation, route}: any) {
       setTimeout(() => {
         setIsExiting(false);
         FullScreenManager.immersiveModeOff();
+        const sessionReport = sessionStatsTracker.finishSession();
         const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         navigation.navigate({
           name: dest,
-          params: {needRefresh: true},
+          params: {needRefresh: true, sessionReport},
         });
       }, 500);
     });
@@ -1144,6 +1148,17 @@ function StreamScreen({navigation, route}: any) {
         }
       }
       setPerformance(perf);
+      if (perf) {
+        sessionStatsTracker.recordSample({
+          rtt: perf.rtt,
+          bitrate: perf.br,
+          packetLoss: perf.pl,
+          jitter: perf.jit,
+          fps: perf.fps,
+          decode: perf.decode,
+          resolution: perf.resolution,
+        });
+      }
     }
     if (type === 'connectionstate') {
       // Toggle microphone
@@ -1156,6 +1171,20 @@ function StreamScreen({navigation, route}: any) {
       setConnectState(message);
       if (message === CONNECTED) {
         if (!isConnected.current) {
+          const gameTitle =
+            route.params?.gameTitle ||
+            route.params?.titleItem?.ProductTitle ||
+            route.params?.titleItem?.titleName ||
+            route.params?.titleItem?.Title ||
+            (route.params?.streamType === 'cloud' ? 'Xbox Cloud Gaming' : 'Xbox Console');
+
+          sessionStatsTracker.startSession({
+            gameTitle,
+            streamType: route.params?.streamType,
+            codec: settings?.codec,
+            resolution: settings?.resolution ? `${settings.resolution}p` : undefined,
+          });
+
           ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
 
           if (settings.coop) {

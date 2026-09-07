@@ -23,12 +23,13 @@ import Spinner from '../components/Spinner';
 import XStreamingGameCard from '../components/XStreamingGameCard';
 import XboxLogo from '../components/XboxLogo';
 import Empty from '../components/Empty';
+import SessionReportModal from '../components/SessionReportModal';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
 import TokenStore from '../xal/tokenstore';
 import {debugFactory} from '../utils/debug';
 import {getXcloudData, saveXcloudData, isxCloudDataValid} from '../store/xcloudStore';
-import {getSettings} from '../store/settingStore';
+import {getSettings, saveSettings} from '../store/settingStore';
 import {getWebToken, isWebTokenValid} from '../store/webTokenStore';
 import {storage} from '../store/mmkv';
 import {syncRegionSettings} from '../utils/regionSync';
@@ -222,31 +223,89 @@ const getRegionDisplayInfo = (regionName: string) => {
   };
 };
 
-// Account tier detector from cloud titles (Essential, Premium, Ultimate)
-const detectAccountTier = (titleResults: any[], hasToken: boolean): string => {
-  let detected = hasToken ? 'Ultimate' : 'FREE';
+// Account tier detector from cloud titles (Free, Essential, Premium, Ultimate)
+const detectAccountTier = (titleResults: any[], xCloudToken?: any): string => {
+  const offering =
+    xCloudToken?.getOffering?.() ||
+    xCloudToken?.offering ||
+    (xCloudToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
+    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
+    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
+
+  // If token is explicitly free-to-play, user has no active Game Pass subscription
+  if (offering === 'xgpuwebf2p') {
+    return 'Free';
+  }
+
+  if (!Array.isArray(titleResults) || titleResults.length === 0) {
+    return offering === 'xgpuweb' ? 'Ultimate' : 'Free';
+  }
+
+  let detected = 'Free';
+  let hasActiveSubscription = false;
+
   for (const item of titleResults) {
-    const subs = item.details?.userSubscriptions || [];
-    const progs = item.details?.userPrograms || [];
-    if (subs.includes('XGPULTIMATE') || progs.includes('GPULTIMATE')) {
+    const rawSubs = item.details?.userSubscriptions || item.userSubscriptions || [];
+    const rawProgs = item.details?.userPrograms || item.userPrograms || [];
+
+    const subs = (Array.isArray(rawSubs) ? rawSubs : [rawSubs]).map((s: any) =>
+      String(s || '').toUpperCase(),
+    );
+    const progs = (Array.isArray(rawProgs) ? rawProgs : [rawProgs]).map((p: any) =>
+      String(p || '').toUpperCase(),
+    );
+
+    const all = [...subs, ...progs];
+
+    if (
+      all.some(
+        s =>
+          s.includes('ULTIMATE') ||
+          s === 'XGPU' ||
+          s === 'GPULTIMATE' ||
+          s === 'XGPULTIMATE',
+      )
+    ) {
       return 'Ultimate';
     }
+
     if (
-      subs.includes('XGPPREMIUM') ||
-      progs.includes('GPPREMIUM') ||
-      subs.includes('XGPSTANDARD') ||
-      progs.includes('GPSTANDARD')
+      all.some(
+        s =>
+          s.includes('PREMIUM') ||
+          s.includes('STANDARD') ||
+          s === 'GPPREMIUM' ||
+          s === 'XGPPREMIUM' ||
+          s === 'GPSTANDARD' ||
+          s === 'XGPSTANDARD',
+      )
     ) {
       detected = 'Premium';
+      hasActiveSubscription = true;
     } else if (
-      subs.includes('XGPESSENTIAL') ||
-      progs.includes('GPESSENTIAL') ||
-      subs.includes('XGPCORE') ||
-      progs.includes('GPCORE')
+      !hasActiveSubscription &&
+      all.some(
+        s =>
+          s.includes('ESSENTIAL') ||
+          s.includes('CORE') ||
+          s === 'GPESSENTIAL' ||
+          s === 'XGPESSENTIAL' ||
+          s === 'GPCORE' ||
+          s === 'XGPCORE',
+      )
     ) {
       detected = 'Essential';
+      hasActiveSubscription = true;
     }
   }
+
+  if (!hasActiveSubscription) {
+    if (offering === 'xgpuweb') {
+      return 'Ultimate';
+    }
+    return 'Free';
+  }
+
   return detected;
 };
 
@@ -616,6 +675,7 @@ function CloudScreen({navigation, route}: any) {
     const cached = storage.getString('user.account_tier') || '';
     if (cached === 'Core') return 'Essential';
     if (cached === 'Standard') return 'Premium';
+    if (cached === 'FREE' || cached === 'Free') return 'Free';
     return cached;
   });
 
@@ -638,6 +698,30 @@ function CloudScreen({navigation, route}: any) {
   // USB controller state
   const [showUsbWarnModal, setShowUsbWarnModal] = React.useState(false);
   const [pendingLaunchTitle, setPendingLaunchTitle] = React.useState<any>(null);
+
+  // Session report modal state
+  const [sessionReport, setSessionReport] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (route.params?.sessionReport) {
+      const currentSettings = getSettings();
+      if (currentSettings.show_session_report !== false) {
+        setSessionReport(route.params.sessionReport);
+      }
+    }
+  }, [route.params?.sessionReport]);
+
+  const handleDismissReport = React.useCallback(() => {
+    setSessionReport(null);
+  }, []);
+
+  const handleDoneReport = React.useCallback((dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      const currentSettings = getSettings();
+      saveSettings({...currentSettings, show_session_report: false});
+    }
+    setSessionReport(null);
+  }, []);
 
   const flatListRef = React.useRef<any>(null);
   const hasFetchedGamesRef = React.useRef(false);
@@ -682,13 +766,26 @@ function CloudScreen({navigation, route}: any) {
     return resolveXboxGamertag(fetchedGamertag, profile, webToken, streamingTokens);
   }, [fetchedGamertag, profile, webToken, streamingTokens]);
 
-  // Subscription tier label (Essential, Premium, Ultimate)
+  // Subscription tier label (Free, Essential, Premium, Ultimate)
   const displayTier = React.useMemo(() => {
+    const offering =
+      streamingTokens?.xCloudToken?.getOffering?.() ||
+      streamingTokens?.xCloudToken?.offering ||
+      (streamingTokens?.xCloudToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
+      (streamingTokens?.xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
+      (streamingTokens?.xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
+
+    if (offering === 'xgpuwebf2p') return 'Free';
     if (accountTier === 'Core') return 'Essential';
     if (accountTier === 'Standard') return 'Premium';
-    if (accountTier) return accountTier;
-    return streamingTokens?.xCloudToken ? 'Ultimate' : 'FREE';
-  }, [accountTier, streamingTokens.xCloudToken]);
+    if (accountTier === 'FREE' || accountTier === 'Free') return 'Free';
+    if (accountTier === 'Essential' || accountTier === 'Premium') return accountTier;
+    if (accountTier === 'Ultimate') {
+      if (offering && offering !== 'xgpuweb') return 'Free';
+      return 'Ultimate';
+    }
+    return offering === 'xgpuweb' ? 'Ultimate' : 'Free';
+  }, [accountTier, streamingTokens?.xCloudToken]);
 
   // Available server regions
   const availableRegions = React.useMemo(() => {
@@ -803,12 +900,18 @@ function CloudScreen({navigation, route}: any) {
         return;
       }
 
-      // Detect account tier (Essential, Premium, Ultimate)
-      const tier = detectAccountTier(titleRes.results, true);
-      setAccountTier(tier);
-      storage.set('user.account_tier', tier);
+      // Detect account tier (Free, Essential, Premium, Ultimate)
+      let tier = detectAccountTier(titleRes.results, streamingTokens.xCloudToken);
 
       const rawTitles = await api.getGamePassProducts(titleRes.results);
+      if (tier === 'Free' && rawTitles && rawTitles.length > 0) {
+        const recheckTier = detectAccountTier(rawTitles, streamingTokens.xCloudToken);
+        if (recheckTier !== 'Free') {
+          tier = recheckTier;
+        }
+      }
+      setAccountTier(tier);
+      storage.set('user.account_tier', tier);
       setTitles(rawTitles);
 
       const lookupMap = buildTitleLookupMap(rawTitles);
@@ -994,6 +1097,12 @@ function CloudScreen({navigation, route}: any) {
           ? 'NativeStream'
           : 'NanoStream';
 
+      const gameTitle =
+        titleItem?.ProductTitle ||
+        titleItem?.titleName ||
+        titleItem?.Title ||
+        'Xbox Cloud Gaming';
+
       navigation.navigate(streamPage, {
         sessionId: titleId,
         settings,
@@ -1001,6 +1110,8 @@ function CloudScreen({navigation, route}: any) {
         postUrl,
         isUsbMode,
         usbController,
+        gameTitle,
+        titleItem,
       });
     },
     [navigation, streamingTokens.xCloudToken],
@@ -1348,17 +1459,41 @@ function CloudScreen({navigation, route}: any) {
             <View style={styles.headerMainRow}>
               <View style={styles.profileRow}>
                 {gamerpic ? (
-                  <Image source={{uri: gamerpic}} style={styles.gamerpicImage} />
+                  <Image
+                    source={{uri: gamerpic}}
+                    style={[
+                      styles.gamerpicImage,
+                      displayTier === 'Free' && styles.gamerpicImageFree,
+                    ]}
+                  />
                 ) : (
-                  <XboxLogo size={38} color="#2ed573" />
+                  <XboxLogo
+                    size={38}
+                    color={displayTier === 'Free' ? '#8b949e' : '#2ed573'}
+                  />
                 )}
                 <View style={styles.profileInfo}>
                   <Text style={styles.gamertagText} numberOfLines={1}>
                     {gamertag}
                   </Text>
-                  <View style={styles.subscriptionBadgeWrap}>
-                    <View style={styles.subscriptionDot} />
-                    <Text style={styles.subscriptionBadge}>{displayTier}</Text>
+                  <View
+                    style={[
+                      styles.subscriptionBadgeWrap,
+                      displayTier === 'Free' && styles.subscriptionBadgeWrapFree,
+                    ]}>
+                    <View
+                      style={[
+                        styles.subscriptionDot,
+                        displayTier === 'Free' && styles.subscriptionDotFree,
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.subscriptionBadge,
+                        displayTier === 'Free' && styles.subscriptionBadgeFree,
+                      ]}>
+                      {displayTier}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -1426,36 +1561,56 @@ function CloudScreen({navigation, route}: any) {
 
               <Pressable
                 onPress={() => setShowSortModal(true)}
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
+                accessibilityLabel={sortLabel}
+                accessibilityRole="button"
+                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
                 style={({pressed}) => [
-                  styles.pillButton,
-                  styles.categorySortButton,
-                  pressed && styles.pillPressed,
+                  styles.iconPillButton,
+                  styles.categorySortIconBtn,
+                  sortBy !== 'relevance' && styles.iconPillButtonActive,
+                  pressed && styles.iconPillButtonPressed,
                 ]}>
-                <Icon source="sort-variant" size={14} color="#8b949e" style={{marginRight: 4}} />
-                <Text style={styles.pillText} numberOfLines={1}>
-                  {sortLabel}
-                </Text>
+                <Icon
+                  source="sort-variant"
+                  size={18}
+                  color={sortBy !== 'relevance' ? '#2ed573' : '#FFFFFF'}
+                />
               </Pressable>
             </View>
           ) : (
             <View style={[styles.filterRow, isLargeScreen && styles.filterRowLarge]}>
               <Pressable
                 onPress={() => setShowSortModal(true)}
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
-                style={({pressed}) => [styles.pillButton, pressed && styles.pillPressed]}>
-                <Text style={styles.pillText} numberOfLines={1}>
-                  {sortLabel}
-                </Text>
+                accessibilityLabel={sortLabel}
+                accessibilityRole="button"
+                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
+                style={({pressed}) => [
+                  styles.iconPillButton,
+                  sortBy !== 'relevance' && styles.iconPillButtonActive,
+                  pressed && styles.iconPillButtonPressed,
+                ]}>
+                <Icon
+                  source="sort-variant"
+                  size={18}
+                  color={sortBy !== 'relevance' ? '#2ed573' : '#FFFFFF'}
+                />
               </Pressable>
 
               <Pressable
                 onPress={() => setShowFilterModal(true)}
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)'}}
-                style={({pressed}) => [styles.pillButton, pressed && styles.pillPressed]}>
-                <Text style={styles.pillText} numberOfLines={1}>
-                  {filterLabel}
-                </Text>
+                accessibilityLabel={filterLabel}
+                accessibilityRole="button"
+                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
+                style={({pressed}) => [
+                  styles.iconPillButton,
+                  filterCategory !== 'all' && styles.iconPillButtonActive,
+                  pressed && styles.iconPillButtonPressed,
+                ]}>
+                <Icon
+                  source="filter-variant"
+                  size={18}
+                  color={filterCategory !== 'all' ? '#2ed573' : '#FFFFFF'}
+                />
               </Pressable>
 
               <View style={styles.countPill}>
@@ -1625,6 +1780,13 @@ function CloudScreen({navigation, route}: any) {
         visible={showTutorial}
         onDismiss={() => setShowTutorial(false)}
       />
+
+      <SessionReportModal
+        visible={!!sessionReport}
+        report={sessionReport}
+        onDismiss={handleDismissReport}
+        onDone={handleDoneReport}
+      />
     </View>
   );
 }
@@ -1713,6 +1875,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.4,
   },
+  gamerpicImageFree: {
+    borderColor: '#8b949e',
+  },
+  subscriptionBadgeWrapFree: {
+    backgroundColor: 'rgba(139, 148, 158, 0.12)',
+    borderColor: 'rgba(139, 148, 158, 0.25)',
+  },
+  subscriptionDotFree: {
+    backgroundColor: '#8b949e',
+  },
+  subscriptionBadgeFree: {
+    color: '#8b949e',
+  },
   serverButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1788,9 +1963,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(46, 213, 115, 0.12)',
     borderWidth: 1,
     borderColor: 'rgba(46, 213, 115, 0.3)',
-    borderRadius: 18,
+    borderRadius: 17,
+    height: 34,
     paddingHorizontal: 10,
-    paddingVertical: 6,
     marginRight: 10,
     flexShrink: 0,
   },
@@ -1818,36 +1993,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 1,
   },
-  categorySortButton: {
+  categorySortIconBtn: {
     marginRight: 0,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
     flexShrink: 0,
   },
-  pillButton: {
-    borderRadius: 20,
+  iconPillButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    marginRight: 10,
+    marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pillPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+  iconPillButtonPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
   },
-  pillText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
+  iconPillButtonActive: {
+    borderColor: 'rgba(46, 213, 115, 0.4)',
+    backgroundColor: 'rgba(46, 213, 115, 0.14)',
   },
   countPill: {
-    borderRadius: 20,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     paddingHorizontal: 12,
-    paddingVertical: 7,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -46,6 +46,7 @@ import {
   VIRTUAL_MACRO_BUTTON_NAME,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
+import sessionStatsTracker from '../utils/sessionStatsTracker';
 
 const log = debugFactory('NativeStreamScreen');
 
@@ -609,9 +610,10 @@ export function NativeStreamScreenBase({
     setLoading(false);
     Orientation.unlockAllOrientations();
     FullScreenManager.immersiveModeOff();
+    const sessionReport = sessionStatsTracker.finishSession();
     navigation.navigate({
       name: getStreamDestination(),
-      params: {needRefresh: true},
+      params: {needRefresh: true, sessionReport},
     });
   }, [getStreamDestination, navigation]);
 
@@ -1874,10 +1876,41 @@ export function NativeStreamScreenBase({
     syncLeftThumbButton,
   ]);
 
+  const isSessionTrackerStartedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (connectState === CONNECTED && !isSessionTrackerStartedRef.current) {
+      isSessionTrackerStartedRef.current = true;
+      const activeSettings =
+        settings && Object.keys(settings).length > 0 ? settings : getSettings();
+      const gameTitle =
+        route.params?.gameTitle ||
+        route.params?.titleItem?.ProductTitle ||
+        route.params?.titleItem?.titleName ||
+        route.params?.titleItem?.Title ||
+        (route.params?.streamType === 'cloud' ? 'Xbox Cloud Gaming' : 'Xbox Console');
+
+      sessionStatsTracker.startSession({
+        gameTitle,
+        streamType: route.params?.streamType,
+        codec: activeSettings?.codec,
+        resolution: activeSettings?.resolution ? `${activeSettings.resolution}p` : undefined,
+      });
+    } else if (connectState !== CONNECTED) {
+      isSessionTrackerStartedRef.current = false;
+    }
+  }, [
+    connectState,
+    route.params?.gameTitle,
+    route.params?.titleItem,
+    route.params?.streamType,
+    settings?.codec,
+    settings?.resolution,
+  ]);
+
   React.useEffect(() => {
     if (
       connectState !== CONNECTED ||
-      !showPerformance ||
       !webrtcClient ||
       typeof webrtcClient.getStreamState !== 'function'
     ) {
@@ -1892,7 +1925,20 @@ export function NativeStreamScreenBase({
       webrtcClient
         .getStreamState()
         .then(res => {
-          setPerformance(res);
+          if (showPerformance) {
+            setPerformance(res);
+          }
+          if (res) {
+            sessionStatsTracker.recordSample({
+              rtt: res.rtt,
+              bitrate: res.br,
+              packetLoss: res.pl,
+              jitter: res.jit,
+              fps: res.fps,
+              decode: res.decode,
+              resolution: res.resolution,
+            });
+          }
         })
         .catch(() => {});
     };

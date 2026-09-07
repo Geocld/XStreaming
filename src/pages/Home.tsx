@@ -36,6 +36,7 @@ import {
   isConsolesDataValid,
 } from '../store/consolesStore';
 import MsalAuth from '../components/MsalAuth';
+import SessionReportModal from '../components/SessionReportModal';
 
 const log = debugFactory('HomeScreen');
 
@@ -63,6 +64,30 @@ function HomeScreen({navigation, route}) {
   const [showMsal, setShowMsal] = React.useState(false);
   const [msalBtnLoading, setMsalBtnLoading] = React.useState(false);
   const [msalData, setMsalData] = React.useState(null);
+
+  // Session report modal state
+  const [sessionReport, setSessionReport] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (route?.params?.sessionReport) {
+      const currentSettings = getSettings();
+      if (currentSettings.show_session_report !== false) {
+        setSessionReport(route.params.sessionReport);
+      }
+    }
+  }, [route?.params?.sessionReport]);
+
+  const handleDismissReport = React.useCallback(() => {
+    setSessionReport(null);
+  }, []);
+
+  const handleDoneReport = React.useCallback((dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      const currentSettings = getSettings();
+      saveSettings({...currentSettings, show_session_report: false});
+    }
+    setSessionReport(null);
+  }, []);
 
   const authentication = useSelector((state: any) => state.authentication);
   const _authentication = React.useRef(authentication);
@@ -817,6 +842,12 @@ function HomeScreen({navigation, route}) {
       {renderHarmonyModal()}
 
       {renderContent()}
+      <SessionReportModal
+        visible={!!sessionReport}
+        report={sessionReport}
+        onDismiss={handleDismissReport}
+        onDone={handleDoneReport}
+      />
     </View>
   );
 }

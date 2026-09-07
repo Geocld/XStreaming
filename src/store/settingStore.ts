@@ -97,6 +97,7 @@ export type Settings = {
   use_msal_login: boolean;
   enable_microphone: boolean;
   debug: boolean;
+  show_session_report: boolean;
 };
 
 const defaultSettings: Settings = {
@@ -187,6 +188,7 @@ const defaultSettings: Settings = {
   use_msal_login: false,
   enable_microphone: false,
   debug: false,
+  show_session_report: true,
 };
 
 export const saveSettings = (settings: Settings) => {

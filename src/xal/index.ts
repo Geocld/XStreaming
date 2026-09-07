@@ -608,7 +608,7 @@ export default class Xal {
         )
         .then(res => {
           // log.info('[getStreamToken] res:', res.data);
-          resolve(new StreamingToken(res.data));
+          resolve(new StreamingToken(res.data, offering));
         })
         .catch((e: any) => {
           reject(e);

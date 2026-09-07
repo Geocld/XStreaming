@@ -7,6 +7,7 @@ import {
   NativeModules,
   StyleSheet,
   View,
+  Easing,
 } from 'react-native';
 import {
   Button,
@@ -20,7 +21,10 @@ import {
   adaptNavigationTheme,
 } from 'react-native-paper';
 
-import {createStackNavigator} from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  HeaderStyleInterpolators,
+} from '@react-navigation/stack';
 import {
   createNavigationContainerRef,
   NavigationContainer,
@@ -447,7 +451,35 @@ function App() {
                 <RootStack.Screen
                   name="Settings"
                   component={SettingsBackgroundScreen}
-                  options={{title: t('Settings')}}
+                  options={{
+                    title: t('Settings'),
+                    headerStyleInterpolator: HeaderStyleInterpolators.forFade,
+                    cardStyleInterpolator: ({current}) => ({
+                      cardStyle: {
+                        opacity: current.progress.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 1],
+                          extrapolate: 'clamp',
+                        }),
+                      },
+                    }),
+                    transitionSpec: {
+                      open: {
+                        animation: 'timing',
+                        config: {
+                          duration: 220,
+                          easing: Easing.out(Easing.ease),
+                        },
+                      },
+                      close: {
+                        animation: 'timing',
+                        config: {
+                          duration: 200,
+                          easing: Easing.in(Easing.ease),
+                        },
+                      },
+                    },
+                  }}
                 />
                 <RootStack.Screen
                   name="Login"

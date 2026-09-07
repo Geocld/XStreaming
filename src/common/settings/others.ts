@@ -23,6 +23,16 @@ const others = [
       {value: false, text: t('Disable')},
     ],
   },
+  {
+    name: 'show_session_report',
+    type: 'radio',
+    title: t('Session report'),
+    description: t('Show session report after exiting game stream'),
+    data: [
+      {value: true, text: t('Enable')},
+      {value: false, text: t('Disable')},
+    ],
+  },
 ];
 
 export default others;
