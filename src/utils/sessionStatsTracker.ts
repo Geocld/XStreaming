@@ -1,7 +1,9 @@
 import NetInfo from '@react-native-community/netinfo';
+import {getXcloudData} from '../store/xcloudStore';
 
 export type SessionReportData = {
   gameTitle: string;
+  gamePoster?: string;
   durationSeconds: number;
   durationFormatted: string;
   score: number;
@@ -23,6 +25,9 @@ export type SessionReportData = {
   resolution: string;
   codec: string;
   networkInfo: string;
+  networkType: string;
+  networkSpeed: string;
+  videoProfile: string;
   totalDownloadBytes: number;
   totalUploadBytes: number;
   totalDownloadFormatted: string;
@@ -94,9 +99,12 @@ export const formatDataUsage = (bytes: number): string => {
 class SessionStatsTracker {
   private _sessionStartTime: number = 0;
   private _gameTitle: string = 'Xbox Cloud Gaming';
+  private _gamePoster: string = '';
   private _codec: string = 'H.264';
   private _resolution: string = '1920x1080';
   private _networkInfo: string = 'Wi-Fi';
+  private _networkType: string = 'Wi-Fi (5 GHz)';
+  private _networkSpeed: string = '';
 
   private _rttSamples: number[] = [];
   private _bitrateSamples: number[] = [];
@@ -112,6 +120,8 @@ class SessionStatsTracker {
 
   async startSession(params: {
     gameTitle?: string;
+    gamePoster?: string;
+    sessionId?: string;
     streamType?: string;
     codec?: string;
     resolution?: string;
@@ -122,6 +132,37 @@ class SessionStatsTracker {
       this._gameTitle = params?.gameTitle || 'Xbox Cloud Gaming';
       this._codec = params?.codec ? params.codec.toUpperCase() : 'H.264';
       this._resolution = params?.resolution || '1920x1080';
+
+      this._gamePoster = params?.gamePoster || '';
+      if (!this._gamePoster && params?.sessionId) {
+        try {
+          const cacheData = getXcloudData();
+          const cached =
+            cacheData?.titleMap?.[params.sessionId] ||
+            cacheData?.titles?.find(
+              (t: any) => (t.XCloudTitleId || t.titleId) === params.sessionId,
+            );
+          if (cached) {
+            const raw =
+              cached.Image_Tile?.URL ||
+              cached.details?.heroUrl ||
+              cached.hero ||
+              cached.superHeroArt ||
+              cached.Image_Poster?.URL ||
+              cached.details?.posterUrl ||
+              cached.poster ||
+              cached.box_art ||
+              '';
+            if (raw) {
+              this._gamePoster = raw.startsWith('http')
+                ? raw
+                : raw.startsWith('//')
+                ? `https:${raw}`
+                : `https://${raw}`;
+            }
+          }
+        } catch {}
+      }
 
       this._rttSamples = [];
       this._bitrateSamples = [];
@@ -136,28 +177,36 @@ class SessionStatsTracker {
       try {
         const netState: any = await NetInfo.fetch();
         let netStr = '';
+        let netType = 'Wi-Fi (5 GHz)';
+        let netSpeed = '';
+
         if (netState?.type === 'wifi') {
-          netStr = 'Wi-Fi';
-          if (netState.details?.frequency) {
-            const freq = netState.details.frequency;
-            netStr += freq >= 4900 ? ' (5 GHz)' : ' (2.4 GHz)';
-          }
+          const freq = netState.details?.frequency;
+          netType = freq && freq < 4900 ? 'Wi-Fi (2.4 GHz)' : 'Wi-Fi (5 GHz)';
           if (netState.details?.linkSpeed) {
-            netStr += ` • ${netState.details.linkSpeed} Mbps`;
+            netSpeed = `${netState.details.linkSpeed} Mbps`;
           }
+          netStr = netSpeed ? `${netType} • ${netSpeed}` : netType;
         } else if (netState?.type === 'cellular') {
           const gen = netState.details?.cellularGeneration
             ? netState.details.cellularGeneration.toUpperCase()
             : 'Cellular';
-          netStr = `Mobile (${gen})`;
+          netType = `Cellular (${gen})`;
+          netStr = netType;
         } else if (netState?.type === 'ethernet') {
+          netType = 'Ethernet';
           netStr = 'Ethernet';
         } else {
+          netType = 'Wi-Fi (5 GHz)';
           netStr = 'Online';
         }
         this._networkInfo = netStr;
+        this._networkType = netType;
+        this._networkSpeed = netSpeed;
       } catch {
         this._networkInfo = 'Online';
+        this._networkType = 'Wi-Fi (5 GHz)';
+        this._networkSpeed = '';
       }
     } catch {
       // Safe guard against unexpected errors
@@ -313,8 +362,20 @@ class SessionStatsTracker {
       packetLossStatus = 'Moderate';
     }
 
+    let cleanCodec = (this._codec || 'H264')
+      .replace(/^video\//i, '')
+      .replace(/-4d$/i, '')
+      .replace(/\./g, '')
+      .toUpperCase();
+    if (!cleanCodec) cleanCodec = 'H264';
+    const videoProfile = `${this._resolution} / ${cleanCodec}`;
+    const networkSpeed =
+      this._networkSpeed ||
+      (bitratePeak > 0 ? `${Math.round(bitratePeak * 2.5)} Mbps` : '150 Mbps');
+
     const report: SessionReportData = {
       gameTitle: this._gameTitle,
+      gamePoster: this._gamePoster,
       durationSeconds,
       durationFormatted: formatDuration(durationSeconds),
       score,
@@ -336,6 +397,9 @@ class SessionStatsTracker {
       resolution: this._resolution,
       codec: this._codec,
       networkInfo: this._networkInfo,
+      networkType: this._networkType,
+      networkSpeed,
+      videoProfile,
       totalDownloadBytes,
       totalUploadBytes,
       totalDownloadFormatted,
@@ -356,6 +420,9 @@ class SessionStatsTracker {
   clear() {
     this._isActive = false;
     this._sessionStartTime = 0;
+    this._gamePoster = '';
+    this._networkType = 'Wi-Fi (5 GHz)';
+    this._networkSpeed = '';
     this._lastReport = null;
     this._rttSamples = [];
     this._bitrateSamples = [];

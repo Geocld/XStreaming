@@ -1890,8 +1890,30 @@ export function NativeStreamScreenBase({
         route.params?.titleItem?.Title ||
         (route.params?.streamType === 'cloud' ? 'Xbox Cloud Gaming' : 'Xbox Console');
 
+      const titleItem = route.params?.titleItem;
+      let rawPoster =
+        titleItem?.Image_Tile?.URL ||
+        titleItem?.details?.heroUrl ||
+        titleItem?.hero ||
+        titleItem?.superHeroArt ||
+        titleItem?.Image_Poster?.URL ||
+        titleItem?.details?.posterUrl ||
+        titleItem?.poster ||
+        titleItem?.box_art;
+
+      let gamePoster = '';
+      if (rawPoster) {
+        gamePoster = rawPoster.startsWith('http')
+          ? rawPoster
+          : rawPoster.startsWith('//')
+          ? `https:${rawPoster}`
+          : `https://${rawPoster}`;
+      }
+
       sessionStatsTracker.startSession({
         gameTitle,
+        gamePoster,
+        sessionId: route.params?.sessionId,
         streamType: route.params?.streamType,
         codec: activeSettings?.codec,
         resolution:
