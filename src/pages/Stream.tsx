@@ -1157,6 +1157,8 @@ function StreamScreen({navigation, route}: any) {
           fps: perf.fps,
           decode: perf.decode,
           resolution: perf.resolution,
+          bytesReceived: perf.bytesReceived,
+          bytesSent: perf.bytesSent,
         });
       }
     }

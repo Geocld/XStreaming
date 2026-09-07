@@ -93,7 +93,22 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
 
             {/* 2-Column Grid */}
             <View style={styles.gridContainer}>
-              {/* Row 1: Latency & Stream speed */}
+              {/* Row 1: Total Download & Total Upload */}
+              <View style={styles.gridRow}>
+                <View style={styles.metricTile}>
+                  <Text style={styles.metricLabel}>{t('Total Download')}</Text>
+                  <Text style={styles.metricValue}>{report.totalDownloadFormatted}</Text>
+                  <Text style={styles.metricSub}>{t('Data received')}</Text>
+                </View>
+
+                <View style={styles.metricTile}>
+                  <Text style={styles.metricLabel}>{t('Total Upload')}</Text>
+                  <Text style={styles.metricValue}>{report.totalUploadFormatted}</Text>
+                  <Text style={styles.metricSub}>{t('Data sent')}</Text>
+                </View>
+              </View>
+
+              {/* Row 2: Latency & Stream speed */}
               <View style={styles.gridRow}>
                 <View style={styles.metricTile}>
                   <Text style={styles.metricLabel}>{t('Latency')}</Text>
@@ -110,7 +125,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                 </View>
               </View>
 
-              {/* Row 2: Packet loss & Jitter */}
+              {/* Row 3: Packet loss & Jitter */}
               <View style={styles.gridRow}>
                 <View style={styles.metricTile}>
                   <Text style={styles.metricLabel}>{t('Packet loss')}</Text>
@@ -131,7 +146,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                 </View>
               </View>
 
-              {/* Row 3: Frame rate & Decode */}
+              {/* Row 4: Frame rate & Decode */}
               <View style={styles.gridRow}>
                 <View style={styles.metricTile}>
                   <Text style={styles.metricLabel}>{t('Frame rate')}</Text>
@@ -166,7 +181,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
 
             {/* Footer Action Bar */}
             <View style={styles.footerRow}>
-              {/* Checkbox: Don't show session reports again */}
+              {/* Checkbox: Don't show this again */}
               <Pressable
                 onPress={() => setDontShowAgain(!dontShowAgain)}
                 style={styles.checkboxContainer}
@@ -181,7 +196,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                   )}
                 </View>
                 <Text style={styles.checkboxLabel}>
-                  {t("Don't show session reports again")}
+                  {t("Don't show this again")}
                 </Text>
               </Pressable>
 

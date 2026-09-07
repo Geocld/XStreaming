@@ -23,6 +23,10 @@ export type SessionReportData = {
   resolution: string;
   codec: string;
   networkInfo: string;
+  totalDownloadBytes: number;
+  totalUploadBytes: number;
+  totalDownloadFormatted: string;
+  totalUploadFormatted: string;
 };
 
 export interface SessionStatsSample {
@@ -36,6 +40,8 @@ export interface SessionStatsSample {
   frameWidth?: number;
   frameHeight?: number;
   codec?: string;
+  bytesReceived?: number;
+  bytesSent?: number;
 }
 
 const parseNumeric = (val: any): number | null => {
@@ -71,6 +77,20 @@ const formatDuration = (totalSeconds: number): string => {
   return `${minutes}:${pad(seconds)}`;
 };
 
+export const formatDataUsage = (bytes: number): string => {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 MB';
+  const gb = bytes / (1024 * 1024 * 1024);
+  if (gb >= 1) {
+    return `${gb.toFixed(2)} GB`;
+  }
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 1) {
+    return `${mb >= 100 ? Math.round(mb) : mb.toFixed(1)} MB`;
+  }
+  const kb = bytes / 1024;
+  return `${Math.max(1, Math.round(kb))} KB`;
+};
+
 class SessionStatsTracker {
   private _sessionStartTime: number = 0;
   private _gameTitle: string = 'Xbox Cloud Gaming';
@@ -84,6 +104,8 @@ class SessionStatsTracker {
   private _jitterSamples: number[] = [];
   private _fpsSamples: number[] = [];
   private _decodeSamples: number[] = [];
+  private _maxBytesReceived: number = 0;
+  private _maxBytesSent: number = 0;
 
   private _lastReport: SessionReportData | null = null;
   private _isActive: boolean = false;
@@ -107,6 +129,8 @@ class SessionStatsTracker {
       this._jitterSamples = [];
       this._fpsSamples = [];
       this._decodeSamples = [];
+      this._maxBytesReceived = 0;
+      this._maxBytesSent = 0;
       this._lastReport = null;
 
       try {
@@ -162,6 +186,13 @@ class SessionStatsTracker {
       const decode = parseNumeric(sample.decode);
       if (decode !== null && decode >= 0) this._decodeSamples.push(decode);
 
+      if (typeof sample.bytesReceived === 'number' && sample.bytesReceived > this._maxBytesReceived) {
+        this._maxBytesReceived = sample.bytesReceived;
+      }
+      if (typeof sample.bytesSent === 'number' && sample.bytesSent > this._maxBytesSent) {
+        this._maxBytesSent = sample.bytesSent;
+      }
+
       if (sample.resolution && typeof sample.resolution === 'string' && sample.resolution.toLowerCase().includes('x')) {
         this._resolution = sample.resolution.replace(/\s+/g, '').toLowerCase();
       } else if (sample.frameWidth && sample.frameHeight) {
@@ -216,6 +247,21 @@ class SessionStatsTracker {
     const fpsAvg = parseFloat(avg(this._fpsSamples, 60).toFixed(1));
     const decodeAvg = parseFloat(avg(this._decodeSamples, 6).toFixed(1));
     const decodePeak = parseFloat(max(this._decodeSamples, decodeAvg).toFixed(1));
+
+    // Total download & upload usage calculation
+    let totalDownloadBytes = this._maxBytesReceived;
+    let totalUploadBytes = this._maxBytesSent;
+
+    // Fallback estimation if WebRTC byte counters weren't populated
+    if (totalDownloadBytes <= 0 && bitrateAvg > 0) {
+      totalDownloadBytes = Math.round((bitrateAvg * 1000000 / 8) * durationSeconds);
+    }
+    if (totalUploadBytes <= 0) {
+      totalUploadBytes = Math.round(12 * 1024 * durationSeconds);
+    }
+
+    const totalDownloadFormatted = formatDataUsage(totalDownloadBytes);
+    const totalUploadFormatted = formatDataUsage(totalUploadBytes);
 
     // Calculate quality score (0 - 100)
     let score = 100;
@@ -290,6 +336,10 @@ class SessionStatsTracker {
       resolution: this._resolution,
       codec: this._codec,
       networkInfo: this._networkInfo,
+      totalDownloadBytes,
+      totalUploadBytes,
+      totalDownloadFormatted,
+      totalUploadFormatted,
     };
 
     this._lastReport = report;
@@ -313,6 +363,8 @@ class SessionStatsTracker {
     this._jitterSamples = [];
     this._fpsSamples = [];
     this._decodeSamples = [];
+    this._maxBytesReceived = 0;
+    this._maxBytesSent = 0;
   }
 }
 

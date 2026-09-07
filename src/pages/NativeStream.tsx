@@ -1942,6 +1942,8 @@ export function NativeStreamScreenBase({
               fps: res.fps,
               decode: res.decode,
               resolution: res.resolution,
+              bytesReceived: res.bytesReceived,
+              bytesSent: res.bytesSent,
             });
           }
         })
