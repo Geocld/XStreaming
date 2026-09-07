@@ -1894,7 +1894,12 @@ export function NativeStreamScreenBase({
         gameTitle,
         streamType: route.params?.streamType,
         codec: activeSettings?.codec,
-        resolution: activeSettings?.resolution ? `${activeSettings.resolution}p` : undefined,
+        resolution:
+          activeSettings?.resolution === 1081
+            ? '1440p'
+            : activeSettings?.resolution
+            ? `${activeSettings.resolution}p`
+            : undefined,
       });
     } else if (connectState !== CONNECTED) {
       isSessionTrackerStartedRef.current = false;

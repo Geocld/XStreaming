@@ -1182,7 +1182,12 @@ function StreamScreen({navigation, route}: any) {
             gameTitle,
             streamType: route.params?.streamType,
             codec: settings?.codec,
-            resolution: settings?.resolution ? `${settings.resolution}p` : undefined,
+            resolution:
+              settings?.resolution === 1081
+                ? '1440p'
+                : settings?.resolution
+                ? `${settings.resolution}p`
+                : undefined,
           });
 
           ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
