@@ -19,6 +19,7 @@ import {
   Card,
   HelperText,
   IconButton,
+  useTheme,
 } from 'react-native-paper';
 import Spinner from '../components/Spinner';
 import {useDispatch} from 'react-redux';
@@ -43,6 +44,9 @@ const webviewTitles: any = [];
 
 function TitleDetail({navigation, route}) {
   const {t} = useTranslation();
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const primary = theme.colors.primary;
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const dispatch = useDispatch();
   const [titleItem, setTitleItem] = React.useState<any>(null);
@@ -302,30 +306,27 @@ function TitleDetail({navigation, route}) {
   const renderLargeActionButton = (
     label: string,
     onPress: () => void,
-    primary = false,
+    isPrimaryAction = false,
   ) => {
     return (
       <Pressable
         focusable={true}
-        hasTVPreferredFocus={primary}
+        hasTVPreferredFocus={isPrimaryAction}
         onPress={onPress}
-        android_ripple={{
-          color: primary
-            ? 'rgba(255, 255, 255, 0.18)'
-            : 'rgba(16, 124, 16, 0.16)',
-        }}
         style={({focused, pressed}: any) => [
           styles.tvActionButton,
-          primary ? styles.tvActionButtonPrimary : styles.tvActionButtonPlain,
+          isPrimaryAction
+            ? [styles.tvActionButtonPrimary, {backgroundColor: primary, borderColor: primary}]
+            : [styles.tvActionButtonPlain, {borderColor: primary + '66'}],
           focused && styles.tvActionButtonFocused,
           pressed && styles.tvActionButtonPressed,
         ]}>
         <Text
           style={[
             styles.tvActionButtonText,
-            primary
+            isPrimaryAction
               ? styles.tvActionButtonTextPrimary
-              : styles.tvActionButtonTextPlain,
+              : [styles.tvActionButtonTextPlain, {color: primary}],
           ]}>
           {label}
         </Text>
@@ -336,7 +337,16 @@ function TitleDetail({navigation, route}) {
   const renderActionBar = () => {
     return (
       <View
-        style={[styles.buttonWrap, isLargeScreen && styles.buttonWrapLarge]}>
+        style={[
+          styles.buttonWrap,
+          {
+            backgroundColor: isLight
+              ? 'rgba(255, 255, 255, 0.96)'
+              : 'rgba(18, 18, 18, 0.96)',
+            borderTopColor: primary + '2E',
+          },
+          isLargeScreen && styles.buttonWrapLarge,
+        ]}>
         {isLargeScreen ? (
           <>
             {renderLargeActionButton(t('Start game'), handleStartGame, true)}
@@ -629,6 +639,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+    overflow: 'hidden',
   },
   tvActionButtonPrimary: {
     backgroundColor: '#107C10',

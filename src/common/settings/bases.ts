@@ -26,7 +26,7 @@ const bases = [
     name: 'theme',
     type: 'radio',
     title: t('Theme'),
-    description: t('Set the app theme to take effect on the next launch'),
+    description: t('Set the app theme (Auto, Light, or Dark)'),
     data: [
       {value: 'auto', text: t('Auto')},
       {value: 'light', text: t('Light')},
@@ -37,7 +37,7 @@ const bases = [
     name: 'theme_primary_color',
     type: 'color',
     title: t('Theme primary color'),
-    description: t('Choose app primary color, takes effect on next launch'),
+    description: t('Choose app primary accent color'),
     tips: t('Choose from preset palette for best readability'),
     data: THEME_PRIMARY_PRESET_COLORS.map(color => ({
       value: color,

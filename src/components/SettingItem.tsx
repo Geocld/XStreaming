@@ -1,8 +1,6 @@
 import React from 'react';
-import {useColorScheme} from 'react-native';
-import {List, Divider} from 'react-native-paper';
+import {List, Divider, useTheme} from 'react-native-paper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {getSettings} from '../store/settingStore';
 
 type Props = {
   title: string;
@@ -10,17 +8,9 @@ type Props = {
   onPress: () => void;
 };
 
-const SettingItem: React.FC<Props> = ({title, description, onPress}) => {
-  const colorScheme = useColorScheme();
-  const settings = getSettings();
-  const handlePress = () => {
-    onPress && onPress();
-  };
-
-  let theme = settings.theme ?? 'dark';
-  if (settings.theme === 'auto') {
-    theme = colorScheme || 'dark';
-  }
+const SettingItem: React.FC<Props> = React.memo(({title, description, onPress}) => {
+  const theme = useTheme();
+  const iconColor = theme.dark ? '#fff' : '#333';
 
   return (
     <>
@@ -32,14 +22,14 @@ const SettingItem: React.FC<Props> = ({title, description, onPress}) => {
           <Ionicons
             name={'chevron-forward-outline'}
             size={20}
-            color={theme === 'dark' ? '#fff' : '#333'}
+            color={iconColor}
           />
         )}
-        onPress={handlePress}
+        onPress={onPress}
       />
       <Divider />
     </>
   );
-};
+});
 
 export default SettingItem;

@@ -6,7 +6,7 @@ import {
   Pressable,
   Text,
 } from 'react-native';
-import {Icon} from 'react-native-paper';
+import {Icon, useTheme} from 'react-native-paper';
 
 interface Props {
   titleItem: any;
@@ -27,6 +27,11 @@ const XStreamingGameCard: React.FC<Props> = ({
   height,
   style,
 }) => {
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const primaryColor = theme.colors.primary;
+  const playIconColor = theme.colors.onPrimary || '#FFFFFF';
+
   const [imageError, setImageError] = React.useState(false);
 
   const onPressRef = React.useRef(onPress);
@@ -76,13 +81,16 @@ const XStreamingGameCard: React.FC<Props> = ({
     <View style={[styles.outerWrapper, customCardStyle, style]}>
       <Pressable
         onPress={handlePressCard}
-        android_ripple={{color: 'rgba(255, 255, 255, 0.12)'}}
-        style={({pressed}) => [styles.cardPressable, pressed && styles.cardPressed]}>
+        style={({pressed}) => [
+          styles.cardPressable,
+          isLight && styles.cardPressableLight,
+          pressed && styles.cardPressed,
+        ]}>
         {/* Background poster image */}
         {posterUrl && !imageError ? (
           <Image
             source={{uri: posterUrl}}
-            style={styles.posterImage}
+            style={[styles.posterImage, isLight && styles.posterImageLight]}
             resizeMode="cover"
             fadeDuration={100}
             onError={() => {
@@ -90,9 +98,15 @@ const XStreamingGameCard: React.FC<Props> = ({
             }}
           />
         ) : (
-          <View style={styles.fallbackContainer}>
-            <Icon source="controller" size={36} color="rgba(255, 255, 255, 0.35)" />
-            <Text numberOfLines={2} style={styles.fallbackText}>
+          <View style={[styles.fallbackContainer, isLight && styles.fallbackContainerLight]}>
+            <Icon
+              source="controller"
+              size={36}
+              color={isLight ? 'rgba(0, 0, 0, 0.35)' : 'rgba(255, 255, 255, 0.35)'}
+            />
+            <Text
+              numberOfLines={2}
+              style={[styles.fallbackText, isLight && styles.fallbackTextLight]}>
               {titleItem?.ProductTitle || ''}
             </Text>
           </View>
@@ -104,12 +118,12 @@ const XStreamingGameCard: React.FC<Props> = ({
           <Pressable
             onPress={handlePressPlay}
             hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}
-            android_ripple={{color: 'rgba(0, 0, 0, 0.2)', borderless: true}}
             style={({pressed}) => [
               styles.playButton,
+              {backgroundColor: primaryColor},
               pressed && styles.actionButtonPressed,
             ]}>
-            <Icon source="play" size={22} color="#000000" />
+            <Icon source="play" size={22} color={playIconColor} />
           </Pressable>
         </View>
       </Pressable>
@@ -130,6 +144,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#161922',
     position: 'relative',
   },
+  cardPressableLight: {
+    backgroundColor: '#E5E7EB',
+  },
   cardPressed: {
     opacity: 0.9,
     transform: [{scale: 0.985}],
@@ -139,6 +156,9 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#1a1d26',
   },
+  posterImageLight: {
+    backgroundColor: '#E5E7EB',
+  },
   fallbackContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -146,12 +166,18 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#181b24',
   },
+  fallbackContainerLight: {
+    backgroundColor: '#F3F4F6',
+  },
   fallbackText: {
     marginTop: 8,
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  fallbackTextLight: {
+    color: '#111827',
   },
   actionOverlay: {
     position: 'absolute',
@@ -175,6 +201,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3,
+    overflow: 'hidden',
   },
   actionButtonPressed: {
     opacity: 0.8,

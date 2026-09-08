@@ -74,17 +74,20 @@ function SettingDetailScreen({navigation, route}) {
   const heroCardStyle = React.useMemo(
     () => [
       styles.heroCard,
-      {backgroundColor: shiftColor(theme.colors.primary, -0.82)},
+      {backgroundColor: theme.colors.primaryContainer},
     ],
-    [theme.colors.primary],
+    [theme.colors.primaryContainer],
   );
   const heroDescStyle = React.useMemo(
-    () => [styles.heroDesc, {color: shiftColor(theme.colors.primary, 0.72)}],
-    [theme.colors.primary],
+    () => [styles.heroDesc, {color: theme.colors.onPrimaryContainer}],
+    [theme.colors.onPrimaryContainer],
   );
   const heroHintStyle = React.useMemo(
-    () => [styles.heroHint, {color: shiftColor(theme.colors.primary, 0.55)}],
-    [theme.colors.primary],
+    () => [
+      styles.heroHint,
+      {color: theme.colors.onPrimaryContainer, opacity: 0.8},
+    ],
+    [theme.colors.onPrimaryContainer],
   );
 
   React.useEffect(() => {

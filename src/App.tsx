@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Alert,
+  Animated,
   DeviceEventEmitter,
   Linking,
   useColorScheme,
@@ -18,6 +19,7 @@ import {
   Portal,
   ProgressBar,
   Text,
+  useTheme,
   adaptNavigationTheme,
 } from 'react-native-paper';
 
@@ -35,7 +37,12 @@ import {
 import merge from 'deepmerge';
 import {Provider} from 'react-redux';
 import store from './store';
-import {getSettings, saveSettings} from './store/settingStore';
+import {
+  getSettings,
+  saveSettings,
+  SETTINGS_CHANGED_EVENT,
+  Settings,
+} from './store/settingStore';
 import {saveServerData} from './store/serverStore';
 import {findTitleByProductId} from './store/shortcutStore';
 
@@ -117,11 +124,9 @@ const PAGE_BACKGROUND_DARK = '#111320';
 
 const withPageBackground = (ScreenComponent: any) => {
   const WrappedScreen = (props: any) => {
-    const colorScheme = useColorScheme();
-    const settings = getSettings();
-    const isLight =
-      settings.theme === 'light' ||
-      (settings.theme === 'auto' && colorScheme === 'light');
+    const theme = useTheme();
+    const isLight = !theme.dark;
+    const primaryColor = theme.colors.primary;
 
     return (
       <View
@@ -129,7 +134,7 @@ const withPageBackground = (ScreenComponent: any) => {
           styles.backgroundScreen,
           isLight ? styles.backgroundScreenLight : styles.backgroundScreenDark,
         ]}>
-        <XboxSymbolBackground isLight={isLight} />
+        <XboxSymbolBackground isLight={isLight} primaryColor={primaryColor} />
         <View style={styles.backgroundContent}>
           <ScreenComponent {...props} />
         </View>
@@ -143,6 +148,73 @@ const withPageBackground = (ScreenComponent: any) => {
   return WrappedScreen;
 };
 
+const withSolidPageBackground = (ScreenComponent: any) => {
+  const WrappedScreen = (props: any) => {
+    const theme = useTheme();
+    const isLight = !theme.dark;
+
+    return (
+      <View
+        style={[
+          styles.backgroundScreen,
+          isLight ? styles.backgroundScreenLight : styles.backgroundScreenDark,
+        ]}>
+        <View style={styles.backgroundContent}>
+          <ScreenComponent {...props} />
+        </View>
+      </View>
+    );
+  };
+
+  WrappedScreen.displayName = `WithSolidPageBackground(${
+    ScreenComponent.displayName || ScreenComponent.name || 'Screen'
+  })`;
+  return WrappedScreen;
+};
+
+const forSettingsSlide = ({
+  current,
+  inverted,
+  layouts: {screen},
+}: any) => ({
+  cardStyle: {
+    opacity: current.progress.interpolate({
+      inputRange: [0, 0.25, 1],
+      outputRange: [0, 0.85, 1],
+      extrapolate: 'clamp',
+    }),
+    transform: [
+      {
+        translateX: Animated.multiply(
+          current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [screen.width, 0],
+            extrapolate: 'clamp',
+          }),
+          inverted,
+        ),
+      },
+    ],
+  },
+});
+
+const settingsTransitionSpec = {
+  open: {
+    animation: 'timing' as const,
+    config: {
+      duration: 280,
+      easing: Easing.bezier(0.2, 0, 0, 1),
+    },
+  },
+  close: {
+    animation: 'timing' as const,
+    config: {
+      duration: 240,
+      easing: Easing.bezier(0.4, 0, 1, 1),
+    },
+  },
+};
+
 const HomeBackgroundScreen = withPageBackground(HomeScreen);
 const CloudBackgroundScreen = withPageBackground(CloudScreen);
 const FriendsBackgroundScreen = withPageBackground(FriendsScreen);
@@ -151,7 +223,7 @@ const AchivementDetailBackgroundScreen = withPageBackground(
   AchivementDetailScreen,
 );
 const LoginBackgroundScreen = withPageBackground(LoginScreen);
-const SettingsBackgroundScreen = withPageBackground(SettingsScreen);
+const SettingsBackgroundScreen = withSolidPageBackground(SettingsScreen);
 const SettingDetailBackgroundScreen = withPageBackground(SettingDetailScreen);
 const TitleDetailBackgroundScreen = withPageBackground(TitleDetailScreen);
 const DebugBackgroundScreen = withPageBackground(DebugScreen);
@@ -183,7 +255,7 @@ const SearchBackgroundScreen = withPageBackground(SearchScreen);
 function App() {
   const {t} = useTranslation();
   const colorScheme = useColorScheme();
-  const settings = getSettings();
+  const [settings, setSettings] = React.useState<Settings>(() => getSettings());
   const deviceInfos = FullScreenManager.getDeviceInfos();
   const updateCheckedRef = React.useRef(false);
   const pendingTitleShortcutRef = React.useRef<any>(null);
@@ -195,6 +267,20 @@ function App() {
     status: 'idle',
     totalBytes: 0,
   });
+
+  React.useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      SETTINGS_CHANGED_EVENT,
+      (nextSettings: Settings) => {
+        if (nextSettings) {
+          setSettings({...nextSettings});
+        }
+      },
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   React.useEffect(() => {
     const subscription = DeviceEventEmitter.addListener(
@@ -392,6 +478,10 @@ function App() {
     navigationTheme = CombinedDefaultTheme;
   }
 
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'auto' && colorScheme === 'light');
+
   if (
     deviceInfos.factor?.toLocaleUpperCase().indexOf('NINTENDO') > -1 &&
     deviceInfos.model?.toLocaleUpperCase().indexOf('SWITCHLITE') > -1
@@ -454,31 +544,10 @@ function App() {
                   options={{
                     title: t('Settings'),
                     headerStyleInterpolator: HeaderStyleInterpolators.forFade,
-                    cardStyleInterpolator: ({current}) => ({
-                      cardStyle: {
-                        opacity: current.progress.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0, 1],
-                          extrapolate: 'clamp',
-                        }),
-                      },
-                    }),
-                    transitionSpec: {
-                      open: {
-                        animation: 'timing',
-                        config: {
-                          duration: 220,
-                          easing: Easing.out(Easing.ease),
-                        },
-                      },
-                      close: {
-                        animation: 'timing',
-                        config: {
-                          duration: 200,
-                          easing: Easing.in(Easing.ease),
-                        },
-                      },
-                    },
+                    cardStyleInterpolator: forSettingsSlide,
+                    transitionSpec: settingsTransitionSpec,
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
                   }}
                 />
                 <RootStack.Screen
@@ -656,7 +725,7 @@ function App() {
           </Portal>
         </PaperProvider>
       </Provider>
-      <SystemBars style="light" hidden={false} />
+      <SystemBars style={isLight ? 'dark' : 'light'} hidden={false} />
     </>
   );
 }

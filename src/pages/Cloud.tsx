@@ -13,8 +13,9 @@ import {
   ScrollView,
   NativeModules,
   BackHandler,
+  AppState,
 } from 'react-native';
-import {Text, Portal, Modal, Card, Icon, Button} from 'react-native-paper';
+import {Text, Portal, Modal, Card, Icon, Button, useTheme} from 'react-native-paper';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import {useTranslation} from 'react-i18next';
@@ -27,9 +28,11 @@ import SessionReportModal from '../components/SessionReportModal';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
 import TokenStore from '../xal/tokenstore';
+import StreamingToken from '../tokens/streamingtoken';
 import {debugFactory} from '../utils/debug';
 import {getXcloudData, saveXcloudData, isxCloudDataValid} from '../store/xcloudStore';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {getStreamToken, isStreamTokenValid} from '../store/streamTokenStore';
 import {getWebToken, isWebTokenValid} from '../store/webTokenStore';
 import {storage} from '../store/mmkv';
 import {syncRegionSettings} from '../utils/regionSync';
@@ -389,59 +392,81 @@ interface RegionSelectModalProps {
 const RegionSelectModal: React.FC<RegionSelectModalProps> = ({
   visible,
   onDismiss,
-  availableRegions,
   currentRegionName,
+  availableRegions,
   onSelectRegion,
   screenHeight,
   t,
-}) => (
-  <Portal>
-    <Modal
-      visible={visible}
-      onDismiss={onDismiss}
-      contentContainerStyle={[styles.dialogContainer, {maxHeight: screenHeight * 0.76}]}>
-      <Card style={styles.modalCard}>
-        <Card.Title
-          title={t('Select Cloud Server')}
-          titleStyle={styles.modalTitle}
-          left={props => <Icon {...props} source="earth" color="#2ed573" size={24} />}
-        />
-        <ScrollView
-          style={{maxHeight: screenHeight * 0.58}}
-          contentContainerStyle={styles.modalScrollContent}
-          showsVerticalScrollIndicator={true}
-          nestedScrollEnabled={true}>
-          {availableRegions.map(reg => {
-            const info = getRegionDisplayInfo(reg.name);
-            const isSelected =
-              currentRegionName === reg.name || (!currentRegionName && reg.isDefault);
-            return (
-              <Pressable
-                key={reg.name}
-                onPress={() => onSelectRegion(reg.name)}
-                style={[styles.regionModalOption, isSelected && styles.modalOptionActive]}>
-                <View style={styles.regionOptionLeft}>
-                  <Text style={styles.modalRegionFlag}>{info.flag}</Text>
-                  <View style={styles.modalRegionInfo}>
-                    <Text
-                      numberOfLines={1}
-                      style={[styles.modalOptionTitle, isSelected && styles.modalOptionTextActive]}>
-                      {info.name}
-                    </Text>
-                    <Text numberOfLines={1} style={styles.modalRegionCode}>
-                      {reg.name}
-                    </Text>
+}) => {
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const primary = theme.colors.primary;
+  const {width: winW, height: winH} = useWindowDimensions();
+  const isLandscape = winW > winH;
+
+  return (
+    <Portal>
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={[
+          styles.dialogContainer,
+          isLandscape && styles.dialogContainerLandscape,
+          {maxHeight: (screenHeight || winH) * (isLandscape ? 0.9 : 0.76)},
+        ]}>
+        <Card style={[styles.modalCard, isLight && styles.modalCardLight]}>
+          <Card.Title
+            title={t('Select Cloud Server')}
+            titleStyle={[styles.modalTitle, isLight && styles.modalTitleLight]}
+            left={props => <Icon {...props} source="earth" color={primary} size={24} />}
+          />
+          <ScrollView
+            style={{maxHeight: (screenHeight || winH) * (isLandscape ? 0.68 : 0.58)}}
+            contentContainerStyle={styles.modalScrollContent}
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}>
+            {availableRegions.map(reg => {
+              const info = getRegionDisplayInfo(reg.name);
+              const isSelected =
+                currentRegionName === reg.name || (!currentRegionName && reg.isDefault);
+              return (
+                <Pressable
+                  key={reg.name}
+                  onPress={() => onSelectRegion(reg.name)}
+                  style={[
+                    styles.regionModalOption,
+                    isLight && styles.regionModalOptionLight,
+                    isSelected && [styles.modalOptionActive, {backgroundColor: primary + '1A'}],
+                  ]}>
+                  <View style={styles.regionOptionLeft}>
+                    <Text style={styles.modalRegionFlag}>{info.flag}</Text>
+                    <View style={styles.modalRegionInfo}>
+                      <Text
+                        numberOfLines={1}
+                        style={[
+                          styles.modalOptionTitle,
+                          isLight && styles.modalOptionTitleLight,
+                          isSelected && {color: primary, fontWeight: '700'},
+                        ]}>
+                        {info.name}
+                      </Text>
+                      <Text
+                        numberOfLines={1}
+                        style={[styles.modalRegionCode, isLight && styles.modalRegionCodeLight]}>
+                        {reg.name}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                {isSelected && <Icon source="check" size={20} color="#2ed573" />}
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </Card>
-    </Modal>
-  </Portal>
-);
+                  {isSelected && <Icon source="check" size={20} color={primary} />}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </Card>
+      </Modal>
+    </Portal>
+  );
+};
 
 // Sort options modal component
 interface SortOptionModalProps {
@@ -459,6 +484,12 @@ const SortOptionModal: React.FC<SortOptionModalProps> = ({
   onSelectSort,
   t,
 }) => {
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const primary = theme.colors.primary;
+  const {width: winW, height: winH} = useWindowDimensions();
+  const isLandscape = winW > winH;
+
   const options = [
     {key: 'relevance', label: t('Relevance')},
     {key: 'az', label: 'A - Z'},
@@ -471,27 +502,34 @@ const SortOptionModal: React.FC<SortOptionModalProps> = ({
       <Modal
         visible={visible}
         onDismiss={onDismiss}
-        contentContainerStyle={styles.dialogContainer}>
-        <Card style={styles.modalCard}>
+        contentContainerStyle={[
+          styles.dialogContainer,
+          isLandscape && styles.dialogContainerLandscape,
+        ]}>
+        <Card style={[styles.modalCard, isLight && styles.modalCardLight]}>
           <Card.Title
             title={t('Sort: Relevance')}
-            titleStyle={styles.modalTitle}
-            left={props => <Icon {...props} source="sort-variant" color="#2ed573" size={24} />}
+            titleStyle={[styles.modalTitle, isLight && styles.modalTitleLight]}
+            left={props => <Icon {...props} source="sort-variant" color={primary} size={24} />}
           />
           <Card.Content>
             {options.map(opt => (
               <Pressable
                 key={opt.key}
                 onPress={() => onSelectSort(opt.key)}
-                style={[styles.modalOption, sortBy === opt.key && styles.modalOptionActive]}>
+                style={[
+                  styles.modalOption,
+                  sortBy === opt.key && [styles.modalOptionActive, {backgroundColor: primary + '1A'}],
+                ]}>
                 <Text
                   style={[
                     styles.modalOptionText,
-                    sortBy === opt.key && styles.modalOptionTextActive,
+                    isLight && styles.modalOptionTextLight,
+                    sortBy === opt.key && {color: primary, fontWeight: '700'},
                   ]}>
                   {opt.label}
                 </Text>
-                {sortBy === opt.key && <Icon source="check" size={18} color="#2ed573" />}
+                {sortBy === opt.key && <Icon source="check" size={18} color={primary} />}
               </Pressable>
             ))}
           </Card.Content>
@@ -517,6 +555,12 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
   onSelectFilter,
   t,
 }) => {
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const primary = theme.colors.primary;
+  const {width: winW, height: winH} = useWindowDimensions();
+  const isLandscape = winW > winH;
+
   const filterOptions = [
     {key: 'all', label: t('All')},
     {key: 'play_gamepass', label: t('Play with Game Pass')},
@@ -532,27 +576,35 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
       <Modal
         visible={visible}
         onDismiss={onDismiss}
-        contentContainerStyle={styles.dialogContainer}>
-        <Card style={styles.modalCard}>
+        contentContainerStyle={[
+          styles.dialogContainer,
+          isLandscape && styles.dialogContainerLandscape,
+          {maxHeight: winH * (isLandscape ? 0.9 : 0.8)},
+        ]}>
+        <Card style={[styles.modalCard, isLight && styles.modalCardLight]}>
           <Card.Title
             title={t('Filters')}
-            titleStyle={styles.modalTitle}
-            left={props => <Icon {...props} source="filter-variant" color="#2ed573" size={24} />}
+            titleStyle={[styles.modalTitle, isLight && styles.modalTitleLight]}
+            left={props => <Icon {...props} source="filter-variant" color={primary} size={24} />}
           />
           <Card.Content>
             {filterOptions.map(opt => (
               <Pressable
                 key={opt.key}
                 onPress={() => onSelectFilter(opt.key)}
-                style={[styles.modalOption, filterCategory === opt.key && styles.modalOptionActive]}>
+                style={[
+                  styles.modalOption,
+                  filterCategory === opt.key && [styles.modalOptionActive, {backgroundColor: primary + '1A'}],
+                ]}>
                 <Text
                   style={[
                     styles.modalOptionText,
-                    filterCategory === opt.key && styles.modalOptionTextActive,
+                    isLight && styles.modalOptionTextLight,
+                    filterCategory === opt.key && {color: primary, fontWeight: '700'},
                   ]}>
                   {opt.label}
                 </Text>
-                {filterCategory === opt.key && <Icon source="check" size={18} color="#2ed573" />}
+                {filterCategory === opt.key && <Icon source="check" size={18} color={primary} />}
               </Pressable>
             ))}
           </Card.Content>
@@ -575,31 +627,43 @@ const UsbWarningModal: React.FC<UsbWarningModalProps> = ({
   onDismiss,
   onConfirm,
   t,
-}) => (
-  <Portal>
-    <Modal
-      visible={visible}
-      onDismiss={onDismiss}
-      contentContainerStyle={styles.dialogContainer}>
-      <Card style={styles.modalCard}>
-        <Card.Content>
-          <Text style={styles.usbWarningText}>
-            {t(
-              'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive',
-            )}
-          </Text>
-          <Button
-            mode="contained"
-            buttonColor="#2ed573"
-            textColor="#000000"
-            onPress={onConfirm}>
-            {t('Confirm')}
-          </Button>
-        </Card.Content>
-      </Card>
-    </Modal>
-  </Portal>
-);
+}) => {
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const primary = theme.colors.primary;
+  const onPrimary = theme.colors.onPrimary || '#FFFFFF';
+  const {width: winW, height: winH} = useWindowDimensions();
+  const isLandscape = winW > winH;
+
+  return (
+    <Portal>
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={[
+          styles.dialogContainer,
+          isLandscape && styles.dialogContainerLandscape,
+        ]}>
+        <Card style={[styles.modalCard, isLight && styles.modalCardLight]}>
+          <Card.Content>
+            <Text style={[styles.usbWarningText, isLight && styles.usbWarningTextLight]}>
+              {t(
+                'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive',
+              )}
+            </Text>
+            <Button
+              mode="contained"
+              buttonColor={primary}
+              textColor={onPrimary}
+              onPress={onConfirm}>
+              {t('Confirm')}
+            </Button>
+          </Card.Content>
+        </Card>
+      </Modal>
+    </Portal>
+  );
+};
 
 // Cloud gaming acceleration guide modal
 interface TutorialModalProps {
@@ -607,35 +671,57 @@ interface TutorialModalProps {
   onDismiss: () => void;
 }
 
-const TutorialModal: React.FC<TutorialModalProps> = ({visible, onDismiss}) => (
-  <Portal>
-    <Modal
-      visible={visible}
-      onDismiss={onDismiss}
-      contentContainerStyle={styles.tutorialModalContainer}>
-      <Card style={styles.modalCard}>
-        <Card.Content>
-          <Text variant="bodyMedium" style={styles.tutorialLeadText}>
-            如果你在中国大陆地区，因为云游戏服务器均在海外，云游戏延迟和丢包率高都是正常现象，
-            如果你需要使用加速器提升云游戏质量，请按照以下操作顺序加速云游戏。
-          </Text>
-          <Text variant="bodyMedium" style={styles.tutorialStepText}>
-            1. 打开XStreaming，设置 - 云游戏 - 地区选择日本或韩国，选择后记得保存。
-          </Text>
-          <Text variant="bodyMedium" style={styles.tutorialStepText}>
-            2. 进入云游戏栏目，选择游戏直接开始，待连接成功显示游戏画面后，将XStreaming切到后台。
-          </Text>
-          <Text variant="bodyMedium" style={styles.tutorialStepText}>
-            3. 打开加速器，选择加速『XStreaming』，等待加速成功后切回游戏。
-          </Text>
-        </Card.Content>
-      </Card>
-    </Modal>
-  </Portal>
-);
+const TutorialModal: React.FC<TutorialModalProps> = ({visible, onDismiss}) => {
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const {width: winW, height: winH} = useWindowDimensions();
+  const isLandscape = winW > winH;
+
+  return (
+    <Portal>
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={[
+          styles.tutorialModalContainer,
+          isLandscape && styles.tutorialModalContainerLandscape,
+        ]}>
+        <Card style={[styles.modalCard, isLight && styles.modalCardLight]}>
+          <Card.Content>
+            <Text
+              variant="bodyMedium"
+              style={[styles.tutorialLeadText, isLight && styles.tutorialLeadTextLight]}>
+              如果你在中国大陆地区，因为云游戏服务器均在海外，云游戏延迟和丢包率高都是正常现象，
+              如果你需要使用加速器提升云游戏质量，请按照以下操作顺序加速云游戏。
+            </Text>
+            <Text
+              variant="bodyMedium"
+              style={[styles.tutorialStepText, isLight && styles.tutorialStepTextLight]}>
+              1. 打开XStreaming，设置 - 云游戏 - 地区选择日本或韩国，选择后记得保存。
+            </Text>
+            <Text
+              variant="bodyMedium"
+              style={[styles.tutorialStepText, isLight && styles.tutorialStepTextLight]}>
+              2. 进入云游戏栏目，选择游戏直接开始，待连接成功显示游戏画面后，将XStreaming切到后台。
+            </Text>
+            <Text
+              variant="bodyMedium"
+              style={[styles.tutorialStepText, isLight && styles.tutorialStepTextLight]}>
+              3. 打开加速器，选择加速『XStreaming』，等待加速成功后切回游戏。
+            </Text>
+          </Card.Content>
+        </Card>
+      </Modal>
+    </Portal>
+  );
+};
 
 function CloudScreen({navigation, route}: any) {
   const {t, i18n} = useTranslation();
+  const theme = useTheme();
+  const isLight = !theme.dark;
+  const primary = theme.colors.primary;
+  const onPrimary = theme.colors.onPrimary || '#FFFFFF';
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const dispatch = useDispatch();
 
@@ -644,7 +730,25 @@ function CloudScreen({navigation, route}: any) {
   const starTitles = useSelector((state: any) => state.stars || []);
   const profile = useSelector((state: any) => state.profile);
 
+  const effectiveXCloudToken = React.useMemo(() => {
+    if (streamingTokens?.xCloudToken) {
+      return streamingTokens.xCloudToken;
+    }
+    const saved = getStreamToken();
+    if (saved?.xCloudToken && isStreamTokenValid(saved.xCloudToken)) {
+      return saved.xCloudToken.getOffering
+        ? saved.xCloudToken
+        : new StreamingToken(saved.xCloudToken.data, saved.xCloudToken.offering);
+    }
+    return undefined;
+  }, [streamingTokens?.xCloudToken]);
+
   const currentLanguage = i18n.language;
+
+  const initialCache = React.useMemo(() => {
+    const cached = getXcloudData();
+    return cached && isxCloudDataValid(cached) ? cached : null;
+  }, []);
 
   // Catalog and loading states
   const [loading, setLoading] = React.useState(false);
@@ -652,14 +756,30 @@ function CloudScreen({navigation, route}: any) {
   const [isLimited, setIsLimited] = React.useState(false);
   const [showTutorial, setShowTutorial] = React.useState(false);
 
-  const [titles, setTitles] = React.useState<any[]>([]);
-  const [titleMap, setTitleMap] = React.useState<Record<string, any>>({});
-  const [newTitles, setNewTitles] = React.useState<any[]>([]);
-  const [recentTitles, setRecentTitles] = React.useState<any[]>([]);
-  const [leavingSoonTitles, setLeavingSoonTitles] = React.useState<any[]>([]);
-  const [gamePassTitles, setGamePassTitles] = React.useState<any[]>([]);
-  const [ubisoftTitlesData, setUbisoftTitlesData] = React.useState<any[]>([]);
-  const [streamYourOwnTitlesData, setStreamYourOwnTitlesData] = React.useState<any[]>([]);
+  const [titles, setTitles] = React.useState<any[]>(() => initialCache?.titles || []);
+  const [titleMap, setTitleMap] = React.useState<Record<string, any>>(() => {
+    if (initialCache?.titleMap) return initialCache.titleMap;
+    if (initialCache?.titles?.length) return buildTitleLookupMap(initialCache.titles);
+    return {};
+  });
+  const [newTitles, setNewTitles] = React.useState<any[]>(() => initialCache?.newTitles || []);
+  const [recentTitles, setRecentTitles] = React.useState<any[]>(() => initialCache?.recentTitles || []);
+  const [leavingSoonTitles, setLeavingSoonTitles] = React.useState<any[]>(() => initialCache?.leavingSoonTitles || []);
+  const [gamePassTitles, setGamePassTitles] = React.useState<any[]>(() => {
+    if (initialCache?.playWithGamePassTitles) {
+      return initialCache.playWithGamePassTitles.filter(isGamePassSubscriptionTitle);
+    }
+    return [];
+  });
+  const [ubisoftTitlesData, setUbisoftTitlesData] = React.useState<any[]>(() => {
+    if (initialCache?.ubisoftTitles) {
+      return initialCache.ubisoftTitles.filter(isUbisoftTitle);
+    }
+    return [];
+  });
+  const [streamYourOwnTitlesData, setStreamYourOwnTitlesData] = React.useState<any[]>(
+    () => initialCache?.streamYourOwnTitles || [],
+  );
 
   const [keyword, setKeyword] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -687,7 +807,6 @@ function CloudScreen({navigation, route}: any) {
   const [showRegionModal, setShowRegionModal] = React.useState(false);
 
   // Navigation and filter states
-  const [activeBottomTab, setActiveBottomTab] = React.useState<'library'>('library');
   const [sortBy, setSortBy] = React.useState<'relevance' | 'az' | 'za' | 'newest'>('relevance');
   const [filterCategory, setFilterCategory] = React.useState<
     'all' | 'play_gamepass' | 'new' | 'ubisoft' | 'own' | 'leaving' | 'recent'
@@ -724,19 +843,11 @@ function CloudScreen({navigation, route}: any) {
   }, []);
 
   const flatListRef = React.useRef<any>(null);
-  const hasFetchedGamesRef = React.useRef(false);
+  const hasFetchedGamesRef = React.useRef(!!initialCache);
 
   // Orientation and dimension calculations
   const isLandscape = screenWidth > screenHeight;
   const isLargeScreen = Platform.isTV || isLandscape;
-
-  const bottomBarWidth = isLandscape
-    ? Math.min(220, screenWidth - 64)
-    : Math.min(180, screenWidth - 48);
-  const bottomBarLeft = (screenWidth - bottomBarWidth) / 2;
-  const bottomBarBottom = isLandscape ? 32 : (Platform.OS === 'android' ? 26 : 28);
-  const bottomBarHeight = isLandscape ? 50 : 54;
-  const bottomBarRadius = isLandscape ? 25 : 27;
 
   const PADDING_H = isLargeScreen ? 20 : 14;
   const GAP = 10;
@@ -757,7 +868,7 @@ function CloudScreen({navigation, route}: any) {
     return Math.round(cardWidth * 1.38);
   }, [cardWidth]);
 
-  const horizontalCardWidth = isLargeScreen ? 140 : 124;
+  const horizontalCardWidth = isLandscape ? 120 : (isLargeScreen ? 140 : 124);
   const horizontalCardHeight = Math.round(horizontalCardWidth * 1.38);
   const pageSize = isLargeScreen ? 36 : 24;
 
@@ -768,12 +879,13 @@ function CloudScreen({navigation, route}: any) {
 
   // Subscription tier label (Free, Essential, Premium, Ultimate)
   const displayTier = React.useMemo(() => {
+    const activeToken = effectiveXCloudToken || streamingTokens?.xCloudToken;
     const offering =
-      streamingTokens?.xCloudToken?.getOffering?.() ||
-      streamingTokens?.xCloudToken?.offering ||
-      (streamingTokens?.xCloudToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
-      (streamingTokens?.xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
-      (streamingTokens?.xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
+      activeToken?.getOffering?.() ||
+      activeToken?.offering ||
+      (activeToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
+      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
+      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
 
     if (offering === 'xgpuwebf2p') return 'Free';
     if (accountTier === 'Core') return 'Essential';
@@ -785,11 +897,12 @@ function CloudScreen({navigation, route}: any) {
       return 'Ultimate';
     }
     return offering === 'xgpuweb' ? 'Ultimate' : 'Free';
-  }, [accountTier, streamingTokens?.xCloudToken]);
+  }, [accountTier, effectiveXCloudToken, streamingTokens?.xCloudToken]);
 
   // Available server regions
   const availableRegions = React.useMemo(() => {
-    const tokenRegions = streamingTokens?.xCloudToken?.getRegions?.() || [];
+    const activeToken = effectiveXCloudToken || streamingTokens?.xCloudToken;
+    const tokenRegions = activeToken?.getRegions?.() || [];
     if (tokenRegions.length > 0) {
       return tokenRegions;
     }
@@ -804,19 +917,20 @@ function CloudScreen({navigation, route}: any) {
       {name: 'NorthEurope', isDefault: false},
       {name: 'BrazilSouth', isDefault: false},
     ];
-  }, [streamingTokens]);
+  }, [effectiveXCloudToken, streamingTokens]);
 
   // Current server region info
   const currentRegionInfo = React.useMemo(() => {
     if (currentRegionName) {
       return getRegionDisplayInfo(currentRegionName);
     }
-    const def = streamingTokens?.xCloudToken?.getDefaultRegion?.();
+    const activeToken = effectiveXCloudToken || streamingTokens?.xCloudToken;
+    const def = activeToken?.getDefaultRegion?.();
     if (def?.name) {
       return getRegionDisplayInfo(def.name);
     }
     return getRegionDisplayInfo('KoreaCentral');
-  }, [currentRegionName, streamingTokens]);
+  }, [currentRegionName, effectiveXCloudToken, streamingTokens]);
 
   // Game Pass channel titles
   const playWithGamePassTitles = React.useMemo(() => {
@@ -886,12 +1000,13 @@ function CloudScreen({navigation, route}: any) {
 
   // Fetch full cloud catalog and SIGL channels
   const fetchCatalog = async (silent = false) => {
-    if (!streamingTokens.xCloudToken) return;
+    const activeToken = effectiveXCloudToken || streamingTokens.xCloudToken;
+    if (!activeToken) return;
     if (!silent) setLoading(true);
 
     try {
-      const baseUri = streamingTokens.xCloudToken.getDefaultRegion().baseUri;
-      const gsToken = streamingTokens.xCloudToken.data.gsToken;
+      const baseUri = activeToken.getDefaultRegion().baseUri;
+      const gsToken = activeToken.data.gsToken;
       const api = new XcloudApi(baseUri, gsToken, 'cloud');
 
       const titleRes = await api.getTitles();
@@ -901,11 +1016,11 @@ function CloudScreen({navigation, route}: any) {
       }
 
       // Detect account tier (Free, Essential, Premium, Ultimate)
-      let tier = detectAccountTier(titleRes.results, streamingTokens.xCloudToken);
+      let tier = detectAccountTier(titleRes.results, activeToken);
 
       const rawTitles = await api.getGamePassProducts(titleRes.results);
       if (tier === 'Free' && rawTitles && rawTitles.length > 0) {
-        const recheckTier = detectAccountTier(rawTitles, streamingTokens.xCloudToken);
+        const recheckTier = detectAccountTier(rawTitles, activeToken);
         if (recheckTier !== 'Free') {
           tier = recheckTier;
         }
@@ -960,7 +1075,6 @@ function CloudScreen({navigation, route}: any) {
       saveXcloudData({
         ...cached,
         titles: rawTitles,
-        titleMap: lookupMap,
         playWithGamePassTitles: gpList,
         newTitles: newList,
         ubisoftTitles: ubiList,
@@ -980,8 +1094,11 @@ function CloudScreen({navigation, route}: any) {
     if (typeof route.params?.keyword === 'string') {
       setKeyword(route.params.keyword);
     }
-    if (!streamingTokens.xCloudToken) {
+    const activeToken = effectiveXCloudToken || streamingTokens.xCloudToken;
+    if (!activeToken) {
       setIsLimited(true);
+    } else {
+      setIsLimited(false);
     }
 
     const curWebToken = webToken?.data ? webToken : getWebToken();
@@ -993,7 +1110,6 @@ function CloudScreen({navigation, route}: any) {
         log.info('Get xcloud data from cache');
         const {
           titles: _titles,
-          titleMap: _titleMap,
           newTitles: _newTitles,
           starTitles: _starTitles,
           recentTitles: _recentTitles,
@@ -1004,7 +1120,7 @@ function CloudScreen({navigation, route}: any) {
         } = cacheData;
 
         setTitles(_titles || []);
-        setTitleMap(_titleMap || {});
+        setTitleMap(buildTitleLookupMap(_titles || []));
         setNewTitles(_newTitles || []);
         setRecentTitles(_recentTitles || []);
         if (_gpTitles) {
@@ -1025,8 +1141,52 @@ function CloudScreen({navigation, route}: any) {
       } else {
         fetchCatalog();
       }
+    } else if (titles.length > 0) {
+      fetchCatalog(true);
     }
-  }, [route.params?.keyword, streamingTokens.xCloudToken, webToken, navigation, dispatch]);
+  }, [
+    route.params?.keyword,
+    effectiveXCloudToken,
+    streamingTokens.xCloudToken,
+    webToken,
+    navigation,
+    dispatch,
+  ]);
+
+  // AppState listener to re-validate or rehydrate cache when returning from another app
+  React.useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        const cacheData = getXcloudData();
+        if (cacheData && isxCloudDataValid(cacheData)) {
+          if (titles.length === 0) {
+            setTitles(cacheData.titles || []);
+            setTitleMap(buildTitleLookupMap(cacheData.titles || []));
+            if (cacheData.newTitles) setNewTitles(cacheData.newTitles);
+            if (cacheData.recentTitles) setRecentTitles(cacheData.recentTitles);
+            if (cacheData.playWithGamePassTitles) {
+              setGamePassTitles(
+                cacheData.playWithGamePassTitles.filter(isGamePassSubscriptionTitle),
+              );
+            }
+            if (cacheData.ubisoftTitles) {
+              setUbisoftTitlesData(cacheData.ubisoftTitles.filter(isUbisoftTitle));
+            }
+            if (cacheData.streamYourOwnTitles) {
+              setStreamYourOwnTitlesData(cacheData.streamYourOwnTitles);
+            }
+            if (cacheData.leavingSoonTitles) {
+              setLeavingSoonTitles(cacheData.leavingSoonTitles);
+            }
+          }
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [titles.length]);
 
   const handleViewDetail = React.useCallback(
     (titleItem: any) => {
@@ -1082,13 +1242,16 @@ function CloudScreen({navigation, route}: any) {
       const titleId = titleItem.titleId || titleItem.XCloudTitleId;
       if (!titleId) return;
 
+      const activeToken = effectiveXCloudToken || streamingTokens.xCloudToken;
+      if (!activeToken) return;
+
       if (settings.render_engine === 'web' && FullScreenManager) {
         FullScreenManager.immersiveMode();
       }
 
       const isUsbMode = settings.bind_usb_device;
       const usbController = isUsbMode ? 1 : 0;
-      const postUrl = `${streamingTokens.xCloudToken.getDefaultRegion().baseUri}/v5/sessions/cloud/play`;
+      const postUrl = `${activeToken.getDefaultRegion().baseUri}/v5/sessions/cloud/play`;
 
       const streamPage =
         settings.render_engine === 'web'
@@ -1114,7 +1277,7 @@ function CloudScreen({navigation, route}: any) {
         titleItem,
       });
     },
-    [navigation, streamingTokens.xCloudToken],
+    [navigation, effectiveXCloudToken, streamingTokens.xCloudToken],
   );
 
   // Direct game launch handler
@@ -1208,14 +1371,12 @@ function CloudScreen({navigation, route}: any) {
 
   const handleShowAll = (categoryKey: any) => {
     setFilterCategory(categoryKey);
-    setActiveBottomTab('library');
     setCurrentPage(1);
     scrollToTop();
   };
 
   const handleBackToHome = () => {
     setFilterCategory('all');
-    setActiveBottomTab('library');
     setCurrentPage(1);
     scrollToTop();
   };
@@ -1249,22 +1410,31 @@ function CloudScreen({navigation, route}: any) {
     const displayData = hasMoreThanTen ? data.slice(0, 10) : data;
 
     return (
-      <View key={`${idPrefix}_sec`} style={styles.carouselSection}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle} numberOfLines={1}>
+      <View
+        key={`${idPrefix}_sec`}
+        style={[styles.carouselSection, isLandscape && styles.carouselSectionLandscape]}>
+        <View
+          style={[styles.sectionHeaderRow, isLandscape && styles.sectionHeaderRowLandscape]}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              isLandscape && styles.sectionTitleLandscape,
+              isLight && styles.sectionTitleLight,
+            ]}
+            numberOfLines={1}>
             {title}
           </Text>
           {hasMoreThanTen && (
             <Pressable
               onPress={() => handleShowAll(categoryKey)}
               hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-              android_ripple={{color: 'rgba(46, 213, 115, 0.2)'}}
               style={({pressed}) => [
                 styles.showAllHeaderButton,
-                pressed && styles.showAllHeaderButtonPressed,
+                {backgroundColor: primary + '1A'},
+                pressed && [styles.showAllHeaderButtonPressed, {backgroundColor: primary + '33'}],
               ]}>
-              <Text style={styles.showAllHeaderText}>{t('Show all')}</Text>
-              <Icon source="chevron-right" size={13} color="#2ed573" />
+              <Text style={[styles.showAllHeaderText, {color: primary}]}>{t('Show all')}</Text>
+              <Icon source="chevron-right" size={13} color={primary} />
             </Pressable>
           )}
         </View>
@@ -1272,12 +1442,16 @@ function CloudScreen({navigation, route}: any) {
         <FlatList
           horizontal
           data={displayData}
+          extraData={`${primary}_${isLight}_${isLandscape}`}
           keyExtractor={(item, index) =>
             `${idPrefix}_${item.titleId || item.XCloudTitleId || index}`
           }
           showsHorizontalScrollIndicator={false}
-          style={styles.horizontalListWrap}
-          contentContainerStyle={styles.horizontalListContent}
+          style={[styles.horizontalListWrap, isLandscape && styles.horizontalListWrapLandscape]}
+          contentContainerStyle={[
+            styles.horizontalListContent,
+            isLandscape && styles.horizontalListContentLandscape,
+          ]}
           initialNumToRender={4}
           maxToRenderPerBatch={4}
           windowSize={3}
@@ -1296,20 +1470,30 @@ function CloudScreen({navigation, route}: any) {
             hasMoreThanTen ? (
               <Pressable
                 onPress={() => handleShowAll(categoryKey)}
-                android_ripple={{color: 'rgba(46, 213, 115, 0.2)'}}
                 style={({pressed}) => [
                   styles.showAllCard,
+                  isLight && styles.showAllCardLight,
                   {
                     width: horizontalCardWidth,
                     height: horizontalCardHeight,
+                    borderColor: primary + '4D',
                   },
-                  pressed && styles.showAllCardPressed,
+                  pressed && [
+                    styles.showAllCardPressed,
+                    {borderColor: primary, backgroundColor: primary + '1A'},
+                  ],
                 ]}>
-                <View style={styles.showAllIconCircle}>
-                  <Icon source="arrow-right" size={24} color="#2ed573" />
+                <View style={[styles.showAllIconCircle, {backgroundColor: primary + '1A'}]}>
+                  <Icon source="arrow-right" size={24} color={primary} />
                 </View>
-                <Text style={styles.showAllCardTitle}>{t('Show all')}</Text>
-                <Text style={styles.showAllCardSubtitle}>
+                <Text
+                  style={[
+                    styles.showAllCardTitle,
+                    isLight && styles.showAllCardTitleLight,
+                  ]}>
+                  {t('Show all')}
+                </Text>
+                <Text style={[styles.showAllCardSubtitle, {color: primary}]}>
                   {`+${data.length - 10} ${t('available')}`}
                 </Text>
               </Pressable>
@@ -1348,7 +1532,9 @@ function CloudScreen({navigation, route}: any) {
 
         {/* All games section divider */}
         <View style={styles.catalogDividerHeader}>
-          <Text style={styles.catalogSectionTitle}>{t('All')}</Text>
+          <Text style={[styles.catalogSectionTitle, isLight && styles.catalogSectionTitleLight]}>
+            {t('All')}
+          </Text>
         </View>
       </View>
     );
@@ -1365,6 +1551,9 @@ function CloudScreen({navigation, route}: any) {
     horizontalCardHeight,
     handleViewDetail,
     handleDirectPlay,
+    primary,
+    isLight,
+    isLandscape,
     t,
   ]);
 
@@ -1421,76 +1610,87 @@ function CloudScreen({navigation, route}: any) {
     }
   }, [filterCategory, t]);
 
-  // Bottom navigation tab clicks
-  const handleTabPress = (tab: 'library' | 'settings') => {
-    if (tab === 'library') {
-      setActiveBottomTab('library');
-      setFilterCategory('all');
-      setCurrentPage(1);
-      scrollToTop();
-    } else if (tab === 'settings') {
-      navigation.navigate('Settings');
-    }
-  };
-
-  // Footer loading and clearance indicator
+  // Footer loading indicator
   const renderListFooter = () => (
     <View style={styles.footerWrap}>
       {loadingMore && (
         <ActivityIndicator
           size="small"
-          color="#2ed573"
+          color={primary}
           style={styles.loadingIndicator}
         />
       )}
-      <View style={styles.bottomClearanceSpacer} />
     </View>
   );
 
   return (
     <View style={styles.rootContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#0d1117" translucent={false} />
+      <StatusBar
+        barStyle={isLight ? 'dark-content' : 'light-content'}
+        backgroundColor={isLight ? '#FCFBFF' : '#111320'}
+        translucent={true}
+      />
       <Spinner loading={loading} text={t('Loading...')} />
 
       {!isLimited && (
         <View style={styles.mainContainer}>
-          {/* Header row with Gamerpic and Server Region shortcut */}
-          <View style={[styles.topHeader, isLargeScreen && styles.topHeaderLarge]}>
-            <View style={styles.headerMainRow}>
+          {/* Header row with Gamerpic, Server Region shortcut and Settings */}
+          <View
+            style={[
+              styles.topHeader,
+              isLargeScreen && styles.topHeaderLarge,
+              isLandscape && styles.topHeaderLandscape,
+            ]}>
+            <View style={[styles.headerMainRow, isLandscape && styles.headerMainRowLandscape]}>
               <View style={styles.profileRow}>
                 {gamerpic ? (
                   <Image
                     source={{uri: gamerpic}}
                     style={[
                       styles.gamerpicImage,
-                      displayTier === 'Free' && styles.gamerpicImageFree,
+                      isLandscape && styles.gamerpicImageLandscape,
+                      displayTier !== 'Free' ? {borderColor: primary} : styles.gamerpicImageFree,
                     ]}
                   />
                 ) : (
                   <XboxLogo
-                    size={38}
-                    color={displayTier === 'Free' ? '#8b949e' : '#2ed573'}
+                    size={isLandscape ? 30 : 38}
+                    color={displayTier === 'Free' ? (isLight ? '#6B7280' : '#8b949e') : primary}
                   />
                 )}
                 <View style={styles.profileInfo}>
-                  <Text style={styles.gamertagText} numberOfLines={1}>
+                  <Text
+                    style={[
+                      styles.gamertagText,
+                      isLandscape && styles.gamertagTextLandscape,
+                      isLight && styles.gamertagTextLight,
+                    ]}
+                    numberOfLines={1}>
                     {gamertag}
                   </Text>
                   <View
                     style={[
                       styles.subscriptionBadgeWrap,
-                      displayTier === 'Free' && styles.subscriptionBadgeWrapFree,
+                      isLandscape && styles.subscriptionBadgeWrapLandscape,
+                      displayTier !== 'Free'
+                        ? {backgroundColor: primary + '1A', borderColor: primary + '40'}
+                        : (isLight ? styles.subscriptionBadgeWrapFreeLight : styles.subscriptionBadgeWrapFree),
                     ]}>
                     <View
                       style={[
                         styles.subscriptionDot,
-                        displayTier === 'Free' && styles.subscriptionDotFree,
+                        displayTier !== 'Free'
+                          ? {backgroundColor: primary}
+                          : (isLight ? styles.subscriptionDotFreeLight : styles.subscriptionDotFree),
                       ]}
                     />
                     <Text
                       style={[
                         styles.subscriptionBadge,
-                        displayTier === 'Free' && styles.subscriptionBadgeFree,
+                        isLandscape && styles.subscriptionBadgeLandscape,
+                        displayTier !== 'Free'
+                          ? {color: primary}
+                          : (isLight ? styles.subscriptionBadgeFreeLight : styles.subscriptionBadgeFree),
                       ]}>
                       {displayTier}
                     </Text>
@@ -1498,63 +1698,166 @@ function CloudScreen({navigation, route}: any) {
                 </View>
               </View>
 
-              <Pressable
-                onPress={() => setShowRegionModal(true)}
-                android_ripple={{color: 'rgba(255, 255, 255, 0.18)'}}
-                style={({pressed}) => [styles.serverButton, pressed && styles.serverButtonPressed]}>
-                <Text style={styles.serverFlag}>{currentRegionInfo.flag}</Text>
-                <Text style={styles.serverCode}>{currentRegionInfo.code}</Text>
-                <Icon source="chevron-down" size={14} color="#8b949e" />
-              </Pressable>
+              <View style={styles.headerRightActions}>
+                <Pressable
+                  onPress={() => setShowRegionModal(true)}
+                  style={({pressed}) => [
+                    styles.serverButton,
+                    isLandscape && styles.serverButtonLandscape,
+                    isLight && styles.serverButtonLight,
+                    pressed && (isLight ? styles.serverButtonPressedLight : styles.serverButtonPressed),
+                  ]}>
+                  <Text style={styles.serverFlag}>{currentRegionInfo.flag}</Text>
+                  <Text style={[styles.serverCode, isLight && styles.serverCodeLight]}>
+                    {currentRegionInfo.code}
+                  </Text>
+                  <Icon
+                    source="chevron-down"
+                    size={14}
+                    color={isLight ? '#4B5563' : '#8b949e'}
+                  />
+                </Pressable>
+
+                <Pressable
+                  onPress={() => navigation.navigate('Settings')}
+                  accessibilityLabel={t('Settings')}
+                  accessibilityRole="button"
+                  style={({pressed}) => [
+                    styles.settingsIconButton,
+                    isLandscape && styles.settingsIconButtonLandscape,
+                    isLight && styles.settingsIconButtonLight,
+                    pressed && (isLight ? styles.settingsIconButtonPressedLight : styles.settingsIconButtonPressed),
+                  ]}>
+                  <Icon
+                    source="cog-outline"
+                    size={19}
+                    color={isLight ? '#111827' : '#FFFFFF'}
+                  />
+                </Pressable>
+              </View>
             </View>
 
-            {/* Wide Search Bar Button under Profile */}
-            <Pressable
-              onPress={handleOpenSearch}
-              android_ripple={{color: 'rgba(255, 255, 255, 0.12)'}}
-              style={({pressed}) => [
-                styles.searchBarButton,
-                pressed && styles.searchBarButtonPressed,
-              ]}>
-              <Icon source="magnify" size={20} color={keyword ? '#2ed573' : '#8b949e'} />
-              <Text
-                style={[styles.searchBarText, keyword.length > 0 && styles.searchBarTextActive]}
-                numberOfLines={1}>
-                {keyword || t('Find games')}
-              </Text>
-              {keyword.length > 0 && (
-                <Pressable
-                  onPress={e => {
-                    e?.stopPropagation?.();
-                    setKeyword('');
-                    navigation.setParams({keyword: ''});
-                  }}
-                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-                  <Icon source="close-circle" size={18} color="#8b949e" />
-                </Pressable>
+            {/* Search Bar Row - in landscape integrates sort/filter/count */}
+            <View style={[styles.searchRow, isLandscape && styles.searchRowLandscape]}>
+              <Pressable
+                onPress={handleOpenSearch}
+                style={({pressed}) => [
+                  styles.searchBarButton,
+                  isLandscape && styles.searchBarButtonLandscape,
+                  isLight && styles.searchBarButtonLight,
+                  pressed && (isLight ? styles.searchBarButtonPressedLight : styles.searchBarButtonPressed),
+                ]}>
+                <Icon
+                  source="magnify"
+                  size={20}
+                  color={keyword ? primary : (isLight ? '#6B7280' : '#8b949e')}
+                />
+                <Text
+                  style={[
+                    styles.searchBarText,
+                    isLandscape && styles.searchBarTextLandscape,
+                    isLight && styles.searchBarTextLight,
+                    keyword.length > 0 && (isLight ? styles.searchBarTextActiveLight : styles.searchBarTextActive),
+                  ]}
+                  numberOfLines={1}>
+                  {keyword || t('Find games')}
+                </Text>
+                {keyword.length > 0 && (
+                  <Pressable
+                    onPress={e => {
+                      e?.stopPropagation?.();
+                      setKeyword('');
+                      navigation.setParams({keyword: ''});
+                    }}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    <Icon
+                      source="close-circle"
+                      size={18}
+                      color={isLight ? '#6B7280' : '#8b949e'}
+                    />
+                  </Pressable>
+                )}
+              </Pressable>
+
+              {isLandscape && filterCategory === 'all' && (
+                <View style={styles.landscapeControlsRow}>
+                  <Pressable
+                    onPress={() => setShowSortModal(true)}
+                    accessibilityLabel={sortLabel}
+                    accessibilityRole="button"
+                    style={({pressed}) => [
+                      styles.iconPillButton,
+                      isLight && styles.iconPillButtonLight,
+                      sortBy !== 'relevance' && [
+                        styles.iconPillButtonActive,
+                        {borderColor: primary + '66', backgroundColor: primary + '1A'},
+                      ],
+                      pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                    ]}>
+                    <Icon
+                      source="sort-variant"
+                      size={18}
+                      color={sortBy !== 'relevance' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                    />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => setShowFilterModal(true)}
+                    accessibilityLabel={filterLabel}
+                    accessibilityRole="button"
+                    style={({pressed}) => [
+                      styles.iconPillButton,
+                      isLight && styles.iconPillButtonLight,
+                      filterCategory !== 'all' && [
+                        styles.iconPillButtonActive,
+                        {borderColor: primary + '66', backgroundColor: primary + '1A'},
+                      ],
+                      pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                    ]}>
+                    <Icon
+                      source="filter-variant"
+                      size={18}
+                      color={filterCategory !== 'all' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                    />
+                  </Pressable>
+
+                  <View style={[styles.countPill, isLight && styles.countPillLight]}>
+                    <Text style={[styles.countText, isLight && styles.countTextLight]}>
+                      {`${filteredTitles.length} ${t('available')}`}
+                    </Text>
+                  </View>
+                </View>
               )}
-            </Pressable>
+            </View>
           </View>
 
           {/* Filter row or Category Navigation Bar */}
           {filterCategory !== 'all' ? (
-            <View style={[styles.categoryHeaderBar, isLargeScreen && styles.categoryHeaderBarLarge]}>
+            <View
+              style={[
+                styles.categoryHeaderBar,
+                isLargeScreen && styles.categoryHeaderBarLarge,
+                isLandscape && styles.categoryHeaderBarLandscape,
+              ]}>
               <Pressable
                 onPress={handleBackToHome}
-                android_ripple={{color: 'rgba(46, 213, 115, 0.25)', borderless: true}}
                 style={({pressed}) => [
                   styles.categoryBackButton,
-                  pressed && styles.categoryBackButtonPressed,
+                  {backgroundColor: primary + '1A', borderColor: primary + '40'},
+                  pressed && [styles.categoryBackButtonPressed, {backgroundColor: primary + '33'}],
                 ]}>
-                <Icon source="arrow-left" size={18} color="#2ed573" />
-                <Text style={styles.categoryBackText}>{t('Back')}</Text>
+                <Icon source="arrow-left" size={18} color={primary} />
+                <Text style={[styles.categoryBackText, {color: primary}]}>{t('Back')}</Text>
               </Pressable>
 
               <View style={styles.categoryTitleWrap}>
-                <Text style={styles.categoryTitleText} numberOfLines={1}>
+                <Text
+                  style={[styles.categoryTitleText, isLight && styles.categoryTitleTextLight]}
+                  numberOfLines={1}>
                   {filterLabel}
                 </Text>
-                <Text style={styles.categoryCountText}>
+                <Text
+                  style={[styles.categoryCountText, isLight && styles.categoryCountTextLight]}>
                   {`${filteredTitles.length} ${t('available')}`}
                 </Text>
               </View>
@@ -1563,72 +1866,81 @@ function CloudScreen({navigation, route}: any) {
                 onPress={() => setShowSortModal(true)}
                 accessibilityLabel={sortLabel}
                 accessibilityRole="button"
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
                 style={({pressed}) => [
                   styles.iconPillButton,
+                  isLight && styles.iconPillButtonLight,
                   styles.categorySortIconBtn,
-                  sortBy !== 'relevance' && styles.iconPillButtonActive,
-                  pressed && styles.iconPillButtonPressed,
+                  sortBy !== 'relevance' && [styles.iconPillButtonActive, {borderColor: primary + '66', backgroundColor: primary + '1A'}],
+                  pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
                 ]}>
                 <Icon
                   source="sort-variant"
                   size={18}
-                  color={sortBy !== 'relevance' ? '#2ed573' : '#FFFFFF'}
+                  color={sortBy !== 'relevance' ? primary : (isLight ? '#374151' : '#FFFFFF')}
                 />
               </Pressable>
             </View>
           ) : (
-            <View style={[styles.filterRow, isLargeScreen && styles.filterRowLarge]}>
-              <Pressable
-                onPress={() => setShowSortModal(true)}
-                accessibilityLabel={sortLabel}
-                accessibilityRole="button"
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
-                style={({pressed}) => [
-                  styles.iconPillButton,
-                  sortBy !== 'relevance' && styles.iconPillButtonActive,
-                  pressed && styles.iconPillButtonPressed,
-                ]}>
-                <Icon
-                  source="sort-variant"
-                  size={18}
-                  color={sortBy !== 'relevance' ? '#2ed573' : '#FFFFFF'}
-                />
-              </Pressable>
+            !isLandscape && (
+              <View style={[styles.filterRow, isLargeScreen && styles.filterRowLarge]}>
+                <Pressable
+                  onPress={() => setShowSortModal(true)}
+                  accessibilityLabel={sortLabel}
+                  accessibilityRole="button"
+                  style={({pressed}) => [
+                    styles.iconPillButton,
+                    isLight && styles.iconPillButtonLight,
+                    sortBy !== 'relevance' && [styles.iconPillButtonActive, {borderColor: primary + '66', backgroundColor: primary + '1A'}],
+                    pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                  ]}>
+                  <Icon
+                    source="sort-variant"
+                    size={18}
+                    color={sortBy !== 'relevance' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                  />
+                </Pressable>
 
-              <Pressable
-                onPress={() => setShowFilterModal(true)}
-                accessibilityLabel={filterLabel}
-                accessibilityRole="button"
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
-                style={({pressed}) => [
-                  styles.iconPillButton,
-                  filterCategory !== 'all' && styles.iconPillButtonActive,
-                  pressed && styles.iconPillButtonPressed,
-                ]}>
-                <Icon
-                  source="filter-variant"
-                  size={18}
-                  color={filterCategory !== 'all' ? '#2ed573' : '#FFFFFF'}
-                />
-              </Pressable>
+                <Pressable
+                  onPress={() => setShowFilterModal(true)}
+                  accessibilityLabel={filterLabel}
+                  accessibilityRole="button"
+                  style={({pressed}) => [
+                    styles.iconPillButton,
+                    isLight && styles.iconPillButtonLight,
+                    filterCategory !== 'all' && [styles.iconPillButtonActive, {borderColor: primary + '66', backgroundColor: primary + '1A'}],
+                    pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                  ]}>
+                  <Icon
+                    source="filter-variant"
+                    size={18}
+                    color={filterCategory !== 'all' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                  />
+                </Pressable>
 
-              <View style={styles.countPill}>
-                <Text style={styles.countText}>
-                  {`${filteredTitles.length} ${t('available')}`}
-                </Text>
+                <View style={[styles.countPill, isLight && styles.countPillLight]}>
+                  <Text style={[styles.countText, isLight && styles.countTextLight]}>
+                    {`${filteredTitles.length} ${t('available')}`}
+                  </Text>
+                </View>
               </View>
-            </View>
+            )
           )}
 
           {/* Acceleration guide link */}
           {(currentLanguage === 'zh' || currentLanguage === 'zht') && (
             <Text
               variant="labelSmall"
-              style={styles.tutorialText}
+              style={[styles.tutorialText, {color: primary}]}
               onPress={() => setShowTutorial(true)}>
               🚀 点击查看云游戏加速指引
             </Text>
+          )}
+
+          {/* Loading state for initial catalog */}
+          {loading && !filteredTitles.length && (
+            <View style={[styles.emptyContainer, {paddingVertical: 60}]}>
+              <ActivityIndicator size="large" color={primary} />
+            </View>
           )}
 
           {/* Empty state */}
@@ -1644,6 +1956,7 @@ function CloudScreen({navigation, route}: any) {
               ref={flatListRef}
               data={pagedTitles}
               key={numColumns}
+              extraData={`${primary}_${isLight}_${isLandscape}`}
               numColumns={numColumns}
               keyExtractor={itemKeyExtractor}
               columnWrapperStyle={styles.columnWrapper}
@@ -1662,61 +1975,6 @@ function CloudScreen({navigation, route}: any) {
               ListFooterComponent={renderListFooter}
             />
           )}
-
-          {/* Floating bottom navigation bar */}
-          <View
-            style={[
-              styles.floatingBottomBar,
-              {
-                width: bottomBarWidth,
-                left: bottomBarLeft,
-                bottom: bottomBarBottom,
-                height: bottomBarHeight,
-                borderRadius: bottomBarRadius,
-              },
-            ]}>
-            {/* Library tab */}
-            <Pressable
-              onPress={() => handleTabPress('library')}
-              style={styles.tabItem}>
-              <View
-                style={[
-                  styles.tabIconWrap,
-                  isLandscape && styles.tabIconWrapLandscape,
-                  activeBottomTab === 'library' && styles.tabIconWrapActive,
-                ]}>
-                <Icon
-                  source={activeBottomTab === 'library' ? 'view-grid' : 'view-grid-outline'}
-                  size={isLandscape ? 18 : 20}
-                  color={activeBottomTab === 'library' ? '#2ed573' : '#8b949e'}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.tabLabel,
-                  isLandscape && styles.tabLabelLandscape,
-                  activeBottomTab === 'library' && styles.tabLabelActive,
-                ]}>
-                {t('Library')}
-              </Text>
-            </Pressable>
-
-            {/* Settings tab */}
-            <Pressable
-              onPress={() => handleTabPress('settings')}
-              style={styles.tabItem}>
-              <View
-                style={[
-                  styles.tabIconWrap,
-                  isLandscape && styles.tabIconWrapLandscape,
-                ]}>
-                <Icon source="cog-outline" size={isLandscape ? 18 : 20} color="#8b949e" />
-              </View>
-              <Text style={[styles.tabLabel, isLandscape && styles.tabLabelLandscape]}>
-                {t('Settings')}
-              </Text>
-            </Pressable>
-          </View>
         </View>
       )}
 
@@ -1794,7 +2052,7 @@ function CloudScreen({navigation, route}: any) {
 const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
-    backgroundColor: '#0d1117',
+    backgroundColor: 'transparent',
   },
   mainContainer: {
     flex: 1,
@@ -1817,13 +2075,21 @@ const styles = StyleSheet.create({
   },
   topHeaderLarge: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 6 : 16,
     paddingBottom: 12,
+  },
+  topHeaderLandscape: {
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 4 : 10,
+    paddingBottom: 6,
   },
   headerMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerMainRowLandscape: {
+    marginBottom: 0,
   },
   profileRow: {
     flexDirection: 'row',
@@ -1839,6 +2105,11 @@ const styles = StyleSheet.create({
     borderColor: '#2ed573',
     backgroundColor: '#161922',
   },
+  gamerpicImageLandscape: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
   profileInfo: {
     marginLeft: 12,
     justifyContent: 'center',
@@ -1849,6 +2120,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.2,
+  },
+  gamertagTextLandscape: {
+    fontSize: 15,
+  },
+  gamertagTextLight: {
+    color: '#111827',
   },
   subscriptionBadgeWrap: {
     flexDirection: 'row',
@@ -1861,6 +2138,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: 'rgba(46, 213, 115, 0.25)',
+  },
+  subscriptionBadgeWrapLandscape: {
+    paddingVertical: 1,
+    paddingHorizontal: 5,
+    marginTop: 2,
   },
   subscriptionDot: {
     width: 6,
@@ -1875,6 +2157,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.4,
   },
+  subscriptionBadgeLandscape: {
+    fontSize: 10,
+  },
   gamerpicImageFree: {
     borderColor: '#8b949e',
   },
@@ -1882,11 +2167,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(139, 148, 158, 0.12)',
     borderColor: 'rgba(139, 148, 158, 0.25)',
   },
+  subscriptionBadgeWrapFreeLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
   subscriptionDotFree: {
     backgroundColor: '#8b949e',
   },
+  subscriptionDotFreeLight: {
+    backgroundColor: '#6B7280',
+  },
   subscriptionBadgeFree: {
     color: '#8b949e',
+  },
+  subscriptionBadgeFreeLight: {
+    color: '#6B7280',
+  },
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   serverButton: {
     flexDirection: 'row',
@@ -1894,12 +2194,55 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.16)',
-    borderRadius: 16,
+    borderRadius: 17,
+    height: 34,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    overflow: 'hidden',
+  },
+  serverButtonLandscape: {
+    height: 32,
+    borderRadius: 16,
+    paddingHorizontal: 8,
+  },
+  serverButtonLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
   },
   serverButtonPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    transform: [{scale: 0.96}],
+  },
+  serverButtonPressedLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    transform: [{scale: 0.96}],
+  },
+  settingsIconButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  settingsIconButtonLandscape: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  settingsIconButtonLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
+  },
+  settingsIconButtonPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    transform: [{scale: 0.94}],
+  },
+  settingsIconButtonPressedLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    transform: [{scale: 0.94}],
   },
   serverFlag: {
     fontSize: 14,
@@ -1912,7 +2255,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginRight: 2,
   },
+  serverCodeLight: {
+    color: '#111827',
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  searchRowLandscape: {
+    marginTop: 6,
+  },
   searchBarButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#161b26',
@@ -1922,10 +2277,29 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 16,
     marginTop: 12,
+    overflow: 'hidden',
+  },
+  searchBarButtonLandscape: {
+    marginTop: 0,
+    height: 36,
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    flex: 1,
+  },
+  searchBarButtonLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    elevation: 1,
   },
   searchBarButtonPressed: {
     backgroundColor: '#1e2535',
-    borderColor: 'rgba(255, 255, 255, 0.22)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    transform: [{scale: 0.985}],
+  },
+  searchBarButtonPressedLight: {
+    backgroundColor: '#F3F4F6',
+    borderColor: 'rgba(0, 0, 0, 0.18)',
+    transform: [{scale: 0.985}],
   },
   searchBarText: {
     color: '#8b949e',
@@ -1934,9 +2308,24 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
+  searchBarTextLandscape: {
+    fontSize: 13,
+  },
+  searchBarTextLight: {
+    color: '#6B7280',
+  },
   searchBarTextActive: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  searchBarTextActiveLight: {
+    color: '#111827',
+  },
+  landscapeControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+    gap: 8,
   },
   filterRow: {
     flexDirection: 'row',
@@ -1957,6 +2346,10 @@ const styles = StyleSheet.create({
   categoryHeaderBarLarge: {
     paddingHorizontal: 20,
   },
+  categoryHeaderBarLandscape: {
+    paddingBottom: 6,
+    paddingHorizontal: 20,
+  },
   categoryBackButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1968,9 +2361,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginRight: 10,
     flexShrink: 0,
+    overflow: 'hidden',
   },
   categoryBackButtonPressed: {
-    backgroundColor: 'rgba(46, 213, 115, 0.24)',
+    backgroundColor: 'rgba(46, 213, 115, 0.26)',
+    transform: [{scale: 0.96}],
   },
   categoryBackText: {
     color: '#2ed573',
@@ -1988,10 +2383,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  categoryTitleTextLight: {
+    color: '#111827',
+  },
   categoryCountText: {
     color: '#8b949e',
     fontSize: 11,
     marginTop: 1,
+  },
+  categoryCountTextLight: {
+    color: '#6B7280',
   },
   categorySortIconBtn: {
     marginRight: 0,
@@ -2007,9 +2408,20 @@ const styles = StyleSheet.create({
     marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  iconPillButtonLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    elevation: 1,
   },
   iconPillButtonPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    transform: [{scale: 0.94}],
+  },
+  iconPillButtonPressedLight: {
+    backgroundColor: '#F3F4F6',
+    transform: [{scale: 0.94}],
   },
   iconPillButtonActive: {
     borderColor: 'rgba(46, 213, 115, 0.4)',
@@ -2023,10 +2435,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  countPillLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
   countText: {
     color: '#8b949e',
     fontSize: 12,
     fontWeight: '500',
+  },
+  countTextLight: {
+    color: '#6B7280',
   },
   carouselsContainer: {
     paddingBottom: 6,
@@ -2034,12 +2452,18 @@ const styles = StyleSheet.create({
   carouselSection: {
     marginBottom: 22,
   },
+  carouselSectionLandscape: {
+    marginBottom: 14,
+  },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
     gap: 8,
+  },
+  sectionHeaderRowLandscape: {
+    marginBottom: 6,
   },
   sectionTitle: {
     color: '#FFFFFF',
@@ -2049,6 +2473,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
+  sectionTitleLandscape: {
+    fontSize: 14,
+  },
+  sectionTitleLight: {
+    color: '#111827',
+  },
   showAllHeaderButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2057,9 +2487,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(46, 213, 115, 0.1)',
     flexShrink: 0,
+    overflow: 'hidden',
   },
   showAllHeaderButtonPressed: {
-    backgroundColor: 'rgba(46, 213, 115, 0.22)',
+    backgroundColor: 'rgba(46, 213, 115, 0.25)',
+    transform: [{scale: 0.96}],
   },
   showAllHeaderText: {
     color: '#2ed573',
@@ -2077,10 +2509,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     marginRight: 10,
+    overflow: 'hidden',
+  },
+  showAllCardLight: {
+    backgroundColor: '#FFFFFF',
+    elevation: 1,
   },
   showAllCardPressed: {
-    backgroundColor: 'rgba(46, 213, 115, 0.08)',
+    backgroundColor: 'rgba(46, 213, 115, 0.12)',
     borderColor: '#2ed573',
+    transform: [{scale: 0.97}],
   },
   showAllIconCircle: {
     width: 44,
@@ -2098,6 +2536,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 4,
   },
+  showAllCardTitleLight: {
+    color: '#111827',
+  },
   showAllCardSubtitle: {
     color: '#2ed573',
     fontSize: 11,
@@ -2107,8 +2548,14 @@ const styles = StyleSheet.create({
   horizontalListWrap: {
     marginHorizontal: -14,
   },
+  horizontalListWrapLandscape: {
+    marginHorizontal: -20,
+  },
   horizontalListContent: {
     paddingHorizontal: 14,
+  },
+  horizontalListContentLandscape: {
+    paddingHorizontal: 20,
   },
   horizontalCardMargin: {
     marginRight: 10,
@@ -2124,13 +2571,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 0,
     letterSpacing: 0.2,
   },
+  catalogSectionTitleLight: {
+    color: '#111827',
+  },
   gridContentContainer: {
     paddingHorizontal: 14,
-    paddingBottom: 160,
+    paddingBottom: 36,
   },
   gridContentContainerLarge: {
     paddingHorizontal: 20,
-    paddingBottom: 160,
+    paddingBottom: 40,
   },
   columnWrapper: {
     justifyContent: 'flex-start',
@@ -2143,9 +2593,6 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     paddingVertical: 14,
   },
-  bottomClearanceSpacer: {
-    height: 50,
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -2156,58 +2603,14 @@ const styles = StyleSheet.create({
     color: '#2ed573',
     paddingBottom: 8,
   },
-  floatingBottomBar: {
-    position: 'absolute',
-    backgroundColor: '#141824',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    zIndex: 99,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabIconWrap: {
-    width: 42,
-    height: 25,
-    borderRadius: 12.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabIconWrapLandscape: {
-    width: 38,
-    height: 22,
-    borderRadius: 11,
-  },
-  tabIconWrapActive: {
-    backgroundColor: 'rgba(46, 213, 115, 0.2)',
-  },
-  tabLabel: {
-    fontSize: 10,
-    color: '#8b949e',
-    fontWeight: '500',
-    marginTop: 1,
-  },
-  tabLabelLandscape: {
-    fontSize: 9,
-    marginTop: 0,
-  },
-  tabLabelActive: {
-    color: '#2ed573',
-    fontWeight: '700',
-  },
   dialogContainer: {
     marginHorizontal: '8%',
+  },
+  dialogContainerLandscape: {
+    marginHorizontal: 'auto',
+    maxWidth: 480,
+    width: '90%',
+    alignSelf: 'center',
   },
   modalCard: {
     backgroundColor: '#161922',
@@ -2216,10 +2619,17 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.12)',
     overflow: 'hidden',
   },
+  modalCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
   modalTitle: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  modalTitleLight: {
+    color: '#111827',
   },
   modalScrollContent: {
     paddingHorizontal: 12,
@@ -2235,6 +2645,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  regionModalOptionLight: {
+    borderBottomColor: 'rgba(0, 0, 0, 0.06)',
   },
   regionOptionLeft: {
     flexDirection: 'row',
@@ -2256,11 +2669,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 18,
   },
+  modalOptionTitleLight: {
+    color: '#111827',
+  },
   modalRegionCode: {
     color: '#8b949e',
     fontSize: 11,
     marginTop: 2,
     lineHeight: 14,
+  },
+  modalRegionCodeLight: {
+    color: '#6B7280',
   },
   modalOption: {
     flexDirection: 'row',
@@ -2278,6 +2697,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  modalOptionTextLight: {
+    color: '#111827',
+  },
   modalOptionTextActive: {
     color: '#2ed573',
     fontWeight: '700',
@@ -2287,16 +2709,31 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     lineHeight: 20,
   },
+  usbWarningTextLight: {
+    color: '#111827',
+  },
   tutorialModalContainer: {
     marginLeft: '8%',
     marginRight: '8%',
   },
+  tutorialModalContainerLandscape: {
+    marginHorizontal: 'auto',
+    maxWidth: 520,
+    width: '90%',
+    alignSelf: 'center',
+  },
   tutorialLeadText: {
     color: '#ffffff',
+  },
+  tutorialLeadTextLight: {
+    color: '#111827',
   },
   tutorialStepText: {
     marginTop: 8,
     color: '#dddddd',
+  },
+  tutorialStepTextLight: {
+    color: '#374151',
   },
 });
 
