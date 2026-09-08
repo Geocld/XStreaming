@@ -132,6 +132,20 @@ XStreaming 的发展离不开这些 Hacker 们，他们贡献了大量能力，�
             <sub><b>rabin-HE</b></sub>
         </a>
     </td>
+    <td align="center">
+        <a href="https://github.com/rabin-HE">
+            <img src="https://avatars.githubusercontent.com/u/60229681?v=4" width="90;" alt="Heinz Der Flugel"/>
+            <br />
+            <sub><b>Heinz Der Flugel</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/rabin-HE">
+            <img src="https://avatars.githubusercontent.com/u/111547125?v=4" width="90;" alt="Gustavo Rocha"/>
+            <br />
+            <sub><b>Gustavo Rocha</b></sub>
+        </a>
+    </td>
   </tr>
 </table>
 <!-- readme: contributors -end -->
