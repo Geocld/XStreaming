@@ -724,7 +724,6 @@ function CloudScreen({navigation, route}: any) {
   const [showRegionModal, setShowRegionModal] = React.useState(false);
 
   // Navigation and filter states
-  const [activeBottomTab, setActiveBottomTab] = React.useState<'library'>('library');
   const [sortBy, setSortBy] = React.useState<'relevance' | 'az' | 'za' | 'newest'>('relevance');
   const [filterCategory, setFilterCategory] = React.useState<
     'all' | 'play_gamepass' | 'new' | 'ubisoft' | 'own' | 'leaving' | 'recent'
@@ -766,14 +765,6 @@ function CloudScreen({navigation, route}: any) {
   // Orientation and dimension calculations
   const isLandscape = screenWidth > screenHeight;
   const isLargeScreen = Platform.isTV || isLandscape;
-
-  const bottomBarWidth = isLandscape
-    ? Math.min(220, screenWidth - 64)
-    : Math.min(180, screenWidth - 48);
-  const bottomBarLeft = (screenWidth - bottomBarWidth) / 2;
-  const bottomBarBottom = isLandscape ? 32 : (Platform.OS === 'android' ? 26 : 28);
-  const bottomBarHeight = isLandscape ? 50 : 54;
-  const bottomBarRadius = isLandscape ? 25 : 27;
 
   const PADDING_H = isLargeScreen ? 20 : 14;
   const GAP = 10;
@@ -1297,14 +1288,12 @@ function CloudScreen({navigation, route}: any) {
 
   const handleShowAll = (categoryKey: any) => {
     setFilterCategory(categoryKey);
-    setActiveBottomTab('library');
     setCurrentPage(1);
     scrollToTop();
   };
 
   const handleBackToHome = () => {
     setFilterCategory('all');
-    setActiveBottomTab('library');
     setCurrentPage(1);
     scrollToTop();
   };
@@ -1347,7 +1336,6 @@ function CloudScreen({navigation, route}: any) {
             <Pressable
               onPress={() => handleShowAll(categoryKey)}
               hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-              android_ripple={{color: 'rgba(46, 213, 115, 0.2)'}}
               style={({pressed}) => [
                 styles.showAllHeaderButton,
                 pressed && styles.showAllHeaderButtonPressed,
@@ -1385,7 +1373,6 @@ function CloudScreen({navigation, route}: any) {
             hasMoreThanTen ? (
               <Pressable
                 onPress={() => handleShowAll(categoryKey)}
-                android_ripple={{color: 'rgba(46, 213, 115, 0.2)'}}
                 style={({pressed}) => [
                   styles.showAllCard,
                   {
@@ -1510,19 +1497,7 @@ function CloudScreen({navigation, route}: any) {
     }
   }, [filterCategory, t]);
 
-  // Bottom navigation tab clicks
-  const handleTabPress = (tab: 'library' | 'settings') => {
-    if (tab === 'library') {
-      setActiveBottomTab('library');
-      setFilterCategory('all');
-      setCurrentPage(1);
-      scrollToTop();
-    } else if (tab === 'settings') {
-      navigation.navigate('Settings');
-    }
-  };
-
-  // Footer loading and clearance indicator
+  // Footer loading indicator
   const renderListFooter = () => (
     <View style={styles.footerWrap}>
       {loadingMore && (
@@ -1532,7 +1507,6 @@ function CloudScreen({navigation, route}: any) {
           style={styles.loadingIndicator}
         />
       )}
-      <View style={styles.bottomClearanceSpacer} />
     </View>
   );
 
@@ -1543,7 +1517,7 @@ function CloudScreen({navigation, route}: any) {
 
       {!isLimited && (
         <View style={styles.mainContainer}>
-          {/* Header row with Gamerpic and Server Region shortcut */}
+          {/* Header row with Gamerpic, Server Region shortcut and Settings */}
           <View style={[styles.topHeader, isLargeScreen && styles.topHeaderLarge]}>
             <View style={styles.headerMainRow}>
               <View style={styles.profileRow}>
@@ -1587,20 +1561,34 @@ function CloudScreen({navigation, route}: any) {
                 </View>
               </View>
 
-              <Pressable
-                onPress={() => setShowRegionModal(true)}
-                android_ripple={{color: 'rgba(255, 255, 255, 0.18)'}}
-                style={({pressed}) => [styles.serverButton, pressed && styles.serverButtonPressed]}>
-                <Text style={styles.serverFlag}>{currentRegionInfo.flag}</Text>
-                <Text style={styles.serverCode}>{currentRegionInfo.code}</Text>
-                <Icon source="chevron-down" size={14} color="#8b949e" />
-              </Pressable>
+              <View style={styles.headerRightActions}>
+                <Pressable
+                  onPress={() => setShowRegionModal(true)}
+                  style={({pressed}) => [
+                    styles.serverButton,
+                    pressed && styles.serverButtonPressed,
+                  ]}>
+                  <Text style={styles.serverFlag}>{currentRegionInfo.flag}</Text>
+                  <Text style={styles.serverCode}>{currentRegionInfo.code}</Text>
+                  <Icon source="chevron-down" size={14} color="#8b949e" />
+                </Pressable>
+
+                <Pressable
+                  onPress={() => navigation.navigate('Settings')}
+                  accessibilityLabel={t('Settings')}
+                  accessibilityRole="button"
+                  style={({pressed}) => [
+                    styles.settingsIconButton,
+                    pressed && styles.settingsIconButtonPressed,
+                  ]}>
+                  <Icon source="cog-outline" size={19} color="#FFFFFF" />
+                </Pressable>
+              </View>
             </View>
 
             {/* Wide Search Bar Button under Profile */}
             <Pressable
               onPress={handleOpenSearch}
-              android_ripple={{color: 'rgba(255, 255, 255, 0.12)'}}
               style={({pressed}) => [
                 styles.searchBarButton,
                 pressed && styles.searchBarButtonPressed,
@@ -1630,7 +1618,6 @@ function CloudScreen({navigation, route}: any) {
             <View style={[styles.categoryHeaderBar, isLargeScreen && styles.categoryHeaderBarLarge]}>
               <Pressable
                 onPress={handleBackToHome}
-                android_ripple={{color: 'rgba(46, 213, 115, 0.25)', borderless: true}}
                 style={({pressed}) => [
                   styles.categoryBackButton,
                   pressed && styles.categoryBackButtonPressed,
@@ -1652,7 +1639,6 @@ function CloudScreen({navigation, route}: any) {
                 onPress={() => setShowSortModal(true)}
                 accessibilityLabel={sortLabel}
                 accessibilityRole="button"
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
                 style={({pressed}) => [
                   styles.iconPillButton,
                   styles.categorySortIconBtn,
@@ -1672,7 +1658,6 @@ function CloudScreen({navigation, route}: any) {
                 onPress={() => setShowSortModal(true)}
                 accessibilityLabel={sortLabel}
                 accessibilityRole="button"
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
                 style={({pressed}) => [
                   styles.iconPillButton,
                   sortBy !== 'relevance' && styles.iconPillButtonActive,
@@ -1689,7 +1674,6 @@ function CloudScreen({navigation, route}: any) {
                 onPress={() => setShowFilterModal(true)}
                 accessibilityLabel={filterLabel}
                 accessibilityRole="button"
-                android_ripple={{color: 'rgba(255, 255, 255, 0.15)', borderless: true}}
                 style={({pressed}) => [
                   styles.iconPillButton,
                   filterCategory !== 'all' && styles.iconPillButtonActive,
@@ -1758,61 +1742,6 @@ function CloudScreen({navigation, route}: any) {
               ListFooterComponent={renderListFooter}
             />
           )}
-
-          {/* Floating bottom navigation bar */}
-          <View
-            style={[
-              styles.floatingBottomBar,
-              {
-                width: bottomBarWidth,
-                left: bottomBarLeft,
-                bottom: bottomBarBottom,
-                height: bottomBarHeight,
-                borderRadius: bottomBarRadius,
-              },
-            ]}>
-            {/* Library tab */}
-            <Pressable
-              onPress={() => handleTabPress('library')}
-              style={styles.tabItem}>
-              <View
-                style={[
-                  styles.tabIconWrap,
-                  isLandscape && styles.tabIconWrapLandscape,
-                  activeBottomTab === 'library' && styles.tabIconWrapActive,
-                ]}>
-                <Icon
-                  source={activeBottomTab === 'library' ? 'view-grid' : 'view-grid-outline'}
-                  size={isLandscape ? 18 : 20}
-                  color={activeBottomTab === 'library' ? '#2ed573' : '#8b949e'}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.tabLabel,
-                  isLandscape && styles.tabLabelLandscape,
-                  activeBottomTab === 'library' && styles.tabLabelActive,
-                ]}>
-                {t('Library')}
-              </Text>
-            </Pressable>
-
-            {/* Settings tab */}
-            <Pressable
-              onPress={() => handleTabPress('settings')}
-              style={styles.tabItem}>
-              <View
-                style={[
-                  styles.tabIconWrap,
-                  isLandscape && styles.tabIconWrapLandscape,
-                ]}>
-                <Icon source="cog-outline" size={isLandscape ? 18 : 20} color="#8b949e" />
-              </View>
-              <Text style={[styles.tabLabel, isLandscape && styles.tabLabelLandscape]}>
-                {t('Settings')}
-              </Text>
-            </Pressable>
-          </View>
         </View>
       )}
 
@@ -1984,18 +1913,40 @@ const styles = StyleSheet.create({
   subscriptionBadgeFree: {
     color: '#8b949e',
   },
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   serverButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.16)',
-    borderRadius: 16,
+    borderRadius: 17,
+    height: 34,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    overflow: 'hidden',
   },
   serverButtonPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    transform: [{scale: 0.96}],
+  },
+  settingsIconButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  settingsIconButtonPressed: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    transform: [{scale: 0.94}],
   },
   serverFlag: {
     fontSize: 14,
@@ -2018,10 +1969,12 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 16,
     marginTop: 12,
+    overflow: 'hidden',
   },
   searchBarButtonPressed: {
     backgroundColor: '#1e2535',
-    borderColor: 'rgba(255, 255, 255, 0.22)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    transform: [{scale: 0.985}],
   },
   searchBarText: {
     color: '#8b949e',
@@ -2064,9 +2017,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginRight: 10,
     flexShrink: 0,
+    overflow: 'hidden',
   },
   categoryBackButtonPressed: {
-    backgroundColor: 'rgba(46, 213, 115, 0.24)',
+    backgroundColor: 'rgba(46, 213, 115, 0.26)',
+    transform: [{scale: 0.96}],
   },
   categoryBackText: {
     color: '#2ed573',
@@ -2103,9 +2058,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   iconPillButtonPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    transform: [{scale: 0.94}],
   },
   iconPillButtonActive: {
     borderColor: 'rgba(46, 213, 115, 0.4)',
@@ -2153,9 +2110,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(46, 213, 115, 0.1)',
     flexShrink: 0,
+    overflow: 'hidden',
   },
   showAllHeaderButtonPressed: {
-    backgroundColor: 'rgba(46, 213, 115, 0.22)',
+    backgroundColor: 'rgba(46, 213, 115, 0.25)',
+    transform: [{scale: 0.96}],
   },
   showAllHeaderText: {
     color: '#2ed573',
@@ -2173,10 +2132,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     marginRight: 10,
+    overflow: 'hidden',
   },
   showAllCardPressed: {
-    backgroundColor: 'rgba(46, 213, 115, 0.08)',
+    backgroundColor: 'rgba(46, 213, 115, 0.12)',
     borderColor: '#2ed573',
+    transform: [{scale: 0.97}],
   },
   showAllIconCircle: {
     width: 44,
@@ -2222,11 +2183,11 @@ const styles = StyleSheet.create({
   },
   gridContentContainer: {
     paddingHorizontal: 14,
-    paddingBottom: 160,
+    paddingBottom: 36,
   },
   gridContentContainerLarge: {
     paddingHorizontal: 20,
-    paddingBottom: 160,
+    paddingBottom: 40,
   },
   columnWrapper: {
     justifyContent: 'flex-start',
@@ -2239,9 +2200,6 @@ const styles = StyleSheet.create({
   loadingIndicator: {
     paddingVertical: 14,
   },
-  bottomClearanceSpacer: {
-    height: 50,
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -2251,56 +2209,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#2ed573',
     paddingBottom: 8,
-  },
-  floatingBottomBar: {
-    position: 'absolute',
-    backgroundColor: '#141824',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    zIndex: 99,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabIconWrap: {
-    width: 42,
-    height: 25,
-    borderRadius: 12.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabIconWrapLandscape: {
-    width: 38,
-    height: 22,
-    borderRadius: 11,
-  },
-  tabIconWrapActive: {
-    backgroundColor: 'rgba(46, 213, 115, 0.2)',
-  },
-  tabLabel: {
-    fontSize: 10,
-    color: '#8b949e',
-    fontWeight: '500',
-    marginTop: 1,
-  },
-  tabLabelLandscape: {
-    fontSize: 9,
-    marginTop: 0,
-  },
-  tabLabelActive: {
-    color: '#2ed573',
-    fontWeight: '700',
   },
   dialogContainer: {
     marginHorizontal: '8%',

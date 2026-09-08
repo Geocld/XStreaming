@@ -142,7 +142,7 @@ function SettingsScreen({navigation}) {
     <View style={styles.container}>
       <Spinner loading={loading} text={t('Loading...')} />
 
-      <ScrollView>
+      <ScrollView removeClippedSubviews={true}>
         <View>
           <View style={styles.contentTitle}>
             <Text variant="titleLarge" style={titleTextStyle}>

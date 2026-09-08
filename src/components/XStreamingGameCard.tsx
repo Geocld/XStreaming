@@ -76,7 +76,6 @@ const XStreamingGameCard: React.FC<Props> = ({
     <View style={[styles.outerWrapper, customCardStyle, style]}>
       <Pressable
         onPress={handlePressCard}
-        android_ripple={{color: 'rgba(255, 255, 255, 0.12)'}}
         style={({pressed}) => [styles.cardPressable, pressed && styles.cardPressed]}>
         {/* Background poster image */}
         {posterUrl && !imageError ? (
@@ -104,7 +103,6 @@ const XStreamingGameCard: React.FC<Props> = ({
           <Pressable
             onPress={handlePressPlay}
             hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}
-            android_ripple={{color: 'rgba(0, 0, 0, 0.2)', borderless: true}}
             style={({pressed}) => [
               styles.playButton,
               pressed && styles.actionButtonPressed,
@@ -175,6 +173,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3,
+    overflow: 'hidden',
   },
   actionButtonPressed: {
     opacity: 0.8,

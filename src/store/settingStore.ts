@@ -191,6 +191,8 @@ const defaultSettings: Settings = {
   show_session_report: true,
 };
 
+let cachedSettings: Settings | null = null;
+
 export const saveSettings = (settings: Settings) => {
   log.info('SaveSettings:', settings);
   const totalSettings = Object.assign({}, defaultSettings, settings);
@@ -199,6 +201,7 @@ export const saveSettings = (settings: Settings) => {
     stereoAudioValue === true || stereoAudioValue === 'true';
   // AsyncStorage.setItem(STORE_KEY, JSON.stringify(totalSettings));
   storage.set(STORE_KEY, JSON.stringify(totalSettings));
+  cachedSettings = totalSettings;
   try {
     NativeModules.AudioSettingModule?.setStereoEnabled?.(
       !!totalSettings.enable_stereo_audio,
@@ -212,13 +215,17 @@ export const saveSettings = (settings: Settings) => {
 };
 
 export const getSettings = (): Settings => {
+  if (cachedSettings) {
+    return cachedSettings;
+  }
   let settings = storage.getString(STORE_KEY);
   if (!settings) {
-    return {
+    cachedSettings = {
       ...defaultSettings,
       locale: getSystemLocale(),
       locale_follow_system: true,
     };
+    return cachedSettings;
   }
   try {
     const _settings = JSON.parse(settings) as Partial<Settings>;
@@ -233,17 +240,24 @@ export const getSettings = (): Settings => {
     if (merged.locale_follow_system) {
       merged.locale = getSystemLocale();
     }
-    return merged;
+    cachedSettings = merged;
+    return cachedSettings;
   } catch {
-    return {
+    cachedSettings = {
       ...defaultSettings,
       locale: getSystemLocale(),
       locale_follow_system: true,
     };
+    return cachedSettings;
   }
 };
 
 export const resetSettings = () => {
   log.info('resetSettings');
   storage.set(STORE_KEY, JSON.stringify(defaultSettings));
+  cachedSettings = {
+    ...defaultSettings,
+    locale: getSystemLocale(),
+    locale_follow_system: true,
+  };
 };

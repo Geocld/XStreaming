@@ -449,11 +449,10 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
             <View style={styles.footerContainer}>
               <Pressable
                 onPress={() => setDontShowAgain(!dontShowAgain)}
-                style={styles.checkboxWrapper}
-                android_ripple={{
-                  color: 'rgba(255, 255, 255, 0.1)',
-                  borderless: true,
-                }}>
+                style={({pressed}) => [
+                  styles.checkboxWrapper,
+                  pressed && {opacity: 0.7},
+                ]}>
                 <View
                   style={[
                     styles.checkboxBox,

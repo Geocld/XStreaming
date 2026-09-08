@@ -52,8 +52,7 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress, compact = false}) => {
   return (
     <Pressable
       onPress={handlePress}
-      android_ripple={{color: 'rgba(255,255,255,0.18)'}}
-      style={styles.pressable}>
+      style={({pressed}) => [styles.pressable, pressed && styles.pressablePressed]}>
       <View style={[styles.card, compact && styles.cardCompact]}>
         {loading && (
           <View style={styles.loadingWrap}>
@@ -85,6 +84,10 @@ const styles = StyleSheet.create({
   pressable: {
     borderRadius: 8,
     overflow: 'hidden',
+  },
+  pressablePressed: {
+    opacity: 0.8,
+    transform: [{scale: 0.98}],
   },
   card: {
     borderWidth: 1,

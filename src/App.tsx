@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Alert,
+  Animated,
   DeviceEventEmitter,
   Linking,
   useColorScheme,
@@ -143,6 +144,76 @@ const withPageBackground = (ScreenComponent: any) => {
   return WrappedScreen;
 };
 
+const withSolidPageBackground = (ScreenComponent: any) => {
+  const WrappedScreen = (props: any) => {
+    const colorScheme = useColorScheme();
+    const settings = getSettings();
+    const isLight =
+      settings.theme === 'light' ||
+      (settings.theme === 'auto' && colorScheme === 'light');
+
+    return (
+      <View
+        style={[
+          styles.backgroundScreen,
+          isLight ? styles.backgroundScreenLight : styles.backgroundScreenDark,
+        ]}>
+        <View style={styles.backgroundContent}>
+          <ScreenComponent {...props} />
+        </View>
+      </View>
+    );
+  };
+
+  WrappedScreen.displayName = `WithSolidPageBackground(${
+    ScreenComponent.displayName || ScreenComponent.name || 'Screen'
+  })`;
+  return WrappedScreen;
+};
+
+const forSettingsSlide = ({
+  current,
+  inverted,
+  layouts: {screen},
+}: any) => ({
+  cardStyle: {
+    opacity: current.progress.interpolate({
+      inputRange: [0, 0.25, 1],
+      outputRange: [0, 0.85, 1],
+      extrapolate: 'clamp',
+    }),
+    transform: [
+      {
+        translateX: Animated.multiply(
+          current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [screen.width, 0],
+            extrapolate: 'clamp',
+          }),
+          inverted,
+        ),
+      },
+    ],
+  },
+});
+
+const settingsTransitionSpec = {
+  open: {
+    animation: 'timing' as const,
+    config: {
+      duration: 280,
+      easing: Easing.bezier(0.2, 0, 0, 1),
+    },
+  },
+  close: {
+    animation: 'timing' as const,
+    config: {
+      duration: 240,
+      easing: Easing.bezier(0.4, 0, 1, 1),
+    },
+  },
+};
+
 const HomeBackgroundScreen = withPageBackground(HomeScreen);
 const CloudBackgroundScreen = withPageBackground(CloudScreen);
 const FriendsBackgroundScreen = withPageBackground(FriendsScreen);
@@ -151,7 +222,7 @@ const AchivementDetailBackgroundScreen = withPageBackground(
   AchivementDetailScreen,
 );
 const LoginBackgroundScreen = withPageBackground(LoginScreen);
-const SettingsBackgroundScreen = withPageBackground(SettingsScreen);
+const SettingsBackgroundScreen = withSolidPageBackground(SettingsScreen);
 const SettingDetailBackgroundScreen = withPageBackground(SettingDetailScreen);
 const TitleDetailBackgroundScreen = withPageBackground(TitleDetailScreen);
 const DebugBackgroundScreen = withPageBackground(DebugScreen);
@@ -454,31 +525,10 @@ function App() {
                   options={{
                     title: t('Settings'),
                     headerStyleInterpolator: HeaderStyleInterpolators.forFade,
-                    cardStyleInterpolator: ({current}) => ({
-                      cardStyle: {
-                        opacity: current.progress.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0, 1],
-                          extrapolate: 'clamp',
-                        }),
-                      },
-                    }),
-                    transitionSpec: {
-                      open: {
-                        animation: 'timing',
-                        config: {
-                          duration: 220,
-                          easing: Easing.out(Easing.ease),
-                        },
-                      },
-                      close: {
-                        animation: 'timing',
-                        config: {
-                          duration: 200,
-                          easing: Easing.in(Easing.ease),
-                        },
-                      },
-                    },
+                    cardStyleInterpolator: forSettingsSlide,
+                    transitionSpec: settingsTransitionSpec,
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
                   }}
                 />
                 <RootStack.Screen

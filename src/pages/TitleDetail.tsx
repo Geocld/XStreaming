@@ -307,11 +307,6 @@ function TitleDetail({navigation, route}) {
         focusable={true}
         hasTVPreferredFocus={primary}
         onPress={onPress}
-        android_ripple={{
-          color: primary
-            ? 'rgba(255, 255, 255, 0.18)'
-            : 'rgba(16, 124, 16, 0.16)',
-        }}
         style={({focused, pressed}: any) => [
           styles.tvActionButton,
           primary ? styles.tvActionButtonPrimary : styles.tvActionButtonPlain,
@@ -627,6 +622,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+    overflow: 'hidden',
   },
   tvActionButtonPrimary: {
     backgroundColor: '#107C10',
