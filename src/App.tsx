@@ -19,6 +19,7 @@ import {
   Portal,
   ProgressBar,
   Text,
+  useTheme,
   adaptNavigationTheme,
 } from 'react-native-paper';
 
@@ -36,7 +37,12 @@ import {
 import merge from 'deepmerge';
 import {Provider} from 'react-redux';
 import store from './store';
-import {getSettings, saveSettings} from './store/settingStore';
+import {
+  getSettings,
+  saveSettings,
+  SETTINGS_CHANGED_EVENT,
+  Settings,
+} from './store/settingStore';
 import {saveServerData} from './store/serverStore';
 import {findTitleByProductId} from './store/shortcutStore';
 
@@ -118,11 +124,9 @@ const PAGE_BACKGROUND_DARK = '#111320';
 
 const withPageBackground = (ScreenComponent: any) => {
   const WrappedScreen = (props: any) => {
-    const colorScheme = useColorScheme();
-    const settings = getSettings();
-    const isLight =
-      settings.theme === 'light' ||
-      (settings.theme === 'auto' && colorScheme === 'light');
+    const theme = useTheme();
+    const isLight = !theme.dark;
+    const primaryColor = theme.colors.primary;
 
     return (
       <View
@@ -130,7 +134,7 @@ const withPageBackground = (ScreenComponent: any) => {
           styles.backgroundScreen,
           isLight ? styles.backgroundScreenLight : styles.backgroundScreenDark,
         ]}>
-        <XboxSymbolBackground isLight={isLight} />
+        <XboxSymbolBackground isLight={isLight} primaryColor={primaryColor} />
         <View style={styles.backgroundContent}>
           <ScreenComponent {...props} />
         </View>
@@ -146,11 +150,8 @@ const withPageBackground = (ScreenComponent: any) => {
 
 const withSolidPageBackground = (ScreenComponent: any) => {
   const WrappedScreen = (props: any) => {
-    const colorScheme = useColorScheme();
-    const settings = getSettings();
-    const isLight =
-      settings.theme === 'light' ||
-      (settings.theme === 'auto' && colorScheme === 'light');
+    const theme = useTheme();
+    const isLight = !theme.dark;
 
     return (
       <View
@@ -254,7 +255,7 @@ const SearchBackgroundScreen = withPageBackground(SearchScreen);
 function App() {
   const {t} = useTranslation();
   const colorScheme = useColorScheme();
-  const settings = getSettings();
+  const [settings, setSettings] = React.useState<Settings>(() => getSettings());
   const deviceInfos = FullScreenManager.getDeviceInfos();
   const updateCheckedRef = React.useRef(false);
   const pendingTitleShortcutRef = React.useRef<any>(null);
@@ -266,6 +267,20 @@ function App() {
     status: 'idle',
     totalBytes: 0,
   });
+
+  React.useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      SETTINGS_CHANGED_EVENT,
+      (nextSettings: Settings) => {
+        if (nextSettings) {
+          setSettings({...nextSettings});
+        }
+      },
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   React.useEffect(() => {
     const subscription = DeviceEventEmitter.addListener(
@@ -462,6 +477,10 @@ function App() {
     paperTheme = paperLightTheme;
     navigationTheme = CombinedDefaultTheme;
   }
+
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'auto' && colorScheme === 'light');
 
   if (
     deviceInfos.factor?.toLocaleUpperCase().indexOf('NINTENDO') > -1 &&
@@ -706,7 +725,7 @@ function App() {
           </Portal>
         </PaperProvider>
       </Provider>
-      <SystemBars style="light" hidden={false} />
+      <SystemBars style={isLight ? 'dark' : 'light'} hidden={false} />
     </>
   );
 }

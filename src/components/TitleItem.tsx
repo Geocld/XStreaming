@@ -16,6 +16,7 @@ type Props = {
 
 const TitleItem: React.FC<Props> = ({titleItem, onPress, compact = false}) => {
   const theme = useTheme();
+  const isLight = !theme.dark;
   const [loading, setLoading] = React.useState(true);
 
   const handlePress = () => {
@@ -53,7 +54,12 @@ const TitleItem: React.FC<Props> = ({titleItem, onPress, compact = false}) => {
     <Pressable
       onPress={handlePress}
       style={({pressed}) => [styles.pressable, pressed && styles.pressablePressed]}>
-      <View style={[styles.card, compact && styles.cardCompact]}>
+      <View
+        style={[
+          styles.card,
+          isLight && styles.cardLight,
+          compact && styles.cardCompact,
+        ]}>
         {loading && (
           <View style={styles.loadingWrap}>
             <ActivityIndicator
@@ -96,6 +102,11 @@ const styles = StyleSheet.create({
     margin: 8,
     overflow: 'hidden',
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  cardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    elevation: 1,
   },
   cardCompact: {
     margin: 5,

@@ -1,6 +1,6 @@
 import {storage} from './mmkv';
 import {debugFactory} from '../utils/debug';
-import {NativeModules} from 'react-native';
+import {NativeModules, DeviceEventEmitter} from 'react-native';
 import {
   DEFAULT_VIRTUAL_MACRO_LONG_PRESS_MS,
   DEFAULT_VIRTUAL_MACRO_LONG_STEPS,
@@ -9,6 +9,8 @@ import {
 import {DEFAULT_THEME_PRIMARY_COLOR} from '../utils/themeColor';
 import {getSystemLocale} from '../utils/locale';
 const log = debugFactory('settingStore');
+
+export const SETTINGS_CHANGED_EVENT = 'SETTINGS_CHANGED';
 
 const STORE_KEY = 'user.settings';
 
@@ -212,6 +214,11 @@ export const saveSettings = (settings: Settings) => {
   } catch (error) {
     log.warn('sync native settings failed:', error);
   }
+  try {
+    DeviceEventEmitter.emit(SETTINGS_CHANGED_EVENT, totalSettings);
+  } catch (error) {
+    log.warn('emit settings changed failed:', error);
+  }
 };
 
 export const getSettings = (): Settings => {
@@ -260,4 +267,9 @@ export const resetSettings = () => {
     locale: getSystemLocale(),
     locale_follow_system: true,
   };
+  try {
+    DeviceEventEmitter.emit(SETTINGS_CHANGED_EVENT, cachedSettings);
+  } catch (error) {
+    log.warn('emit settings reset failed:', error);
+  }
 };
