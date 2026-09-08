@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, View, Dimensions} from 'react-native';
 import GamepadButton from './CustomGamepad/GamepadButton';
+import DPadView from './DPadView';
 import AnalogStick from '../components/AnalogStick';
 import {getSettings as getLocalSettings} from '../store/settingStore';
 import {getSettings} from '../store/gamepadStore';
@@ -9,12 +10,16 @@ import {
   ensureMacroLayoutButton,
   VIRTUAL_MACRO_BUTTON_NAME,
 } from '../utils/virtualMacro';
+import {
+  createDefaultVirtualDPadButton,
+  ensureVirtualDPadLayoutButton,
+} from '../utils/virtualDPad';
 
 type Props = {
   title: string;
   opacity: number;
-  onPressIn: (name: string) => any;
-  onPressOut: (name: string) => any;
+  onPressIn: (name: string | string[]) => any;
+  onPressOut: (name: string | string[]) => any;
   onStickMove: (id: string, position: any) => any;
   refreshKey?: number;
 };
@@ -39,6 +44,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     const nexusLeft = width * 0.5 - 20;
     const viewLeft = width * 0.5 - 100;
     const menuLeft = width * 0.5 + 60;
+    const dpadDefaultButton = createDefaultVirtualDPadButton(15, height - 175, 160, 160);
 
     const macroDefaultButton = createDefaultMacroLayoutButton(width, height);
     const _buttons = [
@@ -133,30 +139,7 @@ const CustomVirtualGamepad: React.FC<Props> = ({
         scale: 1,
         show: true,
       },
-      {
-        name: 'DPadUp',
-        x: 85,
-        y: height - 145,
-        show: true,
-      },
-      {
-        name: 'DPadLeft',
-        x: 35,
-        y: height - 95,
-        show: true,
-      },
-      {
-        name: 'DPadDown',
-        x: 85,
-        y: height - 45,
-        show: true,
-      },
-      {
-        name: 'DPadRight',
-        x: 135,
-        y: height - 95,
-        show: true,
-      },
+      dpadDefaultButton,
       {
         name: 'LeftStick',
         x: 175,
@@ -173,17 +156,22 @@ const CustomVirtualGamepad: React.FC<Props> = ({
     ];
     if (_settings[title]) {
       const exitButtons = _settings[title];
-      setButtons(ensureMacroLayoutButton(exitButtons, macroDefaultButton));
+      setButtons(
+        ensureVirtualDPadLayoutButton(
+          ensureMacroLayoutButton(exitButtons, macroDefaultButton),
+          dpadDefaultButton,
+        ),
+      );
     } else {
       setButtons(_buttons);
     }
   }, [title, refreshKey]);
 
-  const handlePressIn = (name: string) => {
+  const handlePressIn = (name: string | string[]) => {
     onPressIn && onPressIn(name);
   };
 
-  const handlePressOut = (name: string) => {
+  const handlePressOut = (name: string | string[]) => {
     onPressOut && onPressOut(name);
   };
 
@@ -202,6 +190,22 @@ const CustomVirtualGamepad: React.FC<Props> = ({
           !localSettings.virtual_macro_enabled
         ) {
           return null;
+        }
+        if (button.name === 'DPad') {
+          const width = (button.width ?? 160) * (button.scale ?? 1);
+          const height = (button.height ?? 160) * (button.scale ?? 1);
+          return (
+            <DPadView
+              key={button.name}
+              style={[
+                styles.button,
+                {top: button.y, left: button.x, width, height},
+                {opacity},
+              ]}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+            />
+          );
         }
         if (button.name === 'LeftStick') {
           if (localSettings.virtual_gamepad_joystick === 1) {

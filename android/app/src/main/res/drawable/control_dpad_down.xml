@@ -28,7 +28,7 @@
       android:pathData="M62.162,82.285 L45.244,99.203L45.244,135.467L90.223,135.467L90.223,99.203L73.305,82.285Z"
       android:strokeAlpha="1"
       android:strokeWidth="30.92149353"
-      android:fillColor="@color/control_dpad_primary"
+      android:fillColor="@color/control_dpad_pressed"
       android:strokeColor="#00000000"
       android:fillAlpha="1"/>
 </vector>

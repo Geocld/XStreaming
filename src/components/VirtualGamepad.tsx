@@ -2,14 +2,15 @@ import React from 'react';
 import {StyleSheet, View, Dimensions} from 'react-native';
 import AnalogStick from '../components/AnalogStick';
 import ButtonView from './ButtonView';
+import DPadView from './DPadView';
 import GamepadButton from './GamepadButton';
 import {getSettings} from '../store/settingStore';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
 
 type Props = {
   opacity: number;
-  onPressIn: (name: string) => any;
-  onPressOut: (name: string) => any;
+  onPressIn: (name: string | string[]) => any;
+  onPressOut: (name: string | string[]) => any;
   onStickMove: (id: string, position: any) => any;
 };
 
@@ -21,11 +22,11 @@ const VirtualGamepad: React.FC<Props> = ({
 }) => {
   const settings = getSettings();
 
-  const handlePressIn = (name: string) => {
+  const handlePressIn = (name: string | string[]) => {
     onPressIn && onPressIn(name);
   };
 
-  const handlePressOut = (name: string) => {
+  const handlePressOut = (name: string | string[]) => {
     onPressOut && onPressOut(name);
   };
 
@@ -146,32 +147,10 @@ const VirtualGamepad: React.FC<Props> = ({
         onPressOut={() => handlePressOut('Menu')}
       />
 
-      <ButtonView
-        style={[styles.button, styles.dpadTop, {opacity}]}
-        buttonName="control_button_up"
-        onPressIn={() => handlePressIn('DPadUp')}
-        onPressOut={() => handlePressOut('DPadUp')}
-      />
-
-      <ButtonView
-        style={[styles.button, styles.dpadLeft, {opacity}]}
-        buttonName="control_button_left"
-        onPressIn={() => handlePressIn('DPadLeft')}
-        onPressOut={() => handlePressOut('DPadLeft')}
-      />
-
-      <ButtonView
-        style={[styles.button, styles.dpadBottom, {opacity}]}
-        buttonName="control_button_down"
-        onPressIn={() => handlePressIn('DPadDown')}
-        onPressOut={() => handlePressOut('DPadDown')}
-      />
-
-      <ButtonView
-        style={[styles.button, styles.dpadRight, {opacity}]}
-        buttonName="control_button_right"
-        onPressIn={() => handlePressIn('DPadRight')}
-        onPressOut={() => handlePressOut('DPadRight')}
+      <DPadView
+        style={[styles.dpad, {opacity}]}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
       />
 
       {settings.virtual_macro_enabled && (
@@ -348,29 +327,13 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     overflow: 'hidden',
   },
-  dpadLeft: {
-    width: 70,
-    height: 70,
-    left: 25,
-    bottom: 70,
-  },
-  dpadTop: {
-    width: 70,
-    height: 70,
-    left: 75,
-    bottom: 115,
-  },
-  dpadRight: {
-    width: 70,
-    height: 70,
-    left: 125,
-    bottom: 70,
-  },
-  dpadBottom: {
-    width: 70,
-    height: 70,
-    left: 75,
-    bottom: 25,
+  dpad: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    left: 15,
+    bottom: 15,
+    zIndex: 10,
   },
   macro: {
     width: 60,

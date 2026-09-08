@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {IconButton, useTheme} from 'react-native-paper';
 import Draggable from 'react-native-draggable';
 import {useTranslation} from 'react-i18next';
+import DPadView from './DPadView';
 import PreviewButton from './CustomGamepad/Button';
 
 export type PortraitGamepadControl = {
@@ -25,8 +26,8 @@ type Props = {
   onEditingChange: (editing: boolean) => void;
   onLayoutChange: (layout: PortraitGamepadControl[]) => void;
   onResetDefault: () => void;
-  onPressIn: (name: string) => void;
-  onPressOut: (name: string) => void;
+  onPressIn: (name: string | string[]) => void;
+  onPressOut: (name: string | string[]) => void;
   onStickMove: (id: string, data: any) => void;
 };
 
@@ -80,10 +81,7 @@ export const buildDefaultPortraitGamepadLayout = (
     control('RightTrigger', 'button', width - 70, 8, 58, 52, width, height),
     control('LeftShoulder', 'button', 12, 62, 52, 46, width, height),
     control('RightShoulder', 'button', width - 64, 62, 52, 46, width, height),
-    control('DPadUp', 'button', 60, dpadTop, 48, 48, width, height),
-    control('DPadLeft', 'button', 16, dpadTop + 44, 48, 48, width, height),
-    control('DPadDown', 'button', 60, dpadTop + 88, 48, 48, width, height),
-    control('DPadRight', 'button', 104, dpadTop + 44, 48, 48, width, height),
+    control('DPad', 'button', 16, dpadTop, 124, 124, width, height),
     control('View', 'button', systemLeft, dpadTop + 52, 34, 34, width, height),
     control(
       'Menu',
@@ -200,9 +198,6 @@ const getButtonPreviewScale = (item: PortraitGamepadControl) => {
   if (['A', 'B', 'X', 'Y'].includes(item.name)) {
     return item.width / 100;
   }
-  if (item.name.indexOf('DPad') > -1) {
-    return item.width / 70;
-  }
   return 1;
 };
 
@@ -251,7 +246,11 @@ const PortraitVirtualGamepad: React.FC<Props> = ({
     (x: number, y: number) => {
       for (let i = visibleControls.length - 1; i >= 0; i--) {
         const item = visibleControls[i];
-        if (item.kind === 'button' && isInsideControl(item, x, y)) {
+        if (
+          item.kind === 'button' &&
+          item.name !== 'DPad' &&
+          isInsideControl(item, x, y)
+        ) {
           return item;
         }
       }
@@ -407,8 +406,20 @@ const PortraitVirtualGamepad: React.FC<Props> = ({
         width: item.width,
         height: item.height,
         opacity,
+        zIndex: item.name === 'DPad' ? 30 : 1,
       },
     ];
+
+    if (item.name === 'DPad') {
+      return (
+        <DPadView
+          key={item.name}
+          style={itemStyle}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
+        />
+      );
+    }
 
     if (item.kind === 'stick') {
       const stick = getStickName(item.name);

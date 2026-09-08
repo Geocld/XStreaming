@@ -17,7 +17,8 @@ public class ButtonViewPackage implements ReactPackage {
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         return Arrays.<ViewManager>asList(
-            new ButtonViewManager()
+            new ButtonViewManager(),
+            new DPadViewManager()
         );
     }
 }

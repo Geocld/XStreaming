@@ -1425,39 +1425,47 @@ function StreamScreen({navigation, route}: any) {
 
   // Virtual gamepad press
   const handleButtonPressIn = name => {
-    if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+    const names = Array.isArray(name) ? name : [name];
+    if (names.length === 1 && names[0] === VIRTUAL_MACRO_BUTTON_NAME) {
       handleMacroPressIn();
       return;
     }
 
+    let shouldVibrate = false;
     // console.log('handleButtonPressIn:', name);
-    // Hold button
-    const hold_buttons = settings.hold_buttons || [];
-    if (hold_buttons.includes(name)) {
-      gpState[name] = gpState[name] === 1 ? 0 : 1;
-      return;
-    }
-    gpState[name] = 1;
-    if (settings.vibration) {
+    names.forEach(item => {
+      const hold_buttons = settings.hold_buttons || [];
+      if (hold_buttons.includes(item)) {
+        gpState[item] = gpState[item] === 1 ? 0 : 1;
+        return;
+      }
+      gpState[item] = 1;
+      shouldVibrate = true;
+    });
+
+    if (shouldVibrate && settings.vibration) {
       Vibration.vibrate(30);
     }
   };
 
   const handleButtonPressOut = name => {
-    if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+    const names = Array.isArray(name) ? name : [name];
+    if (names.length === 1 && names[0] === VIRTUAL_MACRO_BUTTON_NAME) {
       handleMacroPressOut();
       return;
     }
 
     // Hold button
     const hold_buttons = settings.hold_buttons || [];
-    if (hold_buttons.includes(name)) {
-      return;
-    }
-    setTimeout(() => {
-      // console.log('handleButtonPressOut:', name);
-      gpState[name] = 0;
-    }, 50);
+    names.forEach(item => {
+      if (hold_buttons.includes(item)) {
+        return;
+      }
+      setTimeout(() => {
+        // console.log('handleButtonPressOut:', name);
+        gpState[item] = 0;
+      }, 50);
+    });
   };
 
   // Virtual gamepad move joystick

@@ -21,6 +21,10 @@ import {
   createDefaultMacroLayoutButton,
   ensureMacroLayoutButton,
 } from '../utils/virtualMacro';
+import {
+  createDefaultVirtualDPadButton,
+  ensureVirtualDPadLayoutButton,
+} from '../utils/virtualDPad';
 
 export type ButtonConfig = {
   name: string;
@@ -44,6 +48,7 @@ const buildDefaultButtons = (): ButtonConfig[] => {
   const nexusLeft = width * 0.5 - 20;
   const viewLeft = width * 0.5 - 100;
   const menuLeft = width * 0.5 + 60;
+  const dpadSize = 160;
 
   return [
     {name: 'LeftTrigger', x: 30, y: 40, scale: 1, show: true},
@@ -59,10 +64,7 @@ const buildDefaultButtons = (): ButtonConfig[] => {
     {name: 'View', x: viewLeft, y: height - 30, scale: 1, show: true},
     {name: 'Nexus', x: nexusLeft, y: height - 30, scale: 1, show: true},
     {name: 'Menu', x: menuLeft, y: height - 30, scale: 1, show: true},
-    {name: 'DPadUp', x: 85, y: height - 155, show: true},
-    {name: 'DPadLeft', x: 35, y: height - 105, show: true},
-    {name: 'DPadDown', x: 85, y: height - 55, show: true},
-    {name: 'DPadRight', x: 135, y: height - 105, show: true},
+    createDefaultVirtualDPadButton(15, height - dpadSize - 15, dpadSize, dpadSize),
     {name: 'LeftStick', x: 175, y: height - 205, show: true},
     {name: 'RightStick', x: width - 265, y: height - 195, show: true},
     createDefaultMacroLayoutButton(width, height),
@@ -98,8 +100,17 @@ const VirtualGamepadEditor: React.FC<VirtualGamepadEditorProps> = ({
     const layouts = getGamepadLayouts();
     const layout = layouts[profileName];
     if (layout && Array.isArray(layout)) {
-      const withMacro = ensureMacroLayoutButton(
+      const withDPad = ensureVirtualDPadLayoutButton(
         layout,
+        createDefaultVirtualDPadButton(
+          15,
+          Dimensions.get('window').height - 175,
+          160,
+          160,
+        ),
+      );
+      const withMacro = ensureMacroLayoutButton(
+        withDPad,
         createDefaultMacroLayoutButton(
           Dimensions.get('window').width,
           Dimensions.get('window').height,

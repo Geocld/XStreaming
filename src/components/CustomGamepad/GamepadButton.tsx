@@ -53,10 +53,6 @@ const GamepadButton: React.FC<Props> = ({
     width = 60;
     height = 60;
   }
-  if (name.indexOf('DPad') > -1) {
-    width = 70;
-    height = 70;
-  }
 
   if (name === VIRTUAL_MACRO_BUTTON_NAME) {
     width = 60;
