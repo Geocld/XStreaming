@@ -151,6 +151,12 @@ function TitleDetail({navigation, route}) {
       postUrl = `https:${titleItem.Image_Poster.URL}`;
     }
 
+    const gameTitle =
+      titleItem?.ProductTitle ||
+      titleItem?.titleName ||
+      titleItem?.Title ||
+      'Xbox Cloud Gaming';
+
     navigation.navigate({
       name: routeName,
       params: {
@@ -160,6 +166,8 @@ function TitleDetail({navigation, route}) {
         postUrl,
         isUsbMode,
         usbController,
+        gameTitle,
+        titleItem,
       },
     });
   };

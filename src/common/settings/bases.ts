@@ -11,6 +11,7 @@ const bases = [
     description: t('Set language of XStreaming'),
     data: [
       {value: 'en', text: 'English'},
+      {value: 'id', text: 'Bahasa Indonesia'},
       {value: 'de', text: 'Deutsch'},
       {value: 'es', text: 'Español'},
       {value: 'pt', text: 'Português'},

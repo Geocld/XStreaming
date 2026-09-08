@@ -22,6 +22,7 @@ import Spinner from '../components/Spinner';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
+import sessionStatsTracker from '../utils/sessionStatsTracker';
 
 const {FullScreenManager, GamepadManager, NativeInputDialog, UsbRumbleManager} =
   NativeModules;
@@ -121,7 +122,16 @@ const buildNanoGamepadState = (state: any) => ({
   RightTrigger: Number(state.buttons.RightTrigger || 0),
 });
 
-function NanoStreamScreen({navigation, route}) {
+function NanoStreamScreen({navigation, route}: any) {
+  if (route?.params?.params) {
+    route = {
+      ...route,
+      params: {
+        ...route.params.params,
+        ...route.params,
+      },
+    };
+  }
   const {t} = useTranslation();
   const viewRef = React.useRef<any>(null);
   const nativeStateRef = React.useRef<any>(null);
@@ -355,10 +365,11 @@ function NanoStreamScreen({navigation, route}) {
     FullScreenManager?.immersiveModeOff?.();
     GamepadManager?.setCurrentScreen?.('');
 
+    const sessionReport = sessionStatsTracker.finishSession();
     const dest = streamType === 'cloud' ? 'Cloud' : 'Home';
     navigation.navigate({
       name: dest,
-      params: {needRefresh: true},
+      params: {needRefresh: true, sessionReport},
     });
   }, [navigation, streamInfo.sessionId, streamType, t]);
 
@@ -803,11 +814,57 @@ function NanoStreamScreen({navigation, route}) {
         }));
       }
 
+      sessionStatsTracker.recordSample({
+        rtt: state.webRtcRttMs,
+        jitter: state.webRtcJitterMs,
+        fps: state.webRtcFps,
+        packetLoss: state.webRtcPacketLossPercent,
+        bitrate: state.webRtcBitrateMbps,
+        decode: state.webRtcDecodeMs,
+        resolution,
+      });
+
       if (
         (renderedVideoFrames > 0 || sessionStage === 'connected') &&
         !isConnectedRef.current
       ) {
         isConnectedRef.current = true;
+        const gameTitle =
+          route.params?.gameTitle ||
+          route.params?.titleItem?.ProductTitle ||
+          route.params?.titleItem?.titleName ||
+          route.params?.titleItem?.Title ||
+          (streamType === 'cloud' ? 'Xbox Cloud Gaming' : 'Xbox Console');
+
+        const titleItem = route.params?.titleItem;
+        let rawPoster =
+          titleItem?.Image_Tile?.URL ||
+          titleItem?.details?.heroUrl ||
+          titleItem?.hero ||
+          titleItem?.superHeroArt ||
+          titleItem?.Image_Poster?.URL ||
+          titleItem?.details?.posterUrl ||
+          titleItem?.poster ||
+          titleItem?.box_art;
+
+        let gamePoster = '';
+        if (rawPoster) {
+          gamePoster = rawPoster.startsWith('http')
+            ? rawPoster
+            : rawPoster.startsWith('//')
+            ? `https:${rawPoster}`
+            : `https://${rawPoster}`;
+        }
+
+        sessionStatsTracker.startSession({
+          gameTitle,
+          gamePoster,
+          sessionId: route.params?.sessionId,
+          streamType,
+          codec: settings?.codec,
+          resolution: settings?.resolution ? `${settings.resolution}p` : undefined,
+        });
+
         setLoadingText(t('connected'));
         setLoading(false);
         ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);

@@ -564,7 +564,7 @@ class webRTCClient {
 
   getStreamState() {
     return new Promise(resove => {
-      const performances = {
+      const performances: any = {
         resolution: '',
         rtt: '-1 (-1%)',
         jit: '-1',
@@ -573,119 +573,154 @@ class webRTCClient {
         fl: '-1 (-1%)',
         br: '',
         decode: '',
+        bytesReceived: 0,
+        bytesSent: 0,
       };
       if (this._webrtcClient) {
         this._webrtcClient
           .getStats()
           .then(stats => {
+            let totalInboundBytes = 0;
+            let candidateBytesReceived = 0;
+            let candidateBytesSent = 0;
+
             stats.forEach((stat: any) => {
-              if (
-                stat.type === 'inbound-rtp' &&
-                (stat.kind === 'video' || stat.mediaType === 'video')
-              ) {
-                if (stat.frameWidth && stat.frameHeight) {
-                  performances.resolution = `${stat.frameWidth} X ${stat.frameHeight}`;
+              if (stat.type === 'inbound-rtp') {
+                if (typeof stat.bytesReceived === 'number') {
+                  totalInboundBytes += stat.bytesReceived;
                 }
 
-                // FPS
-                performances.fps = stat.framesPerSecond || 0;
-
-                // Frames Dropped
-                const framesDropped = stat.framesDropped;
-                if (framesDropped !== undefined) {
-                  const framesReceived = stat.framesReceived;
-                  const framesDroppedPercentage = (
-                    (framesDropped * 100) /
-                    (framesDropped + framesReceived || 1)
-                  ).toFixed(2);
-                  performances.fl = `${framesDropped} (${framesDroppedPercentage}%)`;
-                } else {
-                  performances.fl = '-1 (-1%)';
-                }
-
-                // Packets Lost
-                const packetsLost = stat.packetsLost;
-                if (packetsLost !== undefined) {
-                  const packetsReceived = stat.packetsReceived;
-                  const packetsLostPercentage = (
-                    (packetsLost * 100) /
-                    (packetsLost + packetsReceived || 1)
-                  ).toFixed(2);
-                  performances.pl = `${packetsLost} (${packetsLostPercentage}%)`;
-                } else {
-                  performances.pl = '-1 (-1%)';
-                }
-
-                if (globalThis._lastStat) {
-                  try {
-                    const lastStat = globalThis._lastStat;
-                    // Bitrate
-                    const timeDiff = stat.timestamp - lastStat.timestamp;
-                    if (timeDiff !== 0) {
-                      const bitrate =
-                        (8 * (stat.bytesReceived - lastStat.bytesReceived)) /
-                        timeDiff /
-                        1000;
-                      performances.br = `${bitrate.toFixed(1)} Mbps`;
-                    } else {
-                      performances.br = '--';
-                    }
-
-                    // Jitter
-                    const bufferDelayDiff =
-                      (stat as any).jitterBufferDelay! -
-                      lastStat.jitterBufferDelay!;
-                    const emittedCountDiff =
-                      (stat as any).jitterBufferEmittedCount! -
-                      lastStat.jitterBufferEmittedCount!;
-                    if (emittedCountDiff > 0) {
-                      performances.jit = `${Math.round(
-                        (bufferDelayDiff / emittedCountDiff) * 1000,
-                      )}ms`;
-                    } else {
-                      performances.jit = '--';
-                    }
-
-                    // Decode time
-                    // Show decode time is a bug on Chromium based browsers on Android,so just reduce it.
-                    // Refer: https://github.com/redphx/better-xcloud/discussions/113
-                    const totalDecodeTimeDiff =
-                      stat.totalDecodeTime - lastStat.totalDecodeTime;
-                    const framesDecodedDiff =
-                      stat.framesDecoded - lastStat.framesDecoded;
-                    if (framesDecodedDiff !== 0) {
-                      let currentDecodeTime =
-                        (totalDecodeTimeDiff / framesDecodedDiff) * 1000;
-
-                      // Fix decode time is incorrect in android
-                      if (currentDecodeTime > 20) {
-                        currentDecodeTime -= 20;
-                      }
-                      if (currentDecodeTime > 17) {
-                        currentDecodeTime -= 15;
-                      }
-
-                      performances.decode = `${currentDecodeTime.toFixed(2)}ms`;
-                    } else {
-                      performances.decode = '--';
-                    }
-                  } catch (e) {
-                    console.log('err:', e);
+                if (stat.kind === 'video' || stat.mediaType === 'video') {
+                  if (stat.frameWidth && stat.frameHeight) {
+                    performances.resolution = `${stat.frameWidth} X ${stat.frameHeight}`;
                   }
+
+                  // FPS
+                  performances.fps = stat.framesPerSecond || 0;
+
+                  // Frames Dropped
+                  const framesDropped = stat.framesDropped;
+                  if (framesDropped !== undefined) {
+                    const framesReceived = stat.framesReceived;
+                    const framesDroppedPercentage = (
+                      (framesDropped * 100) /
+                      (framesDropped + framesReceived || 1)
+                    ).toFixed(2);
+                    performances.fl = `${framesDropped} (${framesDroppedPercentage}%)`;
+                  } else {
+                    performances.fl = '-1 (-1%)';
+                  }
+
+                  // Packets Lost
+                  const packetsLost = stat.packetsLost;
+                  if (packetsLost !== undefined) {
+                    const packetsReceived = stat.packetsReceived;
+                    const packetsLostPercentage = (
+                      (packetsLost * 100) /
+                      (packetsLost + packetsReceived || 1)
+                    ).toFixed(2);
+                    performances.pl = `${packetsLost} (${packetsLostPercentage}%)`;
+                  } else {
+                    performances.pl = '-1 (-1%)';
+                  }
+
+                  if (globalThis._lastStat) {
+                    try {
+                      const lastStat = globalThis._lastStat;
+                      // Bitrate
+                      const timeDiff = stat.timestamp - lastStat.timestamp;
+                      if (timeDiff !== 0) {
+                        const bitrate =
+                          (8 * (stat.bytesReceived - lastStat.bytesReceived)) /
+                          timeDiff /
+                          1000;
+                        performances.br = `${bitrate.toFixed(1)} Mbps`;
+                      } else {
+                        performances.br = '--';
+                      }
+
+                      // Jitter
+                      const bufferDelayDiff =
+                        (stat as any).jitterBufferDelay! -
+                        lastStat.jitterBufferDelay!;
+                      const emittedCountDiff =
+                        (stat as any).jitterBufferEmittedCount! -
+                        lastStat.jitterBufferEmittedCount!;
+                      if (emittedCountDiff > 0) {
+                        performances.jit = `${Math.round(
+                          (bufferDelayDiff / emittedCountDiff) * 1000,
+                        )}ms`;
+                      } else {
+                        performances.jit = '--';
+                      }
+
+                      // Decode time
+                      // Show decode time is a bug on Chromium based browsers on Android,so just reduce it.
+                      // Refer: https://github.com/redphx/better-xcloud/discussions/113
+                      const totalDecodeTimeDiff =
+                        stat.totalDecodeTime - lastStat.totalDecodeTime;
+                      const framesDecodedDiff =
+                        stat.framesDecoded - lastStat.framesDecoded;
+                      if (framesDecodedDiff !== 0) {
+                        let currentDecodeTime =
+                          (totalDecodeTimeDiff / framesDecodedDiff) * 1000;
+
+                        // Fix decode time is incorrect in android
+                        if (currentDecodeTime > 20) {
+                          currentDecodeTime -= 20;
+                        }
+                        if (currentDecodeTime > 17) {
+                          currentDecodeTime -= 15;
+                        }
+
+                        performances.decode = `${currentDecodeTime.toFixed(2)}ms`;
+                      } else {
+                        performances.decode = '--';
+                      }
+                    } catch (e) {
+                      console.log('err:', e);
+                    }
+                  }
+                  globalThis._lastStat = stat;
                 }
-                globalThis._lastStat = stat;
               } else if (
-                stat.type === 'candidate-pair' &&
-                stat.state === 'succeeded'
+                (stat.type === 'candidate-pair' &&
+                  stat.state === 'succeeded') ||
+                stat.type === 'transport'
               ) {
-                // Round Trip Time
-                const roundTripTime =
-                  typeof stat.currentRoundTripTime !== 'undefined'
-                    ? stat.currentRoundTripTime * 1000
-                    : '???';
-                performances.rtt = `${roundTripTime}ms`;
+                if (
+                  stat.type === 'candidate-pair' &&
+                  stat.state === 'succeeded'
+                ) {
+                  // Round Trip Time
+                  const roundTripTime =
+                    typeof stat.currentRoundTripTime !== 'undefined'
+                      ? stat.currentRoundTripTime * 1000
+                      : '???';
+                  performances.rtt = `${roundTripTime}ms`;
+                }
+
+                if (
+                  typeof stat.bytesReceived === 'number' &&
+                  stat.bytesReceived > candidateBytesReceived
+                ) {
+                  candidateBytesReceived = stat.bytesReceived;
+                }
+                if (
+                  typeof stat.bytesSent === 'number' &&
+                  stat.bytesSent > candidateBytesSent
+                ) {
+                  candidateBytesSent = stat.bytesSent;
+                }
               }
             });
+
+            performances.bytesReceived =
+              candidateBytesReceived > 0
+                ? candidateBytesReceived
+                : totalInboundBytes;
+            performances.bytesSent = candidateBytesSent;
+
             resove(performances);
           })
           .catch(error => {
@@ -770,6 +805,8 @@ class webRTCClient {
     }
     const opusParams = sdpTransform.parseParams(opusFMTP.config);
     opusParams.stereo = 1;
+    opusParams.minptime = 10;
+    opusParams.useinbandfec = 1;
     const newParams = Object.entries(opusParams)
       .map(([k, v]) => `${k}=${v}`)
       .join(';');

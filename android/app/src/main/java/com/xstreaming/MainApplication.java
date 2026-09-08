@@ -93,25 +93,17 @@ public class MainApplication extends Application implements ReactApplication {
 
     boolean stereoEnabled = AudioConfig.isStereoEnabled(this);
     AudioAttributes audioAttributes = new AudioAttributes.Builder()
-          .setUsage(AudioAttributes.USAGE_MEDIA)
+          .setUsage(AudioAttributes.USAGE_GAME)
           .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
           .build();
 
     JavaAudioDeviceModule.Builder audioDeviceModuleBuilder =
           JavaAudioDeviceModule.builder(this)
                 .setAudioAttributes(audioAttributes)
+                .setUseLowLatency(true)
+                .setUseStereoInput(false)
+                .setUseStereoOutput(stereoEnabled)
                 .setEnableVolumeLogger(false);
-
-    if (stereoEnabled) {
-        audioDeviceModuleBuilder
-              .setUseStereoInput(true)
-              .setUseStereoOutput(true);
-    } else {
-        audioDeviceModuleBuilder
-              .setUseLowLatency(true)
-              .setUseStereoInput(false)
-              .setUseStereoOutput(false);
-    }
 
     options.audioDeviceModule = audioDeviceModuleBuilder.createAudioDeviceModule();
 

@@ -2,6 +2,7 @@ import {NativeModules, Platform} from 'react-native';
 
 export const SUPPORTED_LOCALES = [
   'en',
+  'id',
   'zh',
   'zht',
   'de',
@@ -35,6 +36,9 @@ export const normalizeAppLocale = (locale?: string | null): SupportedLocale => {
     return 'zh';
   }
 
+  if (raw.startsWith('id') || raw.startsWith('in')) {
+    return 'id';
+  }
   if (raw.startsWith('de')) {
     return 'de';
   }

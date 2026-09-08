@@ -21,11 +21,31 @@ export interface StreamingTokenData extends TokenData {
 export default class StreamingToken extends Token<StreamingTokenData> {
   private _objectCreateTime: number;
   public data: StreamingTokenData;
+  public offering?: string;
 
-  constructor(tokenData: StreamingTokenData) {
+  constructor(tokenData: StreamingTokenData, offering?: string) {
     super(tokenData);
     this.data = tokenData;
     this._objectCreateTime = Date.now();
+    if (offering) {
+      this.offering = offering;
+    }
+  }
+
+  getOffering(): string | undefined {
+    if (this.offering) {
+      return this.offering;
+    }
+    const regions = this.data?.offeringSettings?.regions || [];
+    for (const r of regions) {
+      if (r.baseUri && r.baseUri.includes('xgpuwebf2p')) {
+        return 'xgpuwebf2p';
+      }
+      if (r.baseUri && r.baseUri.includes('xgpuweb')) {
+        return 'xgpuweb';
+      }
+    }
+    return undefined;
   }
 
   private get expirationDate(): Date | null {

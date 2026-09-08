@@ -50,6 +50,7 @@ import {
   VIRTUAL_MACRO_BUTTON_NAME,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
+import sessionStatsTracker from '../utils/sessionStatsTracker';
 
 const log = debugFactory('StreamScreen');
 
@@ -96,7 +97,16 @@ const gpState = {
   RightThumbYAxis: 0.0,
 };
 
-function StreamScreen({navigation, route}) {
+function StreamScreen({navigation, route}: any) {
+  if (route?.params?.params) {
+    route = {
+      ...route,
+      params: {
+        ...route.params.params,
+        ...route.params,
+      },
+    };
+  }
   const {t} = useTranslation();
   const authentication = useSelector((state: any) => state.authentication);
   const streamingTokens = useSelector((state: any) => state.streamingTokens);
@@ -681,22 +691,24 @@ function StreamScreen({navigation, route}) {
                 setIsExiting(false);
                 Orientation.unlockAllOrientations();
                 FullScreenManager.immersiveModeOff();
+                const sessionReport = sessionStatsTracker.finishSession();
                 const dest =
                   route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
                 navigation.navigate({
                   name: dest,
-                  params: {needRefresh: true},
+                  params: {needRefresh: true, sessionReport},
                 });
               }, 2000);
             });
           } else {
             Orientation.unlockAllOrientations();
             FullScreenManager.immersiveModeOff();
+            const sessionReport = sessionStatsTracker.finishSession();
             const dest =
               route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
             navigation.navigate({
               name: dest,
-              params: {needRefresh: true},
+              params: {needRefresh: true, sessionReport},
             });
           }
         }
@@ -824,10 +836,11 @@ function StreamScreen({navigation, route}) {
       setTimeout(() => {
         setIsExiting(false);
         FullScreenManager.immersiveModeOff();
+        const sessionReport = sessionStatsTracker.finishSession();
         const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         navigation.navigate({
           name: dest,
-          params: {needRefresh: true},
+          params: {needRefresh: true, sessionReport},
         });
       }, 500);
     });
@@ -1135,6 +1148,19 @@ function StreamScreen({navigation, route}) {
         }
       }
       setPerformance(perf);
+      if (perf) {
+        sessionStatsTracker.recordSample({
+          rtt: perf.rtt,
+          bitrate: perf.br,
+          packetLoss: perf.pl,
+          jitter: perf.jit,
+          fps: perf.fps,
+          decode: perf.decode,
+          resolution: perf.resolution,
+          bytesReceived: perf.bytesReceived,
+          bytesSent: perf.bytesSent,
+        });
+      }
     }
     if (type === 'connectionstate') {
       // Toggle microphone
@@ -1147,6 +1173,47 @@ function StreamScreen({navigation, route}) {
       setConnectState(message);
       if (message === CONNECTED) {
         if (!isConnected.current) {
+          const gameTitle =
+            route.params?.gameTitle ||
+            route.params?.titleItem?.ProductTitle ||
+            route.params?.titleItem?.titleName ||
+            route.params?.titleItem?.Title ||
+            (route.params?.streamType === 'cloud' ? 'Xbox Cloud Gaming' : 'Xbox Console');
+
+          const titleItem = route.params?.titleItem;
+          let rawPoster =
+            titleItem?.Image_Tile?.URL ||
+            titleItem?.details?.heroUrl ||
+            titleItem?.hero ||
+            titleItem?.superHeroArt ||
+            titleItem?.Image_Poster?.URL ||
+            titleItem?.details?.posterUrl ||
+            titleItem?.poster ||
+            titleItem?.box_art;
+
+          let gamePoster = '';
+          if (rawPoster) {
+            gamePoster = rawPoster.startsWith('http')
+              ? rawPoster
+              : rawPoster.startsWith('//')
+              ? `https:${rawPoster}`
+              : `https://${rawPoster}`;
+          }
+
+          sessionStatsTracker.startSession({
+            gameTitle,
+            gamePoster,
+            sessionId: route.params?.sessionId,
+            streamType: route.params?.streamType,
+            codec: settings?.codec,
+            resolution:
+              settings?.resolution === 1081
+                ? '1440p'
+                : settings?.resolution
+                ? `${settings.resolution}p`
+                : undefined,
+          });
+
           ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
 
           if (settings.coop) {

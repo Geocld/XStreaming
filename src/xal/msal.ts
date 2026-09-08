@@ -427,7 +427,7 @@ export default class Msal {
 
       const response = await axios.post(url, payload, {headers});
 
-      return new StreamingToken(response.data);
+      return new StreamingToken(response.data, offering);
     } catch (error) {
       throw error;
     }

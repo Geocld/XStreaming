@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import {initReactI18next} from 'react-i18next';
 import en from './languages/en';
+import id from './languages/id';
 import zh from './languages/zh';
 import zht from './languages/zht';
 import de from './languages/de';
@@ -16,6 +17,7 @@ const settings = getSettings();
 
 const resources = {
   en,
+  id,
   zh,
   zht,
   de,

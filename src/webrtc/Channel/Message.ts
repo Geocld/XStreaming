@@ -1,5 +1,6 @@
 import uuid from 'react-native-uuid';
 import BaseChannel from './Base';
+import {getSettings} from '../../store/settingStore';
 
 type HandshakeAckMessage = {
   type: 'HandshakeAck';
@@ -247,19 +248,40 @@ export default class MessageChannel extends BaseChannel {
 
     this.sendMessage('/streaming/characteristics/clientdevicecapabilities', {});
 
-    this.sendMessage('/streaming/characteristics/dimensionschanged', {
-      horizontal: 1920,
-      vertical: 1080,
-      preferredWidth: 1920,
-      preferredHeight: 1080,
-      safeAreaLeft: 0,
-      safeAreaTop: 0,
-      safeAreaRight: 1920,
-      safeAreaBottom: 1080,
-      supportsCustomResolution: true,
-    });
+    this.sendDimensionsChanged();
 
     this._drainQueue();
+  }
+
+  sendDimensionsChanged(width?: number, height?: number) {
+    let targetWidth = width;
+    let targetHeight = height;
+
+    if (!targetWidth || !targetHeight) {
+      const settings = getSettings();
+      if (settings.resolution === 1081 || settings.resolution === 1440) {
+        targetWidth = 2560;
+        targetHeight = 1440;
+      } else if (settings.resolution === 720) {
+        targetWidth = 1280;
+        targetHeight = 720;
+      } else {
+        targetWidth = 1920;
+        targetHeight = 1080;
+      }
+    }
+
+    this.sendMessage('/streaming/characteristics/dimensionschanged', {
+      horizontal: targetWidth,
+      vertical: targetHeight,
+      preferredWidth: targetWidth,
+      preferredHeight: targetHeight,
+      safeAreaLeft: 0,
+      safeAreaTop: 0,
+      safeAreaRight: targetWidth,
+      safeAreaBottom: targetHeight,
+      supportsCustomResolution: true,
+    });
   }
 
   _onFireAndForget(message: FireAndForgetMessage) {

@@ -956,26 +956,21 @@ pub fn force_stereo_audio_sdp(sdp: &str) -> Result<String, NanoError> {
 
     for line in &mut lines[start..audio_end] {
         if let Some(rest) = line.strip_prefix(&format!("a=fmtp:{payload} ")) {
-            if rest.contains("stereo=") {
-                let mut updated = Vec::new();
-                for item in rest.split(';') {
-                    let item = item.trim();
-                    if !item.is_empty() && !item.starts_with("stereo=") {
-                        updated.push(item.to_owned());
-                    }
-                }
-                updated.push("stereo=1".to_owned());
-                *line = format!("a=fmtp:{payload} {}", updated.join(";"));
-            } else {
-                *line = format!(
-                    "a=fmtp:{payload} {}{}",
-                    rest,
-                    if rest.is_empty() { "" } else { ";" }
-                );
-                if !line.ends_with("stereo=1") {
-                    line.push_str("stereo=1");
+            let mut updated = Vec::new();
+            for item in rest.split(';') {
+                let item = item.trim();
+                if !item.is_empty()
+                    && !item.starts_with("stereo=")
+                    && !item.starts_with("minptime=")
+                    && !item.starts_with("useinbandfec=")
+                {
+                    updated.push(item.to_owned());
                 }
             }
+            updated.push("stereo=1".to_owned());
+            updated.push("minptime=10".to_owned());
+            updated.push("useinbandfec=1".to_owned());
+            *line = format!("a=fmtp:{payload} {}", updated.join(";"));
             return Ok(lines.join("\r\n"));
         }
     }
