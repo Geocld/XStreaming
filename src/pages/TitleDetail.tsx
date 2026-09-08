@@ -249,7 +249,9 @@ function TitleDetail({navigation, route}) {
     }
 
     const titleName = titleItem.ProductTitle || productId;
-    const iconUrl = titleItem.Image_Poster?.URL
+    const iconUrl = titleItem.Image_Tile?.URL
+      ? `https:${titleItem.Image_Tile.URL}`
+      : titleItem.Image_Poster?.URL
       ? `https:${titleItem.Image_Poster.URL}`
       : '';
 

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.text.TextUtils;
@@ -18,6 +20,10 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class TitleShortcutManagerModule extends ReactContextBaseJavaModule {
     public static final String MODULE_NAME = "ShortcutManager";
     public static final String ACTION_OPEN_TITLE_DETAIL = "com.xstreaming.OPEN_TITLE_DETAIL";
@@ -27,6 +33,7 @@ public class TitleShortcutManagerModule extends ReactContextBaseJavaModule {
     private static final String EXTRA_TITLE_ID = "titleId";
     private static final String EXTRA_XCLOUD_TITLE_ID = "xCloudTitleId";
     private static final String EXTRA_TITLE_NAME = "titleName";
+    private static final String EXTRA_ICON_URL = "iconUrl";
 
     private final ReactApplicationContext reactContext;
 
@@ -63,38 +70,45 @@ public class TitleShortcutManagerModule extends ReactContextBaseJavaModule {
         if (TextUtils.isEmpty(titleName)) {
             titleName = "XStreaming";
         }
+        final String shortcutTitleName = titleName;
 
-        try {
-            Context context = reactContext.getApplicationContext();
-            Intent intent = new Intent(context, MainActivity.class);
-            intent.setAction(ACTION_OPEN_TITLE_DETAIL);
-            intent.putExtra(EXTRA_PRODUCT_ID, productId);
-            intent.putExtra(EXTRA_TITLE_ID, getString(options, EXTRA_TITLE_ID));
-            intent.putExtra(EXTRA_XCLOUD_TITLE_ID, getString(options, EXTRA_XCLOUD_TITLE_ID));
-            intent.putExtra(EXTRA_TITLE_NAME, titleName);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        final String titleId = getString(options, EXTRA_TITLE_ID);
+        final String xCloudTitleId = getString(options, EXTRA_XCLOUD_TITLE_ID);
+        final String iconUrl = getString(options, EXTRA_ICON_URL);
 
-            String shortcutId = "title-detail-" + productId;
-            ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(context, shortcutId)
-                    .setShortLabel(titleName)
-                    .setLongLabel(titleName)
-                    .setIcon(Icon.createWithResource(context, R.mipmap.ic_launcher))
-                    .setIntent(intent)
-                    .build();
+        new Thread(() -> {
+            try {
+                Context context = reactContext.getApplicationContext();
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.setAction(ACTION_OPEN_TITLE_DETAIL);
+                intent.putExtra(EXTRA_PRODUCT_ID, productId);
+                intent.putExtra(EXTRA_TITLE_ID, titleId);
+                intent.putExtra(EXTRA_XCLOUD_TITLE_ID, xCloudTitleId);
+                intent.putExtra(EXTRA_TITLE_NAME, shortcutTitleName);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-            boolean requested = shortcutManager.requestPinShortcut(shortcutInfo, null);
-            if (!requested) {
-                promise.reject("CREATE_SHORTCUT_FAILED", "Launcher did not accept shortcut request");
-                return;
+                String shortcutId = "title-detail-" + productId;
+                ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(context, shortcutId)
+                        .setShortLabel(shortcutTitleName)
+                        .setLongLabel(shortcutTitleName)
+                        .setIcon(loadShortcutIcon(context, iconUrl))
+                        .setIntent(intent)
+                        .build();
+
+                boolean requested = shortcutManager.requestPinShortcut(shortcutInfo, null);
+                if (!requested) {
+                    promise.reject("CREATE_SHORTCUT_FAILED", "Launcher did not accept shortcut request");
+                    return;
+                }
+
+                WritableMap result = Arguments.createMap();
+                result.putBoolean("requested", true);
+                result.putString("shortcutId", shortcutId);
+                promise.resolve(result);
+            } catch (Exception e) {
+                promise.reject("CREATE_SHORTCUT_FAILED", e.getMessage(), e);
             }
-
-            WritableMap result = Arguments.createMap();
-            result.putBoolean("requested", true);
-            result.putString("shortcutId", shortcutId);
-            promise.resolve(result);
-        } catch (Exception e) {
-            promise.reject("CREATE_SHORTCUT_FAILED", e.getMessage(), e);
-        }
+        }).start();
     }
 
     @ReactMethod
@@ -138,5 +152,53 @@ public class TitleShortcutManagerModule extends ReactContextBaseJavaModule {
             return "";
         }
         return map.getString(key);
+    }
+
+    private Icon loadShortcutIcon(Context context, String iconUrl) {
+        Bitmap bitmap = downloadBitmap(iconUrl);
+        if (bitmap == null) {
+            return Icon.createWithResource(context, R.mipmap.ic_launcher);
+        }
+
+        int size = Math.min(bitmap.getWidth(), bitmap.getHeight());
+        if (size <= 0) {
+            return Icon.createWithResource(context, R.mipmap.ic_launcher);
+        }
+
+        int left = (bitmap.getWidth() - size) / 2;
+        int top = (bitmap.getHeight() - size) / 2;
+        Bitmap square = Bitmap.createBitmap(bitmap, left, top, size, size);
+        Bitmap iconBitmap = Bitmap.createScaledBitmap(square, 512, 512, true);
+        return Icon.createWithAdaptiveBitmap(iconBitmap);
+    }
+
+    private Bitmap downloadBitmap(String iconUrl) {
+        if (TextUtils.isEmpty(iconUrl)) {
+            return null;
+        }
+
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(iconUrl);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(15000);
+            connection.setInstanceFollowRedirects(true);
+            connection.connect();
+
+            if (connection.getResponseCode() < 200 || connection.getResponseCode() >= 300) {
+                return null;
+            }
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                return BitmapFactory.decodeStream(inputStream);
+            }
+        } catch (Exception ignored) {
+            return null;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 }
