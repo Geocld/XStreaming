@@ -147,10 +147,10 @@ export default {
     PoweredOffSentText: 'Perintah mematikan konsol telah dikirim',
     Theme: 'Tema',
     'Set the app theme to take effect on the next launch':
-      'Pilih tema aplikasi (berlaku saat aplikasi dibuka kembali)',
+      'Ganti tema aplikasi',
     'Theme primary color': 'Warna utama tema',
     'Choose app primary color, takes effect on next launch':
-      'Pilih warna aksen utama aplikasi (berlaku saat aplikasi dibuka kembali)',
+      'Sesuaikan warna tema aplikasi',
     'Choose from preset palette for best readability':
       'Pilih dari palet warna siap pakai untuk keterbacaan terbaik',
     'Signal server': 'Server sinyal',

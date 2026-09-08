@@ -128,10 +128,10 @@ export default {
     PoweredOffSentText: '電源オフコマンド送信済み',
     Theme: 'テーマ',
     'Set the app theme to take effect on the next launch':
-      '次回起動時に反映されます।',
+      'アプリのテーマを切り替え',
     'Theme primary color': 'メインカラー',
     'Choose app primary color, takes effect on next launch':
-      'アプリの色を選択।',
+      'アプリのテーマ色をカスタマイズ',
     'Choose from preset palette for best readability':
       '視認性の良い色を選択してください।',
     'Signal server': 'シグナルサーバー',

@@ -145,11 +145,10 @@ export default {
     PoweredOnSentText: 'Power-on command sent',
     PoweredOffSentText: 'Power-off command sent',
     Theme: 'Theme',
-    'Set the app theme to take effect on the next launch':
-      'Set the app theme to take effect on the next launch',
+    'Set the app theme to take effect on the next launch': 'Switch app theme',
     'Theme primary color': 'Theme primary color',
     'Choose app primary color, takes effect on next launch':
-      'Choose app primary color, takes effect on next launch',
+      'Customize app theme color',
     'Choose from preset palette for best readability':
       'Choose from the preset palette for best readability',
     'Signal server': 'Signal server',

@@ -130,10 +130,10 @@ export default {
     PoweredOffSentText: 'Power-off command sent',
     Theme: 'Design',
     'Set the app theme to take effect on the next launch':
-      'Das App-Design wird beim nächsten Start wirksam.',
+      'App-Design wechseln',
     'Theme primary color': 'Primärfarbe des Designs',
     'Choose app primary color, takes effect on next launch':
-      'Primärfarbe der App wählen, wirksam beim nächsten Start.',
+      'Primärfarbe der App anpassen',
     'Choose from preset palette for best readability':
       'Choose from the preset palette for best readability',
     'Signal server': 'Signalisierungsserver',

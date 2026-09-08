@@ -126,10 +126,10 @@ export default {
     PoweredOffSentText: '전원 끄기 명령 전송됨',
     Theme: '테마',
     'Set the app theme to take effect on the next launch':
-      '다음 실행 시 테마가 적용됩니다.',
+      '앱 테마 전환',
     'Theme primary color': '테마 기본 색상',
     'Choose app primary color, takes effect on next launch':
-      '앱 기본 색상 선택',
+      '앱 테마 색상 사용자 지정',
     'Choose from preset palette for best readability':
       '가독성 좋은 색상을 선택하세요.',
     'Signal server': '시그널 서버',

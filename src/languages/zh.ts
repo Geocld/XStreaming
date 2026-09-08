@@ -146,11 +146,9 @@ export default {
     PoweredOnSentText: '已发送开机指令',
     PoweredOffSentText: '已发送关机指令',
     Theme: '主题',
-    'Set the app theme to take effect on the next launch':
-      '设置APP主题，下次启动生效',
+    'Set the app theme to take effect on the next launch': '切换APP主题',
     'Theme primary color': '主题色',
-    'Choose app primary color, takes effect on next launch':
-      '选择应用主题色，下次启动生效',
+    'Choose app primary color, takes effect on next launch': '自定义应用主题色',
     'Choose from preset palette for best readability':
       '建议从预设调色盘中选择，以获得更好的可读性',
     'Signal server': '信令服务器',
@@ -521,7 +519,8 @@ export default {
     'Tampilkan semua': '显示全部',
     'Find games': '搜索游戏',
     'Session report': '会话报告',
-    'Show session report after exiting game stream': '退出游戏串流后显示会话报告',
+    'Show session report after exiting game stream':
+      '退出游戏串流后显示会话报告',
     'Stream speed': '串流速率',
     'Timing variation': '时间变化',
     'Average / target FPS': '平均 / 目标帧率',

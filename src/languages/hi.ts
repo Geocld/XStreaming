@@ -130,9 +130,9 @@ export default {
     PoweredOffSentText: 'पावर ऑफ कमांड भेजी गई',
     Theme: 'थीम',
     'Set the app theme to take effect on the next launch':
-      'अगली बार ऐप खोलने पर थीम बदल जाएगी।',
+      'ऐप थीम बदलें',
     'Theme primary color': 'थीम का मुख्य रंग',
-    'Choose app primary color, takes effect on next launch': 'ऐप का रंग चुनें।',
+    'Choose app primary color, takes effect on next launch': 'ऐप थीम का रंग कस्टमाइज़ करें',
     'Choose from preset palette for best readability':
       'बेहतर दिखावट के लिए रंगों का चयन करें।',
     'Signal server': 'सिग्नल सर्वर',

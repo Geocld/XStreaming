@@ -133,10 +133,10 @@ export default {
     PoweredOffSentText: 'Comando para desligar enviado',
     Theme: 'Tema',
     'Set the app theme to take effect on the next launch':
-      'O tema será aplicado na próxima vez que o app for iniciado.',
+      'Alternar tema do app',
     'Theme primary color': 'Cor principal do tema',
     'Choose app primary color, takes effect on next launch':
-      'Escolha a cor principal do app. A alteração será aplicada na próxima inicialização.',
+      'Personalizar a cor do tema do app',
     'Choose from preset palette for best readability':
       'Escolha uma cor da paleta para obter melhor legibilidade.',
     'Signal server': 'Servidor de conexão',
