@@ -13,6 +13,7 @@ import {
   ScrollView,
   NativeModules,
   BackHandler,
+  AppState,
 } from 'react-native';
 import {Text, Portal, Modal, Card, Icon, Button} from 'react-native-paper';
 import axios from 'axios';
@@ -27,9 +28,11 @@ import SessionReportModal from '../components/SessionReportModal';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
 import TokenStore from '../xal/tokenstore';
+import StreamingToken from '../tokens/streamingtoken';
 import {debugFactory} from '../utils/debug';
 import {getXcloudData, saveXcloudData, isxCloudDataValid} from '../store/xcloudStore';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {getStreamToken, isStreamTokenValid} from '../store/streamTokenStore';
 import {getWebToken, isWebTokenValid} from '../store/webTokenStore';
 import {storage} from '../store/mmkv';
 import {syncRegionSettings} from '../utils/regionSync';
@@ -644,7 +647,25 @@ function CloudScreen({navigation, route}: any) {
   const starTitles = useSelector((state: any) => state.stars || []);
   const profile = useSelector((state: any) => state.profile);
 
+  const effectiveXCloudToken = React.useMemo(() => {
+    if (streamingTokens?.xCloudToken) {
+      return streamingTokens.xCloudToken;
+    }
+    const saved = getStreamToken();
+    if (saved?.xCloudToken && isStreamTokenValid(saved.xCloudToken)) {
+      return saved.xCloudToken.getOffering
+        ? saved.xCloudToken
+        : new StreamingToken(saved.xCloudToken.data, saved.xCloudToken.offering);
+    }
+    return undefined;
+  }, [streamingTokens?.xCloudToken]);
+
   const currentLanguage = i18n.language;
+
+  const initialCache = React.useMemo(() => {
+    const cached = getXcloudData();
+    return cached && isxCloudDataValid(cached) ? cached : null;
+  }, []);
 
   // Catalog and loading states
   const [loading, setLoading] = React.useState(false);
@@ -652,14 +673,30 @@ function CloudScreen({navigation, route}: any) {
   const [isLimited, setIsLimited] = React.useState(false);
   const [showTutorial, setShowTutorial] = React.useState(false);
 
-  const [titles, setTitles] = React.useState<any[]>([]);
-  const [titleMap, setTitleMap] = React.useState<Record<string, any>>({});
-  const [newTitles, setNewTitles] = React.useState<any[]>([]);
-  const [recentTitles, setRecentTitles] = React.useState<any[]>([]);
-  const [leavingSoonTitles, setLeavingSoonTitles] = React.useState<any[]>([]);
-  const [gamePassTitles, setGamePassTitles] = React.useState<any[]>([]);
-  const [ubisoftTitlesData, setUbisoftTitlesData] = React.useState<any[]>([]);
-  const [streamYourOwnTitlesData, setStreamYourOwnTitlesData] = React.useState<any[]>([]);
+  const [titles, setTitles] = React.useState<any[]>(() => initialCache?.titles || []);
+  const [titleMap, setTitleMap] = React.useState<Record<string, any>>(() => {
+    if (initialCache?.titleMap) return initialCache.titleMap;
+    if (initialCache?.titles?.length) return buildTitleLookupMap(initialCache.titles);
+    return {};
+  });
+  const [newTitles, setNewTitles] = React.useState<any[]>(() => initialCache?.newTitles || []);
+  const [recentTitles, setRecentTitles] = React.useState<any[]>(() => initialCache?.recentTitles || []);
+  const [leavingSoonTitles, setLeavingSoonTitles] = React.useState<any[]>(() => initialCache?.leavingSoonTitles || []);
+  const [gamePassTitles, setGamePassTitles] = React.useState<any[]>(() => {
+    if (initialCache?.playWithGamePassTitles) {
+      return initialCache.playWithGamePassTitles.filter(isGamePassSubscriptionTitle);
+    }
+    return [];
+  });
+  const [ubisoftTitlesData, setUbisoftTitlesData] = React.useState<any[]>(() => {
+    if (initialCache?.ubisoftTitles) {
+      return initialCache.ubisoftTitles.filter(isUbisoftTitle);
+    }
+    return [];
+  });
+  const [streamYourOwnTitlesData, setStreamYourOwnTitlesData] = React.useState<any[]>(
+    () => initialCache?.streamYourOwnTitles || [],
+  );
 
   const [keyword, setKeyword] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -724,7 +761,7 @@ function CloudScreen({navigation, route}: any) {
   }, []);
 
   const flatListRef = React.useRef<any>(null);
-  const hasFetchedGamesRef = React.useRef(false);
+  const hasFetchedGamesRef = React.useRef(!!initialCache);
 
   // Orientation and dimension calculations
   const isLandscape = screenWidth > screenHeight;
@@ -768,12 +805,13 @@ function CloudScreen({navigation, route}: any) {
 
   // Subscription tier label (Free, Essential, Premium, Ultimate)
   const displayTier = React.useMemo(() => {
+    const activeToken = effectiveXCloudToken || streamingTokens?.xCloudToken;
     const offering =
-      streamingTokens?.xCloudToken?.getOffering?.() ||
-      streamingTokens?.xCloudToken?.offering ||
-      (streamingTokens?.xCloudToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
-      (streamingTokens?.xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
-      (streamingTokens?.xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
+      activeToken?.getOffering?.() ||
+      activeToken?.offering ||
+      (activeToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
+      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
+      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
 
     if (offering === 'xgpuwebf2p') return 'Free';
     if (accountTier === 'Core') return 'Essential';
@@ -785,11 +823,12 @@ function CloudScreen({navigation, route}: any) {
       return 'Ultimate';
     }
     return offering === 'xgpuweb' ? 'Ultimate' : 'Free';
-  }, [accountTier, streamingTokens?.xCloudToken]);
+  }, [accountTier, effectiveXCloudToken, streamingTokens?.xCloudToken]);
 
   // Available server regions
   const availableRegions = React.useMemo(() => {
-    const tokenRegions = streamingTokens?.xCloudToken?.getRegions?.() || [];
+    const activeToken = effectiveXCloudToken || streamingTokens?.xCloudToken;
+    const tokenRegions = activeToken?.getRegions?.() || [];
     if (tokenRegions.length > 0) {
       return tokenRegions;
     }
@@ -804,19 +843,20 @@ function CloudScreen({navigation, route}: any) {
       {name: 'NorthEurope', isDefault: false},
       {name: 'BrazilSouth', isDefault: false},
     ];
-  }, [streamingTokens]);
+  }, [effectiveXCloudToken, streamingTokens]);
 
   // Current server region info
   const currentRegionInfo = React.useMemo(() => {
     if (currentRegionName) {
       return getRegionDisplayInfo(currentRegionName);
     }
-    const def = streamingTokens?.xCloudToken?.getDefaultRegion?.();
+    const activeToken = effectiveXCloudToken || streamingTokens?.xCloudToken;
+    const def = activeToken?.getDefaultRegion?.();
     if (def?.name) {
       return getRegionDisplayInfo(def.name);
     }
     return getRegionDisplayInfo('KoreaCentral');
-  }, [currentRegionName, streamingTokens]);
+  }, [currentRegionName, effectiveXCloudToken, streamingTokens]);
 
   // Game Pass channel titles
   const playWithGamePassTitles = React.useMemo(() => {
@@ -886,12 +926,13 @@ function CloudScreen({navigation, route}: any) {
 
   // Fetch full cloud catalog and SIGL channels
   const fetchCatalog = async (silent = false) => {
-    if (!streamingTokens.xCloudToken) return;
+    const activeToken = effectiveXCloudToken || streamingTokens.xCloudToken;
+    if (!activeToken) return;
     if (!silent) setLoading(true);
 
     try {
-      const baseUri = streamingTokens.xCloudToken.getDefaultRegion().baseUri;
-      const gsToken = streamingTokens.xCloudToken.data.gsToken;
+      const baseUri = activeToken.getDefaultRegion().baseUri;
+      const gsToken = activeToken.data.gsToken;
       const api = new XcloudApi(baseUri, gsToken, 'cloud');
 
       const titleRes = await api.getTitles();
@@ -901,11 +942,11 @@ function CloudScreen({navigation, route}: any) {
       }
 
       // Detect account tier (Free, Essential, Premium, Ultimate)
-      let tier = detectAccountTier(titleRes.results, streamingTokens.xCloudToken);
+      let tier = detectAccountTier(titleRes.results, activeToken);
 
       const rawTitles = await api.getGamePassProducts(titleRes.results);
       if (tier === 'Free' && rawTitles && rawTitles.length > 0) {
-        const recheckTier = detectAccountTier(rawTitles, streamingTokens.xCloudToken);
+        const recheckTier = detectAccountTier(rawTitles, activeToken);
         if (recheckTier !== 'Free') {
           tier = recheckTier;
         }
@@ -960,7 +1001,6 @@ function CloudScreen({navigation, route}: any) {
       saveXcloudData({
         ...cached,
         titles: rawTitles,
-        titleMap: lookupMap,
         playWithGamePassTitles: gpList,
         newTitles: newList,
         ubisoftTitles: ubiList,
@@ -980,8 +1020,11 @@ function CloudScreen({navigation, route}: any) {
     if (typeof route.params?.keyword === 'string') {
       setKeyword(route.params.keyword);
     }
-    if (!streamingTokens.xCloudToken) {
+    const activeToken = effectiveXCloudToken || streamingTokens.xCloudToken;
+    if (!activeToken) {
       setIsLimited(true);
+    } else {
+      setIsLimited(false);
     }
 
     const curWebToken = webToken?.data ? webToken : getWebToken();
@@ -993,7 +1036,6 @@ function CloudScreen({navigation, route}: any) {
         log.info('Get xcloud data from cache');
         const {
           titles: _titles,
-          titleMap: _titleMap,
           newTitles: _newTitles,
           starTitles: _starTitles,
           recentTitles: _recentTitles,
@@ -1004,7 +1046,7 @@ function CloudScreen({navigation, route}: any) {
         } = cacheData;
 
         setTitles(_titles || []);
-        setTitleMap(_titleMap || {});
+        setTitleMap(buildTitleLookupMap(_titles || []));
         setNewTitles(_newTitles || []);
         setRecentTitles(_recentTitles || []);
         if (_gpTitles) {
@@ -1025,8 +1067,52 @@ function CloudScreen({navigation, route}: any) {
       } else {
         fetchCatalog();
       }
+    } else if (titles.length > 0) {
+      fetchCatalog(true);
     }
-  }, [route.params?.keyword, streamingTokens.xCloudToken, webToken, navigation, dispatch]);
+  }, [
+    route.params?.keyword,
+    effectiveXCloudToken,
+    streamingTokens.xCloudToken,
+    webToken,
+    navigation,
+    dispatch,
+  ]);
+
+  // AppState listener to re-validate or rehydrate cache when returning from another app
+  React.useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        const cacheData = getXcloudData();
+        if (cacheData && isxCloudDataValid(cacheData)) {
+          if (titles.length === 0) {
+            setTitles(cacheData.titles || []);
+            setTitleMap(buildTitleLookupMap(cacheData.titles || []));
+            if (cacheData.newTitles) setNewTitles(cacheData.newTitles);
+            if (cacheData.recentTitles) setRecentTitles(cacheData.recentTitles);
+            if (cacheData.playWithGamePassTitles) {
+              setGamePassTitles(
+                cacheData.playWithGamePassTitles.filter(isGamePassSubscriptionTitle),
+              );
+            }
+            if (cacheData.ubisoftTitles) {
+              setUbisoftTitlesData(cacheData.ubisoftTitles.filter(isUbisoftTitle));
+            }
+            if (cacheData.streamYourOwnTitles) {
+              setStreamYourOwnTitlesData(cacheData.streamYourOwnTitles);
+            }
+            if (cacheData.leavingSoonTitles) {
+              setLeavingSoonTitles(cacheData.leavingSoonTitles);
+            }
+          }
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [titles.length]);
 
   const handleViewDetail = React.useCallback(
     (titleItem: any) => {
@@ -1082,13 +1168,16 @@ function CloudScreen({navigation, route}: any) {
       const titleId = titleItem.titleId || titleItem.XCloudTitleId;
       if (!titleId) return;
 
+      const activeToken = effectiveXCloudToken || streamingTokens.xCloudToken;
+      if (!activeToken) return;
+
       if (settings.render_engine === 'web' && FullScreenManager) {
         FullScreenManager.immersiveMode();
       }
 
       const isUsbMode = settings.bind_usb_device;
       const usbController = isUsbMode ? 1 : 0;
-      const postUrl = `${streamingTokens.xCloudToken.getDefaultRegion().baseUri}/v5/sessions/cloud/play`;
+      const postUrl = `${activeToken.getDefaultRegion().baseUri}/v5/sessions/cloud/play`;
 
       const streamPage =
         settings.render_engine === 'web'
@@ -1114,7 +1203,7 @@ function CloudScreen({navigation, route}: any) {
         titleItem,
       });
     },
-    [navigation, streamingTokens.xCloudToken],
+    [navigation, effectiveXCloudToken, streamingTokens.xCloudToken],
   );
 
   // Direct game launch handler
@@ -1629,6 +1718,13 @@ function CloudScreen({navigation, route}: any) {
               onPress={() => setShowTutorial(true)}>
               🚀 点击查看云游戏加速指引
             </Text>
+          )}
+
+          {/* Loading state for initial catalog */}
+          {loading && !filteredTitles.length && (
+            <View style={[styles.emptyContainer, {paddingVertical: 60}]}>
+              <ActivityIndicator size="large" color="#2ed573" />
+            </View>
           )}
 
           {/* Empty state */}
