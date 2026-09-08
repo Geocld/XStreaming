@@ -1888,7 +1888,9 @@ export function NativeStreamScreenBase({
         route.params?.titleItem?.ProductTitle ||
         route.params?.titleItem?.titleName ||
         route.params?.titleItem?.Title ||
-        (route.params?.streamType === 'cloud' ? 'Xbox Cloud Gaming' : 'Xbox Console');
+        (route.params?.streamType === 'cloud'
+          ? 'Xbox Cloud Gaming'
+          : 'Xbox Console');
 
       const titleItem = route.params?.titleItem;
       let rawPoster =
@@ -1931,6 +1933,8 @@ export function NativeStreamScreenBase({
     route.params?.gameTitle,
     route.params?.titleItem,
     route.params?.streamType,
+    route.params?.sessionId,
+    settings,
     settings?.codec,
     settings?.resolution,
   ]);
