@@ -150,6 +150,16 @@ const display = [
     ],
   },
   {
+    name: 'performance_opacity',
+    type: 'slider',
+    min: 0.1,
+    max: 1,
+    step: 0.1,
+    title: t('Performance_opacity_title'),
+    description: t('Performance_opacity_desc'),
+    data: [],
+  },
+  {
     name: 'show_menu',
     type: 'radio',
     title: t('show_menu_title'),

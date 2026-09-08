@@ -189,6 +189,8 @@ export default {
     'Always display the performance panel': '始终显示性能面板',
     'Performance show style': '性能展示样式',
     'Setting performance show style': '设置性能展示(水平/垂直)',
+    Performance_opacity_title: '性能面板透明度',
+    Performance_opacity_desc: '调节性能面板透明度',
     'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
       '检测到你正在使用覆盖安卓驱动有线连接模式，请保证进入游戏前连接USB。如果在游戏过程断开USB连接，可能会导致手柄按键失效',
     'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':

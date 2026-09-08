@@ -74,7 +74,11 @@ const PerfPanel: React.FC<Props> = ({performance = {}, streamType}) => {
   }
 
   return (
-    <View style={isHorizon ? styles.containerH : styles.containerV}>
+    <View
+      style={[
+        isHorizon ? styles.containerH : styles.containerV,
+        {opacity: settings.performance_opacity || 0.7},
+      ]}>
       <View style={isHorizon ? styles.wrapperH : styles.wrapperV}>
         <View>
           <Text style={styles.text}>

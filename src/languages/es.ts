@@ -132,6 +132,8 @@ export default {
     'Always display the performance panel': 'Mostrar siempre el panel de rendimiento',
     'Performance show style': 'Estilo de rendimiento',
     'Setting performance show style': 'Configurar estilo (horizontal/vertical)',
+    Performance_opacity_title: 'Opacidad del panel de rendimiento',
+    Performance_opacity_desc: 'Ajustar la opacidad del panel de rendimiento',
     'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive': 'Si el USB se desconecta, sal del juego y reconecta el mando.',
     'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first': 'Si los botones no responden, pulsa primero el botón Home.',
     'After replacing the Android controller driver, controller button mapping is temporarily not supported': 'La asignación no está disponible tras cambiar el driver.',

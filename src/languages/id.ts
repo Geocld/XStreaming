@@ -193,6 +193,8 @@ export default {
     'Performance show style': 'Gaya tampilan performa',
     'Setting performance show style':
       'Atur tata letak overlay performa (horizontal atau vertikal)',
+    Performance_opacity_title: 'Opasitas panel performa',
+    Performance_opacity_desc: 'Sesuaikan opasitas panel performa',
     'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
       'Terdeteksi mode koneksi kabel dengan driver kustom aktif. Pastikan kabel USB tetap terhubung sebelum memulai game. Jika kabel USB terlepas saat bermain, keluar dari sesi game dan sambungkan kembali kontroler; jika tidak, input tombol bisa berhenti merespons.',
     'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':

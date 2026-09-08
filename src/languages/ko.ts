@@ -164,6 +164,8 @@ export default {
     'Always display the performance panel': '항상 성능 패널 표시',
     'Performance show style': '성능 표시 스타일',
     'Setting performance show style': '성능 표시 스타일 설정 (가로/세로)',
+    Performance_opacity_title: '성능 패널 투명도',
+    Performance_opacity_desc: '성능 패널 투명도 조절',
     'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
       'USB 연결 해제 시 게임 재시작이 필요할 수 있습니다.',
     'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':

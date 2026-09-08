@@ -192,6 +192,8 @@ export default {
     'Performance show style': 'Performance display style',
     'Setting performance show style':
       'Set the performance display style (horizontal/vertical)',
+    Performance_opacity_title: 'Performance panel opacity',
+    Performance_opacity_desc: 'Adjust performance panel opacity',
     'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
       'Wired mode with Override Android driver is active. Keep USB connected before entering the game. If USB is disconnected during gameplay, exit the game and reconnect the controller; otherwise buttons may stop responding.',
     'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':
