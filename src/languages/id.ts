@@ -604,5 +604,6 @@ export default {
     Navigate: 'Navigasi',
     'Direct Play': 'Mainkan',
     Sort: 'Sortir',
+    Clear: 'Hapus',
   },
 };

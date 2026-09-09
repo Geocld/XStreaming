@@ -599,5 +599,6 @@ export default {
     Navigate: 'Navigate',
     'Direct Play': 'Play',
     Sort: 'Sort',
+    Clear: 'Clear',
   },
 };
