@@ -7,14 +7,25 @@ type Props = {
   icon: string;
   color: string;
   onPress: () => {};
+  isFocused?: boolean;
 };
 
-const HomeItem: React.FC<Props> = ({title, icon, color, onPress}) => {
+const HomeItem: React.FC<Props> = ({title, icon, color, onPress, isFocused = false}) => {
   const theme = useTheme();
   const titleStyle = React.useMemo(() => [styles.title, {color}], [color]);
   const cardStyle = React.useMemo(
-    () => [styles.card, theme.dark && styles.cardDark],
-    [theme.dark],
+    () => [
+      styles.card,
+      theme.dark && styles.cardDark,
+      isFocused && [
+        styles.cardFocused,
+        {
+          borderColor: theme.dark ? '#FFFFFF' : theme.colors.primary,
+          shadowColor: theme.dark ? '#FFFFFF' : theme.colors.primary,
+        },
+      ],
+    ],
+    [theme.dark, theme.colors.primary, isFocused],
   );
   const iconBubbleStyle = React.useMemo(
     () => [styles.iconBubble, theme.dark && styles.iconBubbleDark],
@@ -31,7 +42,7 @@ const HomeItem: React.FC<Props> = ({title, icon, color, onPress}) => {
 
   if (Platform.isTV) {
     return (
-      <View>
+      <View style={isFocused ? {zIndex: 99, overflow: 'visible'} : undefined}>
         <Card mode="contained" style={cardStyle}>
           <Card.Content style={styles.cardContent}>
             <View style={iconBubbleStyle}>
@@ -57,7 +68,7 @@ const HomeItem: React.FC<Props> = ({title, icon, color, onPress}) => {
         accessible={true}
         accessibilityRole="button"
         accessibilityLabel={title}
-        style={styles.pressable}>
+        style={[styles.pressable, isFocused && {zIndex: 99, overflow: 'visible'}]}>
         <Card mode="contained" style={cardStyle}>
           <Card.Content style={styles.cardContent}>
             <View style={iconBubbleStyle}>
@@ -128,6 +139,16 @@ const styles = StyleSheet.create({
   },
   tvButtonDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.07)',
+  },
+  cardFocused: {
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    transform: [{scale: 1.06}],
+    elevation: 12,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+    zIndex: 99,
   },
   buttonLabel: {
     marginHorizontal: 0,

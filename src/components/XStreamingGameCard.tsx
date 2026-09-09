@@ -17,6 +17,8 @@ interface Props {
   width?: number;
   height?: number;
   style?: any;
+  hasTVPreferredFocus?: boolean;
+  isFocused?: boolean;
 }
 
 const XStreamingGameCard: React.FC<Props> = ({
@@ -26,6 +28,8 @@ const XStreamingGameCard: React.FC<Props> = ({
   width,
   height,
   style,
+  hasTVPreferredFocus,
+  isFocused: propFocused = false,
 }) => {
   const theme = useTheme();
   const isLight = !theme.dark;
@@ -33,6 +37,8 @@ const XStreamingGameCard: React.FC<Props> = ({
   const playIconColor = theme.colors.onPrimary || '#FFFFFF';
 
   const [imageError, setImageError] = React.useState(false);
+  const [internalFocused, setInternalFocused] = React.useState(false);
+  const activeFocused = propFocused || internalFocused;
 
   const onPressRef = React.useRef(onPress);
   onPressRef.current = onPress;
@@ -77,15 +83,32 @@ const XStreamingGameCard: React.FC<Props> = ({
     return s;
   }, [width, height]);
 
+  const isCardActive = activeFocused || internalFocused;
+
   return (
-    <View style={[styles.outerWrapper, customCardStyle, style]}>
+    <View
+      style={[
+        styles.outerWrapper,
+        customCardStyle,
+        isCardActive && styles.outerWrapperFocused,
+        style,
+      ]}>
       <Pressable
+        focusable={true}
+        hasTVPreferredFocus={hasTVPreferredFocus}
+        onFocus={() => setInternalFocused(true)}
+        onBlur={() => setInternalFocused(false)}
         onPress={handlePressCard}
-        style={({pressed}) => [
-          styles.cardPressable,
-          isLight && styles.cardPressableLight,
-          pressed && styles.cardPressed,
-        ]}>
+        style={({pressed, focused}: any) => {
+            const cardActive = isCardActive || focused;
+            return [
+              styles.cardPressable,
+              isLight && styles.cardPressableLight,
+              cardActive && styles.cardFocused,
+              cardActive && isLight && styles.cardFocusedLight,
+              pressed && styles.cardPressed,
+            ];
+        }}>
         {/* Background poster image */}
         {posterUrl && !imageError ? (
           <Image
@@ -117,6 +140,7 @@ const XStreamingGameCard: React.FC<Props> = ({
           {/* Quick Play Button */}
           <Pressable
             onPress={handlePressPlay}
+            focusable={false}
             hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}
             style={({pressed}) => [
               styles.playButton,
@@ -136,6 +160,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
   },
+  outerWrapperFocused: {
+    zIndex: 99,
+    overflow: 'visible',
+  },
   cardPressable: {
     width: '100%',
     height: '100%',
@@ -143,9 +171,26 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#161922',
     position: 'relative',
+    borderWidth: 3,
+    borderColor: 'transparent',
   },
   cardPressableLight: {
     backgroundColor: '#E5E7EB',
+  },
+  cardFocused: {
+    borderWidth: 3.5,
+    borderColor: '#FFFFFF',
+    transform: [{scale: 1.06}],
+    elevation: 14,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.75,
+    shadowRadius: 12,
+  },
+  cardFocusedLight: {
+    borderColor: '#107C10',
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
   cardPressed: {
     opacity: 0.9,
@@ -216,6 +261,8 @@ export default React.memo(XStreamingGameCard, (prev, next) => {
     prevId === nextId &&
     prev.width === next.width &&
     prev.height === next.height &&
-    prev.style === next.style
+    prev.style === next.style &&
+    prev.hasTVPreferredFocus === next.hasTVPreferredFocus &&
+    prev.isFocused === next.isFocused
   );
 });

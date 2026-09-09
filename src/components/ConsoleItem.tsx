@@ -49,8 +49,16 @@ const ConsoleItem = (props: any) => {
     }
   };
 
+  const isFocused = !!props.isFocused;
+
   return (
-    <Card mode="contained" style={[styles.card, theme.dark && styles.cardDark]}>
+    <Card
+      mode="contained"
+      style={[
+        styles.card,
+        theme.dark && styles.cardDark,
+        isFocused && styles.cardFocused,
+      ]}>
       <Card.Content style={styles.cardContent}>
         <View style={styles.menuContainer}>
           <Menu
@@ -114,23 +122,31 @@ const ConsoleItem = (props: any) => {
           {settings.power_on &&
           consoleItem.powerState === 'ConnectedStandby' ? (
             <Button
-              mode={Platform.isTV ? 'elevated' : 'outlined'}
+              mode={Platform.isTV || isFocused ? 'elevated' : 'outlined'}
               style={[
                 styles.actionButton,
                 theme.dark && styles.actionButtonDark,
+                isFocused && styles.actionButtonFocused,
               ]}
-              labelStyle={styles.actionButtonLabel}
+              labelStyle={[
+                styles.actionButtonLabel,
+                isFocused && styles.actionButtonLabelFocused,
+              ]}
               onPress={props.onPoweronStream}>
               {t('Power on and start stream')}
             </Button>
           ) : (
             <Button
-              mode={Platform.isTV ? 'elevated' : 'outlined'}
+              mode={Platform.isTV || isFocused ? 'elevated' : 'outlined'}
               style={[
                 styles.actionButton,
                 theme.dark && styles.actionButtonDark,
+                isFocused && styles.actionButtonFocused,
               ]}
-              labelStyle={styles.actionButtonLabel}
+              labelStyle={[
+                styles.actionButtonLabel,
+                isFocused && styles.actionButtonLabelFocused,
+              ]}
               onPress={props.onPress}>
               {t('Start stream')}
             </Button>
@@ -216,6 +232,24 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     zIndex: 1,
+  },
+  cardFocused: {
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    transform: [{scale: 1.04}],
+    elevation: 12,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.8,
+    shadowRadius: 16,
+    zIndex: 99,
+  },
+  actionButtonFocused: {
+    backgroundColor: '#107C10',
+    borderColor: '#FFFFFF',
+    borderWidth: 2,
+  },
+  actionButtonLabelFocused: {
+    color: '#FFFFFF',
   },
 });
 

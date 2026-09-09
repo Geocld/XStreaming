@@ -23,6 +23,7 @@ import {getSettings, saveSettings} from '../store/settingStore';
 import Authentication from '../Authentication';
 import MsalAuthentication from '../MsalAuthentication';
 import WebApi from '../web';
+import {useGamepadNavigation, useGamepadActiveState} from '../utils/useGamepadNavigation';
 
 import {useSelector, useDispatch} from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
@@ -550,6 +551,103 @@ function HomeScreen({navigation, route}) {
     });
   };
 
+  // Focus navigation state for gamepad / TV remote
+  const [isGamepadActive, setIsGamepadActive] = useGamepadActiveState();
+  const [focusedSection, setFocusedSection] = React.useState<'consoles' | 'refresh' | 'more'>('more');
+  const [focusedIndex, setFocusedIndex] = React.useState<number>(0);
+
+  // Sync focusedSection when consoles change
+  React.useEffect(() => {
+    if (consoles.length > 0 && focusedSection === 'refresh') {
+      setFocusedSection('consoles');
+      setFocusedIndex(0);
+    }
+  }, [consoles.length, focusedSection]);
+
+  useGamepadNavigation({
+    enabled:
+      isFocused &&
+      !loading &&
+      !showLogin &&
+      !showMsalLogin &&
+      !showMsal &&
+      !showUsbWarnModal &&
+      !showHarmonyModal &&
+      !sessionReport,
+    onRight: () => {
+      if (focusedSection === 'consoles') {
+        if (focusedIndex < consoles.length - 1) {
+          setFocusedIndex(prev => prev + 1);
+        }
+      } else if (focusedSection === 'more') {
+        if (focusedIndex < 2) {
+          setFocusedIndex(prev => prev + 1);
+        }
+      }
+    },
+    onLeft: () => {
+      if (focusedIndex > 0) {
+        setFocusedIndex(prev => prev - 1);
+      }
+    },
+    onDown: () => {
+      if (focusedSection === 'consoles') {
+        if (focusedIndex + numColumns < consoles.length) {
+          setFocusedIndex(prev => prev + numColumns);
+        } else {
+          setFocusedSection('more');
+          setFocusedIndex(0);
+        }
+      } else if (focusedSection === 'refresh') {
+        setFocusedSection('more');
+        setFocusedIndex(0);
+      }
+    },
+    onUp: () => {
+      if (focusedSection === 'more') {
+        if (consoles.length > 0) {
+          setFocusedSection('consoles');
+          setFocusedIndex(0);
+        } else {
+          setFocusedSection('refresh');
+          setFocusedIndex(0);
+        }
+      } else if (focusedSection === 'consoles') {
+        if (focusedIndex >= numColumns) {
+          setFocusedIndex(prev => prev - numColumns);
+        }
+      }
+    },
+    onSelect: () => {
+      if (focusedSection === 'consoles') {
+        const item: any = consoles[focusedIndex];
+        if (item) {
+          handleStartStream(item.serverId);
+        }
+      } else if (focusedSection === 'refresh') {
+        handleRefreshConsoles();
+      } else if (focusedSection === 'more') {
+        if (focusedIndex === 0) {
+          navigation.navigate('Cloud');
+        } else if (focusedIndex === 1) {
+          navigation.navigate('Achivements');
+        } else if (focusedIndex === 2) {
+          navigation.navigate('Settings');
+        }
+      }
+    },
+    onActionX: () => {
+      if (focusedSection === 'consoles') {
+        const item: any = consoles[focusedIndex];
+        if (item) {
+          handlePoweronAndStream(item.serverId);
+        }
+      } else if (focusedSection === 'more' && focusedIndex === 0) {
+        navigation.navigate('Cloud');
+      }
+    },
+  });
+
   // Warn: xboxOne controller must press Nexus button first to active button
   const renderUsbWarningModal = () => {
     if (!showUsbWarnModal) {
@@ -724,7 +822,11 @@ function HomeScreen({navigation, route}) {
       );
     } else {
       return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView
+          style={styles.container}
+          onTouchStart={() => {
+            if (!Platform.isTV) setIsGamepadActive(false);
+          }}>
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}>
@@ -740,9 +842,14 @@ function HomeScreen({navigation, route}) {
                   data={consoles}
                   numColumns={numColumns}
                   key={numColumns}
+                  extraData={`${focusedSection}_${focusedIndex}_${isGamepadActive}`}
                   contentContainerStyle={styles.listContainer}
                   scrollEnabled={false}
-                  renderItem={({item}: any) => {
+                  renderItem={({item, index}: any) => {
+                    const isItemFocused =
+                      isGamepadActive &&
+                      focusedSection === 'consoles' &&
+                      focusedIndex === index;
                     return (
                       <View
                         style={[
@@ -750,8 +857,10 @@ function HomeScreen({navigation, route}) {
                           numColumns === 4
                             ? styles.listItemH
                             : styles.listItemV,
+                          isItemFocused && {zIndex: 99, overflow: 'visible'},
                         ]}>
                         <ConsoleItem
+                          isFocused={isItemFocused}
                           consoleItem={item}
                           onPress={() => handleStartStream(item.serverId)}
                           onPoweronStream={() =>
@@ -771,8 +880,17 @@ function HomeScreen({navigation, route}) {
                   <Text style={styles.emptyConsoleDesc}>{t('NoConsoles')}</Text>
                   <View style={styles.emptyConsoleActions}>
                     <Button
-                      mode="contained-tonal"
-                      style={styles.emptyActionBtn}
+                      mode={
+                        isGamepadActive && focusedSection === 'refresh'
+                          ? 'elevated'
+                          : 'contained-tonal'
+                      }
+                      style={[
+                        styles.emptyActionBtn,
+                        isGamepadActive &&
+                          focusedSection === 'refresh' &&
+                          styles.actionButtonFocused,
+                      ]}
                       onPress={handleRefreshConsoles}>
                       {t('Refresh')}
                     </Button>
@@ -792,8 +910,12 @@ function HomeScreen({navigation, route}) {
                 style={[
                   styles.moreItem,
                   {width: width > 600 ? '15%' : width / 2 - 40},
+                  isGamepadActive &&
+                    focusedSection === 'more' &&
+                    focusedIndex === 0 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
+                  isFocused={isGamepadActive && focusedSection === 'more' && focusedIndex === 0}
                   title={t('Xcloud')}
                   icon={'google-controller'}
                   color={'#FFB900'}
@@ -805,8 +927,12 @@ function HomeScreen({navigation, route}) {
                 style={[
                   styles.moreItem,
                   {width: width > 600 ? '15%' : width / 2 - 40},
+                  isGamepadActive &&
+                    focusedSection === 'more' &&
+                    focusedIndex === 1 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
+                  isFocused={isGamepadActive && focusedSection === 'more' && focusedIndex === 1}
                   title={t('Achivements')}
                   icon={'trophy'}
                   color={'#E81123'}
@@ -818,8 +944,12 @@ function HomeScreen({navigation, route}) {
                 style={[
                   styles.moreItem,
                   {width: width > 600 ? '15%' : width / 2 - 40},
+                  isGamepadActive &&
+                    focusedSection === 'more' &&
+                    focusedIndex === 2 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
+                  isFocused={isGamepadActive && focusedSection === 'more' && focusedIndex === 2}
                   title={t('Settings')}
                   icon={'cog-outline'}
                   color={'#0078D7'}
@@ -944,6 +1074,14 @@ const styles = StyleSheet.create({
   },
   emptyActionBtn: {
     marginRight: 10,
+  },
+  actionButtonFocused: {
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    transform: [{scale: 1.05}],
+    elevation: 8,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.6,
   },
   consoleList: {
     paddingLeft: 10,

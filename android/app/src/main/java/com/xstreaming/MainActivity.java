@@ -3,6 +3,8 @@ package com.xstreaming;
 import android.app.Activity;
 import android.app.PictureInPictureParams;
 import android.content.Context;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -34,6 +36,7 @@ import android.os.IBinder;
 import android.app.Service;
 import android.content.ServiceConnection;
 import android.view.WindowManager;
+import android.os.SystemClock;
 
 import com.xstreaming.input.UsbDriverService;
 import com.xstreaming.input.ControllerHandler;
@@ -122,6 +125,22 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   private final SparseIntArray controllerIndexByDeviceId = new SparseIntArray();
   private final SparseBooleanArray usedControllerIndices = new SparseBooleanArray();
   private InputManager inputManager;
+  // Menu gamepad navigation state
+  private String lastMenuNavAction = null;
+  private long lastMenuNavTime = 0;
+  private boolean isMenuNavInInitialRepeat = false;
+
+  private final BroadcastReceiver menuNavReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      if ("com.xstreaming.ACTION_MENU_NAV".equals(intent.getAction())) {
+        String action = intent.getStringExtra("action");
+        if (action != null) {
+          emitMenuNavigation(action);
+        }
+      }
+    }
+  };
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
@@ -134,6 +153,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
 
   private boolean isGameControllerDevice(InputDevice device) {
     if (device == null) {
+      return false;
+    }
+    if (device.isVirtual()) {
       return false;
     }
     int sources = device.getSources();
@@ -297,6 +319,132 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     return keyCode;
   }
 
+  private long lastEmitMenuNavTime = 0;
+  private String lastEmitMenuNavAction = null;
+
+  private synchronized void emitMenuNavigation(String action) {
+    long now = SystemClock.uptimeMillis();
+    // Debounce identical navigation actions within 180ms to prevent duplicate dispatch
+    // from physical gamepads which emit both MotionEvent (AXIS_HAT_X/Y) and KeyEvent (DPAD)
+    if (action.equals(lastEmitMenuNavAction) && (now - lastEmitMenuNavTime < 180)) {
+      return;
+    }
+    // Prevent micro-bursts or accidental bounce within 80ms
+    if (now - lastEmitMenuNavTime < 80) {
+      return;
+    }
+    lastEmitMenuNavAction = action;
+    lastEmitMenuNavTime = now;
+
+    WritableMap params = Arguments.createMap();
+    params.putString("action", action);
+    sendEvent("onMenuNavigation", params);
+  }
+
+  private boolean handleMenuNavigationMotion(MotionEvent event) {
+    float hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X);
+    float hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
+
+    float stickX = event.getAxisValue(MotionEvent.AXIS_X);
+    float stickY = event.getAxisValue(MotionEvent.AXIS_Y);
+
+    float navX = Math.abs(hatX) > 0.5f ? hatX : (Math.abs(stickX) > 0.5f ? stickX : 0f);
+    float navY = Math.abs(hatY) > 0.5f ? hatY : (Math.abs(stickY) > 0.5f ? stickY : 0f);
+
+    String currentAction = null;
+    if (Math.abs(navX) > 0.5f || Math.abs(navY) > 0.5f) {
+      if (Math.abs(navX) > Math.abs(navY)) {
+        currentAction = (navX > 0) ? "right" : "left";
+      } else {
+        currentAction = (navY > 0) ? "down" : "up";
+      }
+    }
+
+    long now = SystemClock.uptimeMillis();
+    if (currentAction == null) {
+      // Released back into deadzone threshold (< 0.3f)
+      if (Math.abs(hatX) < 0.3f && Math.abs(hatY) < 0.3f &&
+          Math.abs(stickX) < 0.3f && Math.abs(stickY) < 0.3f) {
+        lastMenuNavAction = null;
+        lastMenuNavTime = 0;
+        isMenuNavInInitialRepeat = false;
+      }
+      return false;
+    }
+
+    if (!currentAction.equals(lastMenuNavAction)) {
+      lastMenuNavAction = currentAction;
+      lastMenuNavTime = now;
+      isMenuNavInInitialRepeat = true;
+      emitMenuNavigation(currentAction);
+      return true;
+    } else {
+      long elapsed = now - lastMenuNavTime;
+      long requiredDelay = isMenuNavInInitialRepeat ? 350 : 150;
+      if (elapsed >= requiredDelay) {
+        lastMenuNavTime = now;
+        isMenuNavInInitialRepeat = false;
+        emitMenuNavigation(currentAction);
+        return true;
+      }
+      return true;
+    }
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    String currentScreen = GamepadManager.getCurrentScreen();
+    if (!currentScreen.equals("stream")) {
+      int keyCode = event.getKeyCode();
+      int action = event.getAction();
+
+      String navAction = null;
+      switch (keyCode) {
+        case KeyEvent.KEYCODE_DPAD_UP:
+          navAction = "up";
+          break;
+        case KeyEvent.KEYCODE_DPAD_DOWN:
+          navAction = "down";
+          break;
+        case KeyEvent.KEYCODE_DPAD_LEFT:
+          navAction = "left";
+          break;
+        case KeyEvent.KEYCODE_DPAD_RIGHT:
+          navAction = "right";
+          break;
+        case KeyEvent.KEYCODE_DPAD_CENTER:
+        case KeyEvent.KEYCODE_ENTER:
+        case KeyEvent.KEYCODE_BUTTON_A:
+          navAction = "select";
+          break;
+        case KeyEvent.KEYCODE_BUTTON_B:
+          navAction = "back";
+          break;
+        case KeyEvent.KEYCODE_BUTTON_X:
+          navAction = "x";
+          break;
+        case KeyEvent.KEYCODE_BUTTON_Y:
+          navAction = "y";
+          break;
+      }
+
+      if (navAction != null) {
+        if (action == KeyEvent.ACTION_DOWN) {
+          if (event.getRepeatCount() > 0) {
+            long now = SystemClock.uptimeMillis();
+            if (now - lastEmitMenuNavTime < 220) {
+              return true;
+            }
+          }
+          emitMenuNavigation(navAction);
+        }
+        return true;
+      }
+    }
+
+    return super.dispatchKeyEvent(event);
+  }
+
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     String currentScreen = GamepadManager.getCurrentScreen();
@@ -378,6 +526,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     String currentScreen = GamepadManager.getCurrentScreen();
 
     if (!currentScreen.equals("stream")) {
+      if (handleMenuNavigationMotion(event)) {
+        return true;
+      }
       return super.onGenericMotionEvent(event);
     }
     if (SdlGamepadManager.isActive() && SdlGamepadManager.handleMotionEvent(event)) {
@@ -694,12 +845,38 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
             usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
 
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+    try {
+      IntentFilter navFilter = new IntentFilter("com.xstreaming.ACTION_MENU_NAV");
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        registerReceiver(menuNavReceiver, navFilter, Context.RECEIVER_EXPORTED);
+      } else {
+        registerReceiver(menuNavReceiver, navFilter);
+      }
+    } catch (Exception e) {
+      Log.w("MainActivity", "Failed to register menuNavReceiver", e);
+    }
+  }
+
+  @Override
+  protected void onDestroy() {
+    try {
+      unregisterReceiver(menuNavReceiver);
+    } catch (Exception ignored) {}
+    super.onDestroy();
   }
 
   @Override
   public void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
     setIntent(intent);
+
+    if (intent != null && intent.hasExtra("menuNav")) {
+      String action = intent.getStringExtra("menuNav");
+      if (action != null) {
+        emitMenuNavigation(action);
+      }
+    }
 
     WritableMap shortcutParams = TitleShortcutManagerModule.createShortcutParams(intent);
     if (shortcutParams != null) {
@@ -724,6 +901,24 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
         getOrAssignControllerIndex(deviceId);
       }
     }
+    checkAndEmitGamepadConnection();
+  }
+
+  private void checkAndEmitGamepadConnection() {
+    boolean hasGamepad = false;
+    try {
+      int[] ids = InputDevice.getDeviceIds();
+      for (int id : ids) {
+        InputDevice dev = InputDevice.getDevice(id);
+        if (dev != null && isGameControllerDevice(dev)) {
+          hasGamepad = true;
+          break;
+        }
+      }
+    } catch (Exception ignored) {}
+    WritableMap params = Arguments.createMap();
+    params.putBoolean("hasGamepad", hasGamepad);
+    sendEvent("onGamepadConnectionChange", params);
   }
 
   @Override
@@ -740,11 +935,13 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     if (isGameControllerDevice(device)) {
       getOrAssignControllerIndex(deviceId);
     }
+    checkAndEmitGamepadConnection();
   }
 
   @Override
   public void onInputDeviceRemoved(int deviceId) {
     releaseControllerIndex(deviceId);
+    checkAndEmitGamepadConnection();
   }
 
   @Override

@@ -15,6 +15,7 @@ import {useSelector} from 'react-redux';
 import RNRestart from 'react-native-restart';
 import CookieManager from '@react-native-cookies/cookies';
 import {useTranslation} from 'react-i18next';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 import {debugFactory} from '../utils/debug';
 import {clearStreamToken} from '../store/streamTokenStore';
 import {clearWebToken} from '../store/webTokenStore';
@@ -43,6 +44,12 @@ function SettingsScreen({navigation}) {
   const {t, i18n} = useTranslation();
   const theme = useTheme();
   const authentication = useSelector((state: any) => state.authentication);
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation.goBack();
+    },
+  });
 
   const currentLanguage = i18n.language;
   const titleTextStyle = React.useMemo(

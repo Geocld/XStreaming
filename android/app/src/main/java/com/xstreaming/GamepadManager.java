@@ -254,30 +254,18 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         if (device == null) {
             return false;
         }
+        if (device.isVirtual()) {
+            return false;
+        }
+        int sources = device.getSources();
+        if (((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
+            ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) ||
+            ((sources & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD)) {
+            return true;
+        }
         if (hasJoystickAxes(device) || hasGamepadButtons(device)) {
             // Has real joystick axes or gamepad buttons
             return true;
-        }
-        // HACK for https://issuetracker.google.com/issues/163120692
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R) {
-            if (device.getId() == -1) {
-                // This "virtual" device could be input from any of the attached devices.
-                // Look to see if any gamepads are connected.
-                int[] ids = InputDevice.getDeviceIds();
-                for (int id : ids) {
-                    InputDevice dev = InputDevice.getDevice(id);
-                    if (dev == null) {
-                        // This device was removed during enumeration
-                        continue;
-                    }
-
-                    // If there are any gamepad devices connected, we'll
-                    // report that this virtual device is a gamepad.
-                    if (hasJoystickAxes(dev) || hasGamepadButtons(dev)) {
-                        return true;
-                    }
-                }
-            }
         }
         return false;
     }
@@ -289,6 +277,21 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
     public static String getCurrentScreen() {
         return currentScreen;
+    }
+
+    @ReactMethod
+    public void hasGameController(Promise promise) {
+        try {
+            int[] ids = InputDevice.getDeviceIds();
+            for (int id : ids) {
+                InputDevice dev = InputDevice.getDevice(id);
+                if (dev != null && isGameControllerDevice(dev)) {
+                    promise.resolve(true);
+                    return;
+                }
+            }
+        } catch (Exception ignored) {}
+        promise.resolve(false);
     }
 
     private int clampVibration(int value) {

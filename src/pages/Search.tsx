@@ -2,10 +2,17 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Searchbar, Button} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
 function SearchScreen({navigation, route}) {
   const {t} = useTranslation();
   const [keyword, setKeyword] = React.useState('');
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation.goBack();
+    },
+  });
 
   React.useEffect(() => {
     if (route.params?.keyword) {
