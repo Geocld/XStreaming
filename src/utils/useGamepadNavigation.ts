@@ -107,27 +107,12 @@ export function useGamepadActiveState(initialValue?: boolean) {
   });
 
   useEffect(() => {
-    // Check initial connection status on mount
-    if (NativeModules.GamepadManager?.hasGameController) {
-      NativeModules.GamepadManager.hasGameController()
-        .then((has: boolean) => {
-          if (has) {
-            setIsGamepadActive(true);
-          }
-        })
-        .catch(() => {});
-    }
-
-    // Listen to physical connection changes
+    // Listen to physical connection changes - only deactivate when disconnected
     const devSub = DeviceEventEmitter.addListener(
       'onGamepadConnectionChange',
       (data: { hasGamepad?: boolean }) => {
-        if (data && typeof data.hasGamepad === 'boolean') {
-          if (!data.hasGamepad && !Platform.isTV) {
-            setIsGamepadActive(false);
-          } else if (data.hasGamepad) {
-            setIsGamepadActive(true);
-          }
+        if (data && data.hasGamepad === false && !Platform.isTV) {
+          setIsGamepadActive(false);
         }
       },
     );

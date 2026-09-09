@@ -433,7 +433,7 @@ export default {
     Name: 'Nama',
     Rumble: 'Getaran',
     Sensor: 'Sensor',
-    Details: 'Rincian',
+    Details: 'Detail',
     'Clear Cache': 'Hapus Cache',
     'Clear XStreaming Cache Data(Keep login data)':
       'Bersihkan data cache sementara XStreaming (data login Anda tetap aman)',
@@ -601,5 +601,8 @@ export default {
     STABLE: 'STABIL',
     MODERATE: 'SEDANG',
     HIGH: 'TINGGI',
+    Navigate: 'Navigasi',
+    'Direct Play': 'Mainkan',
+    Sort: 'Sortir',
   },
 };

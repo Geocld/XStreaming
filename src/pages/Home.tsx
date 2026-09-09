@@ -11,6 +11,7 @@ import {
   NativeModules,
   ToastAndroid,
   Linking,
+  BackHandler,
 } from 'react-native';
 import {Button, Text, Portal, Modal, Card, useTheme} from 'react-native-paper';
 import Spinner from '../components/Spinner';
@@ -18,6 +19,7 @@ import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
 import ConsoleItem from '../components/ConsoleItem';
 import HomeItem from '../components/HomeItem';
+import GamepadFooterHints, {GamepadHintItem} from '../components/GamepadFooterHints';
 import {getSettings, saveSettings} from '../store/settingStore';
 
 import Authentication from '../Authentication';
@@ -646,7 +648,17 @@ function HomeScreen({navigation, route}) {
         navigation.navigate('Cloud');
       }
     },
+    onBack: () => {
+      BackHandler.exitApp();
+    },
   });
+
+  const gamepadHints: GamepadHintItem[] = React.useMemo(() => {
+    return [
+      {button: 'A', label: t('Select')},
+      {button: 'B', label: t('Exit')},
+    ];
+  }, [t]);
 
   // Warn: xboxOne controller must press Nexus button first to active button
   const renderUsbWarningModal = () => {
@@ -824,12 +836,18 @@ function HomeScreen({navigation, route}) {
       return (
         <SafeAreaView
           style={styles.container}
+          onTouchStartCapture={() => {
+            if (!Platform.isTV) setIsGamepadActive(false);
+          }}
           onTouchStart={() => {
             if (!Platform.isTV) setIsGamepadActive(false);
           }}>
           <ScrollView
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}>
+            contentContainerStyle={[
+              styles.scrollContent,
+              (isGamepadActive || Platform.isTV) && {paddingBottom: 64},
+            ]}>
             <View style={[styles.blockTitle]}>
               <Text variant="titleLarge" style={styles.blockTitleText}>
                 {t('Consoles')}
@@ -964,7 +982,14 @@ function HomeScreen({navigation, route}) {
   };
 
   return (
-    <View style={styles.root}>
+    <View
+      style={styles.root}
+      onTouchStartCapture={() => {
+        if (!Platform.isTV) setIsGamepadActive(false);
+      }}
+      onTouchStart={() => {
+        if (!Platform.isTV) setIsGamepadActive(false);
+      }}>
       <Spinner loading={loading} text={loadingText} />
 
       {renderUsbWarningModal()}
@@ -977,6 +1002,11 @@ function HomeScreen({navigation, route}) {
         report={sessionReport}
         onDismiss={handleDismissReport}
         onDone={handleDoneReport}
+      />
+
+      <GamepadFooterHints
+        visible={isGamepadActive || Platform.isTV}
+        hints={gamepadHints}
       />
     </View>
   );

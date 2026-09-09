@@ -27,6 +27,7 @@ import XStreamingGameCard from '../components/XStreamingGameCard';
 import XboxLogo from '../components/XboxLogo';
 import Empty from '../components/Empty';
 import SessionReportModal from '../components/SessionReportModal';
+import GamepadFooterHints, {GamepadHintItem} from '../components/GamepadFooterHints';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
 import TokenStore from '../xal/tokenstore';
@@ -2098,7 +2099,7 @@ function CloudScreen({navigation, route}: any) {
       handleDirectPlay(curSec.data[focusedIndex]);
     },
     onActionY: () => {
-      if (focusedSection === 'header') {
+      if (focusedSection === 'header' || focusedSection === 'grid') {
         setShowSortModal(true);
         return;
       }
@@ -2418,9 +2419,85 @@ function CloudScreen({navigation, route}: any) {
   const isBackFocused =
     isGamepadActive && focusedSection === 'header' && focusedHeaderItem === 'back';
 
+  // Contextual hints for gamepad HUD
+  const gamepadHints: GamepadHintItem[] = React.useMemo(() => {
+    if (showRegionModal || showSortModal || showFilterModal) {
+      return [
+        {button: 'A', label: t('Select')},
+        {button: 'B', label: t('Back')},
+      ];
+    }
+
+    if (showTutorial || showUsbWarnModal) {
+      return [
+        {button: 'A', label: t('Confirm') || 'OK'},
+        {button: 'B', label: t('Back')},
+      ];
+    }
+
+    if (focusedSection === 'header') {
+      return [
+        {button: 'A', label: focusedHeaderItem === 'back' ? t('Back') : t('Select')},
+        {button: 'B', label: t('Back')},
+      ];
+    }
+
+    if (availableSections.length === 1 && availableSections[0].id === 'grid') {
+      return [
+        {button: 'A', label: t('Details')},
+        {button: 'X', label: t('Direct Play')},
+        {button: 'Y', label: t('Sort')},
+        {button: 'B', label: t('Back')},
+      ];
+    }
+
+    const curSec = availableSections.find(s => s.id === focusedSection);
+    if (curSec) {
+      const isShowAllCardFocused = curSec.hasMore && focusedIndex === curSec.data.length;
+      if (isShowAllCardFocused) {
+        return [
+          {button: 'A', label: t('Show all')},
+          {button: 'B', label: t('Back')},
+        ];
+      }
+      if (curSec.hasMore && curSec.categoryKey) {
+        return [
+          {button: 'A', label: t('Details')},
+          {button: 'X', label: t('Direct Play')},
+          {button: 'Y', label: t('Show all')},
+          {button: 'B', label: t('Back')},
+        ];
+      }
+      return [
+        {button: 'A', label: t('Details')},
+        {button: 'X', label: t('Direct Play')},
+        {button: 'B', label: t('Back')},
+      ];
+    }
+
+    return [
+      {button: 'A', label: t('Select')},
+      {button: 'B', label: t('Back')},
+    ];
+  }, [
+    showRegionModal,
+    showSortModal,
+    showFilterModal,
+    showTutorial,
+    showUsbWarnModal,
+    focusedSection,
+    focusedHeaderItem,
+    availableSections,
+    focusedIndex,
+    t,
+  ]);
+
   return (
     <View
       style={styles.rootContainer}
+      onTouchStartCapture={() => {
+        if (!Platform.isTV) setIsGamepadActive(false);
+      }}
       onTouchStart={() => {
         if (!Platform.isTV) setIsGamepadActive(false);
       }}>
@@ -2811,6 +2888,7 @@ function CloudScreen({navigation, route}: any) {
               contentContainerStyle={[
                 styles.gridContentContainer,
                 isLargeScreen && styles.gridContentContainerLarge,
+                (isGamepadActive || Platform.isTV) && {paddingBottom: 64},
               ]}
               ListHeaderComponent={renderCarouselsHeader()}
               renderItem={renderGridItem}
@@ -2904,6 +2982,11 @@ function CloudScreen({navigation, route}: any) {
         report={sessionReport}
         onDismiss={handleDismissReport}
         onDone={handleDoneReport}
+      />
+
+      <GamepadFooterHints
+        visible={isGamepadActive || Platform.isTV}
+        hints={gamepadHints}
       />
     </View>
   );
