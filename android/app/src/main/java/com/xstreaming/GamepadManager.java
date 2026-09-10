@@ -241,33 +241,40 @@ public class GamepadManager extends ReactContextBaseJavaModule {
     }
 
     private static boolean hasJoystickAxes(InputDevice device) {
+        if (device == null) return false;
         return (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
                 getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_X) != null &&
                 getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_Y) != null;
     }
 
     private static boolean hasGamepadButtons(InputDevice device) {
-        return (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
+        if (device == null) return false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            boolean[] keys = device.hasKeys(
+                KeyEvent.KEYCODE_BUTTON_A,
+                KeyEvent.KEYCODE_BUTTON_B,
+                KeyEvent.KEYCODE_BUTTON_X,
+                KeyEvent.KEYCODE_BUTTON_Y
+            );
+            return (keys[0] || keys[1]) && (keys[2] || keys[3]);
+        }
+        return false;
     }
 
     private static boolean isGameControllerDevice(InputDevice device) {
-        if (device == null) {
-            return false;
-        }
-        if (device.isVirtual()) {
+        if (device == null || device.isVirtual()) {
             return false;
         }
         int sources = device.getSources();
-        if (((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
-            ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) ||
-            ((sources & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD)) {
-            return true;
+        boolean hasGamepadSource =
+            ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
+            ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK);
+
+        if (!hasGamepadSource) {
+            return false;
         }
-        if (hasJoystickAxes(device) || hasGamepadButtons(device)) {
-            // Has real joystick axes or gamepad buttons
-            return true;
-        }
-        return false;
+
+        return hasJoystickAxes(device) || hasGamepadButtons(device);
     }
 
     @ReactMethod

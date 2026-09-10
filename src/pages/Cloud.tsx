@@ -20,7 +20,7 @@ import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import {useIsFocused} from '@react-navigation/native';
-import {useGamepadNavigation, useGamepadActiveState} from '../utils/useGamepadNavigation';
+import {useGamepadNavigation, useGamepadActiveState, useGamepadConnectedState} from '../utils/useGamepadNavigation';
 
 import Spinner from '../components/Spinner';
 import XStreamingGameCard from '../components/XStreamingGameCard';
@@ -877,6 +877,7 @@ interface CarouselSectionProps {
   primary: string;
   onPress: (item: any) => void;
   onPlayPress: (item: any) => void;
+  hidePlayButton?: boolean;
   onShowAll: (categoryKey: any) => void;
   sectionRefCallback: (ref: any) => void;
   onMomentumScrollEndCallback: (e: any) => void;
@@ -891,6 +892,7 @@ const CarouselSection = React.memo<CarouselSectionProps>(({
   isSectionActive,
   focusedIndex,
   isGamepadActive,
+  hidePlayButton = false,
   horizontalCardWidth,
   horizontalCardHeight,
   isLandscape,
@@ -922,6 +924,7 @@ const CarouselSection = React.memo<CarouselSectionProps>(({
         style={styles.horizontalCardMargin}
         hasTVPreferredFocus={false}
         isFocused={isGamepadActive && isSectionActive && focusedIndex === index}
+        hidePlayButton={hidePlayButton}
       />
     ),
     [
@@ -932,6 +935,7 @@ const CarouselSection = React.memo<CarouselSectionProps>(({
       isGamepadActive,
       isSectionActive,
       focusedIndex,
+      hidePlayButton,
     ],
   );
 
@@ -982,7 +986,7 @@ const CarouselSection = React.memo<CarouselSectionProps>(({
         ref={sectionRefCallback}
         horizontal
         data={displayData}
-        extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${isSectionActive ? focusedIndex : -1}`}
+        extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${hidePlayButton}_${isSectionActive ? focusedIndex : -1}`}
         keyExtractor={keyExtractor}
         showsHorizontalScrollIndicator={false}
         style={[styles.horizontalListWrap, isLandscape && styles.horizontalListWrapLandscape]}
@@ -1728,6 +1732,8 @@ function CloudScreen({navigation, route}: any) {
 
   const isScreenFocused = useIsFocused();
   const [isGamepadActive, setIsGamepadActive] = useGamepadActiveState();
+  const isGamepadConnected = useGamepadConnectedState();
+  const shouldHidePlayButton = Platform.isTV || (isGamepadConnected && isGamepadActive);
   const sectionListRefs = React.useRef<Record<string, any>>({});
   const carouselScrollLeftMap = React.useRef<Record<string, number>>({});
   const lastCarouselFocusRef = React.useRef<{
@@ -2403,6 +2409,7 @@ function CloudScreen({navigation, route}: any) {
           isSectionActive={isGamepadActive && focusedSection === 'recent'}
           focusedIndex={focusedSection === 'recent' ? focusedIndex : -1}
           isGamepadActive={isGamepadActive}
+          hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
           horizontalCardHeight={horizontalCardHeight}
           isLandscape={isLandscape}
@@ -2423,6 +2430,7 @@ function CloudScreen({navigation, route}: any) {
           isSectionActive={isGamepadActive && focusedSection === 'gp'}
           focusedIndex={focusedSection === 'gp' ? focusedIndex : -1}
           isGamepadActive={isGamepadActive}
+          hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
           horizontalCardHeight={horizontalCardHeight}
           isLandscape={isLandscape}
@@ -2443,6 +2451,7 @@ function CloudScreen({navigation, route}: any) {
           isSectionActive={isGamepadActive && focusedSection === 'new'}
           focusedIndex={focusedSection === 'new' ? focusedIndex : -1}
           isGamepadActive={isGamepadActive}
+          hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
           horizontalCardHeight={horizontalCardHeight}
           isLandscape={isLandscape}
@@ -2463,6 +2472,7 @@ function CloudScreen({navigation, route}: any) {
           isSectionActive={isGamepadActive && focusedSection === 'ubi'}
           focusedIndex={focusedSection === 'ubi' ? focusedIndex : -1}
           isGamepadActive={isGamepadActive}
+          hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
           horizontalCardHeight={horizontalCardHeight}
           isLandscape={isLandscape}
@@ -2483,6 +2493,7 @@ function CloudScreen({navigation, route}: any) {
           isSectionActive={isGamepadActive && focusedSection === 'own'}
           focusedIndex={focusedSection === 'own' ? focusedIndex : -1}
           isGamepadActive={isGamepadActive}
+          hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
           horizontalCardHeight={horizontalCardHeight}
           isLandscape={isLandscape}
@@ -2503,6 +2514,7 @@ function CloudScreen({navigation, route}: any) {
           isSectionActive={isGamepadActive && focusedSection === 'leave'}
           focusedIndex={focusedSection === 'leave' ? focusedIndex : -1}
           isGamepadActive={isGamepadActive}
+          hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
           horizontalCardHeight={horizontalCardHeight}
           isLandscape={isLandscape}
@@ -2537,6 +2549,7 @@ function CloudScreen({navigation, route}: any) {
     isLight,
     isLandscape,
     isGamepadActive,
+    shouldHidePlayButton,
     focusedSection,
     focusedIndex,
     handleViewDetail,
@@ -2559,6 +2572,7 @@ function CloudScreen({navigation, route}: any) {
         onPlayPress={handleDirectPlay}
         hasTVPreferredFocus={false}
         isFocused={focusedGridIndex === index}
+        hidePlayButton={shouldHidePlayButton}
       />
     ),
     [
@@ -2567,6 +2581,7 @@ function CloudScreen({navigation, route}: any) {
       handleViewDetail,
       handleDirectPlay,
       focusedGridIndex,
+      shouldHidePlayButton,
     ],
   );
 
@@ -3095,7 +3110,7 @@ function CloudScreen({navigation, route}: any) {
                 currentScrollOffsetRef.current = e.nativeEvent.contentOffset.y;
               }}
               scrollEventThrottle={48}
-              extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${focusedSection === 'grid' ? focusedIndex : ''}`}
+              extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${shouldHidePlayButton}_${focusedSection === 'grid' ? focusedIndex : ''}`}
               numColumns={numColumns}
               keyExtractor={itemKeyExtractor}
               columnWrapperStyle={styles.columnWrapper}

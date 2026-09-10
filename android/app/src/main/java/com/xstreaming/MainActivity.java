@@ -151,17 +151,41 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     return "xstreaming";
   }
 
-  private boolean isGameControllerDevice(InputDevice device) {
-    if (device == null) {
-      return false;
+  private static boolean hasJoystickAxes(InputDevice device) {
+    if (device == null) return false;
+    return (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
+            getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_X) != null &&
+            getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_Y) != null;
+  }
+
+  private static boolean hasGamepadButtons(InputDevice device) {
+    if (device == null) return false;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      boolean[] keys = device.hasKeys(
+          KeyEvent.KEYCODE_BUTTON_A,
+          KeyEvent.KEYCODE_BUTTON_B,
+          KeyEvent.KEYCODE_BUTTON_X,
+          KeyEvent.KEYCODE_BUTTON_Y
+      );
+      return (keys[0] || keys[1]) && (keys[2] || keys[3]);
     }
-    if (device.isVirtual()) {
+    return false;
+  }
+
+  private boolean isGameControllerDevice(InputDevice device) {
+    if (device == null || device.isVirtual()) {
       return false;
     }
     int sources = device.getSources();
-    return ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
-            ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) ||
-            ((sources & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD);
+    boolean hasGamepadSource =
+        ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
+        ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK);
+
+    if (!hasGamepadSource) {
+      return false;
+    }
+
+    return hasJoystickAxes(device) || hasGamepadButtons(device);
   }
 
   private int allocateControllerIndexLocked() {

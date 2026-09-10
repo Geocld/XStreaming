@@ -5,8 +5,10 @@ import {
   Image,
   Pressable,
   Text,
+  Platform,
 } from 'react-native';
 import {Icon, useTheme} from 'react-native-paper';
+import {useGamepadConnectedState} from '../utils/useGamepadNavigation';
 
 interface Props {
   titleItem: any;
@@ -19,6 +21,7 @@ interface Props {
   style?: any;
   hasTVPreferredFocus?: boolean;
   isFocused?: boolean;
+  hidePlayButton?: boolean;
 }
 
 // Comprehensive resolver for Xbox Game Pass catalog, SIGL, v2, and mock image structures
@@ -72,11 +75,18 @@ const XStreamingGameCard: React.FC<Props> = ({
   style,
   hasTVPreferredFocus,
   isFocused: propFocused = false,
+  hidePlayButton,
 }) => {
   const theme = useTheme();
   const isLight = !theme.dark;
   const primaryColor = theme.colors.primary;
   const playIconColor = theme.colors.onPrimary || '#FFFFFF';
+
+  const isGamepadConnected = useGamepadConnectedState();
+  const shouldHidePlay =
+    hidePlayButton !== undefined
+      ? hidePlayButton
+      : (Platform.isTV || (isGamepadConnected && propFocused));
 
   const {primary: primaryUrl, fallback: fallbackUrl} = React.useMemo(
     () => resolvePosterUrls(titleItem),
@@ -206,20 +216,22 @@ const XStreamingGameCard: React.FC<Props> = ({
           </View>
         )}
 
-        {/* Action button overlay at the bottom */}
-        <View style={styles.actionOverlay} pointerEvents="box-none">
-          <Pressable
-            onPress={handlePressPlay}
-            focusable={false}
-            hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}
-            style={({pressed}) => [
-              styles.playButton,
-              {backgroundColor: primaryColor},
-              pressed && styles.actionButtonPressed,
-            ]}>
-            <Icon source="play" size={22} color={playIconColor} />
-          </Pressable>
-        </View>
+        {/* Action button overlay at the bottom - hidden when gamepad connected for clean poster look */}
+        {!shouldHidePlay && (
+          <View style={styles.actionOverlay} pointerEvents="box-none">
+            <Pressable
+              onPress={handlePressPlay}
+              focusable={false}
+              hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}
+              style={({pressed}) => [
+                styles.playButton,
+                {backgroundColor: primaryColor},
+                pressed && styles.actionButtonPressed,
+              ]}>
+              <Icon source="play" size={22} color={playIconColor} />
+            </Pressable>
+          </View>
+        )}
       </Pressable>
     </View>
   );
@@ -331,6 +343,7 @@ export default React.memo(XStreamingGameCard, (prev, next) => {
 
   if (prev.isFocused !== next.isFocused) return false;
   if (prev.hasTVPreferredFocus !== next.hasTVPreferredFocus) return false;
+  if (prev.hidePlayButton !== next.hidePlayButton) return false;
   if (prev.width !== next.width || prev.height !== next.height || prev.style !== next.style) return false;
 
   const prevImg =

@@ -122,6 +122,42 @@ function ensureGlobalNavigationListener() {
   );
 }
 
+export function useGamepadConnectedState() {
+  const [hasGamepad, setHasGamepad] = useState<boolean>(() => {
+    if (Platform.isTV) return true;
+    return false;
+  });
+
+  useEffect(() => {
+    if (Platform.isTV) return;
+
+    if (NativeModules.GamepadManager?.hasGameController) {
+      NativeModules.GamepadManager.hasGameController()
+        .then((connected: boolean) => {
+          if (typeof connected === 'boolean') {
+            setHasGamepad(connected);
+          }
+        })
+        .catch(() => {});
+    }
+
+    const devSub = DeviceEventEmitter.addListener(
+      'onGamepadConnectionChange',
+      (data: { hasGamepad?: boolean }) => {
+        if (data && typeof data.hasGamepad === 'boolean') {
+          setHasGamepad(data.hasGamepad);
+        }
+      },
+    );
+
+    return () => {
+      devSub.remove();
+    };
+  }, []);
+
+  return hasGamepad;
+}
+
 export function useGamepadActiveState(initialValue?: boolean) {
   const [isGamepadActive, setIsGamepadActive] = useState<boolean>(() => {
     if (Platform.isTV) return true;
@@ -130,17 +166,17 @@ export function useGamepadActiveState(initialValue?: boolean) {
   });
 
   useEffect(() => {
-    // Listen to physical connection changes - only deactivate when disconnected
+    if (Platform.isTV) return;
+
     const devSub = DeviceEventEmitter.addListener(
       'onGamepadConnectionChange',
       (data: { hasGamepad?: boolean }) => {
-        if (data && data.hasGamepad === false && !Platform.isTV) {
+        if (data && data.hasGamepad === false) {
           setIsGamepadActive(false);
         }
       },
     );
 
-    // Any navigation action from controller / remote activates gamepad mode
     const navSub = DeviceEventEmitter.addListener('onMenuNavigation', () => {
       setIsGamepadActive(true);
     });
