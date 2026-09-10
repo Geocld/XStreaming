@@ -168,6 +168,8 @@ function SettingDetailScreen({navigation, route}) {
 
   const handleSaveSettings = () => {
     let settingValue: any = value;
+    if (settingValue === 'true') settingValue = true;
+    if (settingValue === 'false') settingValue = false;
     if (currentMetas?.name === 'theme_primary_color') {
       settingValue = normalizeHexColor(value, DEFAULT_THEME_PRIMARY_COLOR);
       setValue(settingValue);

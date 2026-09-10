@@ -13,6 +13,10 @@ import {Portal, Modal, Icon} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import Svg, {Path, Circle, Text as SvgText} from 'react-native-svg';
 import {SessionReportData} from '../utils/sessionStatsTracker';
+import {
+  useGamepadNavigation,
+  useGamepadActiveState,
+} from '../utils/useGamepadNavigation';
 
 export interface SessionReportModalProps {
   visible: boolean;
@@ -56,12 +60,36 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   const {t} = useTranslation();
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const [dontShowAgain, setDontShowAgain] = React.useState(false);
+  const [isGamepadActive] = useGamepadActiveState();
+  const [focusedBtn, setFocusedBtn] = React.useState<'done' | 'checkbox'>('done');
 
   React.useEffect(() => {
     if (visible) {
       setDontShowAgain(false);
+      setFocusedBtn('done');
     }
   }, [visible]);
+
+  useGamepadNavigation({
+    enabled: visible && !!report,
+    priority: 30,
+    onUp: () => {
+      setFocusedBtn('checkbox');
+    },
+    onDown: () => {
+      setFocusedBtn('done');
+    },
+    onSelect: () => {
+      if (focusedBtn === 'checkbox') {
+        setDontShowAgain(prev => !prev);
+      } else {
+        onDone(dontShowAgain);
+      }
+    },
+    onBack: () => {
+      onDismiss();
+    },
+  });
 
   if (!report) {
     return null;
@@ -451,6 +479,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                 onPress={() => setDontShowAgain(!dontShowAgain)}
                 style={({pressed}) => [
                   styles.checkboxWrapper,
+                  focusedBtn === 'checkbox' && (isGamepadActive || Platform.isTV) && styles.checkboxWrapperFocused,
                   pressed && {opacity: 0.7},
                 ]}>
                 <View
@@ -471,10 +500,22 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                 onPress={handleDonePress}
                 style={({pressed}) => [
                   styles.donePillButton,
+                  focusedBtn === 'done' && (isGamepadActive || Platform.isTV) && styles.donePillButtonFocused,
                   pressed && styles.donePillButtonPressed,
                 ]}>
                 <Text style={styles.donePillButtonText}>{t('Done')}</Text>
               </Pressable>
+
+              {(isGamepadActive || Platform.isTV) && (
+                <View style={styles.modalGamepadHints}>
+                  <Text style={styles.modalGamepadHintText}>
+                    <Text style={styles.hintKeyBadge}>A</Text>{' '}
+                    {focusedBtn === 'checkbox' ? t('Toggle') : t('Done')}{'   '}
+                    <Text style={styles.hintKeyBadge}>B</Text>{' '}
+                    {t('Close')}
+                  </Text>
+                </View>
+              )}
             </View>
           </ScrollView>
         </View>
@@ -729,6 +770,38 @@ const styles = StyleSheet.create({
     fontSize: 15.5,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  checkboxWrapperFocused: {
+    borderWidth: 2,
+    borderColor: '#27c96a',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(39, 201, 106, 0.15)',
+  },
+  donePillButtonFocused: {
+    borderWidth: 2.5,
+    borderColor: '#FFFFFF',
+    transform: [{scale: 1.03}],
+    elevation: 8,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.7,
+  },
+  modalGamepadHints: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 4,
+  },
+  modalGamepadHintText: {
+    fontSize: 12,
+    color: '#8e98a8',
+    fontWeight: '600',
+  },
+  hintKeyBadge: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
 });
 

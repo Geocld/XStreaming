@@ -84,7 +84,9 @@ function HomeScreen({navigation, route}) {
   React.useEffect(() => {
     if (route?.params?.sessionReport) {
       const currentSettings = getSettings();
-      if (currentSettings.show_session_report !== false) {
+      const isShowReport =
+        String(currentSettings.show_session_report) === 'true';
+      if (isShowReport) {
         setSessionReport(route.params.sessionReport);
       }
     }
@@ -92,7 +94,8 @@ function HomeScreen({navigation, route}) {
 
   const handleDismissReport = React.useCallback(() => {
     setSessionReport(null);
-  }, []);
+    navigation.setParams({sessionReport: undefined});
+  }, [navigation]);
 
   const handleDoneReport = React.useCallback((dontShowAgain: boolean) => {
     if (dontShowAgain) {
@@ -100,7 +103,8 @@ function HomeScreen({navigation, route}) {
       saveSettings({...currentSettings, show_session_report: false});
     }
     setSessionReport(null);
-  }, []);
+    navigation.setParams({sessionReport: undefined});
+  }, [navigation]);
 
   const authentication = useSelector((state: any) => state.authentication);
   const _authentication = React.useRef(authentication);

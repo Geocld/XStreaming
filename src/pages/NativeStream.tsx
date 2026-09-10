@@ -610,7 +610,12 @@ export function NativeStreamScreenBase({
     setLoading(false);
     Orientation.unlockAllOrientations();
     FullScreenManager.immersiveModeOff();
-    const sessionReport = sessionStatsTracker.finishSession();
+    const currentSettings = getSettings();
+    const isShowReport =
+      String(currentSettings.show_session_report) === 'true';
+    const sessionReport = isShowReport
+      ? sessionStatsTracker.finishSession()
+      : undefined;
     navigation.navigate({
       name: getStreamDestination(),
       params: {needRefresh: true, sessionReport},
@@ -636,6 +641,7 @@ export function NativeStreamScreenBase({
 
     const _settings = getSettings();
     setSettings(_settings);
+    const buttonPressTimers = new Map<string, any>();
     resetGamepadState(gpState, 0);
     manualLeftThumbPressedRef.current = false;
     autoSprintLeftThumbPressedRef.current = false;
@@ -891,6 +897,13 @@ export function NativeStreamScreenBase({
             return;
           }
 
+          const buttonKey = `${event.gamepadIndex ?? 0}_${keyName}`;
+          const existingTimer = buttonPressTimers.get(buttonKey);
+          if (existingTimer) {
+            clearTimeout(existingTimer);
+            buttonPressTimers.delete(buttonKey);
+          }
+
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (_settings.short_trigger) {
               targetState[keyName] = 1;
@@ -900,6 +913,14 @@ export function NativeStreamScreenBase({
           }
           if (keyName === 'LeftThumb' && targetState === gpState) {
             setManualLeftThumbPressed(true);
+          }
+
+          if (webrtcClient) {
+            if (_settings.coop && coopGpStates) {
+              webrtcClient.setGamepadState(coopGpStates);
+            } else {
+              webrtcClient.setGamepadState(targetState);
+            }
           }
 
           if (
@@ -933,15 +954,11 @@ export function NativeStreamScreenBase({
             return;
           }
 
-          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            if (_settings.short_trigger) {
-              targetState[keyName] = 0;
-            }
-          } else {
-            targetState[keyName] = 0;
-          }
-          if (keyName === 'LeftThumb' && targetState === gpState) {
-            setManualLeftThumbPressed(false);
+          const buttonKey = `${event.gamepadIndex ?? 0}_${keyName}`;
+          const existingTimer = buttonPressTimers.get(buttonKey);
+          if (existingTimer) {
+            clearTimeout(existingTimer);
+            buttonPressTimers.delete(buttonKey);
           }
 
           if (keyName === 'Menu') {
@@ -952,8 +969,40 @@ export function NativeStreamScreenBase({
             if (menuLongPressTriggered.current) {
               targetState.Menu = 0;
               menuLongPressTriggered.current = false;
+              if (webrtcClient) {
+                if (_settings.coop && coopGpStates) {
+                  webrtcClient.setGamepadState(coopGpStates);
+                } else {
+                  webrtcClient.setGamepadState(targetState);
+                }
+              }
+              return;
             }
           }
+
+          const releaseButton = () => {
+            if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+              if (_settings.short_trigger) {
+                targetState[keyName] = 0;
+              }
+            } else {
+              targetState[keyName] = 0;
+            }
+            if (keyName === 'LeftThumb' && targetState === gpState) {
+              setManualLeftThumbPressed(false);
+            }
+            if (webrtcClient) {
+              if (_settings.coop && coopGpStates) {
+                webrtcClient.setGamepadState(coopGpStates);
+              } else {
+                webrtcClient.setGamepadState(targetState);
+              }
+            }
+            buttonPressTimers.delete(buttonKey);
+          };
+
+          const timerId = setTimeout(releaseButton, 60);
+          buttonPressTimers.set(buttonKey, timerId);
         },
       );
 
@@ -985,6 +1034,14 @@ export function NativeStreamScreenBase({
             ? [event.dpadIdx]
             : [];
           syncDpadState(pressedKeys, event.gamepadIndex);
+          if (webrtcClient) {
+            const targetState = resolveGamepadState(event.gamepadIndex);
+            if (_settings.coop && coopGpStates) {
+              webrtcClient.setGamepadState(coopGpStates);
+            } else if (targetState) {
+              webrtcClient.setGamepadState(targetState);
+            }
+          }
         },
       );
 
@@ -993,6 +1050,14 @@ export function NativeStreamScreenBase({
         event => {
           // console.log('onDpadKeyUp:', event);
           syncDpadState([], event.gamepadIndex);
+          if (webrtcClient) {
+            const targetState = resolveGamepadState(event.gamepadIndex);
+            if (_settings.coop && coopGpStates) {
+              webrtcClient.setGamepadState(coopGpStates);
+            } else if (targetState) {
+              webrtcClient.setGamepadState(targetState);
+            }
+          }
         },
       );
 
@@ -1821,6 +1886,8 @@ export function NativeStreamScreenBase({
         clearTimeout(menuLongPressTimer.current);
         menuLongPressTimer.current = null;
       }
+      buttonPressTimers.forEach(timerId => clearTimeout(timerId));
+      buttonPressTimers.clear();
       if (frameTimer.current) {
         clearInterval(frameTimer.current);
         frameTimer.current = null;

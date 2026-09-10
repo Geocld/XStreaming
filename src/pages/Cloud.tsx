@@ -970,7 +970,9 @@ function CloudScreen({navigation, route}: any) {
   React.useEffect(() => {
     if (route.params?.sessionReport) {
       const currentSettings = getSettings();
-      if (currentSettings.show_session_report !== false) {
+      const isShowReport =
+        String(currentSettings.show_session_report) === 'true';
+      if (isShowReport) {
         setSessionReport(route.params.sessionReport);
       }
     }
@@ -978,7 +980,8 @@ function CloudScreen({navigation, route}: any) {
 
   const handleDismissReport = React.useCallback(() => {
     setSessionReport(null);
-  }, []);
+    navigation.setParams({sessionReport: undefined});
+  }, [navigation]);
 
   const handleDoneReport = React.useCallback((dontShowAgain: boolean) => {
     if (dontShowAgain) {
@@ -986,7 +989,8 @@ function CloudScreen({navigation, route}: any) {
       saveSettings({...currentSettings, show_session_report: false});
     }
     setSessionReport(null);
-  }, []);
+    navigation.setParams({sessionReport: undefined});
+  }, [navigation]);
 
   const flatListRef = React.useRef<any>(null);
   const currentScrollOffsetRef = React.useRef<number>(0);

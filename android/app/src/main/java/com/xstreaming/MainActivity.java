@@ -468,7 +468,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     if (SdlGamepadManager.isActive() && SdlGamepadManager.handleKeyEvent(event)) {
       return true;
     }
-    if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+    if (((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD)
+        || ((event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)
+        || KeyEvent.isGamepadButton(keyCode)) {
       int finalKeyCode = handleRemapping(keyCode, event, "down");
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", finalKeyCode);
@@ -489,7 +491,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     if (SdlGamepadManager.isActive() && SdlGamepadManager.handleKeyEvent(event)) {
       return true;
     }
-    if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+    if (((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD)
+        || ((event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)
+        || KeyEvent.isGamepadButton(keyCode)) {
       int finalKeyCode = handleRemapping(keyCode, event, "up");
       WritableMap params = Arguments.createMap();
       params.putInt("keyCode", finalKeyCode);

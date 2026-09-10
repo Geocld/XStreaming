@@ -23,6 +23,7 @@ import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
 import sessionStatsTracker from '../utils/sessionStatsTracker';
+import {getSettings} from '../store/settingStore';
 
 const {FullScreenManager, GamepadManager, NativeInputDialog, UsbRumbleManager} =
   NativeModules;
@@ -365,7 +366,12 @@ function NanoStreamScreen({navigation, route}: any) {
     FullScreenManager?.immersiveModeOff?.();
     GamepadManager?.setCurrentScreen?.('');
 
-    const sessionReport = sessionStatsTracker.finishSession();
+    const currentSettings = getSettings();
+    const isShowReport =
+      String(currentSettings.show_session_report) === 'true';
+    const sessionReport = isShowReport
+      ? sessionStatsTracker.finishSession()
+      : undefined;
     const dest = streamType === 'cloud' ? 'Cloud' : 'Home';
     navigation.navigate({
       name: dest,
@@ -550,6 +556,8 @@ function NanoStreamScreen({navigation, route}: any) {
       syncLeftThumbButton();
     };
 
+    const buttonPressTimers = new Map<string, any>();
+
     if (isUsbMode) {
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
@@ -594,6 +602,12 @@ function NanoStreamScreen({navigation, route}: any) {
             return;
           }
 
+          const existingTimer = buttonPressTimers.get(keyName);
+          if (existingTimer) {
+            clearTimeout(existingTimer);
+            buttonPressTimers.delete(keyName);
+          }
+
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (settings.short_trigger) {
               inputStateRef.current.buttons[keyName] = 1;
@@ -605,6 +619,7 @@ function NanoStreamScreen({navigation, route}: any) {
             manualLeftThumbPressedRef.current = true;
             syncLeftThumbButton();
           }
+          sendGamepadState();
         },
       );
 
@@ -616,17 +631,30 @@ function NanoStreamScreen({navigation, route}: any) {
             return;
           }
 
-          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            if (settings.short_trigger) {
+          const existingTimer = buttonPressTimers.get(keyName);
+          if (existingTimer) {
+            clearTimeout(existingTimer);
+            buttonPressTimers.delete(keyName);
+          }
+
+          const releaseButton = () => {
+            if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+              if (settings.short_trigger) {
+                inputStateRef.current.buttons[keyName] = 0;
+              }
+            } else {
               inputStateRef.current.buttons[keyName] = 0;
             }
-          } else {
-            inputStateRef.current.buttons[keyName] = 0;
-          }
-          if (keyName === 'LeftThumb') {
-            manualLeftThumbPressedRef.current = false;
-            syncLeftThumbButton();
-          }
+            if (keyName === 'LeftThumb') {
+              manualLeftThumbPressedRef.current = false;
+              syncLeftThumbButton();
+            }
+            sendGamepadState();
+            buttonPressTimers.delete(keyName);
+          };
+
+          const timerId = setTimeout(releaseButton, 60);
+          buttonPressTimers.set(keyName, timerId);
         },
       );
 
@@ -652,6 +680,7 @@ function NanoStreamScreen({navigation, route}: any) {
             ? [event.dpadIdx]
             : [];
           syncDpadState(pressedKeys);
+          sendGamepadState();
         },
       );
 
@@ -659,6 +688,7 @@ function NanoStreamScreen({navigation, route}: any) {
         'onDpadKeyUp',
         () => {
           syncDpadState([]);
+          sendGamepadState();
         },
       );
 
@@ -722,6 +752,8 @@ function NanoStreamScreen({navigation, route}: any) {
         clearInterval(gamepadTimerRef.current);
         gamepadTimerRef.current = null;
       }
+      buttonPressTimers.forEach(timerId => clearTimeout(timerId));
+      buttonPressTimers.clear();
       manualLeftThumbPressedRef.current = false;
       autoSprintLeftThumbPressedRef.current = false;
       isTriggerWorkRef.current = false;
