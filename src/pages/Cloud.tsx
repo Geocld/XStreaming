@@ -862,6 +862,199 @@ const TutorialModal: React.FC<TutorialModalProps> = ({visible, onDismiss}) => {
   );
 };
 
+interface CarouselSectionProps {
+  title: string;
+  data: any[];
+  categoryKey: any;
+  idPrefix: string;
+  isSectionActive: boolean;
+  focusedIndex: number;
+  isGamepadActive: boolean;
+  horizontalCardWidth: number;
+  horizontalCardHeight: number;
+  isLandscape: boolean;
+  isLight: boolean;
+  primary: string;
+  onPress: (item: any) => void;
+  onPlayPress: (item: any) => void;
+  onShowAll: (categoryKey: any) => void;
+  sectionRefCallback: (ref: any) => void;
+  onMomentumScrollEndCallback: (e: any) => void;
+  t: (key: string) => string;
+}
+
+const CarouselSection = React.memo<CarouselSectionProps>(({
+  title,
+  data,
+  categoryKey,
+  idPrefix,
+  isSectionActive,
+  focusedIndex,
+  isGamepadActive,
+  horizontalCardWidth,
+  horizontalCardHeight,
+  isLandscape,
+  isLight,
+  primary,
+  onPress,
+  onPlayPress,
+  onShowAll,
+  sectionRefCallback,
+  onMomentumScrollEndCallback,
+  t,
+}) => {
+  if (!data || data.length === 0) return null;
+  const maxItems = Platform.isTV ? 6 : 10;
+  const hasMoreThanMax = data.length > maxItems;
+  const displayData = React.useMemo(
+    () => (hasMoreThanMax ? data.slice(0, maxItems) : data),
+    [data, hasMoreThanMax, maxItems],
+  );
+
+  const renderCard = React.useCallback(
+    ({item, index}: {item: any; index: number}) => (
+      <XStreamingGameCard
+        titleItem={item}
+        width={horizontalCardWidth}
+        height={horizontalCardHeight}
+        onPress={onPress}
+        onPlayPress={onPlayPress}
+        style={styles.horizontalCardMargin}
+        hasTVPreferredFocus={false}
+        isFocused={isGamepadActive && isSectionActive && focusedIndex === index}
+      />
+    ),
+    [
+      horizontalCardWidth,
+      horizontalCardHeight,
+      onPress,
+      onPlayPress,
+      isGamepadActive,
+      isSectionActive,
+      focusedIndex,
+    ],
+  );
+
+  const getItemLayout = React.useCallback(
+    (_: any, index: number) => ({
+      length: horizontalCardWidth + 10,
+      offset: (horizontalCardWidth + 10) * index,
+      index,
+    }),
+    [horizontalCardWidth],
+  );
+
+  const keyExtractor = React.useCallback(
+    (item: any, index: number) => `${idPrefix}_${item.titleId || item.XCloudTitleId || index}`,
+    [idPrefix],
+  );
+
+  return (
+    <View style={[styles.carouselSection, isLandscape && styles.carouselSectionLandscape]}>
+      <View style={[styles.sectionHeaderRow, isLandscape && styles.sectionHeaderRowLandscape]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            isLandscape && styles.sectionTitleLandscape,
+            isLight && styles.sectionTitleLight,
+          ]}
+          numberOfLines={1}>
+          {title}
+        </Text>
+        {hasMoreThanMax && (
+          <Pressable
+            focusable={true}
+            onPress={() => onShowAll(categoryKey)}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+            style={({pressed, focused}: any) => [
+              styles.showAllHeaderButton,
+              {backgroundColor: primary + '1A'},
+              focused && styles.showAllHeaderButtonFocused,
+              pressed && [styles.showAllHeaderButtonPressed, {backgroundColor: primary + '33'}],
+            ]}>
+            <Text style={[styles.showAllHeaderText, {color: primary}]}>{t('Show all')}</Text>
+            <Icon source="chevron-right" size={13} color={primary} />
+          </Pressable>
+        )}
+      </View>
+
+      <FlatList
+        ref={sectionRefCallback}
+        horizontal
+        data={displayData}
+        extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${isSectionActive ? focusedIndex : -1}`}
+        keyExtractor={keyExtractor}
+        showsHorizontalScrollIndicator={false}
+        style={[styles.horizontalListWrap, isLandscape && styles.horizontalListWrapLandscape]}
+        contentContainerStyle={[
+          styles.horizontalListContent,
+          isLandscape && styles.horizontalListContentLandscape,
+        ]}
+        getItemLayout={getItemLayout}
+        onMomentumScrollEnd={onMomentumScrollEndCallback}
+        initialNumToRender={isLandscape ? 6 : 3}
+        maxToRenderPerBatch={isLandscape ? 4 : 2}
+        windowSize={3}
+        removeClippedSubviews={Platform.OS === 'android'}
+        renderItem={renderCard}
+        ListFooterComponent={() => {
+          if (!hasMoreThanMax) return null;
+          const isShowAllCardFocused =
+            isGamepadActive && isSectionActive && focusedIndex === displayData.length;
+          return (
+            <Pressable
+              focusable={true}
+              onPress={() => onShowAll(categoryKey)}
+              style={({pressed, focused}: any) => [
+                styles.showAllCard,
+                isLight && styles.showAllCardLight,
+                {
+                  width: horizontalCardWidth,
+                  height: horizontalCardHeight,
+                  borderColor: isShowAllCardFocused
+                    ? (isLight ? primary : '#FFFFFF')
+                    : primary + '4D',
+                  borderWidth: isShowAllCardFocused ? 2.5 : 1,
+                },
+                (isShowAllCardFocused || focused) && [
+                  styles.showAllCardFocused,
+                  {borderColor: isLight ? primary : '#FFFFFF'},
+                ],
+                pressed && [
+                  styles.showAllCardPressed,
+                  {borderColor: primary, backgroundColor: primary + '1A'},
+                ],
+              ]}>
+              <View
+                style={[
+                  styles.showAllIconCircle,
+                  {backgroundColor: isShowAllCardFocused ? primary : primary + '1A'},
+                ]}>
+                <Icon
+                  source="arrow-right"
+                  size={24}
+                  color={isShowAllCardFocused ? '#FFFFFF' : primary}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.showAllCardTitle,
+                  isLight && styles.showAllCardTitleLight,
+                  isShowAllCardFocused && {fontWeight: '700', color: isLight ? primary : '#FFFFFF'},
+                ]}>
+                {t('Show all')}
+              </Text>
+              <Text style={[styles.showAllCardSubtitle, {color: primary}]}>
+                {`+${data.length - maxItems} ${t('available')}`}
+              </Text>
+            </Pressable>
+          );
+        }}
+      />
+    </View>
+  );
+});
+
 function CloudScreen({navigation, route}: any) {
   const {t, i18n} = useTranslation();
   const theme = useTheme();
@@ -1233,6 +1426,18 @@ function CloudScreen({navigation, route}: any) {
         streamYourOwnTitles: ownList,
         leavingSoonTitles: leaveList,
         recentTitles: recentList,
+      });
+
+      // Prefetch top images for instantaneous visual appearance
+      const prefetchPool = [...recentList.slice(0, 6), ...gpList.slice(0, 6), ...leaveList.slice(0, 6)];
+      prefetchPool.forEach((item: any) => {
+        const raw = item?.Image_Poster?.URL || item?.Image_Tile?.URL || item?.details?.posterUrl;
+        if (raw && typeof raw === 'string') {
+          const full = raw.startsWith('http') ? raw : `https:${raw}`;
+          try {
+            Image.prefetch(full);
+          } catch (ignored) {}
+        }
       });
     } catch (err) {
       log.info('fetchCatalog error:', err);
@@ -1914,6 +2119,9 @@ function CloudScreen({navigation, route}: any) {
       const curSecIdx = availableSections.findIndex(s => s.id === focusedSection);
       if (curSecIdx < 0) return;
 
+      const viewportH = isLandscape ? screenHeight - 70 : screenHeight - 120;
+      const currentScrollY = currentScrollOffsetRef.current || 0;
+
       if (focusedSection === 'grid') {
         const curSec = availableSections[curSecIdx];
         const nextGridIdx = focusedIndex + numColumns;
@@ -1921,11 +2129,19 @@ function CloudScreen({navigation, route}: any) {
           setFocusedIndex(nextGridIdx);
           const nextRow = Math.floor(nextGridIdx / numColumns);
           const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
-          const offset = carouselsCount * secHeight + nextRow * (cardHeight + 10);
-          flatListRef.current?.scrollToOffset?.({
-            offset,
-            animated: true,
-          });
+          const rowTop = carouselsCount * secHeight + nextRow * (cardHeight + 10);
+          const rowBottom = rowTop + cardHeight + 10;
+          if (rowBottom > currentScrollY + viewportH) {
+            flatListRef.current?.scrollToOffset?.({
+              offset: rowBottom - viewportH + 20,
+              animated: true,
+            });
+          } else if (rowTop < currentScrollY) {
+            flatListRef.current?.scrollToOffset?.({
+              offset: Math.max(0, rowTop - 20),
+              animated: true,
+            });
+          }
         }
       } else {
         if (curSecIdx < availableSections.length - 1) {
@@ -1937,16 +2153,27 @@ function CloudScreen({navigation, route}: any) {
 
           if (nextSec.id === 'grid') {
             const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
-            flatListRef.current?.scrollToOffset?.({
-              offset: carouselsCount * secHeight,
-              animated: true,
-            });
+            const gridTop = carouselsCount * secHeight;
+            if (gridTop + (cardHeight + 10) > currentScrollY + viewportH || gridTop < currentScrollY) {
+              flatListRef.current?.scrollToOffset?.({
+                offset: Math.max(0, gridTop - 20),
+                animated: true,
+              });
+            }
           } else {
-            const targetOffset = (curSecIdx + 1) * secHeight;
-            flatListRef.current?.scrollToOffset?.({
-              offset: targetOffset,
-              animated: true,
-            });
+            const targetSecTop = (curSecIdx + 1) * secHeight;
+            const targetSecBottom = targetSecTop + secHeight;
+            if (targetSecBottom > currentScrollY + viewportH) {
+              flatListRef.current?.scrollToOffset?.({
+                offset: targetSecBottom - viewportH + 20,
+                animated: true,
+              });
+            } else if (targetSecTop < currentScrollY) {
+              flatListRef.current?.scrollToOffset?.({
+                offset: Math.max(0, targetSecTop - 20),
+                animated: true,
+              });
+            }
 
             const nextSecLeft = carouselScrollLeftMap.current[nextSec.id] || 0;
             if (nextIdx < nextSecLeft) {
@@ -1980,17 +2207,22 @@ function CloudScreen({navigation, route}: any) {
       const curSecIdx = availableSections.findIndex(s => s.id === focusedSection);
       if (curSecIdx < 0) return;
 
+      const viewportH = isLandscape ? screenHeight - 70 : screenHeight - 120;
+      const currentScrollY = currentScrollOffsetRef.current || 0;
+
       if (focusedSection === 'grid') {
         if (focusedIndex >= numColumns) {
           const prevGridIdx = focusedIndex - numColumns;
           setFocusedIndex(prevGridIdx);
           const prevRow = Math.floor(prevGridIdx / numColumns);
           const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
-          const offset = carouselsCount * secHeight + prevRow * (cardHeight + 10);
-          flatListRef.current?.scrollToOffset?.({
-            offset,
-            animated: true,
-          });
+          const rowTop = carouselsCount * secHeight + prevRow * (cardHeight + 10);
+          if (rowTop < currentScrollY) {
+            flatListRef.current?.scrollToOffset?.({
+              offset: Math.max(0, rowTop - 20),
+              animated: true,
+            });
+          }
         } else {
           // At top row of grid
           if (curSecIdx > 0) {
@@ -1999,11 +2231,19 @@ function CloudScreen({navigation, route}: any) {
             const maxIdx = prevSec.hasMore ? prevSec.data.length : prevSec.data.length - 1;
             const nextIdx = Math.min(focusedIndex, maxIdx);
             setFocusedIndex(nextIdx);
-            const targetOffset = (curSecIdx - 1) * secHeight;
-            flatListRef.current?.scrollToOffset?.({
-              offset: targetOffset,
-              animated: true,
-            });
+            const targetSecTop = (curSecIdx - 1) * secHeight;
+            const targetSecBottom = targetSecTop + secHeight;
+            if (targetSecTop < currentScrollY) {
+              flatListRef.current?.scrollToOffset?.({
+                offset: Math.max(0, targetSecTop - 20),
+                animated: true,
+              });
+            } else if (targetSecBottom > currentScrollY + viewportH) {
+              flatListRef.current?.scrollToOffset?.({
+                offset: targetSecBottom - viewportH + 20,
+                animated: true,
+              });
+            }
           } else {
             // No sections above: move up to header
             setFocusedSection('header');
@@ -2023,11 +2263,19 @@ function CloudScreen({navigation, route}: any) {
           const maxIdx = prevSec.hasMore ? prevSec.data.length : prevSec.data.length - 1;
           const nextIdx = Math.min(focusedIndex, maxIdx);
           setFocusedIndex(nextIdx);
-          const targetOffset = (curSecIdx - 1) * secHeight;
-          flatListRef.current?.scrollToOffset?.({
-            offset: targetOffset,
-            animated: true,
-          });
+          const targetSecTop = (curSecIdx - 1) * secHeight;
+          const targetSecBottom = targetSecTop + secHeight;
+          if (targetSecTop < currentScrollY) {
+            flatListRef.current?.scrollToOffset?.({
+              offset: Math.max(0, targetSecTop - 20),
+              animated: true,
+            });
+          } else if (targetSecBottom > currentScrollY + viewportH) {
+            flatListRef.current?.scrollToOffset?.({
+              offset: targetSecBottom - viewportH + 20,
+              animated: true,
+            });
+          }
 
           const prevSecLeft = carouselScrollLeftMap.current[prevSec.id] || 0;
           if (nextIdx < prevSecLeft) {
@@ -2121,190 +2369,152 @@ function CloudScreen({navigation, route}: any) {
     },
   });
 
-  // Horizontal carousel section
-  const renderCarouselSection = (
-    title: string,
-    data: any[],
-    categoryKey: any,
-    idPrefix: string,
-  ) => {
-    if (!data || data.length === 0) return null;
-    const maxItems = Platform.isTV ? 6 : 10;
-    const hasMoreThanMax = data.length > maxItems;
-    const displayData = hasMoreThanMax ? data.slice(0, maxItems) : data;
+  const setSectionRef = React.useCallback(
+    (idPrefix: string) => (ref: any) => {
+      sectionListRefs.current[idPrefix] = ref;
+    },
+    [],
+  );
 
-    return (
-      <View
-        key={`${idPrefix}_sec`}
-        style={[styles.carouselSection, isLandscape && styles.carouselSectionLandscape]}>
-        <View
-          style={[styles.sectionHeaderRow, isLandscape && styles.sectionHeaderRowLandscape]}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              isLandscape && styles.sectionTitleLandscape,
-              isLight && styles.sectionTitleLight,
-            ]}
-            numberOfLines={1}>
-            {title}
-          </Text>
-          {hasMoreThanMax && (
-            <Pressable
-              focusable={true}
-              onPress={() => handleShowAll(categoryKey)}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-              style={({pressed, focused}: any) => [
-                styles.showAllHeaderButton,
-                {backgroundColor: primary + '1A'},
-                focused && styles.showAllHeaderButtonFocused,
-                pressed && [styles.showAllHeaderButtonPressed, {backgroundColor: primary + '33'}],
-              ]}>
-              <Text style={[styles.showAllHeaderText, {color: primary}]}>{t('Show all')}</Text>
-              <Icon source="chevron-right" size={13} color={primary} />
-            </Pressable>
-          )}
-        </View>
+  const onMomentumScrollEnd = React.useCallback(
+    (idPrefix: string) => (e: any) => {
+      const offsetX = e.nativeEvent.contentOffset.x;
+      const leftIdx = Math.max(
+        0,
+        Math.floor(offsetX / (horizontalCardWidth + 10)),
+      );
+      carouselScrollLeftMap.current[idPrefix] = leftIdx;
+    },
+    [horizontalCardWidth],
+  );
 
-        <FlatList
-          ref={ref => {
-            sectionListRefs.current[idPrefix] = ref;
-          }}
-          horizontal
-          data={displayData}
-          extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${focusedSection}_${focusedIndex}`}
-          keyExtractor={(item, index) =>
-            `${idPrefix}_${item.titleId || item.XCloudTitleId || index}`
-          }
-          showsHorizontalScrollIndicator={false}
-          style={[styles.horizontalListWrap, isLandscape && styles.horizontalListWrapLandscape]}
-          contentContainerStyle={[
-            styles.horizontalListContent,
-            isLandscape && styles.horizontalListContentLandscape,
-          ]}
-          getItemLayout={(data, index) => ({
-            length: horizontalCardWidth + 10,
-            offset: (horizontalCardWidth + 10) * index,
-            index,
-          })}
-          onMomentumScrollEnd={e => {
-            const offsetX = e.nativeEvent.contentOffset.x;
-            const leftIdx = Math.max(
-              0,
-              Math.floor(offsetX / (horizontalCardWidth + 10)),
-            );
-            carouselScrollLeftMap.current[idPrefix] = leftIdx;
-          }}
-          onScrollToIndexFailed={info => {
-            try {
-              sectionListRefs.current[idPrefix]?.scrollToOffset({
-                offset: (horizontalCardWidth + 10) * info.index,
-                animated: true,
-              });
-            } catch (e) {}
-          }}
-          initialNumToRender={Platform.isTV ? 3 : 4}
-          maxToRenderPerBatch={Platform.isTV ? 2 : 4}
-          windowSize={Platform.isTV ? 2 : 3}
-          removeClippedSubviews={Platform.OS === 'android'}
-          renderItem={({item, index}) => (
-            <XStreamingGameCard
-              titleItem={item}
-              width={horizontalCardWidth}
-              height={horizontalCardHeight}
-              onPress={handleViewDetail}
-              onPlayPress={handleDirectPlay}
-              style={styles.horizontalCardMargin}
-              hasTVPreferredFocus={false}
-              isFocused={isGamepadActive && focusedSection === idPrefix && focusedIndex === index}
-            />
-          )}
-          ListFooterComponent={() => {
-            if (!hasMoreThanMax) return null;
-            const isShowAllCardFocused =
-              isGamepadActive &&
-              focusedSection === idPrefix &&
-              focusedIndex === displayData.length;
-            return (
-              <Pressable
-                focusable={true}
-                onPress={() => handleShowAll(categoryKey)}
-                style={({pressed, focused}: any) => [
-                  styles.showAllCard,
-                  isLight && styles.showAllCardLight,
-                  {
-                    width: horizontalCardWidth,
-                    height: horizontalCardHeight,
-                    borderColor: isShowAllCardFocused
-                      ? (isLight ? primary : '#FFFFFF')
-                      : primary + '4D',
-                    borderWidth: isShowAllCardFocused ? 2.5 : 1,
-                  },
-                  (isShowAllCardFocused || focused) && [
-                    styles.showAllCardFocused,
-                    {borderColor: isLight ? primary : '#FFFFFF'},
-                  ],
-                  pressed && [
-                    styles.showAllCardPressed,
-                    {borderColor: primary, backgroundColor: primary + '1A'},
-                  ],
-                ]}>
-                <View
-                  style={[
-                    styles.showAllIconCircle,
-                    {backgroundColor: isShowAllCardFocused ? primary : primary + '1A'},
-                  ]}>
-                  <Icon
-                    source="arrow-right"
-                    size={24}
-                    color={isShowAllCardFocused ? '#FFFFFF' : primary}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.showAllCardTitle,
-                    isLight && styles.showAllCardTitleLight,
-                    isShowAllCardFocused && {fontWeight: '700', color: isLight ? primary : '#FFFFFF'},
-                  ]}>
-                  {t('Show all')}
-                </Text>
-                <Text style={[styles.showAllCardSubtitle, {color: primary}]}>
-                  {`+${data.length - maxItems} ${t('available')}`}
-                </Text>
-              </Pressable>
-            );
-          }}
-        />
-      </View>
-    );
-  };
-
-  // Channel carousels header
-  const renderCarouselsHeader = React.useCallback(() => {
+  const carouselsHeader = React.useMemo(() => {
     if (filterCategory !== 'all' || keyword.length > 0) {
       return null;
     }
 
     return (
       <View style={styles.carouselsContainer}>
-        {/* Jump back in */}
-        {renderCarouselSection(t('Jump back in'), recentTitles, 'recent', 'recent')}
-
-        {/* Play with Game Pass */}
-        {renderCarouselSection(t('Play with Game Pass'), playWithGamePassTitles, 'play_gamepass', 'gp')}
-
-        {/* Recently added */}
-        {renderCarouselSection(t('Recently Added'), newTitles, 'new', 'new')}
-
-        {/* Ubisoft+ Classic */}
-        {renderCarouselSection(t('Ubisoft+ Classic'), ubisoftTitles, 'ubisoft', 'ubi')}
-
-        {/* Stream your own game */}
-        {renderCarouselSection(t('Stream your own game'), streamYourOwnTitles, 'own', 'own')}
-
-        {/* Leaving soon */}
-        {renderCarouselSection(t('Leaving soon'), leavingSoonList, 'leaving', 'leave')}
-
-        {/* All games section divider */}
+        <CarouselSection
+          title={t('Jump back in')}
+          data={recentTitles}
+          categoryKey="recent"
+          idPrefix="recent"
+          isSectionActive={isGamepadActive && focusedSection === 'recent'}
+          focusedIndex={focusedSection === 'recent' ? focusedIndex : -1}
+          isGamepadActive={isGamepadActive}
+          horizontalCardWidth={horizontalCardWidth}
+          horizontalCardHeight={horizontalCardHeight}
+          isLandscape={isLandscape}
+          isLight={isLight}
+          primary={primary}
+          onPress={handleViewDetail}
+          onPlayPress={handleDirectPlay}
+          onShowAll={handleShowAll}
+          sectionRefCallback={setSectionRef('recent')}
+          onMomentumScrollEndCallback={onMomentumScrollEnd('recent')}
+          t={t}
+        />
+        <CarouselSection
+          title={t('Play with Game Pass')}
+          data={playWithGamePassTitles}
+          categoryKey="play_gamepass"
+          idPrefix="gp"
+          isSectionActive={isGamepadActive && focusedSection === 'gp'}
+          focusedIndex={focusedSection === 'gp' ? focusedIndex : -1}
+          isGamepadActive={isGamepadActive}
+          horizontalCardWidth={horizontalCardWidth}
+          horizontalCardHeight={horizontalCardHeight}
+          isLandscape={isLandscape}
+          isLight={isLight}
+          primary={primary}
+          onPress={handleViewDetail}
+          onPlayPress={handleDirectPlay}
+          onShowAll={handleShowAll}
+          sectionRefCallback={setSectionRef('gp')}
+          onMomentumScrollEndCallback={onMomentumScrollEnd('gp')}
+          t={t}
+        />
+        <CarouselSection
+          title={t('Recently Added')}
+          data={newTitles}
+          categoryKey="new"
+          idPrefix="new"
+          isSectionActive={isGamepadActive && focusedSection === 'new'}
+          focusedIndex={focusedSection === 'new' ? focusedIndex : -1}
+          isGamepadActive={isGamepadActive}
+          horizontalCardWidth={horizontalCardWidth}
+          horizontalCardHeight={horizontalCardHeight}
+          isLandscape={isLandscape}
+          isLight={isLight}
+          primary={primary}
+          onPress={handleViewDetail}
+          onPlayPress={handleDirectPlay}
+          onShowAll={handleShowAll}
+          sectionRefCallback={setSectionRef('new')}
+          onMomentumScrollEndCallback={onMomentumScrollEnd('new')}
+          t={t}
+        />
+        <CarouselSection
+          title={t('Ubisoft+ Classic')}
+          data={ubisoftTitles}
+          categoryKey="ubisoft"
+          idPrefix="ubi"
+          isSectionActive={isGamepadActive && focusedSection === 'ubi'}
+          focusedIndex={focusedSection === 'ubi' ? focusedIndex : -1}
+          isGamepadActive={isGamepadActive}
+          horizontalCardWidth={horizontalCardWidth}
+          horizontalCardHeight={horizontalCardHeight}
+          isLandscape={isLandscape}
+          isLight={isLight}
+          primary={primary}
+          onPress={handleViewDetail}
+          onPlayPress={handleDirectPlay}
+          onShowAll={handleShowAll}
+          sectionRefCallback={setSectionRef('ubi')}
+          onMomentumScrollEndCallback={onMomentumScrollEnd('ubi')}
+          t={t}
+        />
+        <CarouselSection
+          title={t('Stream your own game')}
+          data={streamYourOwnTitles}
+          categoryKey="own"
+          idPrefix="own"
+          isSectionActive={isGamepadActive && focusedSection === 'own'}
+          focusedIndex={focusedSection === 'own' ? focusedIndex : -1}
+          isGamepadActive={isGamepadActive}
+          horizontalCardWidth={horizontalCardWidth}
+          horizontalCardHeight={horizontalCardHeight}
+          isLandscape={isLandscape}
+          isLight={isLight}
+          primary={primary}
+          onPress={handleViewDetail}
+          onPlayPress={handleDirectPlay}
+          onShowAll={handleShowAll}
+          sectionRefCallback={setSectionRef('own')}
+          onMomentumScrollEndCallback={onMomentumScrollEnd('own')}
+          t={t}
+        />
+        <CarouselSection
+          title={t('Leaving soon')}
+          data={leavingSoonList}
+          categoryKey="leaving"
+          idPrefix="leave"
+          isSectionActive={isGamepadActive && focusedSection === 'leave'}
+          focusedIndex={focusedSection === 'leave' ? focusedIndex : -1}
+          isGamepadActive={isGamepadActive}
+          horizontalCardWidth={horizontalCardWidth}
+          horizontalCardHeight={horizontalCardHeight}
+          isLandscape={isLandscape}
+          isLight={isLight}
+          primary={primary}
+          onPress={handleViewDetail}
+          onPlayPress={handleDirectPlay}
+          onShowAll={handleShowAll}
+          sectionRefCallback={setSectionRef('leave')}
+          onMomentumScrollEndCallback={onMomentumScrollEnd('leave')}
+          t={t}
+        />
         <View style={styles.catalogDividerHeader}>
           <Text style={[styles.catalogSectionTitle, isLight && styles.catalogSectionTitleLight]}>
             {t('All')}
@@ -2321,20 +2531,24 @@ function CloudScreen({navigation, route}: any) {
     ubisoftTitles,
     streamYourOwnTitles,
     leavingSoonList,
-    preferredFocusSection,
     horizontalCardWidth,
     horizontalCardHeight,
-    handleViewDetail,
-    handleDirectPlay,
     primary,
     isLight,
     isLandscape,
+    isGamepadActive,
     focusedSection,
     focusedIndex,
+    handleViewDetail,
+    handleDirectPlay,
+    handleShowAll,
+    setSectionRef,
+    onMomentumScrollEnd,
     t,
   ]);
 
-  // Grid item renderer
+  // Grid item renderer with stabilized focus index
+  const focusedGridIndex = isGamepadActive && focusedSection === 'grid' ? focusedIndex : -1;
   const renderGridItem = React.useCallback(
     ({item, index}: {item: any; index: number}) => (
       <XStreamingGameCard
@@ -2344,7 +2558,7 @@ function CloudScreen({navigation, route}: any) {
         onPress={handleViewDetail}
         onPlayPress={handleDirectPlay}
         hasTVPreferredFocus={false}
-        isFocused={isGamepadActive && focusedSection === 'grid' && focusedIndex === index}
+        isFocused={focusedGridIndex === index}
       />
     ),
     [
@@ -2352,14 +2566,13 @@ function CloudScreen({navigation, route}: any) {
       cardHeight,
       handleViewDetail,
       handleDirectPlay,
-      isGamepadActive,
-      focusedSection,
-      focusedIndex,
+      focusedGridIndex,
     ],
   );
 
   const itemKeyExtractor = React.useCallback(
-    (item: any, index: number) => `${item.titleId || item.XCloudTitleId || index}`,
+    (item: any, index: number) =>
+      item.productId || item.titleId || item.XCloudTitleId || `grid_${index}`,
     [],
   );
 
@@ -2881,7 +3094,7 @@ function CloudScreen({navigation, route}: any) {
               onScroll={e => {
                 currentScrollOffsetRef.current = e.nativeEvent.contentOffset.y;
               }}
-              scrollEventThrottle={16}
+              scrollEventThrottle={48}
               extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${focusedSection === 'grid' ? focusedIndex : ''}`}
               numColumns={numColumns}
               keyExtractor={itemKeyExtractor}
@@ -2891,10 +3104,10 @@ function CloudScreen({navigation, route}: any) {
                 isLargeScreen && styles.gridContentContainerLarge,
                 (isGamepadActive || Platform.isTV) && {paddingBottom: 64},
               ]}
-              ListHeaderComponent={renderCarouselsHeader()}
+              ListHeaderComponent={carouselsHeader}
               renderItem={renderGridItem}
-              initialNumToRender={Platform.isTV ? 6 : (isLargeScreen ? 12 : 9)}
-              maxToRenderPerBatch={Platform.isTV ? 4 : (isLargeScreen ? 12 : 9)}
+              initialNumToRender={Platform.isTV ? 6 : (isLandscape ? 8 : 6)}
+              maxToRenderPerBatch={Platform.isTV ? 4 : (isLandscape ? 6 : 4)}
               windowSize={Platform.isTV ? 3 : 5}
               removeClippedSubviews={Platform.OS === 'android'}
               onScrollToIndexFailed={info => {

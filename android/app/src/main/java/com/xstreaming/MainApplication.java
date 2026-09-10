@@ -21,7 +21,19 @@ import android.media.AudioAttributes;
 import org.webrtc.EglBase;
 import org.webrtc.audio.JavaAudioDeviceModule;
 
+import com.facebook.react.modules.network.OkHttpClientProvider;
+import com.facebook.react.modules.network.OkHttpClientFactory;
+import okhttp3.OkHttpClient;
+import okhttp3.Cache;
+import okhttp3.ConnectionPool;
+import okhttp3.Dns;
+
+import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MainApplication extends Application implements ReactApplication {
   private final ReactNativeHost mReactNativeHost =
@@ -82,6 +94,41 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate() {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
+
+    // High-performance network & image cache configuration
+    OkHttpClientProvider.setOkHttpClientFactory(new OkHttpClientFactory() {
+      @Override
+      public OkHttpClient createNewNetworkModuleClient() {
+        File cacheDir = new File(getCacheDir(), "fresco_http_cache");
+        Cache cache = new Cache(cacheDir, 250L * 1024 * 1024);
+
+        return OkHttpClientProvider.createClientBuilder()
+            .cache(cache)
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectionPool(new ConnectionPool(20, 5, TimeUnit.MINUTES))
+            .dns(new Dns() {
+              @Override
+              public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+                try {
+                  return Dns.SYSTEM.lookup(hostname);
+                } catch (Exception e) {
+                  if (hostname != null && hostname.contains("store-images.s-microsoft.com")) {
+                    try {
+                      return Arrays.asList(
+                        InetAddress.getByName("23.200.181.199"),
+                        InetAddress.getByName("23.200.181.187")
+                      );
+                    } catch (Exception ignored) {}
+                  }
+                  throw new UnknownHostException("DNS lookup failed for " + hostname + ": " + e.getMessage());
+                }
+              }
+            })
+            .build();
+      }
+    });
 
     // webrtc
     WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
