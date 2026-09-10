@@ -13,6 +13,7 @@ import {useSelector} from 'react-redux';
 import {debugFactory} from '../utils/debug';
 import WebApi from '../web';
 import ArchivementItem from '../components/ArchivementItem';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 // import mockData from '../mock/achivement';
 
 const log = debugFactory('ArchivementDetail');
@@ -27,6 +28,18 @@ function ArchivementDetail({navigation, route}) {
 
   const webToken = useSelector((state: any) => state.webToken);
   const flatListRef = React.useRef(null);
+
+  useGamepadNavigation({
+    onLeft: () => {
+      setCurrent(curr => (curr === 'lock' ? 'unlocked' : curr === 'unlocked' ? 'all' : 'all'));
+    },
+    onRight: () => {
+      setCurrent(curr => (curr === 'all' ? 'unlocked' : curr === 'unlocked' ? 'lock' : 'lock'));
+    },
+    onBack: () => {
+      navigation.goBack();
+    },
+  });
 
   React.useEffect(() => {
     log.info('ArchivementDetail titleId:', route.params?.titleId);

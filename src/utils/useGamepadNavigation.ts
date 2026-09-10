@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
+import { BackHandler, DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 
 export type NavAction =
   | 'up'
@@ -33,12 +33,35 @@ interface HandlerEntry {
 let nextHandlerId = 1;
 const handlerStack: HandlerEntry[] = [];
 let isGlobalListenerAttached = false;
+let isBackHandlerAttached = false;
 let lastGlobalAction: string | null = null;
 let lastGlobalTime: number = 0;
+
+function ensureBackHandlerListener() {
+  if (isBackHandlerAttached) return;
+  isBackHandlerAttached = true;
+
+  BackHandler.addEventListener('hardwareBackPress', () => {
+    const activeEntries = handlerStack
+      .filter(entry => entry.handlersRef.current && entry.handlersRef.current.enabled !== false)
+      .sort((a, b) => {
+        const pDiff = (b.handlersRef.current.priority ?? b.priority) - (a.handlersRef.current.priority ?? a.priority);
+        if (pDiff !== 0) return pDiff;
+        return b.id - a.id;
+      });
+
+    if (activeEntries.length > 0 && activeEntries[0].handlersRef.current.onBack) {
+      activeEntries[0].handlersRef.current.onBack();
+      return true;
+    }
+    return false;
+  });
+}
 
 function ensureGlobalNavigationListener() {
   if (isGlobalListenerAttached) return;
   isGlobalListenerAttached = true;
+  ensureBackHandlerListener();
 
   DeviceEventEmitter.addListener(
     'onMenuNavigation',

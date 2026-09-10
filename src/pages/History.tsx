@@ -3,8 +3,9 @@ import {StyleSheet, View, ScrollView} from 'react-native';
 import {Text, Card} from 'react-native-paper';
 import axios from 'axios';
 import Spinner from '../components/Spinner';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
-const formatMdString = md => {
+const formatMdString = (md: any) => {
   return md
     .replace(/##\s/g, '')
     .replace(/\r\n---\r\n/g, '\n')
@@ -13,9 +14,22 @@ const formatMdString = md => {
     .replace(/^-\s/gm, '• ');
 };
 
-function HistoryScreen() {
+function HistoryScreen({navigation}: any) {
   const [loading, setLoading] = React.useState(false);
   const [releases, setReleases] = React.useState([]);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+
+  useGamepadNavigation({
+    onUp: () => {
+      scrollViewRef.current?.scrollTo({y: 0, animated: true});
+    },
+    onDown: () => {
+      scrollViewRef.current?.scrollToEnd({animated: true});
+    },
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   React.useEffect(() => {
     setLoading(true);
@@ -35,7 +49,7 @@ function HistoryScreen() {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView ref={scrollViewRef} style={styles.container}>
       <Spinner loading={loading} cancelable={true} />
 
       <View style={styles.block}>

@@ -3,10 +3,11 @@ import {
   StyleSheet,
   View,
   Alert,
-  FlatList,
+  ActivityIndicator,
   Platform,
   ScrollView,
   Dimensions,
+  useWindowDimensions,
   SafeAreaView,
   NativeModules,
   ToastAndroid,
@@ -14,7 +15,6 @@ import {
   BackHandler,
 } from 'react-native';
 import {Button, Text, Portal, Modal, Card, useTheme} from 'react-native-paper';
-import Spinner from '../components/Spinner';
 import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
 import ConsoleItem from '../components/ConsoleItem';
@@ -56,7 +56,17 @@ function HomeScreen({navigation, route}) {
   const [loading, setLoading] = React.useState(false);
   const [loadingText, setLoadingText] = React.useState('');
   const [_, setXalUrl] = React.useState('');
-  const [consoles, setConsoles] = React.useState([]);
+  const [consoles, setConsoles] = React.useState<any[]>(() => {
+    const cacheData = getConsolesData();
+    if (
+      cacheData &&
+      isConsolesDataValid(cacheData) &&
+      Array.isArray(cacheData.consoles)
+    ) {
+      return cacheData.consoles;
+    }
+    return [];
+  });
   const [isConnected, setIsConnected] = React.useState(true);
   const [currentConsoleId, setCurrentConsoleId] = React.useState('');
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
@@ -114,37 +124,16 @@ function HomeScreen({navigation, route}) {
     _isFocused.current = isFocused;
   }, [isFocused]);
 
-  const {width} = Dimensions.get('window');
+  const {width, height} = useWindowDimensions();
   const emptyConsoleCardStyle = React.useMemo(
     () => [styles.emptyConsoleCard, theme.dark && styles.emptyConsoleCardDark],
     [theme.dark],
   );
 
+  // 1. One-time mount initialization (listeners, non-blocking checks)
   React.useEffect(() => {
     log.info('Page loaded.');
     SplashScreen.hide();
-
-    const _settings = getSettings();
-    const webviewVersion = FullScreenManager.getWebViewVersion();
-    const deviceInfos = FullScreenManager.getDeviceInfos();
-    if (webviewVersion) {
-      const verArr = webviewVersion.split('.');
-      const mainVer = verArr[0];
-      if (deviceInfos.androidVer < 12 && mainVer < 91) {
-        _settings.render_engine = 'native';
-        saveSettings(_settings);
-      }
-    }
-
-    // HarmonyOS modal
-    if (
-      deviceInfos &&
-      deviceInfos.factor.indexOf('HUAWEI') > -1 &&
-      _settings.locale === 'zh' &&
-      _settings.show_harmony_modal
-    ) {
-      setShowHarmonyModal(true);
-    }
 
     const updateLayout = () => {
       const {width: w, height: h} = Dimensions.get('window');
@@ -154,10 +143,48 @@ function HomeScreen({navigation, route}) {
     updateLayout();
     const subscription = Dimensions.addEventListener('change', updateLayout);
 
-    const unsubscribe = NetInfo.addEventListener((state: any) => {
+    const unsubscribeNet = NetInfo.addEventListener((state: any) => {
       setIsConnected(state.isConnected);
     });
 
+    // Defer heavy synchronous native calls so they don't block the initial render frame
+    const timer = setTimeout(() => {
+      try {
+        const _settings = getSettings();
+        const webviewVersion = FullScreenManager?.getWebViewVersion?.();
+        const deviceInfos = FullScreenManager?.getDeviceInfos?.();
+        if (webviewVersion && deviceInfos) {
+          const verArr = webviewVersion.split('.');
+          const mainVer = parseInt(verArr[0], 10);
+          if (deviceInfos.androidVer < 12 && mainVer < 91) {
+            _settings.render_engine = 'native';
+            saveSettings(_settings);
+          }
+        }
+
+        if (
+          deviceInfos &&
+          deviceInfos.factor &&
+          deviceInfos.factor.indexOf('HUAWEI') > -1 &&
+          _settings.locale === 'zh' &&
+          _settings.show_harmony_modal
+        ) {
+          setShowHarmonyModal(true);
+        }
+      } catch (err) {
+        log.warn('Device info check error:', err);
+      }
+    }, 500);
+
+    return () => {
+      subscription?.remove();
+      unsubscribeNet();
+      clearTimeout(timer);
+    };
+  }, []);
+
+  // 2. Authentication & Consoles Synchronization
+  React.useEffect(() => {
     if (!isConnected) {
       Alert.alert(
         t('Warning'),
@@ -171,215 +198,70 @@ function HomeScreen({navigation, route}) {
         ],
       );
       return;
-    } else {
-      // Auth completed callback
-      const authenticationCompleted = async (_streamingTokens, _webToken) => {
-        log.info('Authentication completed');
-        webTokenRef.current = _webToken;
-        // log.info('AuthenticationCompleted streamingTokens:', streamingTokens);
-        dispatch({
-          type: 'SET_STREAMING_TOKEN',
-          payload: _streamingTokens,
-        });
-        dispatch({
-          type: 'SET_WEB_TOKEN',
-          payload: _webToken,
-        });
-        dispatch({
-          type: 'SET_LOGIN',
-          payload: true,
-        });
-        _isLogined.current = true;
-        setShowLogin(false);
-        setShowMsalLogin(false);
-        setShowMsal(false);
+    }
 
-        setLoading(true);
-        const webApi = new WebApi(_webToken);
+    const _settings = getSettings();
 
-        try {
-          setLoadingText(t('Fetching consoles...'));
+    // Auth completed callback
+    const authenticationCompleted = async (_streamingTokens: any, _webToken: any) => {
+      log.info('Authentication completed');
+      webTokenRef.current = _webToken;
+      dispatch({
+        type: 'SET_STREAMING_TOKEN',
+        payload: _streamingTokens,
+      });
+      dispatch({
+        type: 'SET_WEB_TOKEN',
+        payload: _webToken,
+      });
+      dispatch({
+        type: 'SET_LOGIN',
+        payload: true,
+      });
+      _isLogined.current = true;
+      setShowLogin(false);
+      setShowMsalLogin(false);
+      setShowMsal(false);
 
-          const _xHomeApi = new XcloudApi(
-            _streamingTokens.xHomeToken.getDefaultRegion().baseUri,
-            _streamingTokens.xHomeToken.data.gsToken,
-            'home',
-            () => {},
-          );
-          _xHomeApiRef.current = _xHomeApi;
+      const webApi = new WebApi(_webToken);
 
-          const cacheData = getConsolesData();
-
-          if (
-            cacheData &&
-            isConsolesDataValid(cacheData) &&
-            cacheData.consoles
-          ) {
-            setConsoles(cacheData.consoles);
-            setLoading(false);
-          }
-
-          let _consoles: any = await _xHomeApi.getConsoles();
-
-          if (!_consoles.length) {
-            _consoles = await webApi.getConsoles();
-          }
-
-          if (_consoles.length > 0) {
-            setConsoles(_consoles);
-            saveConsolesData({
-              consoles: _consoles,
-            });
-          }
-        } catch (e) {
-          Alert.alert(t('Error'), e);
-        }
-        setLoading(false);
-      };
-
-      // Auth failed callback
-      const authenticationFailed = (msg, rollback = false) => {
-        if (rollback) {
-          // Rollback to MSAL auth
-          Alert.alert(t('Error'), t('XalAuthFailDesc') + msg, [
-            {
-              text: t('Confirm'),
-              style: 'default',
-              onPress: () => {
-                _authentication.current = new MsalAuthentication(
-                  authenticationCompleted,
-                  authenticationFailed,
-                );
-                dispatch({
-                  type: 'SET_AUTHENTICATION',
-                  payload: _authentication.current,
-                });
-                setShowMsalLogin(true);
-              },
-            },
-          ]);
-        } else {
-          Alert.alert(t('Error'), t('AuthFailDesc') + msg, [
-            {
-              text: t('Confirm'),
-              style: 'default',
-              onPress: () => {
-                // Restart application to relogin
-                RNRestart.restart();
-              },
-            },
-          ]);
-        }
-      };
-
-      if (!_authentication.current) {
-        log.info('Authentication initial.');
-
-        _authentication.current = new Authentication(
-          authenticationCompleted,
-          authenticationFailed,
+      try {
+        const _xHomeApi = new XcloudApi(
+          _streamingTokens.xHomeToken.getDefaultRegion().baseUri,
+          _streamingTokens.xHomeToken.data.gsToken,
+          'home',
+          () => {},
         );
-        _authentication.current._tokenStore.load();
+        _xHomeApiRef.current = _xHomeApi;
 
-        if (
-          _settings.use_msal_login ||
-          _authentication.current._tokenStore.getAuthenticationMethod() === MSAL
-        ) {
-          log.info('Using MSAL authentication method.');
-          _authentication.current = new MsalAuthentication(
-            authenticationCompleted,
-            authenticationFailed,
-          );
+        let _consoles: any = await _xHomeApi.getConsoles();
+
+        if (!_consoles || !_consoles.length) {
+          _consoles = await webApi.getConsoles();
         }
-        dispatch({
-          type: 'SET_AUTHENTICATION',
-          payload: _authentication.current,
-        });
-      }
 
-      if (_isFocused.current) {
-        log.info('HomeScreen isFocused:', _isFocused.current);
-
-        // Return from Login screen(XAL auth)
-        if (route.params?.xalUrl) {
-          if (!_isLogined.current) {
-            log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
-            setXalUrl(route.params.xalUrl);
-            setLoading(true);
-            setLoadingText(
-              t('Login successful, refreshing login credentials...'),
-            );
-            _authentication.current.startAuthflow(
-              _redirect.current,
-              route.params.xalUrl,
-            );
-          }
-        } else if (route.params?.needRefresh && webTokenRef.current) {
-          if (!_xHomeApiRef.current) {
-            return;
-          }
-          // Refresh silently
-          // setLoading(true);
-          // setLoadingText(t('Fetching consoles...'));
-
-          const webApi = new WebApi(webTokenRef.current);
-          _xHomeApiRef.current.getConsoles().then(_consoles => {
-            if (!_consoles.length) {
-              webApi.getConsoles().then((_consolesV1: any) => {
-                if (_consolesV1.length) {
-                  setConsoles(_consolesV1);
-                }
-              });
-            } else {
-              setConsoles(_consoles);
-            }
+        if (_consoles && _consoles.length > 0) {
+          setConsoles(_consoles);
+          saveConsolesData({
+            consoles: _consoles,
           });
-        } else if (!_isLogined.current) {
-          setLoading(true);
-          setLoadingText(t('Checking login status...'));
-          _authentication.current
-            .checkAuthentication()
-            .then(isAuth => {
-              if (!isAuth) {
-                if (_settings.use_msal_login) {
-                  setLoading(false);
-                  setShowLogin(false);
-                  setShowMsalLogin(true);
-                  setShowMsal(false);
-                } else {
-                  _authentication.current._xal
-                    .getRedirectUri()
-                    .then(redirectObj => {
-                      setLoading(false);
-                      log.info('Redirect:', redirectObj);
-                      _redirect.current = redirectObj;
-                      dispatch({
-                        type: 'SET_REDIRECT',
-                        payload: redirectObj,
-                      });
-                      setShowLogin(true);
-                      setShowMsalLogin(false);
-                      setShowMsal(false);
-                    })
-                    .catch(() => {
-                      _authentication.current = new MsalAuthentication(
-                        authenticationCompleted,
-                        authenticationFailed,
-                      );
-                      dispatch({
-                        type: 'SET_AUTHENTICATION',
-                        payload: _authentication.current,
-                      });
-                      setLoading(false);
-                      setShowLogin(false);
-                      setShowMsalLogin(true);
-                      setShowMsal(false);
-                    });
-                }
-              }
-            })
-            .catch(e => {
-              Alert.alert(t('Error'), e);
+        }
+      } catch (e: any) {
+        log.error('Fetch consoles error:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Auth failed callback
+    const authenticationFailed = (msg: any, rollback = false) => {
+      setLoading(false);
+      if (rollback) {
+        Alert.alert(t('Error'), t('XalAuthFailDesc') + msg, [
+          {
+            text: t('Confirm'),
+            style: 'default',
+            onPress: () => {
               _authentication.current = new MsalAuthentication(
                 authenticationCompleted,
                 authenticationFailed,
@@ -388,25 +270,146 @@ function HomeScreen({navigation, route}) {
                 type: 'SET_AUTHENTICATION',
                 payload: _authentication.current,
               });
-              setLoading(false);
+              setShowMsalLogin(true);
+            },
+          },
+        ]);
+      } else {
+        Alert.alert(t('Error'), t('AuthFailDesc') + msg, [
+          {
+            text: t('Confirm'),
+            style: 'default',
+            onPress: () => {
+              RNRestart.restart();
+            },
+          },
+        ]);
+      }
+    };
+
+    if (!_authentication.current) {
+      log.info('Authentication initial.');
+
+      _authentication.current = new Authentication(
+        authenticationCompleted,
+        authenticationFailed,
+      );
+      _authentication.current._tokenStore.load();
+
+      if (
+        _settings.use_msal_login ||
+        _authentication.current._tokenStore.getAuthenticationMethod() === MSAL
+      ) {
+        log.info('Using MSAL authentication method.');
+        _authentication.current = new MsalAuthentication(
+          authenticationCompleted,
+          authenticationFailed,
+        );
+      }
+      dispatch({
+        type: 'SET_AUTHENTICATION',
+        payload: _authentication.current,
+      });
+    }
+
+    if (route.params?.xalUrl) {
+      if (!_isLogined.current) {
+        log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
+        setXalUrl(route.params.xalUrl);
+        setLoading(true);
+        setLoadingText(
+          t('Login successful, refreshing login credentials...'),
+        );
+        _authentication.current.startAuthflow(
+          _redirect.current,
+          route.params.xalUrl,
+        );
+      }
+    } else if (route.params?.needRefresh && webTokenRef.current) {
+      if (_xHomeApiRef.current) {
+        const webApi = new WebApi(webTokenRef.current);
+        _xHomeApiRef.current.getConsoles().then((_consoles: any) => {
+          if (!_consoles.length) {
+            webApi.getConsoles().then((_consolesV1: any) => {
+              if (_consolesV1.length) {
+                setConsoles(_consolesV1);
+                saveConsolesData({consoles: _consolesV1});
+              }
+            });
+          } else {
+            setConsoles(_consoles);
+            saveConsolesData({consoles: _consoles});
+          }
+        });
+      }
+    } else if (!_isLogined.current && _isFocused.current) {
+      // If we already have cached consoles displayed, refresh silently without freezing UI
+      const hasCachedConsoles = consoles.length > 0;
+      if (!hasCachedConsoles) {
+        setLoading(true);
+        setLoadingText(t('Checking login status...'));
+      }
+
+      _authentication.current
+        .checkAuthentication()
+        .then((isAuth: boolean) => {
+          if (!isAuth) {
+            setLoading(false);
+            if (_settings.use_msal_login) {
               setShowLogin(false);
               setShowMsalLogin(true);
               setShowMsal(false);
-            });
-        }
-      }
+            } else {
+              _authentication.current._xal
+                .getRedirectUri()
+                .then((redirectObj: any) => {
+                  setLoading(false);
+                  log.info('Redirect:', redirectObj);
+                  _redirect.current = redirectObj;
+                  dispatch({
+                    type: 'SET_REDIRECT',
+                    payload: redirectObj,
+                  });
+                  setShowLogin(true);
+                  setShowMsalLogin(false);
+                  setShowMsal(false);
+                })
+                .catch(() => {
+                  _authentication.current = new MsalAuthentication(
+                    authenticationCompleted,
+                    authenticationFailed,
+                  );
+                  dispatch({
+                    type: 'SET_AUTHENTICATION',
+                    payload: _authentication.current,
+                  });
+                  setLoading(false);
+                  setShowLogin(false);
+                  setShowMsalLogin(true);
+                  setShowMsal(false);
+                });
+            }
+          }
+        })
+        .catch((e: any) => {
+          setLoading(false);
+          Alert.alert(t('Error'), e);
+          _authentication.current = new MsalAuthentication(
+            authenticationCompleted,
+            authenticationFailed,
+          );
+          dispatch({
+            type: 'SET_AUTHENTICATION',
+            payload: _authentication.current,
+          });
+          setShowLogin(false);
+          setShowMsalLogin(true);
+          setShowMsal(false);
+        });
     }
-
-    return () => {
-      subscription?.remove();
-      unsubscribe();
-    };
   }, [
-    t,
     route.params?.xalUrl,
     route.params?.needRefresh,
-    dispatch,
-    navigation,
     isConnected,
   ]);
 
@@ -653,6 +656,77 @@ function HomeScreen({navigation, route}) {
     },
   });
 
+  // Focus navigation state for login buttons (when not logged in)
+  const [focusedLoginBtn, setFocusedLoginBtn] = React.useState<'login' | 'settings'>('login');
+  const [focusedHarmonyBtn, setFocusedHarmonyBtn] = React.useState<'dismiss' | 'install'>('install');
+
+  useGamepadNavigation({
+    enabled:
+      isFocused &&
+      !loading &&
+      (showLogin || showMsalLogin) &&
+      !showMsal &&
+      !showUsbWarnModal &&
+      !showHarmonyModal &&
+      !sessionReport,
+    priority: 5,
+    onUp: () => {
+      setFocusedLoginBtn('login');
+    },
+    onDown: () => {
+      setFocusedLoginBtn('settings');
+    },
+    onSelect: () => {
+      if (focusedLoginBtn === 'login') {
+        if (showLogin) {
+          handleLogin();
+        } else if (showMsalLogin) {
+          handleMsalLogin();
+        }
+      } else {
+        navigation.navigate('Settings');
+      }
+    },
+    onBack: () => {
+      BackHandler.exitApp();
+    },
+  });
+
+  useGamepadNavigation({
+    enabled: isFocused && showUsbWarnModal,
+    priority: 10,
+    onSelect: () => {
+      setShowUsbWarnShowModal(false);
+      handleNavigateStream(currentConsoleId);
+    },
+    onBack: () => {
+      setShowUsbWarnShowModal(false);
+    },
+  });
+
+  useGamepadNavigation({
+    enabled: isFocused && showHarmonyModal,
+    priority: 10,
+    onLeft: () => setFocusedHarmonyBtn('dismiss'),
+    onRight: () => setFocusedHarmonyBtn('install'),
+    onUp: () => setFocusedHarmonyBtn('dismiss'),
+    onDown: () => setFocusedHarmonyBtn('install'),
+    onSelect: () => {
+      if (focusedHarmonyBtn === 'install') {
+        Linking.openURL(HARMOBY_URL);
+        setShowHarmonyModal(false);
+      } else {
+        let _settings = getSettings();
+        _settings.show_harmony_modal = false;
+        saveSettings(_settings);
+        setShowHarmonyModal(false);
+      }
+    },
+    onBack: () => {
+      setShowHarmonyModal(false);
+    },
+  });
+
   const gamepadHints: GamepadHintItem[] = React.useMemo(() => {
     return [
       {button: 'A', label: t('Select')},
@@ -689,6 +763,8 @@ function HomeScreen({navigation, route}) {
               </Text>
 
               <Button
+                mode="contained"
+                style={styles.actionButtonFocused}
                 onPress={() => {
                   setShowUsbWarnShowModal(false);
                   handleNavigateStream(currentConsoleId);
@@ -722,7 +798,8 @@ function HomeScreen({navigation, route}) {
               </Text>
 
               <Button
-                mode="text"
+                mode={focusedHarmonyBtn === 'dismiss' ? 'contained' : 'text'}
+                style={focusedHarmonyBtn === 'dismiss' ? styles.actionButtonFocused : undefined}
                 onPress={() => {
                   let _settings = getSettings();
                   _settings.show_harmony_modal = false;
@@ -732,7 +809,8 @@ function HomeScreen({navigation, route}) {
                 不再提示
               </Button>
               <Button
-                mode="elevated"
+                mode={focusedHarmonyBtn === 'install' ? 'contained' : 'elevated'}
+                style={focusedHarmonyBtn === 'install' ? styles.actionButtonFocused : undefined}
                 onPress={() => {
                   Linking.openURL(HARMOBY_URL);
                   setShowHarmonyModal(false);
@@ -781,16 +859,35 @@ function HomeScreen({navigation, route}) {
   };
 
   const renderLogin = () => {
+    const isLoginFocused =
+      (isGamepadActive || Platform.isTV) && focusedLoginBtn === 'login';
+    const isSettingsFocused =
+      (isGamepadActive || Platform.isTV) && focusedLoginBtn === 'settings';
+
     return (
-      <View>
+      <View style={styles.loginCard}>
         <Text style={styles.title}>{t('NoLogin')}</Text>
-        <Button mode="outlined" onPress={handleLogin}>
+        <Button
+          style={[
+            styles.loginButton,
+            isLoginFocused && styles.actionButtonFocused,
+          ]}
+          mode={isLoginFocused ? 'contained' : 'outlined'}
+          buttonColor={isLoginFocused ? theme.colors.primary : undefined}
+          textColor={isLoginFocused ? '#FFFFFF' : undefined}
+          onPress={handleLogin}>
           &nbsp;{t('Login')}&nbsp;
         </Button>
 
         <Button
-          style={styles.mt10}
-          mode="text"
+          style={[
+            styles.loginButton,
+            styles.mt10,
+            isSettingsFocused && styles.actionButtonFocused,
+          ]}
+          mode={isSettingsFocused ? 'contained' : 'text'}
+          buttonColor={isSettingsFocused ? theme.colors.primary : undefined}
+          textColor={isSettingsFocused ? '#FFFFFF' : undefined}
           onPress={() => navigation.navigate('Settings')}>
           &nbsp;{t('Settings')}&nbsp;
         </Button>
@@ -799,18 +896,35 @@ function HomeScreen({navigation, route}) {
   };
 
   const renderMsalLogin = () => {
+    const isLoginFocused =
+      (isGamepadActive || Platform.isTV) && focusedLoginBtn === 'login';
+    const isSettingsFocused =
+      (isGamepadActive || Platform.isTV) && focusedLoginBtn === 'settings';
+
     return (
-      <View>
+      <View style={styles.loginCard}>
         <Button
-          mode="outlined"
+          style={[
+            styles.loginButton,
+            isLoginFocused && styles.actionButtonFocused,
+          ]}
+          mode={isLoginFocused ? 'contained' : 'outlined'}
+          buttonColor={isLoginFocused ? theme.colors.primary : undefined}
+          textColor={isLoginFocused ? '#FFFFFF' : undefined}
           loading={msalBtnLoading}
           onPress={handleMsalLogin}>
           &nbsp;{t('AuthLogin')}&nbsp;
         </Button>
 
         <Button
-          style={styles.mt10}
-          mode="text"
+          style={[
+            styles.loginButton,
+            styles.mt10,
+            isSettingsFocused && styles.actionButtonFocused,
+          ]}
+          mode={isSettingsFocused ? 'contained' : 'text'}
+          buttonColor={isSettingsFocused ? theme.colors.primary : undefined}
+          textColor={isSettingsFocused ? '#FFFFFF' : undefined}
           onPress={() => navigation.navigate('Settings')}>
           &nbsp;{t('Settings')}&nbsp;
         </Button>
@@ -818,8 +932,22 @@ function HomeScreen({navigation, route}) {
     );
   };
 
+  const renderLoadingOverlay = () => {
+    if (!loading) {
+      return null;
+    }
+    return (
+      <View style={styles.nonModalLoadingOverlay}>
+        <ActivityIndicator size="large" color="#107C10" />
+        {loadingText ? (
+          <Text style={styles.nonModalLoadingText}>{loadingText}</Text>
+        ) : null}
+      </View>
+    );
+  };
+
   const renderContent = () => {
-    if (loading) {
+    if (loading && consoles.length === 0 && !showLogin && !showMsalLogin && !showMsal) {
       return null;
     }
     if (showLogin) {
@@ -829,16 +957,19 @@ function HomeScreen({navigation, route}) {
     } else if (showMsal) {
       return (
         <View style={styles.centerContainer}>
-          <MsalAuth data={msalData} />
+          <MsalAuth
+            data={msalData}
+            onCancel={() => {
+              setShowMsal(false);
+              setShowMsalLogin(true);
+            }}
+          />
         </View>
       );
     } else {
       return (
         <SafeAreaView
           style={styles.container}
-          onTouchStartCapture={() => {
-            if (!Platform.isTV) setIsGamepadActive(false);
-          }}
           onTouchStart={() => {
             if (!Platform.isTV) setIsGamepadActive(false);
           }}>
@@ -856,20 +987,15 @@ function HomeScreen({navigation, route}) {
 
             {consoles.length > 0 ? (
               <View style={styles.consoleList}>
-                <FlatList
-                  data={consoles}
-                  numColumns={numColumns}
-                  key={numColumns}
-                  extraData={`${focusedSection}_${focusedIndex}_${isGamepadActive}`}
-                  contentContainerStyle={styles.listContainer}
-                  scrollEnabled={false}
-                  renderItem={({item, index}: any) => {
+                <View style={styles.consoleGrid}>
+                  {consoles.map((item: any, index: number) => {
                     const isItemFocused =
-                      isGamepadActive &&
+                      (isGamepadActive || Platform.isTV) &&
                       focusedSection === 'consoles' &&
                       focusedIndex === index;
                     return (
                       <View
+                        key={item.serverId || index}
                         style={[
                           styles.consoleItem,
                           numColumns === 4
@@ -889,8 +1015,8 @@ function HomeScreen({navigation, route}) {
                         />
                       </View>
                     );
-                  }}
-                />
+                  })}
+                </View>
               </View>
             ) : (
               <View style={styles.noConsoles}>
@@ -899,13 +1025,13 @@ function HomeScreen({navigation, route}) {
                   <View style={styles.emptyConsoleActions}>
                     <Button
                       mode={
-                        isGamepadActive && focusedSection === 'refresh'
+                        (isGamepadActive || Platform.isTV) && focusedSection === 'refresh'
                           ? 'elevated'
                           : 'contained-tonal'
                       }
                       style={[
                         styles.emptyActionBtn,
-                        isGamepadActive &&
+                        (isGamepadActive || Platform.isTV) &&
                           focusedSection === 'refresh' &&
                           styles.actionButtonFocused,
                       ]}
@@ -928,12 +1054,12 @@ function HomeScreen({navigation, route}) {
                 style={[
                   styles.moreItem,
                   {width: width > 600 ? '15%' : width / 2 - 40},
-                  isGamepadActive &&
+                  (isGamepadActive || Platform.isTV) &&
                     focusedSection === 'more' &&
                     focusedIndex === 0 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
-                  isFocused={isGamepadActive && focusedSection === 'more' && focusedIndex === 0}
+                  isFocused={(isGamepadActive || Platform.isTV) && focusedSection === 'more' && focusedIndex === 0}
                   title={t('Xcloud')}
                   icon={'google-controller'}
                   color={'#FFB900'}
@@ -945,12 +1071,12 @@ function HomeScreen({navigation, route}) {
                 style={[
                   styles.moreItem,
                   {width: width > 600 ? '15%' : width / 2 - 40},
-                  isGamepadActive &&
+                  (isGamepadActive || Platform.isTV) &&
                     focusedSection === 'more' &&
                     focusedIndex === 1 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
-                  isFocused={isGamepadActive && focusedSection === 'more' && focusedIndex === 1}
+                  isFocused={(isGamepadActive || Platform.isTV) && focusedSection === 'more' && focusedIndex === 1}
                   title={t('Achivements')}
                   icon={'trophy'}
                   color={'#E81123'}
@@ -962,12 +1088,12 @@ function HomeScreen({navigation, route}) {
                 style={[
                   styles.moreItem,
                   {width: width > 600 ? '15%' : width / 2 - 40},
-                  isGamepadActive &&
+                  (isGamepadActive || Platform.isTV) &&
                     focusedSection === 'more' &&
                     focusedIndex === 2 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
-                  isFocused={isGamepadActive && focusedSection === 'more' && focusedIndex === 2}
+                  isFocused={(isGamepadActive || Platform.isTV) && focusedSection === 'more' && focusedIndex === 2}
                   title={t('Settings')}
                   icon={'cog-outline'}
                   color={'#0078D7'}
@@ -984,25 +1110,25 @@ function HomeScreen({navigation, route}) {
   return (
     <View
       style={styles.root}
-      onTouchStartCapture={() => {
-        if (!Platform.isTV) setIsGamepadActive(false);
-      }}
       onTouchStart={() => {
         if (!Platform.isTV) setIsGamepadActive(false);
       }}>
-      <Spinner loading={loading} text={loadingText} />
+      {renderLoadingOverlay()}
 
-      {renderUsbWarningModal()}
+      {showUsbWarnModal && renderUsbWarningModal()}
 
-      {renderHarmonyModal()}
+      {showHarmonyModal && renderHarmonyModal()}
 
       {renderContent()}
-      <SessionReportModal
-        visible={!!sessionReport}
-        report={sessionReport}
-        onDismiss={handleDismissReport}
-        onDone={handleDoneReport}
-      />
+
+      {sessionReport && (
+        <SessionReportModal
+          visible={true}
+          report={sessionReport}
+          onDismiss={handleDismissReport}
+          onDone={handleDoneReport}
+        />
+      )}
 
       <GamepadFooterHints
         visible={isGamepadActive || Platform.isTV}
@@ -1039,6 +1165,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 10,
     textAlign: 'center',
+  },
+  loginCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 360,
+  },
+  loginButton: {
+    minWidth: 200,
+    borderRadius: 8,
   },
   spinnerTextStyle: {
     color: '#fff',
@@ -1117,6 +1253,22 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 10,
     paddingBottom: 10,
+  },
+  consoleGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  nonModalLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  nonModalLoadingText: {
+    color: '#FFFFFF',
+    marginTop: 12,
+    fontSize: 16,
   },
   listContainer: {},
   consoleItem: {

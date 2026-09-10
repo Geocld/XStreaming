@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView} from 'react-native';
+import {StyleSheet, View, ScrollView, Platform} from 'react-native';
 import {
   Button,
   IconButton,
@@ -19,6 +19,11 @@ import {
 } from '../store/settingStore';
 import {getSettings} from '../store/gamepadStore';
 import {shiftColor} from '../utils/themeColor';
+import {
+  useGamepadNavigation,
+  useGamepadActiveState,
+} from '../utils/useGamepadNavigation';
+import GamepadFooterHints from '../components/GamepadFooterHints';
 
 function VirtualGamepadSettingsScreen({navigation}) {
   const {t} = useTranslation();
@@ -28,6 +33,9 @@ function VirtualGamepadSettingsScreen({navigation}) {
   const [userSettings, setUserSettings] = React.useState<any>({});
   const [settings, setSettings] = React.useState<any>([]);
   const [showAddModal, setShowAddModal] = React.useState(false);
+  const [focusedIndex, setFocusedIndex] = React.useState<number>(0);
+  const [isGamepadActive, setIsGamepadActive] = useGamepadActiveState(false);
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   React.useEffect(() => {
     navigation.setOptions({
@@ -62,6 +70,64 @@ function VirtualGamepadSettingsScreen({navigation}) {
     navigation.navigate('CustomGamepad', {name: value});
   };
 
+  const allOptions = React.useMemo(() => ['', ...settings], [settings]);
+  const actionButtons = React.useMemo(() => {
+    const btns: Array<{key: string; label: string; action: () => void}> = [
+      {key: 'select', label: t('Select'), action: handleSave},
+    ];
+    if (value !== '') {
+      btns.push({key: 'edit', label: t('Edit'), action: handleEdit});
+    }
+    btns.push({key: 'back', label: t('Back'), action: () => navigation.goBack()});
+    return btns;
+  }, [value, t, handleSave, handleEdit, navigation]);
+
+  const totalCount = allOptions.length + actionButtons.length;
+
+  React.useEffect(() => {
+    if (focusedIndex < allOptions.length) {
+      scrollViewRef.current?.scrollTo({
+        y: Math.max(0, focusedIndex * 48 - 80),
+        animated: true,
+      });
+    } else {
+      scrollViewRef.current?.scrollToEnd({animated: true});
+    }
+  }, [focusedIndex, allOptions.length]);
+
+  useGamepadNavigation({
+    priority: showAddModal ? 15 : 10,
+    onUp: () => {
+      if (showAddModal) return;
+      setIsGamepadActive(true);
+      setFocusedIndex(prev => Math.max(0, prev - 1));
+    },
+    onDown: () => {
+      if (showAddModal) return;
+      setIsGamepadActive(true);
+      setFocusedIndex(prev => Math.min(totalCount - 1, prev + 1));
+    },
+    onSelect: () => {
+      if (showAddModal) return;
+      setIsGamepadActive(true);
+      if (focusedIndex < allOptions.length) {
+        setValue(allOptions[focusedIndex]);
+      } else {
+        const btnIdx = focusedIndex - allOptions.length;
+        if (actionButtons[btnIdx]) {
+          actionButtons[btnIdx].action();
+        }
+      }
+    },
+    onBack: () => {
+      if (showAddModal) {
+        setShowAddModal(false);
+      } else {
+        navigation.goBack();
+      }
+    },
+  });
+
   const onChangeText = text => setName(text);
 
   let errorText = '';
@@ -88,7 +154,11 @@ function VirtualGamepadSettingsScreen({navigation}) {
   );
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      onTouchStart={() => {
+        if (!Platform.isTV) setIsGamepadActive(false);
+      }}>
       <Portal>
         <Modal
           visible={showAddModal}
@@ -121,7 +191,7 @@ function VirtualGamepadSettingsScreen({navigation}) {
         </Modal>
       </Portal>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView ref={scrollViewRef} style={styles.scrollView}>
         <Card style={heroCardStyle}>
           <Card.Content>
             <Text style={heroDescStyle}>
@@ -136,29 +206,70 @@ function VirtualGamepadSettingsScreen({navigation}) {
         </Card>
 
         <RadioButton.Group onValueChange={val => setValue(val)} value={value}>
-          <RadioButton.Item label={t('Default')} value={''} />
-          {settings.map(s => {
-            return <RadioButton.Item key={s} label={s} value={s} />;
+          <View
+            style={[
+              styles.radioWrap,
+              (isGamepadActive || Platform.isTV) &&
+                focusedIndex === 0 &&
+                styles.radioFocused,
+            ]}>
+            <RadioButton.Item
+              label={t('Default')}
+              value={''}
+              onPress={() => {
+                setFocusedIndex(0);
+                setValue('');
+              }}
+            />
+          </View>
+          {settings.map((s, idx) => {
+            const itemIdx = idx + 1;
+            const isFocused =
+              (isGamepadActive || Platform.isTV) && focusedIndex === itemIdx;
+            return (
+              <View
+                key={s}
+                style={[styles.radioWrap, isFocused && styles.radioFocused]}>
+                <RadioButton.Item
+                  label={s}
+                  value={s}
+                  onPress={() => {
+                    setFocusedIndex(itemIdx);
+                    setValue(s);
+                  }}
+                />
+              </View>
+            );
           })}
         </RadioButton.Group>
       </ScrollView>
 
       <View style={styles.buttonWrap}>
-        <Button mode="elevated" style={styles.button} onPress={handleSave}>
-          {t('Select')}
-        </Button>
-        {value !== '' && (
-          <Button mode="outlined" style={styles.button} onPress={handleEdit}>
-            {t('Edit')}
-          </Button>
-        )}
-        <Button
-          mode="text"
-          style={styles.button}
-          onPress={() => navigation.goBack()}>
-          {t('Back')}
-        </Button>
+        {actionButtons.map((btn, bIdx) => {
+          const btnFocusIdx = allOptions.length + bIdx;
+          const isFocused =
+            (isGamepadActive || Platform.isTV) && focusedIndex === btnFocusIdx;
+          return (
+            <Button
+              key={btn.key}
+              mode={isFocused ? 'contained' : btn.key === 'select' ? 'elevated' : btn.key === 'edit' ? 'outlined' : 'text'}
+              buttonColor={isFocused ? theme.colors.primary : undefined}
+              textColor={isFocused ? '#FFFFFF' : undefined}
+              style={[styles.button, isFocused && styles.tvButtonFocused]}
+              onPress={btn.action}>
+              {btn.label}
+            </Button>
+          );
+        })}
       </View>
+
+      <GamepadFooterHints
+        visible={isGamepadActive || Platform.isTV}
+        hints={[
+          {button: 'A', label: t('Select')},
+          {button: 'B', label: t('Back')},
+        ]}
+      />
     </View>
   );
 }
@@ -181,7 +292,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   scrollView: {
-    marginBottom: 120,
+    marginBottom: 140,
+  },
+  radioWrap: {
+    marginHorizontal: 8,
+    marginVertical: 2,
+    borderRadius: 8,
+  },
+  radioFocused: {
+    borderWidth: 2,
+    borderColor: '#107C10',
+    backgroundColor: 'rgba(16, 124, 16, 0.15)',
   },
   sliderTitle: {
     padding: 10,
@@ -194,12 +315,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     width: '100%',
-    bottom: 20,
+    bottom: 30,
     paddingLeft: 10,
     paddingRight: 10,
   },
   button: {
     marginTop: 10,
+  },
+  tvButtonFocused: {
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    elevation: 6,
+    shadowColor: '#107C10',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
   modal: {
     marginLeft: '10%',
@@ -208,3 +338,4 @@ const styles = StyleSheet.create({
 });
 
 export default VirtualGamepadSettingsScreen;
+

@@ -395,6 +395,18 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   public boolean dispatchKeyEvent(KeyEvent event) {
     String currentScreen = GamepadManager.getCurrentScreen();
     if (!currentScreen.equals("stream")) {
+      if (currentScreen.equals("login")) {
+        // On login screen (WebView), only handle game controller Back button (BUTTON_B).
+        // Do NOT consume DPAD, ENTER, or normal keys so that the WebView and soft keyboard can receive them.
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
+          if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            emitMenuNavigation("back");
+          }
+          return true;
+        }
+        return super.dispatchKeyEvent(event);
+      }
+
       int keyCode = event.getKeyCode();
       int action = event.getAction();
 
@@ -526,6 +538,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     String currentScreen = GamepadManager.getCurrentScreen();
 
     if (!currentScreen.equals("stream")) {
+      if (currentScreen.equals("login")) {
+        return super.onGenericMotionEvent(event);
+      }
       if (handleMenuNavigationMotion(event)) {
         return true;
       }

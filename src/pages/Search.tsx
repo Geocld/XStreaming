@@ -134,7 +134,6 @@ function SearchScreen({navigation, route}: SearchScreenProps) {
   return (
     <View
       style={styles.root}
-      onTouchStartCapture={handleTouchDeactivate}
       onTouchStart={handleTouchDeactivate}>
       <View
         style={[styles.container, isLandscape && styles.containerLandscape]}>

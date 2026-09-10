@@ -156,4 +156,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeItem;
+export default React.memo(HomeItem);

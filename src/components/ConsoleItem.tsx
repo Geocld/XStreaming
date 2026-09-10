@@ -253,4 +253,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ConsoleItem;
+export default React.memo(ConsoleItem);

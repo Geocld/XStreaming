@@ -1079,24 +1079,25 @@ function NanoStreamScreen({navigation, route}: any) {
   );
 
   const handleButtonPressIn = React.useCallback(
-    (name: string) => {
-      if (name === VIRTUAL_MACRO_BUTTON_NAME) {
-        return;
-      }
-
-      if (name === 'LeftThumb') {
-        inputStateRef.current.buttons[name] = 1;
-        sendGamepadState();
-        viewRef.current?.requestFocus?.();
-        return;
-      }
-
+    (names: string | string[]) => {
+      const nameList = Array.isArray(names) ? names : [names];
       const holdButtons = settings.hold_buttons || [];
-      inputStateRef.current.buttons[name] = holdButtons.includes(name)
-        ? inputStateRef.current.buttons[name] === 1
-          ? 0
-          : 1
-        : 1;
+      nameList.forEach(name => {
+        if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+          return;
+        }
+
+        if (name === 'LeftThumb') {
+          inputStateRef.current.buttons[name] = 1;
+          return;
+        }
+
+        inputStateRef.current.buttons[name] = holdButtons.includes(name)
+          ? inputStateRef.current.buttons[name] === 1
+            ? 0
+            : 1
+          : 1;
+      });
       sendGamepadState();
       viewRef.current?.requestFocus?.();
       vibrate(30);
@@ -1105,27 +1106,30 @@ function NanoStreamScreen({navigation, route}: any) {
   );
 
   const handleButtonPressOut = React.useCallback(
-    (name: string) => {
-      if (name === VIRTUAL_MACRO_BUTTON_NAME) {
-        return;
-      }
-
+    (names: string | string[]) => {
+      const nameList = Array.isArray(names) ? names : [names];
       const holdButtons = settings.hold_buttons || [];
-      if (name === 'LeftThumb') {
+      nameList.forEach(name => {
+        if (name === VIRTUAL_MACRO_BUTTON_NAME) {
+          return;
+        }
+
+        if (name === 'LeftThumb') {
+          if (holdButtons.includes(name)) {
+            return;
+          }
+          setTimeout(() => {
+            inputStateRef.current.buttons[name] = 0;
+            sendGamepadState();
+          }, 50);
+          return;
+        }
+
         if (holdButtons.includes(name)) {
           return;
         }
-        setTimeout(() => {
-          inputStateRef.current.buttons[name] = 0;
-          sendGamepadState();
-        }, 50);
-        return;
-      }
-
-      if (holdButtons.includes(name)) {
-        return;
-      }
-      inputStateRef.current.buttons[name] = 0;
+        inputStateRef.current.buttons[name] = 0;
+      });
       sendGamepadState();
     },
     [sendGamepadState, settings.hold_buttons],

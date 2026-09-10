@@ -10,12 +10,19 @@ import {Button, RadioButton, Text, Divider, useTheme} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import Slider from '@react-native-community/slider';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
 const {UsbRumbleManager} = NativeModules;
 
 function Ds5SettingsScreen({navigation, route}) {
   const {t} = useTranslation();
   const theme = useTheme();
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   const [mode, setMode] = React.useState<any>('0');
   const [startPos, setStartPos] = React.useState(0);

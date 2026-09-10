@@ -90,8 +90,16 @@ const restoreConfig = (config: ExportConfig) => {
   }
 };
 
-function TransferScreen() {
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
+
+function TransferScreen({navigation}: any) {
   const {t} = useTranslation();
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   const handleExport = async () => {
     if (!ConfigTransferModule?.createAndShareConfigFile) {

@@ -342,7 +342,10 @@ const XboxSymbolBackground = ({isLight, primaryColor}: Props) => {
   const height = windowHeight + BACKGROUND_OVERDRAW;
   const palette = usePalette(isLight, primaryColor);
 
-  if (Platform.isTV) {
+  const isTvOrLandscape =
+    Platform.isTV || (width > height && width >= 720);
+
+  if (isTvOrLandscape) {
     return (
       <View
         pointerEvents="none"
@@ -425,4 +428,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default XboxSymbolBackground;
+export default React.memo(XboxSymbolBackground);

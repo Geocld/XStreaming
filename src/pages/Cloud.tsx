@@ -2495,9 +2495,6 @@ function CloudScreen({navigation, route}: any) {
   return (
     <View
       style={styles.rootContainer}
-      onTouchStartCapture={() => {
-        if (!Platform.isTV) setIsGamepadActive(false);
-      }}
       onTouchStart={() => {
         if (!Platform.isTV) setIsGamepadActive(false);
       }}>
