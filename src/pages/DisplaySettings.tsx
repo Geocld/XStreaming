@@ -5,10 +5,17 @@ import {getSettings, saveSettings} from '../store/settingStore';
 import {useTranslation} from 'react-i18next';
 import Display from '../components/Display';
 import {shiftColor} from '../utils/themeColor';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
 function DisplaySettings({navigation}) {
   const {t} = useTranslation();
   const theme = useTheme();
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation.goBack();
+    },
+  });
 
   const [settings, setSettings] = React.useState<any>({});
   const [options, setOptions] = React.useState({});

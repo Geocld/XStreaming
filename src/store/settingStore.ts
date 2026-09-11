@@ -203,6 +203,9 @@ export const saveSettings = (settings: Settings) => {
   const stereoAudioValue = (totalSettings as any).enable_stereo_audio;
   totalSettings.enable_stereo_audio =
     stereoAudioValue === true || stereoAudioValue === 'true';
+  const sessionReportValue = (totalSettings as any).show_session_report;
+  totalSettings.show_session_report =
+    sessionReportValue === true || sessionReportValue === 'true';
   // AsyncStorage.setItem(STORE_KEY, JSON.stringify(totalSettings));
   storage.set(STORE_KEY, JSON.stringify(totalSettings));
   cachedSettings = totalSettings;
@@ -248,6 +251,10 @@ export const getSettings = (): Settings => {
       : false;
     if (merged.locale_follow_system) {
       merged.locale = getSystemLocale();
+    }
+    if (_settings.show_session_report !== undefined) {
+      merged.show_session_report =
+        String(_settings.show_session_report) === 'true';
     }
     cachedSettings = merged;
     return cachedSettings;

@@ -241,45 +241,40 @@ public class GamepadManager extends ReactContextBaseJavaModule {
     }
 
     private static boolean hasJoystickAxes(InputDevice device) {
+        if (device == null) return false;
         return (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
                 getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_X) != null &&
                 getMotionRangeForJoystickAxis(device, MotionEvent.AXIS_Y) != null;
     }
 
     private static boolean hasGamepadButtons(InputDevice device) {
-        return (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD;
+        if (device == null) return false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            boolean[] keys = device.hasKeys(
+                KeyEvent.KEYCODE_BUTTON_A,
+                KeyEvent.KEYCODE_BUTTON_B,
+                KeyEvent.KEYCODE_BUTTON_X,
+                KeyEvent.KEYCODE_BUTTON_Y
+            );
+            return (keys[0] || keys[1]) && (keys[2] || keys[3]);
+        }
+        return false;
     }
 
     private static boolean isGameControllerDevice(InputDevice device) {
-        if (device == null) {
+        if (device == null || device.isVirtual()) {
             return false;
         }
-        if (hasJoystickAxes(device) || hasGamepadButtons(device)) {
-            // Has real joystick axes or gamepad buttons
-            return true;
-        }
-        // HACK for https://issuetracker.google.com/issues/163120692
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R) {
-            if (device.getId() == -1) {
-                // This "virtual" device could be input from any of the attached devices.
-                // Look to see if any gamepads are connected.
-                int[] ids = InputDevice.getDeviceIds();
-                for (int id : ids) {
-                    InputDevice dev = InputDevice.getDevice(id);
-                    if (dev == null) {
-                        // This device was removed during enumeration
-                        continue;
-                    }
+        int sources = device.getSources();
+        boolean hasGamepadSource =
+            ((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
+            ((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK);
 
-                    // If there are any gamepad devices connected, we'll
-                    // report that this virtual device is a gamepad.
-                    if (hasJoystickAxes(dev) || hasGamepadButtons(dev)) {
-                        return true;
-                    }
-                }
-            }
+        if (!hasGamepadSource) {
+            return false;
         }
-        return false;
+
+        return hasJoystickAxes(device) || hasGamepadButtons(device);
     }
 
     @ReactMethod
@@ -289,6 +284,21 @@ public class GamepadManager extends ReactContextBaseJavaModule {
 
     public static String getCurrentScreen() {
         return currentScreen;
+    }
+
+    @ReactMethod
+    public void hasGameController(Promise promise) {
+        try {
+            int[] ids = InputDevice.getDeviceIds();
+            for (int id : ids) {
+                InputDevice dev = InputDevice.getDevice(id);
+                if (dev != null && isGameControllerDevice(dev)) {
+                    promise.resolve(true);
+                    return;
+                }
+            }
+        } catch (Exception ignored) {}
+        promise.resolve(false);
     }
 
     private int clampVibration(int value) {

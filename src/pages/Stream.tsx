@@ -432,12 +432,23 @@ function StreamScreen({navigation, route}: any) {
           ),
         ).catch(() => {});
       }
+      const buttonPressTimers = new Map<string, any>();
+
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
           // console.log('onGamepadKeyDown:', event);
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
+          if (!keyName) {
+            return;
+          }
+
+          const existingTimer = buttonPressTimers.get(keyName);
+          if (existingTimer) {
+            clearTimeout(existingTimer);
+            buttonPressTimers.delete(keyName);
+          }
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (_settings.short_trigger) {
@@ -446,6 +457,7 @@ function StreamScreen({navigation, route}: any) {
           } else {
             gpState[keyName] = 1;
           }
+          postData2Webview('gamepad', gpState);
         },
       );
 
@@ -454,14 +466,24 @@ function StreamScreen({navigation, route}: any) {
         event => {
           const keyCode = event.keyCode;
           const keyName = gpMaping[keyCode];
+          if (!keyName) {
+            return;
+          }
 
-          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-            if (_settings.short_trigger) {
+          const releaseButton = () => {
+            if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+              if (_settings.short_trigger) {
+                gpState[keyName] = 0;
+              }
+            } else {
               gpState[keyName] = 0;
             }
-          } else {
-            gpState[keyName] = 0;
-          }
+            postData2Webview('gamepad', gpState);
+            buttonPressTimers.delete(keyName);
+          };
+
+          const timerId = setTimeout(releaseButton, 60);
+          buttonPressTimers.set(keyName, timerId);
         },
       );
 
@@ -691,7 +713,12 @@ function StreamScreen({navigation, route}: any) {
                 setIsExiting(false);
                 Orientation.unlockAllOrientations();
                 FullScreenManager.immersiveModeOff();
-                const sessionReport = sessionStatsTracker.finishSession();
+                const currentSettings = getSettings();
+                const isShowReport =
+                  String(currentSettings.show_session_report) === 'true';
+                const sessionReport = isShowReport
+                  ? sessionStatsTracker.finishSession()
+                  : undefined;
                 const dest =
                   route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
                 navigation.navigate({
@@ -703,7 +730,12 @@ function StreamScreen({navigation, route}: any) {
           } else {
             Orientation.unlockAllOrientations();
             FullScreenManager.immersiveModeOff();
-            const sessionReport = sessionStatsTracker.finishSession();
+            const currentSettings = getSettings();
+            const isShowReport =
+              String(currentSettings.show_session_report) === 'true';
+            const sessionReport = isShowReport
+              ? sessionStatsTracker.finishSession()
+              : undefined;
             const dest =
               route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
             navigation.navigate({
@@ -836,7 +868,12 @@ function StreamScreen({navigation, route}: any) {
       setTimeout(() => {
         setIsExiting(false);
         FullScreenManager.immersiveModeOff();
-        const sessionReport = sessionStatsTracker.finishSession();
+        const currentSettings = getSettings();
+        const isShowReport =
+          String(currentSettings.show_session_report) === 'true';
+        const sessionReport = isShowReport
+          ? sessionStatsTracker.finishSession()
+          : undefined;
         const dest = route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
         navigation.navigate({
           name: dest,

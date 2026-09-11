@@ -9,10 +9,14 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import {Portal, Modal, Icon} from 'react-native-paper';
+import {Portal, Modal, Icon, useTheme} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import Svg, {Path, Circle, Text as SvgText} from 'react-native-svg';
 import {SessionReportData} from '../utils/sessionStatsTracker';
+import {
+  useGamepadNavigation,
+  useGamepadActiveState,
+} from '../utils/useGamepadNavigation';
 
 export interface SessionReportModalProps {
   visible: boolean;
@@ -54,22 +58,97 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   onDone,
 }) => {
   const {t} = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.dark;
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const [dontShowAgain, setDontShowAgain] = React.useState(false);
+  const [isGamepadActive] = useGamepadActiveState();
+  const [focusedBtn, setFocusedBtn] = React.useState<'done' | 'checkbox'>('done');
 
   React.useEffect(() => {
     if (visible) {
       setDontShowAgain(false);
+      setFocusedBtn('done');
     }
   }, [visible]);
+
+  useGamepadNavigation({
+    enabled: visible && !!report,
+    priority: 30,
+    onUp: () => {
+      setFocusedBtn('checkbox');
+    },
+    onDown: () => {
+      setFocusedBtn('done');
+    },
+    onLeft: () => {
+      setFocusedBtn('checkbox');
+    },
+    onRight: () => {
+      setFocusedBtn('done');
+    },
+    onSelect: () => {
+      if (focusedBtn === 'checkbox') {
+        setDontShowAgain(prev => !prev);
+      } else {
+        onDone(dontShowAgain);
+      }
+    },
+    onBack: () => {
+      onDismiss();
+    },
+  });
+
+  const colors = React.useMemo(() => {
+    return {
+      cardBg: isDark ? '#121622' : '#FFFFFF',
+      cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+      cardShadow: isDark ? '#000000' : 'rgba(0, 0, 0, 0.16)',
+      headerText: isDark ? '#FFFFFF' : '#111827',
+      subCardBg: isDark ? '#161a25' : '#F4F6F8',
+      subCardBorder: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
+      cardHeaderTitle: isDark ? '#8b94a5' : '#4B5563',
+      labelColor: isDark ? '#8e98a8' : '#6B7280',
+      valueColor: isDark ? '#FFFFFF' : '#111827',
+      subInfoColor: isDark ? '#717b8c' : '#9CA3AF',
+      iconColor: isDark ? '#8e98a8' : '#6B7280',
+      checkboxBorder: isDark ? '#606a7c' : '#9CA3AF',
+      checkboxLabel: isDark ? '#8e98a8' : '#374151',
+      gaugeInnerBg: isDark ? '#151923' : '#FFFFFF',
+      gaugeInnerStroke: isDark
+        ? 'rgba(255, 255, 255, 0.12)'
+        : 'rgba(0, 0, 0, 0.10)',
+      scoreTextColor: isDark ? '#FFFFFF' : '#111827',
+      netInfoLabel: isDark ? '#8e98a8' : '#6B7280',
+      netInfoValue: isDark ? '#FFFFFF' : '#111827',
+      doneButtonBg: isDark ? '#27c96a' : (theme.colors.primary || '#107C10'),
+      doneButtonText: '#FFFFFF',
+      doneButtonFocusedBorder: isDark ? '#FFFFFF' : '#111827',
+      hintTextColor: isDark ? '#8e98a8' : '#6B7280',
+      hintKeyBg: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.09)',
+      hintKeyText: isDark ? '#FFFFFF' : '#111827',
+      speedArcTrack: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.15)',
+      speedArcActive: isDark ? '#FFFFFF' : '#111827',
+      fpsBadgeBorder: isDark
+        ? 'rgba(255, 255, 255, 0.25)'
+        : 'rgba(0, 0, 0, 0.20)',
+      fpsBadgeText: isDark ? '#8e98a8' : '#4B5563',
+      heroOverlay: isDark ? 'rgba(10, 14, 23, 0.65)' : 'rgba(15, 23, 42, 0.55)',
+    };
+  }, [isDark, theme.colors.primary]);
 
   if (!report) {
     return null;
   }
 
-  const isLandscape = screenWidth > screenHeight;
-  const modalWidth = isLandscape
-    ? Math.min(480, screenWidth - 48)
+  const aspectRatio = screenWidth / Math.max(1, screenHeight);
+  const isWideScreen =
+    Platform.isTV ||
+    aspectRatio >= 1.45 ||
+    (screenWidth > screenHeight && screenWidth >= 640);
+
+  const modalWidth = isWideScreen
+    ? Math.min(880, screenWidth - 36)
     : Math.min(380, screenWidth - 28);
 
   const handleDonePress = () => {
@@ -130,6 +209,238 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
     .replace(/-4D/i, '')
     .replace(/H\.264/i, 'H264');
 
+  // Render Network Performance Metrics rows
+  const renderNetworkPerformanceMetrics = (isCompact: boolean) => (
+    <>
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text
+            style={[styles.metricLabelText, {color: colors.labelColor}]}
+            numberOfLines={1}>
+            {t('Data Received (Total):')}
+          </Text>
+          <Icon source="download" size={13} color={colors.iconColor} />
+        </View>
+        <Text style={[styles.metricPrimaryValue, {color: colors.valueColor}]}>
+          {report.totalDownloadFormatted}
+        </Text>
+      </View>
+
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text
+            style={[styles.metricLabelText, {color: colors.labelColor}]}
+            numberOfLines={1}>
+            {t('Data Sent (Total):')}
+          </Text>
+          <Icon source="upload" size={13} color={colors.iconColor} />
+        </View>
+        <Text style={[styles.metricPrimaryValue, {color: colors.valueColor}]}>
+          {report.totalUploadFormatted}
+        </Text>
+      </View>
+
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text style={[styles.metricLabelText, {color: colors.labelColor}]}>
+            {t('Average Latency:')}
+          </Text>
+          <Icon source="antenna" size={13} color={colors.iconColor} />
+        </View>
+        <View style={styles.metricSplitRow}>
+          <View>
+            <Text style={[styles.metricPrimaryValue, {color: latencyColor}]}>
+              {`${report.latencyAvg} ms`}
+            </Text>
+            <Text
+              style={[styles.metricSubInfoText, {color: colors.subInfoColor}]}>
+              {`Peak ${report.latencyPeak} ms`}
+            </Text>
+          </View>
+          <Svg width={32} height={14} viewBox="0 0 36 16">
+            <Path
+              d="M 1 12 Q 10 1, 18 10 T 35 6"
+              stroke={latencyColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+          </Svg>
+        </View>
+      </View>
+
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text style={[styles.metricLabelText, {color: colors.labelColor}]}>
+            {t('Average Stream Speed:')}
+          </Text>
+          <Icon source="speedometer" size={13} color={colors.iconColor} />
+        </View>
+        <View style={styles.metricSplitRow}>
+          <View>
+            <Text
+              style={[styles.metricPrimaryValue, {color: colors.valueColor}]}>
+              {`${report.bitrateAvg} Mbps`}
+            </Text>
+            <Text
+              style={[styles.metricSubInfoText, {color: colors.subInfoColor}]}>
+              {`Peak ${report.bitratePeak} Mbps`}
+            </Text>
+          </View>
+          <Svg width={24} height={16} viewBox="0 0 28 18">
+            <Path
+              d="M 3 15 A 11 11 0 1 1 25 15"
+              stroke={colors.speedArcTrack}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+            <Path
+              d="M 3 15 A 11 11 0 0 1 18 4"
+              stroke={colors.speedArcActive}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+          </Svg>
+        </View>
+      </View>
+    </>
+  );
+
+  // Render Session Stability Metrics rows
+  const renderSessionStabilityMetrics = (isCompact: boolean) => (
+    <>
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text style={[styles.metricLabelText, {color: colors.labelColor}]}>
+            {t('Packet Loss:')}
+          </Text>
+          <Icon source="wifi-off" size={13} color={colors.iconColor} />
+        </View>
+        <View style={styles.metricSplitRow}>
+          <Text style={[styles.metricPrimaryValue, {color: packetLossColor}]}>
+            {`${report.packetLossAvg.toFixed(2)}%`}
+          </Text>
+          <View style={styles.metricBadgeRow}>
+            <Text
+              style={[
+                styles.metricBadgeText,
+                {color: packetLossColor},
+              ]}>
+              {t(report.packetLossStatus.toUpperCase())}
+            </Text>
+            <Icon
+              source="arrow-down-drop-circle"
+              size={13}
+              color={packetLossColor}
+            />
+          </View>
+        </View>
+      </View>
+
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text style={[styles.metricLabelText, {color: colors.labelColor}]}>
+            {t('Jitter (Variation):')}
+          </Text>
+          <Icon source="tilde" size={13} color={colors.iconColor} />
+        </View>
+        <View style={styles.metricSplitRow}>
+          <View>
+            <Text
+              style={[styles.metricPrimaryValue, {color: colors.valueColor}]}>
+              {`${report.jitterAvg} ms`}
+            </Text>
+            <Text style={[styles.metricBadgeText, {color: jitterStatusColor}]}>
+              {t(jitterStatusText)}
+            </Text>
+          </View>
+          <Svg width={32} height={12} viewBox="0 0 36 14">
+            <Path
+              d="M 1 7 H 9 L 13 2 L 17 12 L 21 4 L 25 9 L 28 7 H 35"
+              stroke={jitterStatusColor}
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </Svg>
+        </View>
+      </View>
+
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text
+            style={[styles.metricLabelText, {color: colors.labelColor}]}
+            numberOfLines={1}>
+            {t('Average Frame Rate:')}
+          </Text>
+          <View
+            style={[
+              styles.miniFpsBadge,
+              {borderColor: colors.fpsBadgeBorder},
+            ]}>
+            <Text
+              style={[styles.miniFpsBadgeText, {color: colors.fpsBadgeText}]}>
+              FPS
+            </Text>
+          </View>
+        </View>
+        <Text style={[styles.metricPrimaryValue, {color: colors.valueColor}]}>
+          {`${report.fpsAvg} FPS`}
+        </Text>
+      </View>
+
+      <View
+        style={[
+          styles.metricRowContainer,
+          isCompact && styles.metricRowContainerCompact,
+        ]}>
+        <View style={styles.metricLabelRow}>
+          <Text style={[styles.metricLabelText, {color: colors.labelColor}]}>
+            {t('Video Decode Time:')}
+          </Text>
+          <Icon source="filmstrip" size={13} color={colors.iconColor} />
+        </View>
+        <Text style={[styles.metricPrimaryValue, {color: colors.valueColor}]}>
+          {`${report.decodeAvg} ms`}
+        </Text>
+        <Text style={[styles.metricSubInfoText, {color: colors.subInfoColor}]}>
+          {t('Per video frame')}
+        </Text>
+      </View>
+    </>
+  );
+
   return (
     <Portal>
       <Modal
@@ -139,39 +450,38 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
           styles.modalOverlay,
           {maxHeight: screenHeight * 0.94},
         ]}>
-        <View style={[styles.cardContainer, {width: modalWidth}]}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}>
-            <Text style={styles.headerTitle}>{t('Session report')}</Text>
+        <View
+          style={[
+            styles.cardContainer,
+            {
+              width: modalWidth,
+              backgroundColor: colors.cardBg,
+              borderColor: colors.cardBorder,
+              shadowColor: colors.cardShadow,
+            },
+          ]}>
+          {isWideScreen ? (
+            /* ========================================================================= */
+            /* 16:9 / ANDROID TV / WIDESCREEN DASHBOARD LAYOUT                          */
+            /* ========================================================================= */
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+              contentContainerStyle={styles.wideScrollContent}>
+              {/* Header Bar */}
+              <View style={styles.wideHeaderRow}>
+                <Text
+                  style={[styles.headerTitleWide, {color: colors.headerText}]}>
+                  {t('Session report')}
+                </Text>
 
-            <View style={styles.heroCard}>
-              {!!report.gamePoster ? (
-                <Image
-                  source={{uri: report.gamePoster}}
-                  style={StyleSheet.absoluteFillObject}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.heroPosterFallback} />
-              )}
-
-              <View style={styles.heroOverlay} />
-
-              <View style={styles.heroContent}>
-                <View style={styles.heroTitleContainer}>
-                  <Text
-                    style={styles.heroGameTitle}
-                    numberOfLines={2}
-                    adjustsFontSizeToFit={true}
-                    minimumFontScale={0.75}>
-                    {report.gameTitle.toUpperCase()}
-                  </Text>
-                </View>
-
-                <View style={styles.gaugeWrapper}>
-                  <View style={styles.qualityRatingRow}>
-                    <Text style={styles.qualityLabelPrefix}>
+                <View style={styles.wideHeaderRight}>
+                  <View style={styles.qualityRatingRowWide}>
+                    <Text
+                      style={[
+                        styles.qualityLabelPrefix,
+                        {color: colors.labelColor},
+                      ]}>
                       {t('SESSION QUALITY:')}{' '}
                     </Text>
                     <Text
@@ -183,300 +493,559 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                     </Text>
                   </View>
 
-                  <Svg width={68} height={68} viewBox="0 0 68 68">
-                    <Path
-                      d={trackPath}
-                      stroke={`${report.qualityColor}30`}
-                      strokeWidth={4.5}
-                      strokeLinecap="round"
-                      fill="none"
-                    />
-                    <Path
-                      d={progressPath}
-                      stroke={report.qualityColor}
-                      strokeWidth={4.5}
-                      strokeLinecap="round"
-                      fill="none"
-                    />
-                    <Circle
-                      cx={gaugeCx}
-                      cy={gaugeCy}
-                      r={17}
-                      fill="#151923"
-                      stroke="rgba(255, 255, 255, 0.12)"
-                      strokeWidth={1}
-                    />
-                    <SvgText
-                      x={gaugeCx}
-                      y={gaugeCy + 6}
-                      fill="#FFFFFF"
-                      fontSize="16"
-                      fontWeight="900"
-                      textAnchor="middle">
-                      {report.score}
-                    </SvgText>
-                  </Svg>
+                  <View
+                    style={[
+                      styles.scorePillBadge,
+                      {
+                        borderColor: report.qualityColor + '70',
+                        backgroundColor: report.qualityColor + '18',
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.scorePillText,
+                        {color: report.qualityColor},
+                      ]}>
+                      {`${report.score} / 100`}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            <View style={styles.metricsTwoColumn}>
-              <View style={styles.metricCard}>
-                <Text
-                  style={styles.cardHeaderTitle}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit={true}>
-                  {t('NETWORK PERFORMANCE')}
-                </Text>
+              {/* 3-Column Dashboard Body */}
+              <View style={styles.wideColumnsRow}>
+                {/* Column 1: Hero Poster & Network Information */}
+                <View style={styles.wideColLeft}>
+                  <View
+                    style={[
+                      styles.wideHeroCard,
+                      {borderColor: colors.subCardBorder},
+                    ]}>
+                    {!!report.gamePoster ? (
+                      <Image
+                        source={{uri: report.gamePoster}}
+                        style={StyleSheet.absoluteFillObject}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.heroPosterFallback} />
+                    )}
+                    <View
+                      style={[
+                        styles.heroOverlay,
+                        {backgroundColor: colors.heroOverlay},
+                      ]}
+                    />
 
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Data Received (Total):')}
-                    </Text>
-                    <Icon source="download" size={14} color="#8e98a8" />
+                    <View style={styles.wideHeroContent}>
+                      <Text
+                        style={styles.heroGameTitleWide}
+                        numberOfLines={2}
+                        adjustsFontSizeToFit={true}
+                        minimumFontScale={0.8}>
+                        {report.gameTitle.toUpperCase()}
+                      </Text>
+
+                      <View style={styles.gaugeWrapperCompact}>
+                        <Svg width={54} height={54} viewBox="0 0 68 68">
+                          <Path
+                            d={trackPath}
+                            stroke={`${report.qualityColor}30`}
+                            strokeWidth={5}
+                            strokeLinecap="round"
+                            fill="none"
+                          />
+                          <Path
+                            d={progressPath}
+                            stroke={report.qualityColor}
+                            strokeWidth={5}
+                            strokeLinecap="round"
+                            fill="none"
+                          />
+                          <Circle
+                            cx={gaugeCx}
+                            cy={gaugeCy}
+                            r={17}
+                            fill={colors.gaugeInnerBg}
+                            stroke={colors.gaugeInnerStroke}
+                            strokeWidth={1}
+                          />
+                          <SvgText
+                            x={gaugeCx}
+                            y={gaugeCy + 6}
+                            fill={colors.scoreTextColor}
+                            fontSize="16"
+                            fontWeight="900"
+                            textAnchor="middle">
+                            {report.score}
+                          </SvgText>
+                        </Svg>
+                      </View>
+                    </View>
                   </View>
-                  <Text style={styles.metricPrimaryValue}>
-                    {report.totalDownloadFormatted}
-                  </Text>
-                  <View style={styles.metricSpacer} />
-                </View>
 
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Data Sent (Total):')}
+                  {/* Network Information Card */}
+                  <View
+                    style={[
+                      styles.wideNetInfoCard,
+                      {
+                        backgroundColor: colors.subCardBg,
+                        borderColor: colors.subCardBorder,
+                      },
+                    ]}>
+                    <Text
+                      style={[
+                        styles.cardHeaderTitle,
+                        {color: colors.cardHeaderTitle, marginBottom: 4},
+                      ]}>
+                      {t('Network Information')}
                     </Text>
-                    <Icon source="upload" size={14} color="#8e98a8" />
-                  </View>
-                  <Text style={styles.metricPrimaryValue}>
-                    {report.totalUploadFormatted}
-                  </Text>
-                  <View style={styles.metricSpacer} />
-                </View>
 
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Average Latency:')}
-                    </Text>
-                    <Icon source="antenna" size={14} color="#8e98a8" />
-                  </View>
-                  <View style={styles.metricSplitRow}>
-                    <View>
+                    <View style={styles.netInfoLine}>
                       <Text
                         style={[
-                          styles.metricPrimaryValue,
-                          {color: latencyColor},
+                          styles.netInfoLabel,
+                          {color: colors.netInfoLabel},
                         ]}>
-                        {`${report.latencyAvg} ms`}
+                        {`${t('Network Type:')} `}
                       </Text>
-                      <Text style={styles.metricSubInfoText}>
-                        {`Peak ${report.latencyPeak} ms`}
+                      <Text
+                        style={[
+                          styles.netInfoValue,
+                          {color: colors.netInfoValue},
+                        ]}
+                        numberOfLines={1}>
+                        {report.networkType || 'Wi-Fi (5 GHz)'}
                       </Text>
                     </View>
-                    <Svg width={36} height={16} viewBox="0 0 36 16">
-                      <Path
-                        d="M 1 12 Q 10 1, 18 10 T 35 6"
-                        stroke={latencyColor}
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        fill="none"
-                      />
-                    </Svg>
+
+                    <View style={styles.netInfoLine}>
+                      <Text
+                        style={[
+                          styles.netInfoLabel,
+                          {color: colors.netInfoLabel},
+                        ]}>
+                        {`${t('VIDEO PROFILE:')} `}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.netInfoValue,
+                          {color: colors.netInfoValue},
+                        ]}
+                        numberOfLines={1}>
+                        {cleanVideoProfile}
+                      </Text>
+                    </View>
                   </View>
                 </View>
 
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Average Stream Speed:')}
-                    </Text>
-                    <Icon source="speedometer" size={14} color="#8e98a8" />
-                  </View>
-                  <View style={styles.metricSplitRow}>
-                    <View>
-                      <Text style={styles.metricPrimaryValue}>
-                        {`${report.bitrateAvg} Mbps`}
-                      </Text>
-                      <Text style={styles.metricSubInfoText}>
-                        {`Peak ${report.bitratePeak} Mbps`}
-                      </Text>
-                    </View>
-                    <Svg width={28} height={18} viewBox="0 0 28 18">
-                      <Path
-                        d="M 3 15 A 11 11 0 1 1 25 15"
-                        stroke="rgba(255, 255, 255, 0.2)"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        fill="none"
-                      />
-                      <Path
-                        d="M 3 15 A 11 11 0 0 1 18 4"
-                        stroke="#FFFFFF"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        fill="none"
-                      />
-                    </Svg>
-                  </View>
+                {/* Column 2: Network Performance */}
+                <View
+                  style={[
+                    styles.wideMetricCard,
+                    {
+                      backgroundColor: colors.subCardBg,
+                      borderColor: colors.subCardBorder,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.cardHeaderTitle,
+                      {color: colors.cardHeaderTitle},
+                    ]}
+                    numberOfLines={1}>
+                    {t('NETWORK PERFORMANCE')}
+                  </Text>
+                  {renderNetworkPerformanceMetrics(true)}
+                </View>
+
+                {/* Column 3: Session Stability */}
+                <View
+                  style={[
+                    styles.wideMetricCard,
+                    {
+                      backgroundColor: colors.subCardBg,
+                      borderColor: colors.subCardBorder,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.cardHeaderTitle,
+                      {color: colors.cardHeaderTitle},
+                    ]}
+                    numberOfLines={1}>
+                    {t('SESSION STABILITY')}
+                  </Text>
+                  {renderSessionStabilityMetrics(true)}
                 </View>
               </View>
 
-              <View style={styles.metricCard}>
-                <Text
-                  style={styles.cardHeaderTitle}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit={true}>
-                  {t('SESSION STABILITY')}
-                </Text>
-
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Packet Loss:')}
-                    </Text>
-                    <Icon source="wifi-off" size={14} color="#8e98a8" />
+              {/* Horizontal Footer Bar */}
+              <View style={styles.wideFooterRow}>
+                <Pressable
+                  onPress={() => setDontShowAgain(!dontShowAgain)}
+                  style={({pressed}) => [
+                    styles.checkboxWrapper,
+                    focusedBtn === 'checkbox' &&
+                      (isGamepadActive || Platform.isTV) &&
+                      styles.checkboxWrapperFocused,
+                    pressed && {opacity: 0.7},
+                  ]}>
+                  <View
+                    style={[
+                      styles.checkboxBox,
+                      {borderColor: colors.checkboxBorder},
+                      dontShowAgain && styles.checkboxBoxChecked,
+                    ]}>
+                    {dontShowAgain && (
+                      <Icon source="check" size={14} color="#FFFFFF" />
+                    )}
                   </View>
                   <Text
                     style={[
-                      styles.metricPrimaryValue,
-                      {color: packetLossColor},
+                      styles.checkboxLabel,
+                      {color: colors.checkboxLabel},
                     ]}>
-                    {`${report.packetLossAvg.toFixed(2)}%`}
+                    {t("Don't show this again")}
                   </Text>
-                  <View style={styles.metricSplitRow}>
-                    <Text
-                      style={[
-                        styles.metricBadgeText,
-                        {color: packetLossColor},
-                      ]}>
-                      {t(report.packetLossStatus.toUpperCase())}
-                    </Text>
-                    <Icon
-                      source="arrow-down-drop-circle"
-                      size={14}
-                      color={packetLossColor}
-                    />
-                  </View>
-                </View>
+                </Pressable>
 
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Jitter (Variation):')}
-                    </Text>
-                    <Icon source="tilde" size={14} color="#8e98a8" />
-                  </View>
-                  <Text style={styles.metricPrimaryValue}>
-                    {`${report.jitterAvg} ms`}
-                  </Text>
-                  <View style={styles.metricSplitRow}>
+                <View style={styles.wideFooterRight}>
+                  {(isGamepadActive || Platform.isTV) && (
+                    <View style={styles.modalGamepadHintsWide}>
+                      <Text
+                        style={[
+                          styles.modalGamepadHintText,
+                          {color: colors.hintTextColor},
+                        ]}>
+                        <Text
+                          style={[
+                            styles.hintKeyBadge,
+                            {
+                              backgroundColor: colors.hintKeyBg,
+                              color: colors.hintKeyText,
+                            },
+                          ]}>
+                          A
+                        </Text>{' '}
+                        {focusedBtn === 'checkbox' ? t('Toggle') : t('Done')}
+                        {'   '}
+                        <Text
+                          style={[
+                            styles.hintKeyBadge,
+                            {
+                              backgroundColor: colors.hintKeyBg,
+                              color: colors.hintKeyText,
+                            },
+                          ]}>
+                          B
+                        </Text>{' '}
+                        {t('Close')}
+                      </Text>
+                    </View>
+                  )}
+
+                  <Pressable
+                    onPress={handleDonePress}
+                    style={({pressed}) => [
+                      styles.donePillButtonWide,
+                      {backgroundColor: colors.doneButtonBg},
+                      focusedBtn === 'done' &&
+                        (isGamepadActive || Platform.isTV) && [
+                          styles.donePillButtonFocused,
+                          {borderColor: colors.doneButtonFocusedBorder},
+                        ],
+                      pressed && styles.donePillButtonPressed,
+                    ]}>
                     <Text
                       style={[
-                        styles.metricBadgeText,
-                        {color: jitterStatusColor},
+                        styles.donePillButtonText,
+                        {color: colors.doneButtonText},
                       ]}>
-                      {t(jitterStatusText)}
+                      {t('Done')}
                     </Text>
-                    <Svg width={36} height={14} viewBox="0 0 36 14">
+                  </Pressable>
+                </View>
+              </View>
+            </ScrollView>
+          ) : (
+            /* ========================================================================= */
+            /* PORTRAIT MOBILE LAYOUT                                                   */
+            /* ========================================================================= */
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}>
+              <Text
+                style={[styles.headerTitle, {color: colors.headerText}]}>
+                {t('Session report')}
+              </Text>
+
+              <View
+                style={[
+                  styles.heroCard,
+                  {borderColor: colors.subCardBorder},
+                ]}>
+                {!!report.gamePoster ? (
+                  <Image
+                    source={{uri: report.gamePoster}}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.heroPosterFallback} />
+                )}
+
+                <View
+                  style={[
+                    styles.heroOverlay,
+                    {backgroundColor: colors.heroOverlay},
+                  ]}
+                />
+
+                <View style={styles.heroContent}>
+                  <View style={styles.heroTitleContainer}>
+                    <Text
+                      style={styles.heroGameTitle}
+                      numberOfLines={2}
+                      adjustsFontSizeToFit={true}
+                      minimumFontScale={0.75}>
+                      {report.gameTitle.toUpperCase()}
+                    </Text>
+                  </View>
+
+                  <View style={styles.gaugeWrapper}>
+                    <View style={styles.qualityRatingRow}>
+                      <Text
+                        style={[
+                          styles.qualityLabelPrefix,
+                          {color: colors.labelColor},
+                        ]}>
+                        {t('SESSION QUALITY:')}{' '}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.qualityLabelRating,
+                          {color: report.qualityColor},
+                        ]}>
+                        {t(report.qualityText).toUpperCase()}
+                      </Text>
+                    </View>
+
+                    <Svg width={68} height={68} viewBox="0 0 68 68">
                       <Path
-                        d="M 1 7 H 9 L 13 2 L 17 12 L 21 4 L 25 9 L 28 7 H 35"
-                        stroke={jitterStatusColor}
-                        strokeWidth={1.8}
+                        d={trackPath}
+                        stroke={`${report.qualityColor}30`}
+                        strokeWidth={4.5}
                         strokeLinecap="round"
-                        strokeLinejoin="round"
                         fill="none"
                       />
+                      <Path
+                        d={progressPath}
+                        stroke={report.qualityColor}
+                        strokeWidth={4.5}
+                        strokeLinecap="round"
+                        fill="none"
+                      />
+                      <Circle
+                        cx={gaugeCx}
+                        cy={gaugeCy}
+                        r={17}
+                        fill={colors.gaugeInnerBg}
+                        stroke={colors.gaugeInnerStroke}
+                        strokeWidth={1}
+                      />
+                      <SvgText
+                        x={gaugeCx}
+                        y={gaugeCy + 6}
+                        fill={colors.scoreTextColor}
+                        fontSize="16"
+                        fontWeight="900"
+                        textAnchor="middle">
+                        {report.score}
+                      </SvgText>
                     </Svg>
                   </View>
                 </View>
-
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Average Frame Rate:')}
-                    </Text>
-                    <View style={styles.miniFpsBadge}>
-                      <Text style={styles.miniFpsBadgeText}>FPS</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.metricPrimaryValue}>
-                    {`${report.fpsAvg} FPS`}
-                  </Text>
-                  <View style={styles.metricSpacer} />
-                </View>
-
-                <View style={styles.metricRowContainer}>
-                  <View style={styles.metricLabelRow}>
-                    <Text style={styles.metricLabelText}>
-                      {t('Video Decode Time:')}
-                    </Text>
-                    <Icon source="filmstrip" size={14} color="#8e98a8" />
-                  </View>
-                  <Text style={styles.metricPrimaryValue}>
-                    {`${report.decodeAvg} ms`}
-                  </Text>
-                  <Text style={styles.metricSubInfoText}>
-                    {t('Per video frame')}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.netInfoCard}>
-              <Text style={styles.netInfoCardTitle}>
-                {t('Network Information')}
-              </Text>
-
-              <View style={styles.netInfoLine}>
-                <Text style={styles.netInfoLabel}>
-                  {`${t('Network Type:')} `}
-                </Text>
-                <Text style={styles.netInfoValue}>
-                  {report.networkType || 'Wi-Fi (5 GHz)'}
-                </Text>
               </View>
 
-              <View style={styles.netInfoLine}>
-                <Text style={styles.netInfoLabel}>
-                  {`${t('VIDEO PROFILE:')} `}
-                </Text>
-                <Text style={styles.netInfoValue}>{cleanVideoProfile}</Text>
-              </View>
-            </View>
-
-            <View style={styles.footerContainer}>
-              <Pressable
-                onPress={() => setDontShowAgain(!dontShowAgain)}
-                style={({pressed}) => [
-                  styles.checkboxWrapper,
-                  pressed && {opacity: 0.7},
-                ]}>
+              <View style={styles.metricsTwoColumn}>
                 <View
                   style={[
-                    styles.checkboxBox,
-                    dontShowAgain && styles.checkboxBoxChecked,
+                    styles.metricCard,
+                    {
+                      backgroundColor: colors.subCardBg,
+                      borderColor: colors.subCardBorder,
+                    },
                   ]}>
-                  {dontShowAgain && (
-                    <Icon source="check" size={14} color="#0c1219" />
-                  )}
+                  <Text
+                    style={[
+                      styles.cardHeaderTitle,
+                      {color: colors.cardHeaderTitle},
+                    ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={true}>
+                    {t('NETWORK PERFORMANCE')}
+                  </Text>
+                  {renderNetworkPerformanceMetrics(false)}
                 </View>
-                <Text style={styles.checkboxLabel}>
-                  {t("Don't show this again")}
-                </Text>
-              </Pressable>
 
-              <Pressable
-                onPress={handleDonePress}
-                style={({pressed}) => [
-                  styles.donePillButton,
-                  pressed && styles.donePillButtonPressed,
+                <View
+                  style={[
+                    styles.metricCard,
+                    {
+                      backgroundColor: colors.subCardBg,
+                      borderColor: colors.subCardBorder,
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.cardHeaderTitle,
+                      {color: colors.cardHeaderTitle},
+                    ]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit={true}>
+                    {t('SESSION STABILITY')}
+                  </Text>
+                  {renderSessionStabilityMetrics(false)}
+                </View>
+              </View>
+
+              <View
+                style={[
+                  styles.netInfoCard,
+                  {
+                    backgroundColor: colors.subCardBg,
+                    borderColor: colors.subCardBorder,
+                  },
                 ]}>
-                <Text style={styles.donePillButtonText}>{t('Done')}</Text>
-              </Pressable>
-            </View>
-          </ScrollView>
+                <Text
+                  style={[
+                    styles.netInfoCardTitle,
+                    {color: colors.cardHeaderTitle},
+                  ]}>
+                  {t('Network Information')}
+                </Text>
+
+                <View style={styles.netInfoLine}>
+                  <Text
+                    style={[
+                      styles.netInfoLabel,
+                      {color: colors.netInfoLabel},
+                    ]}>
+                    {`${t('Network Type:')} `}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.netInfoValue,
+                      {color: colors.netInfoValue},
+                    ]}>
+                    {report.networkType || 'Wi-Fi (5 GHz)'}
+                  </Text>
+                </View>
+
+                <View style={styles.netInfoLine}>
+                  <Text
+                    style={[
+                      styles.netInfoLabel,
+                      {color: colors.netInfoLabel},
+                    ]}>
+                    {`${t('VIDEO PROFILE:')} `}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.netInfoValue,
+                      {color: colors.netInfoValue},
+                    ]}>
+                    {cleanVideoProfile}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.footerContainer}>
+                <Pressable
+                  onPress={() => setDontShowAgain(!dontShowAgain)}
+                  style={({pressed}) => [
+                    styles.checkboxWrapper,
+                    focusedBtn === 'checkbox' &&
+                      (isGamepadActive || Platform.isTV) &&
+                      styles.checkboxWrapperFocused,
+                    pressed && {opacity: 0.7},
+                  ]}>
+                  <View
+                    style={[
+                      styles.checkboxBox,
+                      {borderColor: colors.checkboxBorder},
+                      dontShowAgain && styles.checkboxBoxChecked,
+                    ]}>
+                    {dontShowAgain && (
+                      <Icon source="check" size={14} color="#FFFFFF" />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.checkboxLabel,
+                      {color: colors.checkboxLabel},
+                    ]}>
+                    {t("Don't show this again")}
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={handleDonePress}
+                  style={({pressed}) => [
+                    styles.donePillButton,
+                    {backgroundColor: colors.doneButtonBg},
+                    focusedBtn === 'done' &&
+                      (isGamepadActive || Platform.isTV) && [
+                        styles.donePillButtonFocused,
+                        {borderColor: colors.doneButtonFocusedBorder},
+                      ],
+                    pressed && styles.donePillButtonPressed,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.donePillButtonText,
+                      {color: colors.doneButtonText},
+                    ]}>
+                    {t('Done')}
+                  </Text>
+                </Pressable>
+
+                {(isGamepadActive || Platform.isTV) && (
+                  <View style={styles.modalGamepadHints}>
+                    <Text
+                      style={[
+                        styles.modalGamepadHintText,
+                        {color: colors.hintTextColor},
+                      ]}>
+                      <Text
+                        style={[
+                          styles.hintKeyBadge,
+                          {
+                            backgroundColor: colors.hintKeyBg,
+                            color: colors.hintKeyText,
+                          },
+                        ]}>
+                        A
+                      </Text>{' '}
+                      {focusedBtn === 'checkbox' ? t('Toggle') : t('Done')}{'   '}
+                      <Text
+                        style={[
+                          styles.hintKeyBadge,
+                          {
+                            backgroundColor: colors.hintKeyBg,
+                            color: colors.hintKeyText,
+                          },
+                        ]}>
+                        B
+                      </Text>{' '}
+                      {t('Close')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          )}
         </View>
       </Modal>
     </Portal>
@@ -601,19 +1170,21 @@ const styles = StyleSheet.create({
     height: 16,
   },
   metricRowContainer: {
-    height: 52,
-    marginBottom: 10,
-    justifyContent: 'space-between',
+    paddingVertical: 5,
+    marginBottom: 6,
+    justifyContent: 'center',
   },
   metricLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 2,
   },
   metricLabelText: {
     fontSize: 10.5,
     color: '#8e98a8',
     fontWeight: '500',
+    flexShrink: 1,
   },
   metricPrimaryValue: {
     fontSize: 15,
@@ -625,6 +1196,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 2,
   },
   metricSubInfoText: {
     fontSize: 10,
@@ -637,7 +1209,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   metricSpacer: {
-    height: 14,
+    height: 0,
   },
   miniFpsBadge: {
     borderWidth: 1,
@@ -729,6 +1301,179 @@ const styles = StyleSheet.create({
     fontSize: 15.5,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  checkboxWrapperFocused: {
+    borderWidth: 2,
+    borderColor: '#27c96a',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(39, 201, 106, 0.15)',
+  },
+  donePillButtonFocused: {
+    borderWidth: 2.5,
+    borderColor: '#FFFFFF',
+    transform: [{scale: 1.03}],
+    elevation: 8,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.7,
+  },
+  modalGamepadHints: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 4,
+  },
+  modalGamepadHintText: {
+    fontSize: 12,
+    color: '#8e98a8',
+    fontWeight: '600',
+  },
+  hintKeyBadge: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  },
+
+  /* ------------------------------------------------------------------------- */
+  /* Widescreen / 16:9 Android TV Dashboard Layout Styles                      */
+  /* ------------------------------------------------------------------------- */
+  wideScrollContent: {
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  wideHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  headerTitleWide: {
+    fontFamily: Platform.select({
+      android: 'serif',
+      ios: 'Georgia',
+      default: undefined,
+    }),
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  wideHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  qualityRatingRowWide: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  scorePillBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scorePillText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  wideColumnsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+    alignItems: 'stretch',
+  },
+  wideColLeft: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  wideHeroCard: {
+    position: 'relative',
+    height: 120,
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
+  wideHeroContent: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  heroGameTitleWide: {
+    flex: 1,
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+    marginRight: 6,
+  },
+  gaugeWrapperCompact: {
+    width: 54,
+    height: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wideNetInfoCard: {
+    flex: 1,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    justifyContent: 'center',
+  },
+  wideMetricCard: {
+    flex: 1.15,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    justifyContent: 'space-between',
+  },
+  metricRowContainerCompact: {
+    paddingVertical: 3,
+    marginBottom: 3,
+    justifyContent: 'center',
+  },
+  metricBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  wideFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 2,
+  },
+  wideFooterRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  modalGamepadHintsWide: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  donePillButtonWide: {
+    paddingHorizontal: 22,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });
 

@@ -3,12 +3,19 @@ import {StyleSheet, View, ScrollView, ToastAndroid} from 'react-native';
 import {Button, TextInput, Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
-function ServerScreen({navigation}) {
+function ServerScreen({navigation}: any) {
   const {t} = useTranslation();
   const [url, setUrl] = React.useState('');
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   React.useEffect(() => {
     const settings = getSettings();

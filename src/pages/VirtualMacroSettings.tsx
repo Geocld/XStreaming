@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView} from 'react-native';
+import {StyleSheet, View, ScrollView, Platform} from 'react-native';
 import {
   Text,
   Card,
@@ -25,6 +25,11 @@ import {
   VirtualMacroStep,
 } from '../utils/virtualMacro';
 import {shiftColor} from '../utils/themeColor';
+import {
+  useGamepadNavigation,
+  useGamepadActiveState,
+} from '../utils/useGamepadNavigation';
+import GamepadFooterHints from '../components/GamepadFooterHints';
 
 type EditingState = {
   index: number;
@@ -39,6 +44,9 @@ function VirtualMacroSettingsScreen({navigation}) {
     DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
   );
   const [editing, setEditing] = React.useState<EditingState | null>(null);
+  const [focusedIndex, setFocusedIndex] = React.useState<number>(0);
+  const [isGamepadActive, setIsGamepadActive] = useGamepadActiveState(false);
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   React.useEffect(() => {
     const userSettings = getSettings();
@@ -197,12 +205,80 @@ function VirtualMacroSettingsScreen({navigation}) {
     }ms`;
   };
 
+  const addStepIndex = 2;
+  const stepsStartIndex = 3;
+  const saveIndex = 3 + steps.length;
+  const backIndex = 4 + steps.length;
+  const totalItems = 5 + steps.length;
+
+  React.useEffect(() => {
+    if (focusedIndex < saveIndex) {
+      scrollViewRef.current?.scrollTo({
+        y: Math.max(0, focusedIndex * 60 - 80),
+        animated: true,
+      });
+    } else {
+      scrollViewRef.current?.scrollToEnd({animated: true});
+    }
+  }, [focusedIndex, saveIndex]);
+
+  useGamepadNavigation({
+    priority: editing ? 15 : 10,
+    onUp: () => {
+      if (editing) return;
+      setIsGamepadActive(true);
+      setFocusedIndex(prev => Math.max(0, prev - 1));
+    },
+    onDown: () => {
+      if (editing) return;
+      setIsGamepadActive(true);
+      setFocusedIndex(prev => Math.min(totalItems - 1, prev + 1));
+    },
+    onSelect: () => {
+      if (editing) return;
+      setIsGamepadActive(true);
+      if (focusedIndex === 0) {
+        handleMacroEnabledChange(!settings.virtual_macro_enabled);
+      } else if (focusedIndex === 1) {
+        handleLoopEnabledChange(!settings.virtual_macro_loop_enabled);
+      } else if (focusedIndex === addStepIndex) {
+        openAddModal();
+      } else if (
+        focusedIndex >= stepsStartIndex &&
+        focusedIndex < stepsStartIndex + steps.length
+      ) {
+        openEditModal(focusedIndex - stepsStartIndex);
+      } else if (focusedIndex === saveIndex) {
+        handleSave();
+      } else if (focusedIndex === backIndex) {
+        navigation.goBack();
+      }
+    },
+    onBack: () => {
+      if (editing) {
+        setEditing(null);
+      } else {
+        navigation.goBack();
+      }
+    },
+  });
+
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
+    <View
+      style={styles.container}
+      onTouchStart={() => {
+        if (!Platform.isTV) setIsGamepadActive(false);
+      }}>
+      <ScrollView ref={scrollViewRef} style={styles.scrollView}>
         <Card style={heroCardStyle}>
           <Card.Content>
-            <View style={styles.switchRow}>
+            <View
+              style={[
+                styles.switchRow,
+                (isGamepadActive || Platform.isTV) &&
+                  focusedIndex === 0 &&
+                  styles.itemFocused,
+              ]}>
               <View style={styles.switchTextWrap}>
                 <Text style={switchTitleStyle}>
                   {t('Virtual macro button')}
@@ -229,7 +305,13 @@ function VirtualMacroSettingsScreen({navigation}) {
               )}
             </Text>
             <Divider style={styles.switchDivider} />
-            <View style={styles.switchRow}>
+            <View
+              style={[
+                styles.switchRow,
+                (isGamepadActive || Platform.isTV) &&
+                  focusedIndex === 1 &&
+                  styles.itemFocused,
+              ]}>
               <View style={styles.switchTextWrap}>
                 <Text style={switchTitleStyle}>{t('Loop macro')}</Text>
                 <Text style={switchDescStyle}>
@@ -263,7 +345,15 @@ function VirtualMacroSettingsScreen({navigation}) {
             title={t('Macro action sequence')}
             subtitle={t('Tap + to add sequence step')}
             right={() => (
-              <IconButton icon="plus-circle-outline" onPress={openAddModal} />
+              <IconButton
+                icon="plus-circle-outline"
+                style={[
+                  (isGamepadActive || Platform.isTV) &&
+                    focusedIndex === addStepIndex &&
+                    styles.iconButtonFocused,
+                ]}
+                onPress={openAddModal}
+              />
             )}
           />
           <Card.Content>
@@ -272,31 +362,39 @@ function VirtualMacroSettingsScreen({navigation}) {
                 {t('No action steps, tap + to add')}
               </Text>
             ) : (
-              steps.map((step, index) => (
-                <List.Item
-                  key={`step-${index}`}
-                  title={getStepTitle(step, index)}
-                  description={getStepDescription(step)}
-                  left={props => (
-                    <List.Icon
-                      {...props}
-                      icon={
-                        step.type === 'stick'
-                          ? 'gamepad-variant-outline'
-                          : 'gesture-tap-button'
-                      }
-                    />
-                  )}
-                  right={props => (
-                    <IconButton
-                      {...props}
-                      icon="pencil-outline"
+              steps.map((step, index) => {
+                const stepIdx = stepsStartIndex + index;
+                const isFocused =
+                  (isGamepadActive || Platform.isTV) && focusedIndex === stepIdx;
+                return (
+                  <View
+                    key={`step-${index}`}
+                    style={[styles.stepItemWrap, isFocused && styles.itemFocused]}>
+                    <List.Item
+                      title={getStepTitle(step, index)}
+                      description={getStepDescription(step)}
+                      left={props => (
+                        <List.Icon
+                          {...props}
+                          icon={
+                            step.type === 'stick'
+                              ? 'gamepad-variant-outline'
+                              : 'gesture-tap-button'
+                          }
+                        />
+                      )}
+                      right={props => (
+                        <IconButton
+                          {...props}
+                          icon="pencil-outline"
+                          onPress={() => openEditModal(index)}
+                        />
+                      )}
                       onPress={() => openEditModal(index)}
                     />
-                  )}
-                  onPress={() => openEditModal(index)}
-                />
-              ))
+                  </View>
+                );
+              })
             )}
           </Card.Content>
         </Card>
@@ -304,18 +402,64 @@ function VirtualMacroSettingsScreen({navigation}) {
 
       <View style={styles.footer}>
         <Button
-          mode="contained"
+          mode={
+            (isGamepadActive || Platform.isTV) && focusedIndex === saveIndex
+              ? 'contained'
+              : 'elevated'
+          }
+          buttonColor={
+            (isGamepadActive || Platform.isTV) && focusedIndex === saveIndex
+              ? theme.colors.primary
+              : undefined
+          }
+          textColor={
+            (isGamepadActive || Platform.isTV) && focusedIndex === saveIndex
+              ? '#FFFFFF'
+              : undefined
+          }
           onPress={handleSave}
-          style={styles.footerButton}>
+          style={[
+            styles.footerButton,
+            (isGamepadActive || Platform.isTV) &&
+              focusedIndex === saveIndex &&
+              styles.tvButtonFocused,
+          ]}>
           {t('Save')}
         </Button>
         <Button
-          mode="text"
+          mode={
+            (isGamepadActive || Platform.isTV) && focusedIndex === backIndex
+              ? 'contained'
+              : 'text'
+          }
+          buttonColor={
+            (isGamepadActive || Platform.isTV) && focusedIndex === backIndex
+              ? theme.colors.primary
+              : undefined
+          }
+          textColor={
+            (isGamepadActive || Platform.isTV) && focusedIndex === backIndex
+              ? '#FFFFFF'
+              : undefined
+          }
           onPress={() => navigation.goBack()}
-          style={styles.footerButton}>
+          style={[
+            styles.footerButton,
+            (isGamepadActive || Platform.isTV) &&
+              focusedIndex === backIndex &&
+              styles.tvButtonFocused,
+          ]}>
           {t('Back')}
         </Button>
       </View>
+
+      <GamepadFooterHints
+        visible={isGamepadActive || Platform.isTV}
+        hints={[
+          {button: 'A', label: t('Select')},
+          {button: 'B', label: t('Back')},
+        ]}
+      />
 
       <Portal>
         <Modal
@@ -688,6 +832,31 @@ const styles = StyleSheet.create({
   },
   buttonsScroll: {
     maxHeight: 220,
+  },
+  itemFocused: {
+    borderWidth: 2,
+    borderColor: '#107C10',
+    backgroundColor: 'rgba(16, 124, 16, 0.15)',
+    borderRadius: 8,
+  },
+  stepItemWrap: {
+    marginVertical: 2,
+    borderRadius: 8,
+  },
+  iconButtonFocused: {
+    borderWidth: 2,
+    borderColor: '#107C10',
+    borderRadius: 20,
+    backgroundColor: 'rgba(16, 124, 16, 0.15)',
+  },
+  tvButtonFocused: {
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    elevation: 6,
+    shadowColor: '#107C10',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
 });
 

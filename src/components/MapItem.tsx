@@ -11,9 +11,10 @@ const arrow =
 type Props = {
   mapItem: any;
   onPress: (titleItem: any) => any;
+  isFocused?: boolean;
 };
 
-const MapItem: React.FC<Props> = ({mapItem, onPress}) => {
+const MapItem: React.FC<Props> = ({mapItem, onPress, isFocused}) => {
   const colorScheme = useColorScheme();
   const settings = getSettings();
 
@@ -29,7 +30,10 @@ const MapItem: React.FC<Props> = ({mapItem, onPress}) => {
   return (
     <Card
       onPress={handlePress}
-      style={{margin: 10, backgroundColor: theme === 'dark' ? 'white' : ''}}>
+      style={[
+        {margin: 10, backgroundColor: theme === 'dark' ? 'white' : ''},
+        isFocused && styles.focusedCard,
+      ]}>
       <Card.Content style={styles.mapItem}>
         <View style={styles.flex}>
           <SvgXml xml={maping[mapItem.name]} width="30" height="30" />
@@ -52,6 +56,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderRadius: 10,
+  },
+  focusedCard: {
+    borderWidth: 3,
+    borderColor: '#107C10',
+    elevation: 6,
+    shadowColor: '#107C10',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
   },
   flex: {
     flex: 1,

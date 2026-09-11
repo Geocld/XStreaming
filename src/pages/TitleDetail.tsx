@@ -32,6 +32,8 @@ import {
   saveTitleShortcutSnapshot,
 } from '../store/shortcutStore';
 import {useTranslation} from 'react-i18next';
+import {useIsFocused} from '@react-navigation/native';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 import {debugFactory} from '../utils/debug';
 import games from '../mock/games.json';
 
@@ -61,6 +63,30 @@ function TitleDetail({navigation, route}) {
     Platform.OS === 'android' &&
     !Platform.isTV &&
     !!ShortcutManager?.addTitleShortcut;
+
+  const isScreenFocused = useIsFocused();
+  const [focusedBtn, setFocusedBtn] = React.useState<'start' | 'back'>('start');
+
+  useGamepadNavigation({
+    enabled: isScreenFocused && !showUsbWarnModal && !!titleItem,
+    onLeft: () => setFocusedBtn('start'),
+    onRight: () => setFocusedBtn('back'),
+    onUp: () => setFocusedBtn('start'),
+    onDown: () => setFocusedBtn('back'),
+    onSelect: () => {
+      if (focusedBtn === 'start') {
+        handleStartGame();
+      } else {
+        navigation.goBack();
+      }
+    },
+    onActionX: () => {
+      handleStartGame();
+    },
+    onBack: () => {
+      navigation.goBack();
+    },
+  });
 
   React.useEffect(() => {
     log.info('TitleDetail titleItem:', route.params?.titleItem);
@@ -307,20 +333,24 @@ function TitleDetail({navigation, route}) {
     label: string,
     onPress: () => void,
     isPrimaryAction = false,
+    isFocused = false,
   ) => {
     return (
       <Pressable
         focusable={true}
         hasTVPreferredFocus={isPrimaryAction}
         onPress={onPress}
-        style={({focused, pressed}: any) => [
-          styles.tvActionButton,
-          isPrimaryAction
-            ? [styles.tvActionButtonPrimary, {backgroundColor: primary, borderColor: primary}]
-            : [styles.tvActionButtonPlain, {borderColor: primary + '66'}],
-          focused && styles.tvActionButtonFocused,
-          pressed && styles.tvActionButtonPressed,
-        ]}>
+        style={({focused, pressed}: any) => {
+          const activeFocus = isFocused || focused;
+          return [
+            styles.tvActionButton,
+            isPrimaryAction
+              ? [styles.tvActionButtonPrimary, {backgroundColor: primary, borderColor: primary}]
+              : [styles.tvActionButtonPlain, {borderColor: primary + '66'}],
+            activeFocus && styles.tvActionButtonFocused,
+            pressed && styles.tvActionButtonPressed,
+          ];
+        }}>
         <Text
           style={[
             styles.tvActionButtonText,
@@ -349,20 +379,36 @@ function TitleDetail({navigation, route}) {
         ]}>
         {isLargeScreen ? (
           <>
-            {renderLargeActionButton(t('Start game'), handleStartGame, true)}
-            {renderLargeActionButton(t('Back'), () => navigation.goBack())}
+            {renderLargeActionButton(
+              t('Start game'),
+              handleStartGame,
+              true,
+              focusedBtn === 'start',
+            )}
+            {renderLargeActionButton(
+              t('Back'),
+              () => navigation.goBack(),
+              false,
+              focusedBtn === 'back',
+            )}
           </>
         ) : (
           <>
             <Button
               mode="elevated"
-              style={styles.button}
+              style={[
+                styles.button,
+                focusedBtn === 'start' && styles.buttonFocused,
+              ]}
               onPress={handleStartGame}>
               &nbsp;{t('Start game')} &nbsp;
             </Button>
             <Button
-              mode="text"
-              style={styles.button}
+              mode={focusedBtn === 'back' ? 'elevated' : 'text'}
+              style={[
+                styles.button,
+                focusedBtn === 'back' && styles.buttonFocused,
+              ]}
               onPress={() => navigation.goBack()}>
               {t('Back')}
             </Button>
@@ -649,9 +695,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderColor: 'rgba(16, 124, 16, 0.42)',
   },
-  tvActionButtonFocused: {
+  buttonFocused: {
     borderColor: '#FFFFFF',
     borderWidth: 2,
+    transform: [{scale: 1.04}],
+    elevation: 8,
+  },
+  tvActionButtonFocused: {
+    borderColor: '#FFFFFF',
+    borderWidth: 3,
+    transform: [{scale: 1.05}],
+    elevation: 8,
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.6,
   },
   tvActionButtonPressed: {
     opacity: 0.78,

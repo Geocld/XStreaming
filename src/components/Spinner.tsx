@@ -37,7 +37,11 @@ const Loading: React.FC<Props> = ({
       color={primaryColor}
       overlayColor={'rgba(0, 0, 0, 0)'}
       textContent={text}
-      textStyle={[styles.spinnerTextStyle, {color: primaryColor}, textStyle]}
+      textStyle={StyleSheet.flatten([
+        styles.spinnerTextStyle,
+        {color: primaryColor},
+        textStyle,
+      ])}
       animation={'fade'}
       customIndicator={<Wander size={50} color={primaryColor} />}
       closeCb={closeCb}

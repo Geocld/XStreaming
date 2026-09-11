@@ -1,12 +1,19 @@
 import React, {useMemo} from 'react';
 import {StyleSheet, View, ScrollView, Image, Dimensions} from 'react-native';
 import {Text, Card, useTheme} from 'react-native-paper';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
 const {width: screenWidth} = Dimensions.get('window');
 const imageWidth = Math.min(screenWidth - 80, 300);
 
-function FeedbackScreen() {
+function FeedbackScreen({navigation}: any) {
   const theme = useTheme();
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   const cardStyle = useMemo(
     () => [

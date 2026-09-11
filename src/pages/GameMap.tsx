@@ -2,6 +2,7 @@ import React from 'react';
 import {WebView} from 'react-native-webview';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {debugFactory} from '../utils/debug';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
 const log = debugFactory('GameMapScreen');
 
@@ -35,6 +36,13 @@ function GameMap({navigation}) {
   const [settings, setSettings] = React.useState<any>({});
 
   const uri = 'file:///android_asset/stream/index.html#/map';
+
+  useGamepadNavigation({
+    priority: 10,
+    onBack: () => {
+      navigation.goBack();
+    },
+  });
 
   React.useEffect(() => {
     log.info('Gamemap screen show');

@@ -5,6 +5,7 @@ import {
   ScrollView,
   NativeModules,
   NativeEventEmitter,
+  BackHandler,
 } from 'react-native';
 import {Text} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
@@ -18,6 +19,14 @@ const {GamepadManager} = NativeModules;
 
 function GameMapDetail({navigation, route}) {
   const {t} = useTranslation();
+
+  React.useEffect(() => {
+    const backSub = BackHandler.addEventListener('hardwareBackPress', () => {
+      navigation.goBack();
+      return true;
+    });
+    return () => backSub.remove();
+  }, [navigation]);
 
   React.useEffect(() => {
     log.info('TitleDetail button:', route.params?.button);

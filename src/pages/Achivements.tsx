@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, ScrollView, ImageBackground} from 'react-native';
+import {StyleSheet, View, ScrollView, ImageBackground, Platform} from 'react-native';
 import {Card, Text, ProgressBar} from 'react-native-paper';
 import Spinner from '../components/Spinner';
 import Empty from '../components/Empty';
@@ -9,6 +9,8 @@ import {useSelector} from 'react-redux';
 import WebApi from '../web';
 import games from '../mock/games.json';
 import {NavigationProp} from '../types/navigation';
+import {useGamepadNavigation, useGamepadActiveState} from '../utils/useGamepadNavigation';
+import GamepadFooterHints from '../components/GamepadFooterHints';
 
 type Achievement = {
   name: string;
@@ -24,7 +26,37 @@ function AchivementScreen({navigation}: {navigation: NavigationProp}) {
 
   const [loading, setLoading] = React.useState(false);
   const [archivements, setArchivements] = React.useState<Achievement[]>([]);
+  const [isGamepadActive, setIsGamepadActive] = useGamepadActiveState();
+  const [focusedIndex, setFocusedIndex] = React.useState(0);
+  const scrollViewRef = React.useRef<ScrollView>(null);
   const webToken = useSelector((state: any) => state.webToken);
+
+  useGamepadNavigation({
+    onUp: () => {
+      setFocusedIndex(prev => Math.max(0, prev - 1));
+    },
+    onDown: () => {
+      setFocusedIndex(prev => Math.min(archivements.length - 1, prev + 1));
+    },
+    onSelect: () => {
+      if (archivements[focusedIndex]) {
+        navigation.navigate('AchivementDetail', {
+          name: archivements[focusedIndex].name,
+          titleId: archivements[focusedIndex].titleId,
+        });
+      }
+    },
+    onBack: () => {
+      navigation.goBack?.();
+    },
+  });
+
+  React.useEffect(() => {
+    if (isGamepadActive || Platform.isTV) {
+      const targetY = Math.max(0, focusedIndex * 130 - 80);
+      scrollViewRef.current?.scrollTo({y: targetY, animated: true});
+    }
+  }, [focusedIndex, isGamepadActive]);
 
   React.useEffect(() => {
     setLoading(true);
@@ -58,17 +90,27 @@ function AchivementScreen({navigation}: {navigation: NavigationProp}) {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      onTouchStart={() => {
+        if (!Platform.isTV) setIsGamepadActive(false);
+      }}>
       <Spinner loading={loading} text={t('Loading...')} />
 
       {!loading && !archivements.length && <Empty />}
 
       {archivements.length > 0 && (
-        <ScrollView>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={
+            isGamepadActive || Platform.isTV ? {paddingBottom: 64} : undefined
+          }>
           {archivements.map((infos, idx) => {
+            const isFocused =
+              (isGamepadActive || Platform.isTV) && focusedIndex === idx;
             return (
               <Card
-                style={styles.card}
+                style={[styles.card, isFocused && styles.cardFocused]}
                 key={infos.titleId || idx}
                 onPress={() => {
                   navigation.navigate('AchivementDetail', {
@@ -126,6 +168,14 @@ function AchivementScreen({navigation}: {navigation: NavigationProp}) {
           })}
         </ScrollView>
       )}
+
+      <GamepadFooterHints
+        visible={isGamepadActive || Platform.isTV}
+        hints={[
+          {button: 'A', label: t('Select')},
+          {button: 'B', label: t('Back')},
+        ]}
+      />
     </View>
   );
 }
@@ -138,6 +188,12 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 20,
     overflow: 'hidden',
+  },
+  cardFocused: {
+    borderWidth: 2.5,
+    borderColor: '#FFFFFF',
+    transform: [{scale: 1.02}],
+    elevation: 8,
   },
   backgroundImage: {
     flex: 1,

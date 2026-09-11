@@ -4,13 +4,20 @@ import {Text, Card, useTheme} from 'react-native-paper';
 import axios from 'axios';
 import {useTranslation} from 'react-i18next';
 import Spinner from '../components/Spinner';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
-function ThanksScreen() {
+function ThanksScreen({navigation}: any) {
   const {i18n, t} = useTranslation();
   const currentLanguage = i18n.language;
   const theme = useTheme();
   const [loading, setLoading] = React.useState(false);
   const [lists, setLists] = React.useState<string[]>([]);
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   React.useEffect(() => {
     setLoading(true);

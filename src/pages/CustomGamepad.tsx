@@ -31,6 +31,7 @@ import {
   createDefaultMacroLayoutButton,
   ensureMacroLayoutButton,
 } from '../utils/virtualMacro';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
 const {FullScreenManager} = NativeModules;
 
@@ -50,6 +51,21 @@ function CustomGamepadScreen({navigation, route}) {
   const [currentScale, setCurrentScale] = React.useState(1);
   const [currentShow, setCurrentShow] = React.useState(true);
 
+  useGamepadNavigation({
+    priority: 15,
+    onBack: () => {
+      if (showModal) {
+        setShowModal(false);
+      } else if (showActionModal) {
+        setActionShowModal(false);
+      } else if (showWarnModal) {
+        setShowWarnShowModal(false);
+      } else {
+        navigation.goBack();
+      }
+    },
+  });
+
   React.useEffect(() => {
     const _settings = getSettings();
     let _title = '';
@@ -63,7 +79,7 @@ function CustomGamepadScreen({navigation, route}) {
     // console.log('_settings:', _settings);
     FullScreenManager.immersiveModeOn();
     Orientation.lockToLandscape();
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       const {width, height} = Dimensions.get('window');
 
       const nexusLeft = width * 0.5 - 20;
@@ -530,10 +546,10 @@ function CustomGamepadScreen({navigation, route}) {
                 <Divider style={styles.divider} />
               </View>
               <RadioButton.Group
-                onValueChange={val => handleChangeShow(val)}
-                value={currentShow}>
-                <RadioButton.Item label={t('Show')} value={true} />
-                <RadioButton.Item label={t('Hide')} value={false} />
+                onValueChange={val => handleChangeShow(val === 'true')}
+                value={currentShow ? 'true' : 'false'}>
+                <RadioButton.Item label={t('Show')} value={'true'} />
+                <RadioButton.Item label={t('Hide')} value={'false'} />
               </RadioButton.Group>
             </Card.Content>
           </Card>

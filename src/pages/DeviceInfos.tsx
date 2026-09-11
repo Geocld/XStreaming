@@ -2,13 +2,20 @@ import React from 'react';
 import {StyleSheet, View, ScrollView, NativeModules} from 'react-native';
 import {Button, Text, Card, Divider, useTheme} from 'react-native-paper';
 import {useTranslation} from 'react-i18next';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
 const {FullScreenManager, GamepadManager} = NativeModules;
 
-function DeviceInfosScreen() {
+function DeviceInfosScreen({navigation}: any) {
   const {t} = useTranslation();
   const theme = useTheme();
   const isDark = theme.dark;
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   const [infos, setInfos] = React.useState<any>(null);
   const [rumbing, setRumbing] = React.useState(false);

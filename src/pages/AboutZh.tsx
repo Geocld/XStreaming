@@ -2,9 +2,16 @@ import React, {useMemo} from 'react';
 import {StyleSheet, View, ScrollView} from 'react-native';
 import {Text, Card, useTheme} from 'react-native-paper';
 import LinkText from '../components/LinkText';
+import {useGamepadNavigation} from '../utils/useGamepadNavigation';
 
-function AboutZhScreen() {
+function AboutZhScreen({navigation}: any) {
   const theme = useTheme();
+
+  useGamepadNavigation({
+    onBack: () => {
+      navigation?.goBack();
+    },
+  });
 
   const cardStyle = useMemo(
     () => [

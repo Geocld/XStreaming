@@ -1,5 +1,5 @@
 import React from 'react';
-import {NativeModules, ScrollView, StyleSheet, View} from 'react-native';
+import {BackHandler, NativeModules, ScrollView, StyleSheet, View} from 'react-native';
 import {Button, Text, useTheme} from 'react-native-paper';
 import {useFocusEffect} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
@@ -130,7 +130,7 @@ function TriggerRow({label, value}: {label: string; value: number}) {
   );
 }
 
-function GamepadTestScreen() {
+function GamepadTestScreen({navigation}: any) {
   const {t} = useTranslation();
   const theme = useTheme();
   const [settings, setSettings] = React.useState<any>(getSettings());
@@ -138,6 +138,17 @@ function GamepadTestScreen() {
     getSettings().gamepad_kernal === 'SDL' ? 'sdl' : 'android',
   );
   const [state, setState] = React.useState(initialState);
+
+  React.useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation?.goBack();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [navigation]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -181,9 +192,14 @@ function GamepadTestScreen() {
               {kernel === 'sdl' ? t('SDL') : t('Default')}
             </Text>
           </View>
-          <Button mode="contained" onPress={rumble}>
-            {t('GamepadTestRumble')}
-          </Button>
+          <View style={{flexDirection: 'row', gap: 8}}>
+            <Button mode="contained" onPress={rumble}>
+              {t('GamepadTestRumble')}
+            </Button>
+            <Button mode="outlined" onPress={() => navigation?.goBack()}>
+              {t('Back')}
+            </Button>
+          </View>
         </View>
 
         <View style={styles.section}>

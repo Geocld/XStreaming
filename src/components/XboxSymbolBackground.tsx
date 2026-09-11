@@ -1,5 +1,11 @@
 import React from 'react';
-import {Dimensions, StyleSheet, useWindowDimensions} from 'react-native';
+import {
+  Dimensions,
+  Platform,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import Svg, {
   Circle,
   Defs,
@@ -336,6 +342,18 @@ const XboxSymbolBackground = ({isLight, primaryColor}: Props) => {
   const height = windowHeight + BACKGROUND_OVERDRAW;
   const palette = usePalette(isLight, primaryColor);
 
+  const isTvOrLandscape =
+    Platform.isTV || (width > height && width >= 720);
+
+  if (isTvOrLandscape) {
+    return (
+      <View
+        pointerEvents="none"
+        style={[styles.tvBackground, {backgroundColor: palette.base}]}
+      />
+    );
+  }
+
   return (
     <Svg
       pointerEvents="none"
@@ -401,10 +419,13 @@ const XboxSymbolBackground = ({isLight, primaryColor}: Props) => {
 };
 
 const styles = StyleSheet.create({
+  tvBackground: {
+    ...StyleSheet.absoluteFillObject,
+  },
   background: {
     ...StyleSheet.absoluteFillObject,
     bottom: -BACKGROUND_OVERDRAW,
   },
 });
 
-export default XboxSymbolBackground;
+export default React.memo(XboxSymbolBackground);
