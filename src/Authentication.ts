@@ -31,221 +31,94 @@ export default class Authentication {
     this._authenticationFailed = authenticationFailed;
   }
 
-  checkAuthentication() {
-    return new Promise(resolve => {
-      this._tokenStore.load();
-      log.info('[checkAuthentication()] Starting token check...');
+  async checkAuthentication() {
+    this._tokenStore.load();
+    log.info('[checkAuthentication()] Starting token check...');
+    log.info('[checkAuthentication()]:', this._tokenStore.hasValidAuthTokens());
+
+    if (this._tokenStore.hasValidAuthTokens()) {
+      log.info('[checkAuthentication()] Tokens are valid.');
+      this.startSilentFlow();
+      return true;
+    }
+
+    if (this._tokenStore.getUserToken() !== undefined) {
       log.info(
-        '[checkAuthentication()]:',
-        this._tokenStore.hasValidAuthTokens(),
+        '[checkAuthentication()] Tokens are expired but we have a user token. Lets try to refresh the tokens.',
       );
-      if (this._tokenStore.hasValidAuthTokens()) {
-        log.info('[checkAuthentication()] Tokens are valid.');
-        this.startSilentFlow();
+      this.startSilentFlow();
+      return true;
+    }
 
-        resolve(true);
-      } else {
-        if (this._tokenStore.getUserToken() !== undefined) {
-          log.info(
-            '[checkAuthentication()] Tokens are expired but we have a user token. Lets try to refresh the tokens.',
-          );
-          this.startSilentFlow();
-
-          resolve(true);
-        } else {
-          log.info('[checkAuthentication()] No tokens are present.');
-          resolve(false);
-        }
-      }
-    });
+    log.info('[checkAuthentication()] No tokens are present.');
+    return false;
   }
 
   startSilentFlow() {
+    if (this._isAuthenticating) {
+      log.info('[startSilentFlow()] Authentication is already in progress.');
+      return;
+    }
+
     log.info('[startSilentFlow()] Starting silent flow...');
     this._isAuthenticating = true;
+    void this.runSilentFlow();
+  }
 
-    // Get stream token from cache
-    const _streamToken = getStreamToken();
-    const _webToken = getWebToken();
+  private async runSilentFlow() {
+    try {
+      const streamToken = getStreamToken();
+      const webToken = getWebToken();
+      const xHomeToken = streamToken?.xHomeToken;
+      const xCloudToken = streamToken?.xCloudToken;
 
-    if (
-      _streamToken &&
-      (_streamToken.xHomeToken || _streamToken.xCloudToken) &&
-      _webToken
-    ) {
-      const {xHomeToken, xCloudToken} = _streamToken;
-
-      if (xHomeToken || xCloudToken) {
-        if (
-          xHomeToken &&
-          isStreamTokenValid(xHomeToken) &&
-          isWebTokenValid(_webToken)
-        ) {
-          // Use cache directly
-          this._authenticationCompleted(
-            {
-              xHomeToken: xHomeToken
-                ? new StreamingToken(xHomeToken.data)
-                : xHomeToken,
-              xCloudToken: xCloudToken
-                ? new StreamingToken(xCloudToken.data)
-                : xCloudToken,
-            },
-            _webToken,
-          );
-        } else if (
-          xCloudToken &&
-          isStreamTokenValid(xCloudToken) &&
-          isWebTokenValid(_webToken)
-        ) {
-          // Use cache directly
-          this._authenticationCompleted(
-            {
-              xHomeToken: xHomeToken
-                ? new StreamingToken(xHomeToken.data)
-                : xHomeToken,
-              xCloudToken: xCloudToken
-                ? new StreamingToken(xCloudToken.data)
-                : xCloudToken,
-            },
-            _webToken,
-          );
-        } else {
-          // Skip refreshTokens within 23 hour
-          if (
-            Date.now() - this._tokenStore.getTokenUpdateTime() <
-            23 * 60 * 60 * 1000
-          ) {
-            log.info('[startSilentFlow] skip refreshTokens - branch1');
-
-            // Get new streaming token
-            this._xal
-              .getStreamingToken(this._tokenStore)
-              .then(streamingTokens => {
-                // console.log('streamingTokens:', JSON.stringify(streamingTokens));
-                this._xal.getWebToken(this._tokenStore).then(webToken => {
-                  saveStreamToken(streamingTokens);
-                  saveWebToken(webToken);
-                  this._authenticationCompleted(streamingTokens, webToken);
-                });
-              })
-              .catch(e => {
-                clearStreamToken();
-                clearWebToken();
-                this._tokenStore.clear();
-                this._authenticationFailed(
-                  '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
-                    e.message,
-                  true,
-                );
-              });
-          } else {
-            this._xal
-              .refreshTokens(this._tokenStore)
-              .then(() => {
-                log.info(
-                  '[startSilentFlow()] Tokens have been refreshed - branch1',
-                );
-                this._xal
-                  .getStreamingToken(this._tokenStore)
-                  .then(streamingTokens => {
-                    // log.info('streamingTokens:', streamingTokens);
-                    this._xal.getWebToken(this._tokenStore).then(webToken => {
-                      saveStreamToken(streamingTokens);
-                      saveWebToken(webToken);
-                      this._authenticationCompleted(streamingTokens, webToken);
-                    });
-                  })
-                  .catch(e => {
-                    clearStreamToken();
-                    clearWebToken();
-                    this._tokenStore.clear();
-                    this._authenticationFailed(
-                      '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
-                        e.message,
-                      true,
-                    );
-                  });
-              })
-              .catch(e => {
-                log.info('[startSilentFlow()] refreshTokens error:', e);
-                // Clear tokenstore if auth fail
-                clearStreamToken();
-                clearWebToken();
-                this._tokenStore.clear();
-                this._authenticationFailed(
-                  '[startSilentFlow() - 177] refreshTokens error:' + e.message,
-                  true,
-                );
-              });
-          }
-        }
-      }
-    } else {
-      // Skip refreshTokens within 23 hour
       if (
-        Date.now() - this._tokenStore.getTokenUpdateTime() <
-        23 * 60 * 60 * 1000
+        xHomeToken &&
+        isStreamTokenValid(xHomeToken) &&
+        isWebTokenValid(webToken)
       ) {
-        log.info('[startSilentFlow] skip refreshTokens');
-        this._xal
-          .getStreamingToken(this._tokenStore)
-          .then(streamingTokens => {
-            // console.log('streamingTokens:', JSON.stringify(streamingTokens));
-            this._xal.getWebToken(this._tokenStore).then(webToken => {
-              saveStreamToken(streamingTokens);
-              saveWebToken(webToken);
-              this._authenticationCompleted(streamingTokens, webToken);
-            });
-          })
-          .catch(e => {
-            clearStreamToken();
-            clearWebToken();
-            this._tokenStore.clear();
-            this._authenticationFailed(
-              '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
-                e.message,
-              true,
-            );
-          });
-      } else {
-        this._xal
-          .refreshTokens(this._tokenStore)
-          .then(() => {
-            log.info('[startSilentFlow()] Tokens have been refreshed');
-            this._xal
-              .getStreamingToken(this._tokenStore)
-              .then(streamingTokens => {
-                // log.info('streamingTokens:', streamingTokens);
-                this._xal.getWebToken(this._tokenStore).then(webToken => {
-                  saveStreamToken(streamingTokens);
-                  saveWebToken(webToken);
-                  this._authenticationCompleted(streamingTokens, webToken);
-                });
-              })
-              .catch(e => {
-                clearStreamToken();
-                clearWebToken();
-                this._tokenStore.clear();
-                this._authenticationFailed(
-                  '[getStreamingToken()] Login failed, please login again(登录失败，请重新登录):' +
-                    e.message,
-                  true,
-                );
-              });
-          })
-          .catch(e => {
-            log.info('[startSilentFlow()] refreshTokens error:', e);
-            // Clear tokenstore if auth fail
-            clearStreamToken();
-            clearWebToken();
-            this._tokenStore.clear();
-            this._authenticationFailed(
-              '[startSilentFlow() - 245] refreshTokens error:' + e.message,
-              true,
-            );
-          });
+        await this._authenticationCompleted(
+          {
+            xHomeToken: new StreamingToken(xHomeToken.data),
+            xCloudToken: xCloudToken
+              ? new StreamingToken(xCloudToken.data)
+              : xCloudToken,
+          },
+          webToken,
+        );
+        return;
       }
+
+      const shouldRefresh =
+        Date.now() - this._tokenStore.getTokenUpdateTime() >=
+        23 * 60 * 60 * 1000;
+
+      if (shouldRefresh) {
+        await this._xal.refreshTokens(this._tokenStore);
+        log.info('[startSilentFlow()] Tokens have been refreshed');
+      } else {
+        log.info('[startSilentFlow()] Skip refreshTokens');
+      }
+
+      const streamingTokens = await this._xal.getStreamingToken(
+        this._tokenStore,
+      );
+      const freshWebToken = await this._xal.getWebToken(this._tokenStore);
+      saveStreamToken(streamingTokens);
+      saveWebToken(freshWebToken);
+      await this._authenticationCompleted(streamingTokens, freshWebToken);
+    } catch (error: any) {
+      log.error('[startSilentFlow()] Authentication failed:', error);
+      clearStreamToken();
+      clearWebToken();
+      this._tokenStore.clear();
+      this._authenticationFailed(
+        '[startSilentFlow()] Login failed, please login again(登录失败，请重新登录):' +
+          (error?.message || String(error)),
+        true,
+      );
+    } finally {
+      this._isAuthenticating = false;
     }
   }
 
@@ -255,7 +128,17 @@ export default class Authentication {
       .authenticateUser(this._tokenStore, redirect, redirectUri)
       .then(result => {
         log.info('[startAuthFlow()] Authenticated user:', result);
+        if (!result) {
+          throw new Error('Authorization was not completed successfully');
+        }
         this.startSilentFlow();
+      })
+      .catch(error => {
+        this._authenticationFailed(
+          '[startAuthflow()] Login failed, please login again(登录失败，请重新登录):' +
+            (error?.message || String(error)),
+          true,
+        );
       });
   }
 }

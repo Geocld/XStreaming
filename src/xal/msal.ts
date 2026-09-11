@@ -6,6 +6,8 @@ import StreamingToken from '../tokens/streamingtoken';
 import {getSettings} from '../store/settingStore';
 import TokenStore from './tokenstore';
 
+const AUTH_REQUEST_TIMEOUT = 15000;
+
 class TokenRefreshError extends Error {
   public error: unknown;
 
@@ -63,6 +65,7 @@ export default class Msal {
         data.toString(),
         {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         },
       )
       .then(response => {
@@ -101,6 +104,7 @@ export default class Msal {
         data.toString(),
         {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         },
       );
 
@@ -154,6 +158,7 @@ export default class Msal {
         data.toString(),
         {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         },
       );
 
@@ -209,7 +214,10 @@ export default class Msal {
         headers['X-Forwarded-For'] = forceIp;
       }
 
-      const response = await axios.post(url, payload, {headers});
+      const response = await axios.post(url, payload, {
+        headers,
+        timeout: AUTH_REQUEST_TIMEOUT,
+      });
 
       return new XstsToken(response.data);
     } catch (error) {
@@ -245,7 +253,10 @@ export default class Msal {
       }
       const body = new URLSearchParams(payload).toString();
 
-      const response = await axios.post(url, body, {headers});
+      const response = await axios.post(url, body, {
+        headers,
+        timeout: AUTH_REQUEST_TIMEOUT,
+      });
 
       const userToken = new UserToken(response.data);
 
@@ -302,7 +313,10 @@ export default class Msal {
         headers['X-Forwarded-For'] = forceIp;
       }
 
-      const response = await axios.post(url, payload, {headers});
+      const response = await axios.post(url, payload, {
+        headers,
+        timeout: AUTH_REQUEST_TIMEOUT,
+      });
 
       this._xstsToken = new XstsToken(response.data);
       return this._xstsToken;
@@ -425,7 +439,10 @@ export default class Msal {
         headers['X-Forwarded-For'] = forceIp;
       }
 
-      const response = await axios.post(url, payload, {headers});
+      const response = await axios.post(url, payload, {
+        headers,
+        timeout: AUTH_REQUEST_TIMEOUT,
+      });
 
       return new StreamingToken(response.data, offering);
     } catch (error) {

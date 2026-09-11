@@ -34,6 +34,7 @@ interface XalManagerModule {
 }
 
 const log = debugFactory('xal/index.js');
+const AUTH_REQUEST_TIMEOUT = 15000;
 
 const {XalManager} = NativeModules as {XalManager: XalManagerModule};
 
@@ -56,7 +57,7 @@ export default class Xal {
     XalManager.init && XalManager.init();
   }
 
-  getDeviceTokenHack(): Promise<DeviceToken> {
+  getDeviceTokenHack(retryCount = 0): Promise<DeviceToken> {
     console.log('getDeviceTokenHack...');
     return new Promise<DeviceToken>((resolve, reject) => {
       this.getDeviceToken()
@@ -65,9 +66,14 @@ export default class Xal {
           resolve(deviceToken);
         })
         .catch((error: any) => {
-          if (error.statuscode === 400) {
+          if (
+            (error.statuscode === 400 || error.response?.status === 400) &&
+            retryCount < 20
+          ) {
             console.log('device token get error, retry...');
-            return this.getDeviceTokenHack().then(resolve).catch(reject);
+            return this.getDeviceTokenHack(retryCount + 1)
+              .then(resolve)
+              .catch(reject);
           } else {
             console.log('getDeviceTokenHack failed:', error);
             reject(error);
@@ -118,6 +124,7 @@ export default class Xal {
       axios
         .post('https://device.auth.xboxlive.com/device/authenticate', body, {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         })
         .then(res => {
           resolve(new DeviceToken(res.data));
@@ -149,7 +156,7 @@ export default class Xal {
     codeChallange: CodeChallenge,
     state: string,
   ): Promise<Record<string, any>> {
-    return new Promise<Record<string, any>>(resolve => {
+    return new Promise<Record<string, any>>((resolve, reject) => {
       const payload = {
         AppId: this._app.AppId,
         TitleId: this._app.TitleId,
@@ -183,6 +190,7 @@ export default class Xal {
       axios
         .post('https://sisu.xboxlive.com/authenticate', body, {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         })
         .then(res => {
           // log.info('doSisuAuthentication data:', res.data);
@@ -193,8 +201,8 @@ export default class Xal {
           });
         })
         .catch((e: any) => {
-          console.log('error:', e);
           log.error('[doSisuAuthentication] error:', e);
+          reject(e);
         });
     });
   }
@@ -301,6 +309,7 @@ export default class Xal {
       axios
         .post('https://login.live.com/oauth20_token.srf', body, {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         })
         .then(res => {
           // log.info('exchangeCodeForToken data:', res.data);
@@ -332,6 +341,7 @@ export default class Xal {
       axios
         .post('https://login.live.com/oauth20_token.srf', body, {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         })
         .then(res => {
           // log.info('exchangeCodeForToken data:', res.data);
@@ -386,6 +396,7 @@ export default class Xal {
       axios
         .post('https://xsts.auth.xboxlive.com/xsts/authorize', body, {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         })
         .then(res => {
           // log.info('doSisuAuthorization res:', res.data);
@@ -446,6 +457,7 @@ export default class Xal {
       axios
         .post('https://sisu.xboxlive.com/authorize', body, {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         })
         .then(res => {
           // log.info('doSisuAuthorization res:', res.data);
@@ -521,6 +533,7 @@ export default class Xal {
       axios
         .post('https://login.live.com/oauth20_token.srf', body, {
           headers,
+          timeout: AUTH_REQUEST_TIMEOUT,
         })
         .then(res => {
           // log.info('exchangeCodeForToken data:', res.data);
@@ -604,6 +617,7 @@ export default class Xal {
           body,
           {
             headers,
+            timeout: AUTH_REQUEST_TIMEOUT,
           },
         )
         .then(res => {

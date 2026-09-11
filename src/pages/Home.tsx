@@ -285,7 +285,9 @@ function HomeScreen({navigation, route}) {
                 type: 'SET_AUTHENTICATION',
                 payload: _authentication.current,
               });
+              setShowLogin(false);
               setShowMsalLogin(true);
+              setShowMsal(false);
             },
           },
         ]);
@@ -367,8 +369,8 @@ function HomeScreen({navigation, route}) {
         .checkAuthentication()
         .then((isAuth: boolean) => {
           if (!isAuth) {
-            setLoading(false);
             if (_settings.use_msal_login) {
+              setLoading(false);
               setShowLogin(false);
               setShowMsalLogin(true);
               setShowMsal(false);
@@ -387,40 +389,25 @@ function HomeScreen({navigation, route}) {
                   setShowMsalLogin(false);
                   setShowMsal(false);
                 })
-                .catch(() => {
-                  _authentication.current = new MsalAuthentication(
-                    authenticationCompleted,
-                    authenticationFailed,
+                .catch(error => {
+                  authenticationFailed(
+                    '[getRedirectUri()] Failed to prepare login:' +
+                      (error?.message || String(error)),
+                    true,
                   );
-                  dispatch({
-                    type: 'SET_AUTHENTICATION',
-                    payload: _authentication.current,
-                  });
-                  setLoading(false);
-                  setShowLogin(false);
-                  setShowMsalLogin(true);
-                  setShowMsal(false);
                 });
             }
           }
         })
         .catch((e: any) => {
-          setLoading(false);
-          Alert.alert(t('Error'), e);
-          _authentication.current = new MsalAuthentication(
-            authenticationCompleted,
-            authenticationFailed,
+          authenticationFailed(
+            '[checkAuthentication()] Login check failed:' +
+              (e?.message || String(e)),
+            true,
           );
-          dispatch({
-            type: 'SET_AUTHENTICATION',
-            payload: _authentication.current,
-          });
-          setShowLogin(false);
-          setShowMsalLogin(true);
-          setShowMsal(false);
         });
     }
-  }, [route.params?.xalUrl, route.params?.needRefresh, isConnected]);
+  }, [route.params?.xalUrl, route.params?.needRefresh, isConnected, isFocused]);
 
   const handlePoweronAndStream = async sessionId => {
     setLoading(true);
@@ -871,13 +858,11 @@ function HomeScreen({navigation, route}) {
       })
       .catch(e => {
         log.error('MSAL device code error:', e);
-        Alert.alert(t('Error'), 'MSAL device code error' + e, [
+        setMsalBtnLoading(false);
+        Alert.alert(t('Error'), 'MSAL device code error: ' + (e?.message || String(e)), [
           {
             text: t('Confirm'),
             style: 'default',
-            onPress: () => {
-              setMsalBtnLoading(false);
-            },
           },
         ]);
       });

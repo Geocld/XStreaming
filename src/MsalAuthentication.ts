@@ -20,87 +20,72 @@ export default class MsalAuthentication {
     this._authenticationFailed = authenticationFailed;
   }
 
-  checkAuthentication() {
-    return new Promise(resolve => {
-      this._tokenStore.load();
-      log.info('[checkAuthentication()] Starting token check...');
-      log.info(
-        '[checkAuthentication()]:',
-        this._tokenStore.hasValidAuthTokens(),
-      );
-      if (this._tokenStore.hasValidAuthTokens()) {
-        // Deprecate xal token.
-        const existingToken = this._tokenStore.getUserToken();
-        if (existingToken && existingToken.data.scope !== 'XboxLive.signin') {
-          log.info(
-            '[checkAuthentication()] Deprecating old XAL token scope. Starting auth flow to get new tokens.',
-          );
-          return false;
-        }
+  async checkAuthentication() {
+    this._tokenStore.load();
+    log.info('[checkAuthentication()] Starting token check...');
+    log.info('[checkAuthentication()]:', this._tokenStore.hasValidAuthTokens());
 
+    if (this._tokenStore.hasValidAuthTokens()) {
+      const existingToken = this._tokenStore.getUserToken();
+      if (existingToken && existingToken.data.scope !== 'XboxLive.signin') {
         log.info(
-          '[checkAuthentication()] Tokens are valid:' +
-            this._tokenStore.getUserToken(),
+          '[checkAuthentication()] Deprecating old XAL token scope. Starting auth flow to get new tokens.',
         );
-
-        this.startSilentFlow();
-
-        resolve(true);
-      } else {
-        if (this._tokenStore.getUserToken() !== undefined) {
-          log.info(
-            '[checkAuthentication()] Tokens are expired but we have a user token. Lets try to refresh the tokens.',
-          );
-          this.startSilentFlow();
-
-          resolve(true);
-        } else {
-          log.info('[checkAuthentication()] No tokens are present.');
-          resolve(false);
-        }
+        return false;
       }
-    });
+
+      log.info(
+        '[checkAuthentication()] Tokens are valid:' +
+          this._tokenStore.getUserToken(),
+      );
+      this.startSilentFlow();
+      return true;
+    }
+
+    if (this._tokenStore.getUserToken() !== undefined) {
+      log.info(
+        '[checkAuthentication()] Tokens are expired but we have a user token. Lets try to refresh the tokens.',
+      );
+      this.startSilentFlow();
+      return true;
+    }
+
+    log.info('[checkAuthentication()] No tokens are present.');
+    return false;
   }
 
   startSilentFlow() {
+    if (this._isAuthenticating) {
+      log.info('[startSilentFlow()] Authentication is already in progress.');
+      return;
+    }
+
     log.info('[startSilentFlow()] Starting silent flow...');
-    this.getTokens();
+    this._isAuthenticating = true;
+    void this.getTokens();
   }
 
-  getTokens() {
-    this.getStreamingToken()
-      .then(streamingTokens => {
-        log.info('[getTokens()] Retrieved streaming tokens:' + streamingTokens);
+  async getTokens() {
+    try {
+      const streamingTokens = await this.getStreamingToken();
+      log.info('[getTokens()] Retrieved streaming tokens:' + streamingTokens);
 
-        this._msal
-          .getWebToken()
-          .then(webToken => {
-            log.info('[getTokens()] Web token received:' + webToken);
-
-            // Notify authentication completed
-            this._authenticationCompleted(streamingTokens, webToken);
-          })
-          .catch(error => {
-            log.info('[getTokens()] Failed to retrieve web tokens:' + error);
-            clearStreamToken();
-            clearWebToken();
-            this._tokenStore.clear();
-            this._authenticationFailed(
-              '[MSAL getTokens()] Failed to retrieve web token:' +
-                error.message,
-            );
-          });
-      })
-      .catch(err => {
-        log.info('[getTokens()] Failed to retrieve streaming tokens:' + err);
-        clearStreamToken();
-        clearWebToken();
-        this._tokenStore.clear();
-        this._authenticationFailed(
-          '[MSAL getTokens()] Failed to retrieve streaming tokens:' +
-            err.message,
-        );
-      });
+      const webToken = await this._msal.getWebToken();
+      log.info('[getTokens()] Web token received:' + webToken);
+      await this._authenticationCompleted(streamingTokens, webToken);
+    } catch (error: any) {
+      log.info('[getTokens()] Authentication token request failed:', error);
+      clearStreamToken();
+      clearWebToken();
+      this._tokenStore.clear();
+      this._authenticationFailed(
+        '[MSAL getTokens()] Login failed, please try again:' +
+          (error?.message || String(error)),
+        true,
+      );
+    } finally {
+      this._isAuthenticating = false;
+    }
   }
 
   async getStreamingToken() {
@@ -148,6 +133,7 @@ export default class MsalAuthentication {
         this._authenticationFailed(
           '[MSAL doPollForDeviceCodeAuth()] Failed to retrieve device code token:' +
             error.message,
+          true,
         );
       });
   }
