@@ -39,6 +39,7 @@ const AUTH_REQUEST_TIMEOUT = 15000;
 const {XalManager} = NativeModules as {XalManager: XalManagerModule};
 
 export default class Xal {
+  private _progress?: (stage: string) => void;
   private keys?: unknown;
   private jwtKeys?: unknown;
   private codeChallange?: CodeChallenge;
@@ -53,12 +54,14 @@ export default class Xal {
     RedirectUri: 'ms-xal-000000004c20a908://auth',
   };
 
-  constructor() {
+  constructor(progress?: (stage: string) => void) {
+    this._progress = progress;
     XalManager.init && XalManager.init();
   }
 
   getDeviceTokenHack(retryCount = 0): Promise<DeviceToken> {
     console.log('getDeviceTokenHack...');
+    this._progress?.('Getting device authorization...');
     return new Promise<DeviceToken>((resolve, reject) => {
       this.getDeviceToken()
         .then(deviceToken => {
@@ -156,6 +159,7 @@ export default class Xal {
     codeChallange: CodeChallenge,
     state: string,
   ): Promise<Record<string, any>> {
+    this._progress?.('Preparing login authorization...');
     return new Promise<Record<string, any>>((resolve, reject) => {
       const payload = {
         AppId: this._app.AppId,
@@ -287,6 +291,7 @@ export default class Xal {
   }
 
   exchangeCodeForToken(code: string, codeVerifier: string): Promise<UserToken> {
+    this._progress?.('Exchanging authorization code...');
     return new Promise<UserToken>((resolve, reject) => {
       const payload: Record<string, string> = {
         client_id: this._app.AppId,
@@ -324,6 +329,7 @@ export default class Xal {
   }
 
   refreshUserToken(userToken: UserToken): Promise<UserToken> {
+    this._progress?.('Refreshing user token...');
     return new Promise<UserToken>((resolve, reject) => {
       const payload: Record<string, string> = {
         client_id: this._app.AppId,
@@ -414,6 +420,7 @@ export default class Xal {
     deviceToken: DeviceToken,
     SessionId?: string,
   ): Promise<SisuToken> {
+    this._progress?.('Refreshing Xbox authorization...');
     return new Promise<SisuToken>((resolve, reject) => {
       const accessToken = userToken.data.access_token ?? '';
       const deviceTokenValue = deviceToken.data.Token;

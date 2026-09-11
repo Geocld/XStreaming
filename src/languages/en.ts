@@ -37,6 +37,18 @@ export default {
     'Login successful, refreshing login credentials...':
       'The login was successful, refreshing login credentials...',
     'Checking login status...': 'Checking login status...',
+    'Using saved login credentials...': 'Using saved login credentials...',
+    'Getting device authorization...': 'Getting device authorization...',
+    'Preparing login authorization...': 'Preparing login authorization...',
+    'Completing login...': 'Completing login...',
+    'Exchanging authorization code...': 'Exchanging authorization code...',
+    'Refreshing user token...': 'Refreshing user token...',
+    'Refreshing Xbox authorization...': 'Refreshing Xbox authorization...',
+    'Refreshing login credentials...': 'Refreshing login credentials...',
+    'Getting streaming credentials...': 'Getting streaming credentials...',
+    'Getting web credentials...': 'Getting web credentials...',
+    'Getting authorization code...': 'Getting authorization code...',
+    'Waiting for authorization...': 'Waiting for authorization...',
     MsalAuthTip:
       'Scan the QR code or open the browser link, enter the authorization code below before it expires, then tap Done after authorization is complete.',
     MsalAuthTimeout: 'The authorization code has expired. Please refresh.',

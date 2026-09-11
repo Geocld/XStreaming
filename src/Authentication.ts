@@ -23,10 +23,16 @@ export default class Authentication {
   _isAuthenticating: boolean = false;
   _authenticationCompleted: any;
   _authenticationFailed: any;
+  _authenticationProgress?: (stage: string) => void;
 
-  constructor(authenticationCompleted: any, authenticationFailed: any) {
+  constructor(
+    authenticationCompleted: any,
+    authenticationFailed: any,
+    authenticationProgress?: (stage: string) => void,
+  ) {
     this._tokenStore = new TokenStore();
-    this._xal = new Xal();
+    this._authenticationProgress = authenticationProgress;
+    this._xal = new Xal(stage => this._authenticationProgress?.(stage));
     this._authenticationCompleted = authenticationCompleted;
     this._authenticationFailed = authenticationFailed;
   }
@@ -77,6 +83,7 @@ export default class Authentication {
         isStreamTokenValid(xHomeToken) &&
         isWebTokenValid(webToken)
       ) {
+        this._authenticationProgress?.('Using saved login credentials...');
         await this._authenticationCompleted(
           {
             xHomeToken: new StreamingToken(xHomeToken.data),
@@ -94,15 +101,18 @@ export default class Authentication {
         23 * 60 * 60 * 1000;
 
       if (shouldRefresh) {
+        this._authenticationProgress?.('Refreshing login credentials...');
         await this._xal.refreshTokens(this._tokenStore);
         log.info('[startSilentFlow()] Tokens have been refreshed');
       } else {
         log.info('[startSilentFlow()] Skip refreshTokens');
       }
 
+      this._authenticationProgress?.('Getting streaming credentials...');
       const streamingTokens = await this._xal.getStreamingToken(
         this._tokenStore,
       );
+      this._authenticationProgress?.('Getting web credentials...');
       const freshWebToken = await this._xal.getWebToken(this._tokenStore);
       saveStreamToken(streamingTokens);
       saveWebToken(freshWebToken);
@@ -124,6 +134,7 @@ export default class Authentication {
 
   startAuthflow(redirect: any, redirectUri: any) {
     log.info('startAuthflow');
+    this._authenticationProgress?.('Completing login...');
     this._xal
       .authenticateUser(this._tokenStore, redirect, redirectUri)
       .then(result => {

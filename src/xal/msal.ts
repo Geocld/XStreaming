@@ -30,12 +30,14 @@ interface DeviceCodeResponse {
 
 export default class Msal {
   private _tokenStore: TokenStore;
+  private _progress?: (stage: string) => void;
   private readonly _clientId = '1f907974-e22b-4810-a9de-d9647380c97e';
   private _xstsToken?: XstsToken;
   private _gssvToken?: XstsToken;
 
-  constructor(tokenStore: TokenStore) {
+  constructor(tokenStore: TokenStore, progress?: (stage: string) => void) {
     this._tokenStore = tokenStore;
+    this._progress = progress;
   }
 
   getForceIp(): string {
@@ -47,6 +49,7 @@ export default class Msal {
    * Creates a new device code authentication request.
    */
   doDeviceCodeAuth(): Promise<DeviceCodeResponse> {
+    this._progress?.('Getting authorization code...');
     const data = new URLSearchParams();
     data.append('client_id', this._clientId);
     data.append('scope', 'xboxlive.signin openid profile offline_access');
@@ -85,6 +88,7 @@ export default class Msal {
     timeout = 900 * 1000,
     startTime = Date.now(),
   ): Promise<Record<string, any>> {
+    this._progress?.('Waiting for authorization...');
     const data = new URLSearchParams();
     data.append('grant_type', 'urn:ietf:params:oauth:grant-type:device_code');
     data.append('client_id', this._clientId);

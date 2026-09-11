@@ -35,6 +35,18 @@ export default {
     'Login successful, refreshing login credentials...':
       '登录成功，正在刷新登录凭证...',
     'Checking login status...': '正在检查登录...',
+    'Using saved login credentials...': '正在使用已保存的登录凭据...',
+    'Getting device authorization...': '正在获取设备授权...',
+    'Preparing login authorization...': '正在准备登录授权...',
+    'Completing login...': '正在完成登录...',
+    'Exchanging authorization code...': '正在交换授权码...',
+    'Refreshing user token...': '正在刷新用户令牌...',
+    'Refreshing Xbox authorization...': '正在刷新 Xbox 授权...',
+    'Refreshing login credentials...': '正在刷新登录凭证...',
+    'Getting streaming credentials...': '正在获取串流凭证...',
+    'Getting web credentials...': '正在获取 Web 凭证...',
+    'Getting authorization code...': '正在获取授权码...',
+    'Waiting for authorization...': '正在等待授权完成...',
     MsalAuthTip:
       '扫描二维码或点击连接跳转到浏览器，在限定时间内输入下方授权码登录，完成授权后点击下方完成按钮',
     MsalAuthTimeout: '授权码已过期，请刷新',

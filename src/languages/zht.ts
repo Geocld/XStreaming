@@ -20,6 +20,18 @@ export default {
     'Login successful, refreshing login credentials...':
       '登入成功，正在刷新登入凭证...',
     'Checking login status...': '正在檢查登錄...',
+    'Using saved login credentials...': '正在使用已儲存的登入憑證...',
+    'Getting device authorization...': '正在取得裝置授權...',
+    'Preparing login authorization...': '正在準備登入授權...',
+    'Completing login...': '正在完成登入...',
+    'Exchanging authorization code...': '正在交換授權碼...',
+    'Refreshing user token...': '正在刷新使用者權杖...',
+    'Refreshing Xbox authorization...': '正在刷新 Xbox 授權...',
+    'Refreshing login credentials...': '正在刷新登入憑證...',
+    'Getting streaming credentials...': '正在取得串流憑證...',
+    'Getting web credentials...': '正在取得 Web 憑證...',
+    'Getting authorization code...': '正在取得授權碼...',
+    'Waiting for authorization...': '正在等待授權完成...',
     MsalAuthTip:
       '掃描二維碼或點擊連接跳轉到瀏覽器，在限定時間內輸入下方授權碼登錄，完成授權後點擊下方完成按鈕',
     MsalAuthTimeout: '授權碼已過期，請刷新',

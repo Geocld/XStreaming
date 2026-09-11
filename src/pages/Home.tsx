@@ -214,6 +214,16 @@ function HomeScreen({navigation, route}) {
 
     const _settings = getSettings();
 
+    const authenticationProgress = (stage: string) => {
+      setLoadingText(t(stage));
+      if (stage === 'Completing login...') {
+        setLoading(true);
+        setShowLogin(false);
+        setShowMsalLogin(false);
+        setShowMsal(false);
+      }
+    };
+
     // Auth completed callback
     const authenticationCompleted = async (
       _streamingTokens: any,
@@ -241,6 +251,7 @@ function HomeScreen({navigation, route}) {
       const webApi = new WebApi(_webToken);
 
       try {
+        authenticationProgress('Fetching consoles...');
         const _xHomeApi = new XcloudApi(
           _streamingTokens.xHomeToken.getDefaultRegion().baseUri,
           _streamingTokens.xHomeToken.data.gsToken,
@@ -280,6 +291,7 @@ function HomeScreen({navigation, route}) {
               _authentication.current = new MsalAuthentication(
                 authenticationCompleted,
                 authenticationFailed,
+                authenticationProgress,
               );
               dispatch({
                 type: 'SET_AUTHENTICATION',
@@ -310,6 +322,7 @@ function HomeScreen({navigation, route}) {
       _authentication.current = new Authentication(
         authenticationCompleted,
         authenticationFailed,
+        authenticationProgress,
       );
       _authentication.current._tokenStore.load();
 
@@ -321,6 +334,7 @@ function HomeScreen({navigation, route}) {
         _authentication.current = new MsalAuthentication(
           authenticationCompleted,
           authenticationFailed,
+          authenticationProgress,
         );
       }
       dispatch({
@@ -334,7 +348,7 @@ function HomeScreen({navigation, route}) {
         log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
         setXalUrl(route.params.xalUrl);
         setLoading(true);
-        setLoadingText(t('Login successful, refreshing login credentials...'));
+        setLoadingText(t('Completing login...'));
         _authentication.current.startAuthflow(
           _redirect.current,
           route.params.xalUrl,

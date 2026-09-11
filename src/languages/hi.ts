@@ -20,6 +20,18 @@ export default {
     'Login successful, refreshing login credentials...':
       'लॉगिन सफल रहा, क्रेडेंशियल अपडेट किए जा रहे हैं...',
     'Checking login status...': 'लॉगिन स्थिति की जाँच हो रही है...',
+    'Using saved login credentials...': 'सहेजे गए लॉगिन क्रेडेंशियल का उपयोग हो रहा है...',
+    'Getting device authorization...': 'डिवाइस प्रमाणीकरण प्राप्त किया जा रहा है...',
+    'Preparing login authorization...': 'लॉगिन प्रमाणीकरण तैयार किया जा रहा है...',
+    'Completing login...': 'लॉगिन पूरा किया जा रहा है...',
+    'Exchanging authorization code...': 'प्रमाणीकरण कोड बदला जा रहा है...',
+    'Refreshing user token...': 'उपयोगकर्ता टोकन रीफ्रेश किया जा रहा है...',
+    'Refreshing Xbox authorization...': 'Xbox प्रमाणीकरण रीफ्रेश किया जा रहा है...',
+    'Refreshing login credentials...': 'लॉगिन क्रेडेंशियल रीफ्रेश किए जा रहे हैं...',
+    'Getting streaming credentials...': 'स्ट्रीमिंग क्रेडेंशियल प्राप्त किए जा रहे हैं...',
+    'Getting web credentials...': 'वेब क्रेडेंशियल प्राप्त किए जा रहे हैं...',
+    'Getting authorization code...': 'प्रमाणीकरण कोड प्राप्त किया जा रहा है...',
+    'Waiting for authorization...': 'प्रमाणीकरण की प्रतीक्षा की जा रही है...',
     MsalAuthTip:
       'QR कोड स्कैन करें या ब्राउज़र लिंक खोलें, समय समाप्त होने से पहले कोड दर्ज करें और पूरा होने पर "हो गया" दबाएं।',
     MsalAuthTimeout:

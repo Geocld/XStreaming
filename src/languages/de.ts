@@ -20,6 +20,18 @@ export default {
     'Login successful, refreshing login credentials...':
       'Anmeldung erfolgreich, Anmeldedaten werden aktualisiert...',
     'Checking login status...': 'Anmeldestatus wird geprüft...',
+    'Using saved login credentials...': 'Gespeicherte Anmeldedaten werden verwendet...',
+    'Getting device authorization...': 'Geräteautorisierung wird abgerufen...',
+    'Preparing login authorization...': 'Anmeldeautorisierung wird vorbereitet...',
+    'Completing login...': 'Anmeldung wird abgeschlossen...',
+    'Exchanging authorization code...': 'Autorisierungscode wird ausgetauscht...',
+    'Refreshing user token...': 'Benutzertoken wird aktualisiert...',
+    'Refreshing Xbox authorization...': 'Xbox-Autorisierung wird aktualisiert...',
+    'Refreshing login credentials...': 'Anmeldedaten werden aktualisiert...',
+    'Getting streaming credentials...': 'Streaming-Anmeldedaten werden abgerufen...',
+    'Getting web credentials...': 'Web-Anmeldedaten werden abgerufen...',
+    'Getting authorization code...': 'Autorisierungscode wird abgerufen...',
+    'Waiting for authorization...': 'Warten auf die Autorisierung...',
     MsalAuthTip:
       'Scanne den QR-Code oder öffne den Browser-Link, gib den Autorisierungscode vor Ablauf ein und tippe nach Abschluss auf Fertig.',
     MsalAuthTimeout:

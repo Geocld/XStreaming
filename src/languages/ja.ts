@@ -20,6 +20,18 @@ export default {
     'Login successful, refreshing login credentials...':
       'ログイン成功、認証情報を更新中...',
     'Checking login status...': 'ログイン状態を確認中...',
+    'Using saved login credentials...': '保存されたログイン情報を使用中...',
+    'Getting device authorization...': 'デバイス認証を取得中...',
+    'Preparing login authorization...': 'ログイン認証を準備中...',
+    'Completing login...': 'ログインを完了中...',
+    'Exchanging authorization code...': '認証コードを交換中...',
+    'Refreshing user token...': 'ユーザートークンを更新中...',
+    'Refreshing Xbox authorization...': 'Xbox認証を更新中...',
+    'Refreshing login credentials...': 'ログイン情報を更新中...',
+    'Getting streaming credentials...': 'ストリーミング認証情報を取得中...',
+    'Getting web credentials...': 'Web認証情報を取得中...',
+    'Getting authorization code...': '認証コードを取得中...',
+    'Waiting for authorization...': '認証を待機中...',
     MsalAuthTip:
       'QRコードをスキャンするかブラウザのリンクを開き、期限が切れる前に認証コードを入力して、完了したら「完了」をタップしてください。',
     MsalAuthTimeout: '認証コードの期限が切れました。更新してください।',

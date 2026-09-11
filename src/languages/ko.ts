@@ -20,6 +20,18 @@ export default {
     'Login successful, refreshing login credentials...':
       '로그인 성공, 인증 정보를 갱신하는 중...',
     'Checking login status...': '로그인 상태 확인 중...',
+    'Using saved login credentials...': '저장된 로그인 정보를 사용하는 중...',
+    'Getting device authorization...': '기기 인증을 가져오는 중...',
+    'Preparing login authorization...': '로그인 인증을 준비하는 중...',
+    'Completing login...': '로그인을 완료하는 중...',
+    'Exchanging authorization code...': '인증 코드를 교환하는 중...',
+    'Refreshing user token...': '사용자 토큰을 갱신하는 중...',
+    'Refreshing Xbox authorization...': 'Xbox 인증을 갱신하는 중...',
+    'Refreshing login credentials...': '로그인 정보를 갱신하는 중...',
+    'Getting streaming credentials...': '스트리밍 인증 정보를 가져오는 중...',
+    'Getting web credentials...': '웹 인증 정보를 가져오는 중...',
+    'Getting authorization code...': '인증 코드를 가져오는 중...',
+    'Waiting for authorization...': '인증을 기다리는 중...',
     MsalAuthTip:
       'QR 코드를 스캔하거나 브라우저 링크를 열고, 만료되기 전에 인증 코드를 입력한 후 완료되면 "완료"를 누르세요.',
     MsalAuthTimeout: '인증 코드 시간이 만료되었습니다. 다시 시도해 주세요.',

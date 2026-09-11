@@ -38,6 +38,18 @@ export default {
     'Login successful, refreshing login credentials...':
       'Berhasil masuk, menyegarkan kredensial login...',
     'Checking login status...': 'Memeriksa status login...',
+    'Using saved login credentials...': 'Menggunakan kredensial login tersimpan...',
+    'Getting device authorization...': 'Mendapatkan otorisasi perangkat...',
+    'Preparing login authorization...': 'Menyiapkan otorisasi login...',
+    'Completing login...': 'Menyelesaikan login...',
+    'Exchanging authorization code...': 'Menukar kode otorisasi...',
+    'Refreshing user token...': 'Menyegarkan token pengguna...',
+    'Refreshing Xbox authorization...': 'Menyegarkan otorisasi Xbox...',
+    'Refreshing login credentials...': 'Menyegarkan kredensial login...',
+    'Getting streaming credentials...': 'Mendapatkan kredensial streaming...',
+    'Getting web credentials...': 'Mendapatkan kredensial web...',
+    'Getting authorization code...': 'Mendapatkan kode otorisasi...',
+    'Waiting for authorization...': 'Menunggu otorisasi selesai...',
     MsalAuthTip:
       'Pindai kode QR atau buka tautan di browser, masukkan kode otorisasi di bawah sebelum kedaluwarsa, lalu ketuk Selesai setelah otorisasi berhasil.',
     MsalAuthTimeout: 'Kode otorisasi telah kedaluwarsa. Silakan muat ulang.',

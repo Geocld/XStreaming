@@ -12,10 +12,19 @@ export default class MsalAuthentication {
   _isAuthenticating: boolean = false;
   _authenticationCompleted: any;
   _authenticationFailed: any;
+  _authenticationProgress?: (stage: string) => void;
 
-  constructor(authenticationCompleted: any, authenticationFailed: any) {
+  constructor(
+    authenticationCompleted: any,
+    authenticationFailed: any,
+    authenticationProgress?: (stage: string) => void,
+  ) {
     this._tokenStore = new TokenStore();
-    this._msal = new Msal(this._tokenStore);
+    this._authenticationProgress = authenticationProgress;
+    this._msal = new Msal(
+      this._tokenStore,
+      stage => this._authenticationProgress?.(stage),
+    );
     this._authenticationCompleted = authenticationCompleted;
     this._authenticationFailed = authenticationFailed;
   }
@@ -67,9 +76,11 @@ export default class MsalAuthentication {
 
   async getTokens() {
     try {
+      this._authenticationProgress?.('Getting streaming credentials...');
       const streamingTokens = await this.getStreamingToken();
       log.info('[getTokens()] Retrieved streaming tokens:' + streamingTokens);
 
+      this._authenticationProgress?.('Getting web credentials...');
       const webToken = await this._msal.getWebToken();
       log.info('[getTokens()] Web token received:' + webToken);
       await this._authenticationCompleted(streamingTokens, webToken);
@@ -108,10 +119,12 @@ export default class MsalAuthentication {
 
   getMsalDeviceCode() {
     log.info('[getMsalDeviceCode()] Starting get device code');
+    this._authenticationProgress?.('Getting authorization code...');
     return this._msal.doDeviceCodeAuth();
   }
 
   doPollForDeviceCodeAuth(deviceCode: any) {
+    this._authenticationProgress?.('Waiting for authorization...');
     this._msal
       .doPollForDeviceCodeAuth(deviceCode)
       .then((token: any) => {
@@ -120,6 +133,7 @@ export default class MsalAuthentication {
             token,
         );
 
+        this._authenticationProgress?.('Completing login...');
         this.getTokens();
       })
       .catch((error: any) => {

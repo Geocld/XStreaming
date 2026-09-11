@@ -438,7 +438,6 @@ function SettingDetailScreen({navigation, route}) {
               ? {color: theme.colors.primary, fontWeight: '700'}
               : undefined
           }
-          onPress={() => setValue(item.value)}
         />
       </View>
     );
