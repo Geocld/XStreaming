@@ -138,14 +138,14 @@ XStreaming's development can not be without these Hackers. They contributed a lo
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/rabin-HE">
+        <a href="https://github.com/fortifying">
             <img src="https://avatars.githubusercontent.com/u/60229681?v=4" width="90;" alt="Heinz Der Flugel"/>
             <br />
             <sub><b>Heinz Der Flugel</b></sub>
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/rabin-HE">
+        <a href="https://github.com/gustvtech">
             <img src="https://avatars.githubusercontent.com/u/111547125?v=4" width="90;" alt="Gustavo Rocha"/>
             <br />
             <sub><b>Gustavo Rocha</b></sub>
