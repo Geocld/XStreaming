@@ -25,7 +25,10 @@ import {clearStreamToken} from '../store/streamTokenStore';
 import {clearWebToken} from '../store/webTokenStore';
 import {clearXcloudData} from '../store/xcloudStore';
 import {clearConsolesData} from '../store/consolesStore';
-import {useGamepadNavigation, useGamepadActiveState} from '../utils/useGamepadNavigation';
+import {
+  useGamepadNavigation,
+  useGamepadActiveState,
+} from '../utils/useGamepadNavigation';
 import GamepadFooterHints from '../components/GamepadFooterHints';
 
 import bases from '../common/settings/bases';
@@ -41,7 +44,6 @@ import others from '../common/settings/others';
 import {
   DEFAULT_THEME_PRIMARY_COLOR,
   normalizeHexColor,
-  shiftColor,
 } from '../utils/themeColor';
 import {
   getRegionIpForCloudName,
@@ -75,10 +77,7 @@ function SettingDetailScreen({navigation, route}) {
     DEFAULT_THEME_PRIMARY_COLOR,
   );
   const heroCardStyle = React.useMemo(
-    () => [
-      styles.heroCard,
-      {backgroundColor: theme.colors.primaryContainer},
-    ],
+    () => [styles.heroCard, {backgroundColor: theme.colors.primaryContainer}],
     [theme.colors.primaryContainer],
   );
   const heroDescStyle = React.useMemo(
