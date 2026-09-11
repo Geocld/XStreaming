@@ -19,13 +19,18 @@ import {useIsFocused} from '@react-navigation/native';
 import RNRestart from 'react-native-restart';
 import ConsoleItem from '../components/ConsoleItem';
 import HomeItem from '../components/HomeItem';
-import GamepadFooterHints, {GamepadHintItem} from '../components/GamepadFooterHints';
+import GamepadFooterHints, {
+  GamepadHintItem,
+} from '../components/GamepadFooterHints';
 import {getSettings, saveSettings} from '../store/settingStore';
 
 import Authentication from '../Authentication';
 import MsalAuthentication from '../MsalAuthentication';
 import WebApi from '../web';
-import {useGamepadNavigation, useGamepadActiveState} from '../utils/useGamepadNavigation';
+import {
+  useGamepadNavigation,
+  useGamepadActiveState,
+} from '../utils/useGamepadNavigation';
 
 import {useSelector, useDispatch} from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
@@ -97,14 +102,17 @@ function HomeScreen({navigation, route}) {
     navigation.setParams({sessionReport: undefined});
   }, [navigation]);
 
-  const handleDoneReport = React.useCallback((dontShowAgain: boolean) => {
-    if (dontShowAgain) {
-      const currentSettings = getSettings();
-      saveSettings({...currentSettings, show_session_report: false});
-    }
-    setSessionReport(null);
-    navigation.setParams({sessionReport: undefined});
-  }, [navigation]);
+  const handleDoneReport = React.useCallback(
+    (dontShowAgain: boolean) => {
+      if (dontShowAgain) {
+        const currentSettings = getSettings();
+        saveSettings({...currentSettings, show_session_report: false});
+      }
+      setSessionReport(null);
+      navigation.setParams({sessionReport: undefined});
+    },
+    [navigation],
+  );
 
   const authentication = useSelector((state: any) => state.authentication);
   const _authentication = React.useRef(authentication);
@@ -207,7 +215,10 @@ function HomeScreen({navigation, route}) {
     const _settings = getSettings();
 
     // Auth completed callback
-    const authenticationCompleted = async (_streamingTokens: any, _webToken: any) => {
+    const authenticationCompleted = async (
+      _streamingTokens: any,
+      _webToken: any,
+    ) => {
       log.info('Authentication completed');
       webTokenRef.current = _webToken;
       dispatch({
@@ -321,9 +332,7 @@ function HomeScreen({navigation, route}) {
         log.info('HomeScreen receive xalUrl:', route.params?.xalUrl);
         setXalUrl(route.params.xalUrl);
         setLoading(true);
-        setLoadingText(
-          t('Login successful, refreshing login credentials...'),
-        );
+        setLoadingText(t('Login successful, refreshing login credentials...'));
         _authentication.current.startAuthflow(
           _redirect.current,
           route.params.xalUrl,
@@ -411,11 +420,7 @@ function HomeScreen({navigation, route}) {
           setShowMsal(false);
         });
     }
-  }, [
-    route.params?.xalUrl,
-    route.params?.needRefresh,
-    isConnected,
-  ]);
+  }, [route.params?.xalUrl, route.params?.needRefresh, isConnected]);
 
   const handlePoweronAndStream = async sessionId => {
     setLoading(true);
@@ -562,7 +567,9 @@ function HomeScreen({navigation, route}) {
 
   // Focus navigation state for gamepad / TV remote
   const [isGamepadActive, setIsGamepadActive] = useGamepadActiveState();
-  const [focusedSection, setFocusedSection] = React.useState<'consoles' | 'refresh' | 'more'>('more');
+  const [focusedSection, setFocusedSection] = React.useState<
+    'consoles' | 'refresh' | 'more'
+  >('more');
   const [focusedIndex, setFocusedIndex] = React.useState<number>(0);
 
   // Sync focusedSection when consoles change
@@ -661,8 +668,12 @@ function HomeScreen({navigation, route}) {
   });
 
   // Focus navigation state for login buttons (when not logged in)
-  const [focusedLoginBtn, setFocusedLoginBtn] = React.useState<'login' | 'settings'>('login');
-  const [focusedHarmonyBtn, setFocusedHarmonyBtn] = React.useState<'dismiss' | 'install'>('install');
+  const [focusedLoginBtn, setFocusedLoginBtn] = React.useState<
+    'login' | 'settings'
+  >('login');
+  const [focusedHarmonyBtn, setFocusedHarmonyBtn] = React.useState<
+    'dismiss' | 'install'
+  >('install');
 
   useGamepadNavigation({
     enabled:
@@ -803,7 +814,11 @@ function HomeScreen({navigation, route}) {
 
               <Button
                 mode={focusedHarmonyBtn === 'dismiss' ? 'contained' : 'text'}
-                style={focusedHarmonyBtn === 'dismiss' ? styles.actionButtonFocused : undefined}
+                style={
+                  focusedHarmonyBtn === 'dismiss'
+                    ? styles.actionButtonFocused
+                    : undefined
+                }
                 onPress={() => {
                   let _settings = getSettings();
                   _settings.show_harmony_modal = false;
@@ -813,8 +828,14 @@ function HomeScreen({navigation, route}) {
                 不再提示
               </Button>
               <Button
-                mode={focusedHarmonyBtn === 'install' ? 'contained' : 'elevated'}
-                style={focusedHarmonyBtn === 'install' ? styles.actionButtonFocused : undefined}
+                mode={
+                  focusedHarmonyBtn === 'install' ? 'contained' : 'elevated'
+                }
+                style={
+                  focusedHarmonyBtn === 'install'
+                    ? styles.actionButtonFocused
+                    : undefined
+                }
                 onPress={() => {
                   Linking.openURL(HARMOBY_URL);
                   setShowHarmonyModal(false);
@@ -951,7 +972,13 @@ function HomeScreen({navigation, route}) {
   };
 
   const renderContent = () => {
-    if (loading && consoles.length === 0 && !showLogin && !showMsalLogin && !showMsal) {
+    if (
+      loading &&
+      consoles.length === 0 &&
+      !showLogin &&
+      !showMsalLogin &&
+      !showMsal
+    ) {
       return null;
     }
     if (showLogin) {
@@ -1029,7 +1056,8 @@ function HomeScreen({navigation, route}) {
                   <View style={styles.emptyConsoleActions}>
                     <Button
                       mode={
-                        (isGamepadActive || Platform.isTV) && focusedSection === 'refresh'
+                        (isGamepadActive || Platform.isTV) &&
+                        focusedSection === 'refresh'
                           ? 'elevated'
                           : 'contained-tonal'
                       }
@@ -1063,7 +1091,11 @@ function HomeScreen({navigation, route}) {
                     focusedIndex === 0 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
-                  isFocused={(isGamepadActive || Platform.isTV) && focusedSection === 'more' && focusedIndex === 0}
+                  isFocused={
+                    (isGamepadActive || Platform.isTV) &&
+                    focusedSection === 'more' &&
+                    focusedIndex === 0
+                  }
                   title={t('Xcloud')}
                   icon={'google-controller'}
                   color={'#FFB900'}
@@ -1080,7 +1112,11 @@ function HomeScreen({navigation, route}) {
                     focusedIndex === 1 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
-                  isFocused={(isGamepadActive || Platform.isTV) && focusedSection === 'more' && focusedIndex === 1}
+                  isFocused={
+                    (isGamepadActive || Platform.isTV) &&
+                    focusedSection === 'more' &&
+                    focusedIndex === 1
+                  }
                   title={t('Achivements')}
                   icon={'trophy'}
                   color={'#E81123'}
@@ -1097,7 +1133,11 @@ function HomeScreen({navigation, route}) {
                     focusedIndex === 2 && {zIndex: 99, overflow: 'visible'},
                 ]}>
                 <HomeItem
-                  isFocused={(isGamepadActive || Platform.isTV) && focusedSection === 'more' && focusedIndex === 2}
+                  isFocused={
+                    (isGamepadActive || Platform.isTV) &&
+                    focusedSection === 'more' &&
+                    focusedIndex === 2
+                  }
                   title={t('Settings')}
                   icon={'cog-outline'}
                   color={'#0078D7'}
@@ -1181,7 +1221,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   spinnerTextStyle: {
-    color: '#fff',
+    color: '#107C10',
     textAlign: 'center',
   },
   menuWrap: {
@@ -1248,7 +1288,6 @@ const styles = StyleSheet.create({
   actionButtonFocused: {
     borderWidth: 2,
     borderColor: '#FFFFFF',
-    transform: [{scale: 1.05}],
     elevation: 8,
     shadowColor: '#FFFFFF',
     shadowOpacity: 0.6,
@@ -1270,7 +1309,7 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   nonModalLoadingText: {
-    color: '#FFFFFF',
+    color: '#107C10',
     marginTop: 12,
     fontSize: 16,
   },

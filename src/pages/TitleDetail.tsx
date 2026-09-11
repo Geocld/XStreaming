@@ -670,6 +670,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+    transform: [{scale: 1}],
   },
   buttonLarge: {
     minWidth: 150,
@@ -679,6 +680,7 @@ const styles = StyleSheet.create({
   tvActionButton: {
     minWidth: 150,
     height: 42,
+    transform: [{scale: 1}],
     borderRadius: 8,
     marginRight: 12,
     paddingHorizontal: 18,

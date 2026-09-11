@@ -541,5 +541,7 @@ export default {
     Decode: '解码',
     Network: '网络',
     Done: '完成',
+    'Direct Play': '游玩',
+    Sort: '排序',
   },
 };

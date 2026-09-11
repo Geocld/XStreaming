@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: 20,
+    transform: [{scale: 1}],
     overflow: 'hidden',
   },
   cardFocused: {

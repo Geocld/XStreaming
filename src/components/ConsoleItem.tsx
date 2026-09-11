@@ -160,6 +160,7 @@ const ConsoleItem = (props: any) => {
 const styles = StyleSheet.create({
   card: {
     borderRadius: 18,
+    transform: [{scale: 1}],
     backgroundColor: 'rgba(255, 255, 255, 0.68)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.56)',

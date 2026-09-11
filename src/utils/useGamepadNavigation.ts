@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { BackHandler, DeviceEventEmitter, NativeModules, Platform } from 'react-native';
+import {useEffect, useRef, useState} from 'react';
+import {
+  BackHandler,
+  DeviceEventEmitter,
+  NativeModules,
+  Platform,
+} from 'react-native';
 
 export type NavAction =
   | 'up'
@@ -43,14 +48,23 @@ function ensureBackHandlerListener() {
 
   BackHandler.addEventListener('hardwareBackPress', () => {
     const activeEntries = handlerStack
-      .filter(entry => entry.handlersRef.current && entry.handlersRef.current.enabled !== false)
+      .filter(
+        entry =>
+          entry.handlersRef.current &&
+          entry.handlersRef.current.enabled !== false,
+      )
       .sort((a, b) => {
-        const pDiff = (b.handlersRef.current.priority ?? b.priority) - (a.handlersRef.current.priority ?? a.priority);
+        const pDiff =
+          (b.handlersRef.current.priority ?? b.priority) -
+          (a.handlersRef.current.priority ?? a.priority);
         if (pDiff !== 0) return pDiff;
         return b.id - a.id;
       });
 
-    if (activeEntries.length > 0 && activeEntries[0].handlersRef.current.onBack) {
+    if (
+      activeEntries.length > 0 &&
+      activeEntries[0].handlersRef.current.onBack
+    ) {
       activeEntries[0].handlersRef.current.onBack();
       return true;
     }
@@ -65,7 +79,7 @@ function ensureGlobalNavigationListener() {
 
   DeviceEventEmitter.addListener(
     'onMenuNavigation',
-    (data: { action?: NavAction }) => {
+    (data: {action?: NavAction}) => {
       if (!data || !data.action) return;
 
       const now = Date.now();
@@ -80,9 +94,15 @@ function ensureGlobalNavigationListener() {
 
       // Find all currently enabled handlers and sort by priority DESC, then stack order DESC
       const activeEntries = handlerStack
-        .filter(entry => entry.handlersRef.current && entry.handlersRef.current.enabled !== false)
+        .filter(
+          entry =>
+            entry.handlersRef.current &&
+            entry.handlersRef.current.enabled !== false,
+        )
         .sort((a, b) => {
-          const pDiff = (b.handlersRef.current.priority ?? b.priority) - (a.handlersRef.current.priority ?? a.priority);
+          const pDiff =
+            (b.handlersRef.current.priority ?? b.priority) -
+            (a.handlersRef.current.priority ?? a.priority);
           if (pDiff !== 0) return pDiff;
           return b.id - a.id;
         });
@@ -143,7 +163,7 @@ export function useGamepadConnectedState() {
 
     const devSub = DeviceEventEmitter.addListener(
       'onGamepadConnectionChange',
-      (data: { hasGamepad?: boolean }) => {
+      (data: {hasGamepad?: boolean}) => {
         if (data && typeof data.hasGamepad === 'boolean') {
           setHasGamepad(data.hasGamepad);
         }
@@ -170,7 +190,7 @@ export function useGamepadActiveState(initialValue?: boolean) {
 
     const devSub = DeviceEventEmitter.addListener(
       'onGamepadConnectionChange',
-      (data: { hasGamepad?: boolean }) => {
+      (data: {hasGamepad?: boolean}) => {
         if (data && data.hasGamepad === false) {
           setIsGamepadActive(false);
         }
@@ -212,5 +232,5 @@ export function useGamepadNavigation(handlers: GamepadNavHandlers) {
         handlerStack.splice(idx, 1);
       }
     };
-  }, []);
+  }, [handlers.priority]);
 }

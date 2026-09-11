@@ -737,6 +737,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+    transform: [{scale: 1}],
   },
   optionItemWrap: {
     marginHorizontal: 8,

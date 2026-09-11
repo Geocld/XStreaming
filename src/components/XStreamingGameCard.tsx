@@ -248,6 +248,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 14,
+    transform: [{scale: 1}],
     overflow: 'hidden',
     backgroundColor: '#161922',
     position: 'relative',

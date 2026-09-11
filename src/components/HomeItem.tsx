@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
   card: {
     minHeight: 124,
     borderRadius: 18,
+    transform: [{scale: 1}],
     backgroundColor: 'rgba(255, 255, 255, 0.68)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.56)',
