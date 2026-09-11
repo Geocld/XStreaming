@@ -15,25 +15,43 @@ import {
   BackHandler,
   AppState,
 } from 'react-native';
-import {Text, Portal, Modal, Card, Icon, Button, useTheme} from 'react-native-paper';
+import {
+  Text,
+  Portal,
+  Modal,
+  Card,
+  Icon,
+  Button,
+  useTheme,
+} from 'react-native-paper';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import {useIsFocused} from '@react-navigation/native';
-import {useGamepadNavigation, useGamepadActiveState, useGamepadConnectedState} from '../utils/useGamepadNavigation';
+import {
+  useGamepadNavigation,
+  useGamepadActiveState,
+  useGamepadConnectedState,
+} from '../utils/useGamepadNavigation';
 
 import Spinner from '../components/Spinner';
 import XStreamingGameCard from '../components/XStreamingGameCard';
 import XboxLogo from '../components/XboxLogo';
 import Empty from '../components/Empty';
 import SessionReportModal from '../components/SessionReportModal';
-import GamepadFooterHints, {GamepadHintItem} from '../components/GamepadFooterHints';
+import GamepadFooterHints, {
+  GamepadHintItem,
+} from '../components/GamepadFooterHints';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
 import TokenStore from '../xal/tokenstore';
 import StreamingToken from '../tokens/streamingtoken';
 import {debugFactory} from '../utils/debug';
-import {getXcloudData, saveXcloudData, isxCloudDataValid} from '../store/xcloudStore';
+import {
+  getXcloudData,
+  saveXcloudData,
+  isxCloudDataValid,
+} from '../store/xcloudStore';
 import {getSettings, saveSettings} from '../store/settingStore';
 import {getStreamToken, isStreamTokenValid} from '../store/streamTokenStore';
 import {getWebToken, isWebTokenValid} from '../store/webTokenStore';
@@ -57,8 +75,16 @@ const isGamePassSubscriptionTitle = (item: any): boolean => {
 
   // Exclude Free-to-Play titles
   const f2pTitles = [
-    'fortnite', 'warframe', 'roblox', 'destiny 2', 'fall guys',
-    'brawlhalla', 'apex legends', 'genshin', 'zenless zone', 'pubg',
+    'fortnite',
+    'warframe',
+    'roblox',
+    'destiny 2',
+    'fall guys',
+    'brawlhalla',
+    'apex legends',
+    'genshin',
+    'zenless zone',
+    'pubg',
   ];
   if (f2pTitles.some(kw => title.includes(kw))) {
     return false;
@@ -66,13 +92,28 @@ const isGamePassSubscriptionTitle = (item: any): boolean => {
 
   // Exclude Buy-to-Play titles
   const nonSubscriptionTitles = [
-    'cyberpunk', 'witcher 3', 'hogwarts legacy', "baldur's gate 3",
-    'grand theft auto v', 'gta v', 'red dead redemption', 'nba 2k',
-    'dying light 2', 'elden ring', 'star wars outlaws', 'avatar: frontiers',
-    'final fantasy xvi', 'final fantasy vii', 'dragons dogma 2',
-    'suicide squad', 'mortal kombat 1', 'call of duty: modern warfare iii',
-    'call of duty: modern warfare ii', 'warhammer 40,000: space marine 2',
-    'space marine 2', 'black myth',
+    'cyberpunk',
+    'witcher 3',
+    'hogwarts legacy',
+    "baldur's gate 3",
+    'grand theft auto v',
+    'gta v',
+    'red dead redemption',
+    'nba 2k',
+    'dying light 2',
+    'elden ring',
+    'star wars outlaws',
+    'avatar: frontiers',
+    'final fantasy xvi',
+    'final fantasy vii',
+    'dragons dogma 2',
+    'suicide squad',
+    'mortal kombat 1',
+    'call of duty: modern warfare iii',
+    'call of duty: modern warfare ii',
+    'warhammer 40,000: space marine 2',
+    'space marine 2',
+    'black myth',
   ];
   if (nonSubscriptionTitles.some(kw => title.includes(kw))) {
     return false;
@@ -157,7 +198,8 @@ const fetchSiglTitles = async (
           titleMap[item.id.toLowerCase()];
         if (!matched) return;
 
-        const key = matched.titleId || matched.XCloudTitleId || matched.productId;
+        const key =
+          matched.titleId || matched.XCloudTitleId || matched.productId;
         if (key && !seen.has(key)) {
           if (!filterFn || filterFn(matched)) {
             seen.add(key);
@@ -234,9 +276,19 @@ const detectAccountTier = (titleResults: any[], xCloudToken?: any): string => {
   const offering =
     xCloudToken?.getOffering?.() ||
     xCloudToken?.offering ||
-    (xCloudToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
-    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
-    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
+    (xCloudToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p')
+      ? 'xgpuwebf2p'
+      : undefined) ||
+    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) =>
+      r.baseUri?.includes('xgpuwebf2p'),
+    )
+      ? 'xgpuwebf2p'
+      : undefined) ||
+    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) =>
+      r.baseUri?.includes('xgpuweb'),
+    )
+      ? 'xgpuweb'
+      : undefined);
 
   // If token is explicitly free-to-play, user has no active Game Pass subscription
   if (offering === 'xgpuwebf2p') {
@@ -251,14 +303,15 @@ const detectAccountTier = (titleResults: any[], xCloudToken?: any): string => {
   let hasActiveSubscription = false;
 
   for (const item of titleResults) {
-    const rawSubs = item.details?.userSubscriptions || item.userSubscriptions || [];
+    const rawSubs =
+      item.details?.userSubscriptions || item.userSubscriptions || [];
     const rawProgs = item.details?.userPrograms || item.userPrograms || [];
 
     const subs = (Array.isArray(rawSubs) ? rawSubs : [rawSubs]).map((s: any) =>
       String(s || '').toUpperCase(),
     );
-    const progs = (Array.isArray(rawProgs) ? rawProgs : [rawProgs]).map((p: any) =>
-      String(p || '').toUpperCase(),
+    const progs = (Array.isArray(rawProgs) ? rawProgs : [rawProgs]).map(
+      (p: any) => String(p || '').toUpperCase(),
     );
 
     const all = [...subs, ...progs];
@@ -415,7 +468,8 @@ const RegionSelectModal: React.FC<RegionSelectModalProps> = ({
   React.useEffect(() => {
     if (visible && availableRegions.length > 0) {
       const idx = availableRegions.findIndex(
-        r => r.name === currentRegionName || (!currentRegionName && r.isDefault),
+        r =>
+          r.name === currentRegionName || (!currentRegionName && r.isDefault),
       );
       const targetIdx = idx >= 0 ? idx : 0;
       setModalFocusedIndex(targetIdx);
@@ -476,18 +530,23 @@ const RegionSelectModal: React.FC<RegionSelectModalProps> = ({
           <Card.Title
             title={t('Select Cloud Server')}
             titleStyle={[styles.modalTitle, isLight && styles.modalTitleLight]}
-            left={props => <Icon {...props} source="earth" color={primary} size={24} />}
+            left={props => (
+              <Icon {...props} source="earth" color={primary} size={24} />
+            )}
           />
           <ScrollView
             ref={scrollViewRef}
-            style={{maxHeight: (screenHeight || winH) * (isLandscape ? 0.68 : 0.58)}}
+            style={{
+              maxHeight: (screenHeight || winH) * (isLandscape ? 0.68 : 0.58),
+            }}
             contentContainerStyle={styles.modalScrollContent}
             showsVerticalScrollIndicator={true}
             nestedScrollEnabled={true}>
             {availableRegions.map((reg, idx) => {
               const info = getRegionDisplayInfo(reg.name);
               const isSelected =
-                currentRegionName === reg.name || (!currentRegionName && reg.isDefault);
+                currentRegionName === reg.name ||
+                (!currentRegionName && reg.isDefault);
               const isFocused = isGamepadActive && modalFocusedIndex === idx;
               return (
                 <Pressable
@@ -497,7 +556,10 @@ const RegionSelectModal: React.FC<RegionSelectModalProps> = ({
                   style={({pressed, focused}: any) => [
                     styles.regionModalOption,
                     isLight && styles.regionModalOptionLight,
-                    isSelected && [styles.modalOptionActive, {backgroundColor: primary + '1A'}],
+                    isSelected && [
+                      styles.modalOptionActive,
+                      {backgroundColor: primary + '1A'},
+                    ],
                     (isFocused || focused) && [
                       styles.modalOptionFocused,
                       {borderColor: isLight ? primary : '#FFFFFF'},
@@ -518,12 +580,17 @@ const RegionSelectModal: React.FC<RegionSelectModalProps> = ({
                       </Text>
                       <Text
                         numberOfLines={1}
-                        style={[styles.modalRegionCode, isLight && styles.modalRegionCodeLight]}>
+                        style={[
+                          styles.modalRegionCode,
+                          isLight && styles.modalRegionCodeLight,
+                        ]}>
                         {reg.name}
                       </Text>
                     </View>
                   </View>
-                  {isSelected && <Icon source="check" size={20} color={primary} />}
+                  {isSelected && (
+                    <Icon source="check" size={20} color={primary} />
+                  )}
                 </Pressable>
               );
             })}
@@ -558,12 +625,15 @@ const SortOptionModal: React.FC<SortOptionModalProps> = ({
   const {width: winW, height: winH} = useWindowDimensions();
   const isLandscape = winW > winH;
 
-  const options = React.useMemo(() => [
-    {key: 'relevance', label: t('Relevance')},
-    {key: 'az', label: 'A - Z'},
-    {key: 'za', label: 'Z - A'},
-    {key: 'newest', label: t('Newest')},
-  ], [t]);
+  const options = React.useMemo(
+    () => [
+      {key: 'relevance', label: t('Relevance')},
+      {key: 'az', label: 'A - Z'},
+      {key: 'za', label: 'Z - A'},
+      {key: 'newest', label: t('Newest')},
+    ],
+    [t],
+  );
 
   const [modalFocusedIndex, setModalFocusedIndex] = React.useState<number>(0);
 
@@ -607,7 +677,14 @@ const SortOptionModal: React.FC<SortOptionModalProps> = ({
           <Card.Title
             title={t('Sort: Relevance')}
             titleStyle={[styles.modalTitle, isLight && styles.modalTitleLight]}
-            left={props => <Icon {...props} source="sort-variant" color={primary} size={24} />}
+            left={props => (
+              <Icon
+                {...props}
+                source="sort-variant"
+                color={primary}
+                size={24}
+              />
+            )}
           />
           <Card.Content>
             {options.map((opt, idx) => {
@@ -619,7 +696,10 @@ const SortOptionModal: React.FC<SortOptionModalProps> = ({
                   onPress={() => onSelectSort(opt.key)}
                   style={({pressed, focused}: any) => [
                     styles.modalOption,
-                    sortBy === opt.key && [styles.modalOptionActive, {backgroundColor: primary + '1A'}],
+                    sortBy === opt.key && [
+                      styles.modalOptionActive,
+                      {backgroundColor: primary + '1A'},
+                    ],
                     (isFocused || focused) && [
                       styles.modalOptionFocused,
                       {borderColor: isLight ? primary : '#FFFFFF'},
@@ -634,7 +714,9 @@ const SortOptionModal: React.FC<SortOptionModalProps> = ({
                     ]}>
                     {opt.label}
                   </Text>
-                  {sortBy === opt.key && <Icon source="check" size={18} color={primary} />}
+                  {sortBy === opt.key && (
+                    <Icon source="check" size={18} color={primary} />
+                  )}
                 </Pressable>
               );
             })}
@@ -669,15 +751,18 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
   const {width: winW, height: winH} = useWindowDimensions();
   const isLandscape = winW > winH;
 
-  const filterOptions = React.useMemo(() => [
-    {key: 'all', label: t('All')},
-    {key: 'play_gamepass', label: t('Play with Game Pass')},
-    {key: 'new', label: t('Recently Added')},
-    {key: 'ubisoft', label: t('Ubisoft+ Classic')},
-    {key: 'own', label: t('Stream your own game')},
-    {key: 'leaving', label: t('Leaving soon')},
-    {key: 'recent', label: t('Recently')},
-  ], [t]);
+  const filterOptions = React.useMemo(
+    () => [
+      {key: 'all', label: t('All')},
+      {key: 'play_gamepass', label: t('Play with Game Pass')},
+      {key: 'new', label: t('Recently Added')},
+      {key: 'ubisoft', label: t('Ubisoft+ Classic')},
+      {key: 'own', label: t('Stream your own game')},
+      {key: 'leaving', label: t('Leaving soon')},
+      {key: 'recent', label: t('Recently')},
+    ],
+    [t],
+  );
 
   const [modalFocusedIndex, setModalFocusedIndex] = React.useState<number>(0);
 
@@ -695,7 +780,9 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
       setModalFocusedIndex(prev => Math.max(0, prev - 1));
     },
     onDown: () => {
-      setModalFocusedIndex(prev => Math.min(filterOptions.length - 1, prev + 1));
+      setModalFocusedIndex(prev =>
+        Math.min(filterOptions.length - 1, prev + 1),
+      );
     },
     onSelect: () => {
       const selected = filterOptions[modalFocusedIndex];
@@ -722,7 +809,14 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
           <Card.Title
             title={t('Filters')}
             titleStyle={[styles.modalTitle, isLight && styles.modalTitleLight]}
-            left={props => <Icon {...props} source="filter-variant" color={primary} size={24} />}
+            left={props => (
+              <Icon
+                {...props}
+                source="filter-variant"
+                color={primary}
+                size={24}
+              />
+            )}
           />
           <Card.Content>
             {filterOptions.map((opt, idx) => {
@@ -734,7 +828,10 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
                   onPress={() => onSelectFilter(opt.key)}
                   style={({pressed, focused}: any) => [
                     styles.modalOption,
-                    filterCategory === opt.key && [styles.modalOptionActive, {backgroundColor: primary + '1A'}],
+                    filterCategory === opt.key && [
+                      styles.modalOptionActive,
+                      {backgroundColor: primary + '1A'},
+                    ],
                     (isFocused || focused) && [
                       styles.modalOptionFocused,
                       {borderColor: isLight ? primary : '#FFFFFF'},
@@ -745,11 +842,16 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
                     style={[
                       styles.modalOptionText,
                       isLight && styles.modalOptionTextLight,
-                      filterCategory === opt.key && {color: primary, fontWeight: '700'},
+                      filterCategory === opt.key && {
+                        color: primary,
+                        fontWeight: '700',
+                      },
                     ]}>
                     {opt.label}
                   </Text>
-                  {filterCategory === opt.key && <Icon source="check" size={18} color={primary} />}
+                  {filterCategory === opt.key && (
+                    <Icon source="check" size={18} color={primary} />
+                  )}
                 </Pressable>
               );
             })}
@@ -792,7 +894,11 @@ const UsbWarningModal: React.FC<UsbWarningModalProps> = ({
         ]}>
         <Card style={[styles.modalCard, isLight && styles.modalCardLight]}>
           <Card.Content>
-            <Text style={[styles.usbWarningText, isLight && styles.usbWarningTextLight]}>
+            <Text
+              style={[
+                styles.usbWarningText,
+                isLight && styles.usbWarningTextLight,
+              ]}>
               {t(
                 'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive',
               )}
@@ -836,23 +942,37 @@ const TutorialModal: React.FC<TutorialModalProps> = ({visible, onDismiss}) => {
           <Card.Content>
             <Text
               variant="bodyMedium"
-              style={[styles.tutorialLeadText, isLight && styles.tutorialLeadTextLight]}>
+              style={[
+                styles.tutorialLeadText,
+                isLight && styles.tutorialLeadTextLight,
+              ]}>
               如果你在中国大陆地区，因为云游戏服务器均在海外，云游戏延迟和丢包率高都是正常现象，
               如果你需要使用加速器提升云游戏质量，请按照以下操作顺序加速云游戏。
             </Text>
             <Text
               variant="bodyMedium"
-              style={[styles.tutorialStepText, isLight && styles.tutorialStepTextLight]}>
-              1. 打开XStreaming，设置 - 云游戏 - 地区选择日本或韩国，选择后记得保存。
+              style={[
+                styles.tutorialStepText,
+                isLight && styles.tutorialStepTextLight,
+              ]}>
+              1. 打开XStreaming，设置 - 云游戏 -
+              地区选择日本或韩国，选择后记得保存。
             </Text>
             <Text
               variant="bodyMedium"
-              style={[styles.tutorialStepText, isLight && styles.tutorialStepTextLight]}>
-              2. 进入云游戏栏目，选择游戏直接开始，待连接成功显示游戏画面后，将XStreaming切到后台。
+              style={[
+                styles.tutorialStepText,
+                isLight && styles.tutorialStepTextLight,
+              ]}>
+              2.
+              进入云游戏栏目，选择游戏直接开始，待连接成功显示游戏画面后，将XStreaming切到后台。
             </Text>
             <Text
               variant="bodyMedium"
-              style={[styles.tutorialStepText, isLight && styles.tutorialStepTextLight]}>
+              style={[
+                styles.tutorialStepText,
+                isLight && styles.tutorialStepTextLight,
+              ]}>
               3. 打开加速器，选择加速『XStreaming』，等待加速成功后切回游戏。
             </Text>
           </Card.Content>
@@ -884,180 +1004,214 @@ interface CarouselSectionProps {
   t: (key: string) => string;
 }
 
-const CarouselSection = React.memo<CarouselSectionProps>(({
-  title,
-  data,
-  categoryKey,
-  idPrefix,
-  isSectionActive,
-  focusedIndex,
-  isGamepadActive,
-  hidePlayButton = false,
-  horizontalCardWidth,
-  horizontalCardHeight,
-  isLandscape,
-  isLight,
-  primary,
-  onPress,
-  onPlayPress,
-  onShowAll,
-  sectionRefCallback,
-  onMomentumScrollEndCallback,
-  t,
-}) => {
-  if (!data || data.length === 0) return null;
-  const maxItems = Platform.isTV ? 6 : 10;
-  const hasMoreThanMax = data.length > maxItems;
-  const displayData = React.useMemo(
-    () => (hasMoreThanMax ? data.slice(0, maxItems) : data),
-    [data, hasMoreThanMax, maxItems],
-  );
+const CarouselSection = React.memo<CarouselSectionProps>(
+  ({
+    title,
+    data,
+    categoryKey,
+    idPrefix,
+    isSectionActive,
+    focusedIndex,
+    isGamepadActive,
+    hidePlayButton = false,
+    horizontalCardWidth,
+    horizontalCardHeight,
+    isLandscape,
+    isLight,
+    primary,
+    onPress,
+    onPlayPress,
+    onShowAll,
+    sectionRefCallback,
+    onMomentumScrollEndCallback,
+    t,
+  }) => {
+    if (!data || data.length === 0) return null;
+    const maxItems = Platform.isTV ? 6 : 10;
+    const hasMoreThanMax = data.length > maxItems;
+    const displayData = React.useMemo(
+      () => (hasMoreThanMax ? data.slice(0, maxItems) : data),
+      [data, hasMoreThanMax, maxItems],
+    );
 
-  const renderCard = React.useCallback(
-    ({item, index}: {item: any; index: number}) => (
-      <XStreamingGameCard
-        titleItem={item}
-        width={horizontalCardWidth}
-        height={horizontalCardHeight}
-        onPress={onPress}
-        onPlayPress={onPlayPress}
-        style={styles.horizontalCardMargin}
-        hasTVPreferredFocus={false}
-        isFocused={isGamepadActive && isSectionActive && focusedIndex === index}
-        hidePlayButton={hidePlayButton}
-      />
-    ),
-    [
-      horizontalCardWidth,
-      horizontalCardHeight,
-      onPress,
-      onPlayPress,
-      isGamepadActive,
-      isSectionActive,
-      focusedIndex,
-      hidePlayButton,
-    ],
-  );
+    const renderCard = React.useCallback(
+      ({item, index}: {item: any; index: number}) => (
+        <XStreamingGameCard
+          titleItem={item}
+          width={horizontalCardWidth}
+          height={horizontalCardHeight}
+          onPress={onPress}
+          onPlayPress={onPlayPress}
+          style={styles.horizontalCardMargin}
+          hasTVPreferredFocus={false}
+          isFocused={
+            isGamepadActive && isSectionActive && focusedIndex === index
+          }
+          hidePlayButton={hidePlayButton}
+        />
+      ),
+      [
+        horizontalCardWidth,
+        horizontalCardHeight,
+        onPress,
+        onPlayPress,
+        isGamepadActive,
+        isSectionActive,
+        focusedIndex,
+        hidePlayButton,
+      ],
+    );
 
-  const getItemLayout = React.useCallback(
-    (_: any, index: number) => ({
-      length: horizontalCardWidth + 10,
-      offset: (horizontalCardWidth + 10) * index,
-      index,
-    }),
-    [horizontalCardWidth],
-  );
+    const getItemLayout = React.useCallback(
+      (_: any, index: number) => ({
+        length: horizontalCardWidth + 10,
+        offset: (horizontalCardWidth + 10) * index,
+        index,
+      }),
+      [horizontalCardWidth],
+    );
 
-  const keyExtractor = React.useCallback(
-    (item: any, index: number) => `${idPrefix}_${item.titleId || item.XCloudTitleId || index}`,
-    [idPrefix],
-  );
+    const keyExtractor = React.useCallback(
+      (item: any, index: number) =>
+        `${idPrefix}_${item.titleId || item.XCloudTitleId || index}`,
+      [idPrefix],
+    );
 
-  return (
-    <View style={[styles.carouselSection, isLandscape && styles.carouselSectionLandscape]}>
-      <View style={[styles.sectionHeaderRow, isLandscape && styles.sectionHeaderRowLandscape]}>
-        <Text
+    return (
+      <View
+        style={[
+          styles.carouselSection,
+          isLandscape && styles.carouselSectionLandscape,
+        ]}>
+        <View
           style={[
-            styles.sectionTitle,
-            isLandscape && styles.sectionTitleLandscape,
-            isLight && styles.sectionTitleLight,
-          ]}
-          numberOfLines={1}>
-          {title}
-        </Text>
-        {hasMoreThanMax && (
-          <Pressable
-            focusable={true}
-            onPress={() => onShowAll(categoryKey)}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-            style={({pressed, focused}: any) => [
-              styles.showAllHeaderButton,
-              {backgroundColor: primary + '1A'},
-              focused && styles.showAllHeaderButtonFocused,
-              pressed && [styles.showAllHeaderButtonPressed, {backgroundColor: primary + '33'}],
-            ]}>
-            <Text style={[styles.showAllHeaderText, {color: primary}]}>{t('Show all')}</Text>
-            <Icon source="chevron-right" size={13} color={primary} />
-          </Pressable>
-        )}
-      </View>
-
-      <FlatList
-        ref={sectionRefCallback}
-        horizontal
-        data={displayData}
-        extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${hidePlayButton}_${isSectionActive ? focusedIndex : -1}`}
-        keyExtractor={keyExtractor}
-        showsHorizontalScrollIndicator={false}
-        style={[styles.horizontalListWrap, isLandscape && styles.horizontalListWrapLandscape]}
-        contentContainerStyle={[
-          styles.horizontalListContent,
-          isLandscape && styles.horizontalListContentLandscape,
-        ]}
-        getItemLayout={getItemLayout}
-        onMomentumScrollEnd={onMomentumScrollEndCallback}
-        initialNumToRender={isLandscape ? 6 : 3}
-        maxToRenderPerBatch={isLandscape ? 4 : 2}
-        windowSize={3}
-        removeClippedSubviews={Platform.OS === 'android'}
-        renderItem={renderCard}
-        ListFooterComponent={() => {
-          if (!hasMoreThanMax) return null;
-          const isShowAllCardFocused =
-            isGamepadActive && isSectionActive && focusedIndex === displayData.length;
-          return (
+            styles.sectionHeaderRow,
+            isLandscape && styles.sectionHeaderRowLandscape,
+          ]}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              isLandscape && styles.sectionTitleLandscape,
+              isLight && styles.sectionTitleLight,
+            ]}
+            numberOfLines={1}>
+            {title}
+          </Text>
+          {hasMoreThanMax && (
             <Pressable
               focusable={true}
               onPress={() => onShowAll(categoryKey)}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
               style={({pressed, focused}: any) => [
-                styles.showAllCard,
-                isLight && styles.showAllCardLight,
-                {
-                  width: horizontalCardWidth,
-                  height: horizontalCardHeight,
-                  borderColor: isShowAllCardFocused
-                    ? (isLight ? primary : '#FFFFFF')
-                    : primary + '4D',
-                  borderWidth: isShowAllCardFocused ? 2.5 : 1,
-                },
-                (isShowAllCardFocused || focused) && [
-                  styles.showAllCardFocused,
-                  {borderColor: isLight ? primary : '#FFFFFF'},
-                ],
+                styles.showAllHeaderButton,
+                {backgroundColor: primary + '1A'},
+                focused && styles.showAllHeaderButtonFocused,
                 pressed && [
-                  styles.showAllCardPressed,
-                  {borderColor: primary, backgroundColor: primary + '1A'},
+                  styles.showAllHeaderButtonPressed,
+                  {backgroundColor: primary + '33'},
                 ],
               ]}>
-              <View
-                style={[
-                  styles.showAllIconCircle,
-                  {backgroundColor: isShowAllCardFocused ? primary : primary + '1A'},
-                ]}>
-                <Icon
-                  source="arrow-right"
-                  size={24}
-                  color={isShowAllCardFocused ? '#FFFFFF' : primary}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.showAllCardTitle,
-                  isLight && styles.showAllCardTitleLight,
-                  isShowAllCardFocused && {fontWeight: '700', color: isLight ? primary : '#FFFFFF'},
-                ]}>
+              <Text style={[styles.showAllHeaderText, {color: primary}]}>
                 {t('Show all')}
               </Text>
-              <Text style={[styles.showAllCardSubtitle, {color: primary}]}>
-                {`+${data.length - maxItems} ${t('available')}`}
-              </Text>
+              <Icon source="chevron-right" size={13} color={primary} />
             </Pressable>
-          );
-        }}
-      />
-    </View>
-  );
-});
+          )}
+        </View>
+
+        <FlatList
+          ref={sectionRefCallback}
+          horizontal
+          data={displayData}
+          extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${hidePlayButton}_${
+            isSectionActive ? focusedIndex : -1
+          }`}
+          keyExtractor={keyExtractor}
+          showsHorizontalScrollIndicator={false}
+          style={[
+            styles.horizontalListWrap,
+            isLandscape && styles.horizontalListWrapLandscape,
+          ]}
+          contentContainerStyle={[
+            styles.horizontalListContent,
+            isLandscape && styles.horizontalListContentLandscape,
+          ]}
+          getItemLayout={getItemLayout}
+          onMomentumScrollEnd={onMomentumScrollEndCallback}
+          initialNumToRender={isLandscape ? 6 : 3}
+          maxToRenderPerBatch={isLandscape ? 4 : 2}
+          windowSize={3}
+          removeClippedSubviews={Platform.OS === 'android'}
+          renderItem={renderCard}
+          ListFooterComponent={() => {
+            if (!hasMoreThanMax) return null;
+            const isShowAllCardFocused =
+              isGamepadActive &&
+              isSectionActive &&
+              focusedIndex === displayData.length;
+            return (
+              <Pressable
+                focusable={true}
+                onPress={() => onShowAll(categoryKey)}
+                style={({pressed, focused}: any) => [
+                  styles.showAllCard,
+                  isLight && styles.showAllCardLight,
+                  {
+                    width: horizontalCardWidth,
+                    height: horizontalCardHeight,
+                    borderColor: isShowAllCardFocused
+                      ? isLight
+                        ? primary
+                        : '#FFFFFF'
+                      : primary + '4D',
+                    borderWidth: isShowAllCardFocused ? 2.5 : 1,
+                  },
+                  (isShowAllCardFocused || focused) && [
+                    styles.showAllCardFocused,
+                    {borderColor: isLight ? primary : '#FFFFFF'},
+                  ],
+                  pressed && [
+                    styles.showAllCardPressed,
+                    {borderColor: primary, backgroundColor: primary + '1A'},
+                  ],
+                ]}>
+                <View
+                  style={[
+                    styles.showAllIconCircle,
+                    {
+                      backgroundColor: isShowAllCardFocused
+                        ? primary
+                        : primary + '1A',
+                    },
+                  ]}>
+                  <Icon
+                    source="arrow-right"
+                    size={24}
+                    color={isShowAllCardFocused ? '#FFFFFF' : primary}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.showAllCardTitle,
+                    isLight && styles.showAllCardTitleLight,
+                    isShowAllCardFocused && {
+                      fontWeight: '700',
+                      color: isLight ? primary : '#FFFFFF',
+                    },
+                  ]}>
+                  {t('Show all')}
+                </Text>
+                <Text style={[styles.showAllCardSubtitle, {color: primary}]}>
+                  {`+${data.length - maxItems} ${t('available')}`}
+                </Text>
+              </Pressable>
+            );
+          }}
+        />
+      </View>
+    );
+  },
+);
 
 function CloudScreen({navigation, route}: any) {
   const {t, i18n} = useTranslation();
@@ -1081,7 +1235,10 @@ function CloudScreen({navigation, route}: any) {
     if (saved?.xCloudToken && isStreamTokenValid(saved.xCloudToken)) {
       return saved.xCloudToken.getOffering
         ? saved.xCloudToken
-        : new StreamingToken(saved.xCloudToken.data, saved.xCloudToken.offering);
+        : new StreamingToken(
+            saved.xCloudToken.data,
+            saved.xCloudToken.offering,
+          );
     }
     return undefined;
   }, [streamingTokens?.xCloudToken]);
@@ -1099,30 +1256,43 @@ function CloudScreen({navigation, route}: any) {
   const [isLimited, setIsLimited] = React.useState(false);
   const [showTutorial, setShowTutorial] = React.useState(false);
 
-  const [titles, setTitles] = React.useState<any[]>(() => initialCache?.titles || []);
+  const [titles, setTitles] = React.useState<any[]>(
+    () => initialCache?.titles || [],
+  );
   const [titleMap, setTitleMap] = React.useState<Record<string, any>>(() => {
     if (initialCache?.titleMap) return initialCache.titleMap;
-    if (initialCache?.titles?.length) return buildTitleLookupMap(initialCache.titles);
+    if (initialCache?.titles?.length)
+      return buildTitleLookupMap(initialCache.titles);
     return {};
   });
-  const [newTitles, setNewTitles] = React.useState<any[]>(() => initialCache?.newTitles || []);
-  const [recentTitles, setRecentTitles] = React.useState<any[]>(() => initialCache?.recentTitles || []);
-  const [leavingSoonTitles, setLeavingSoonTitles] = React.useState<any[]>(() => initialCache?.leavingSoonTitles || []);
+  const [newTitles, setNewTitles] = React.useState<any[]>(
+    () => initialCache?.newTitles || [],
+  );
+  const [recentTitles, setRecentTitles] = React.useState<any[]>(
+    () => initialCache?.recentTitles || [],
+  );
+  const [leavingSoonTitles, setLeavingSoonTitles] = React.useState<any[]>(
+    () => initialCache?.leavingSoonTitles || [],
+  );
   const [gamePassTitles, setGamePassTitles] = React.useState<any[]>(() => {
     if (initialCache?.playWithGamePassTitles) {
-      return initialCache.playWithGamePassTitles.filter(isGamePassSubscriptionTitle);
+      return initialCache.playWithGamePassTitles.filter(
+        isGamePassSubscriptionTitle,
+      );
     }
     return [];
   });
-  const [ubisoftTitlesData, setUbisoftTitlesData] = React.useState<any[]>(() => {
-    if (initialCache?.ubisoftTitles) {
-      return initialCache.ubisoftTitles.filter(isUbisoftTitle);
-    }
-    return [];
-  });
-  const [streamYourOwnTitlesData, setStreamYourOwnTitlesData] = React.useState<any[]>(
-    () => initialCache?.streamYourOwnTitles || [],
+  const [ubisoftTitlesData, setUbisoftTitlesData] = React.useState<any[]>(
+    () => {
+      if (initialCache?.ubisoftTitles) {
+        return initialCache.ubisoftTitles.filter(isUbisoftTitle);
+      }
+      return [];
+    },
   );
+  const [streamYourOwnTitlesData, setStreamYourOwnTitlesData] = React.useState<
+    any[]
+  >(() => initialCache?.streamYourOwnTitles || []);
 
   const [keyword, setKeyword] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -1143,14 +1313,18 @@ function CloudScreen({navigation, route}: any) {
   });
 
   // Server region state
-  const [currentRegionName, setCurrentRegionName] = React.useState<string>(() => {
-    const settings = getSettings();
-    return settings.signaling_cloud_name || '';
-  });
+  const [currentRegionName, setCurrentRegionName] = React.useState<string>(
+    () => {
+      const settings = getSettings();
+      return settings.signaling_cloud_name || '';
+    },
+  );
   const [showRegionModal, setShowRegionModal] = React.useState(false);
 
   // Navigation and filter states
-  const [sortBy, setSortBy] = React.useState<'relevance' | 'az' | 'za' | 'newest'>('relevance');
+  const [sortBy, setSortBy] = React.useState<
+    'relevance' | 'az' | 'za' | 'newest'
+  >('relevance');
   const [filterCategory, setFilterCategory] = React.useState<
     'all' | 'play_gamepass' | 'new' | 'ubisoft' | 'own' | 'leaving' | 'recent'
   >('all');
@@ -1180,14 +1354,17 @@ function CloudScreen({navigation, route}: any) {
     navigation.setParams({sessionReport: undefined});
   }, [navigation]);
 
-  const handleDoneReport = React.useCallback((dontShowAgain: boolean) => {
-    if (dontShowAgain) {
-      const currentSettings = getSettings();
-      saveSettings({...currentSettings, show_session_report: false});
-    }
-    setSessionReport(null);
-    navigation.setParams({sessionReport: undefined});
-  }, [navigation]);
+  const handleDoneReport = React.useCallback(
+    (dontShowAgain: boolean) => {
+      if (dontShowAgain) {
+        const currentSettings = getSettings();
+        saveSettings({...currentSettings, show_session_report: false});
+      }
+      setSessionReport(null);
+      navigation.setParams({sessionReport: undefined});
+    },
+    [navigation],
+  );
 
   const flatListRef = React.useRef<any>(null);
   const currentScrollOffsetRef = React.useRef<number>(0);
@@ -1216,13 +1393,18 @@ function CloudScreen({navigation, route}: any) {
     return Math.round(cardWidth * 1.38);
   }, [cardWidth]);
 
-  const horizontalCardWidth = isLandscape ? 120 : (isLargeScreen ? 140 : 124);
+  const horizontalCardWidth = isLandscape ? 120 : isLargeScreen ? 140 : 124;
   const horizontalCardHeight = Math.round(horizontalCardWidth * 1.38);
   const pageSize = isLargeScreen ? 36 : 24;
 
   // Resolved user Gamertag
   const gamertag = React.useMemo(() => {
-    return resolveXboxGamertag(fetchedGamertag, profile, webToken, streamingTokens);
+    return resolveXboxGamertag(
+      fetchedGamertag,
+      profile,
+      webToken,
+      streamingTokens,
+    );
   }, [fetchedGamertag, profile, webToken, streamingTokens]);
 
   // Subscription tier label (Free, Essential, Premium, Ultimate)
@@ -1231,15 +1413,26 @@ function CloudScreen({navigation, route}: any) {
     const offering =
       activeToken?.getOffering?.() ||
       activeToken?.offering ||
-      (activeToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p') ? 'xgpuwebf2p' : undefined) ||
-      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuwebf2p')) ? 'xgpuwebf2p' : undefined) ||
-      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) => r.baseUri?.includes('xgpuweb')) ? 'xgpuweb' : undefined);
+      (activeToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p')
+        ? 'xgpuwebf2p'
+        : undefined) ||
+      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) =>
+        r.baseUri?.includes('xgpuwebf2p'),
+      )
+        ? 'xgpuwebf2p'
+        : undefined) ||
+      (activeToken?.data?.offeringSettings?.regions?.some?.((r: any) =>
+        r.baseUri?.includes('xgpuweb'),
+      )
+        ? 'xgpuweb'
+        : undefined);
 
     if (offering === 'xgpuwebf2p') return 'Free';
     if (accountTier === 'Core') return 'Essential';
     if (accountTier === 'Standard') return 'Premium';
     if (accountTier === 'FREE' || accountTier === 'Free') return 'Free';
-    if (accountTier === 'Essential' || accountTier === 'Premium') return accountTier;
+    if (accountTier === 'Essential' || accountTier === 'Premium')
+      return accountTier;
     if (accountTier === 'Ultimate') {
       if (offering && offering !== 'xgpuweb') return 'Free';
       return 'Ultimate';
@@ -1303,10 +1496,23 @@ function CloudScreen({navigation, route}: any) {
       return streamYourOwnTitlesData;
     }
     const ownedKeywords = [
-      'cyberpunk', 'witcher', 'hogwarts', "baldur's gate",
-      'grand theft auto', 'gta', 'red dead', 'nba 2k', 'call of duty',
-      'final fantasy', 'dying light', 'star wars outlaws', 'avatar',
-      'elden ring', 'warhammer', 'mortal kombat', 'destiny',
+      'cyberpunk',
+      'witcher',
+      'hogwarts',
+      "baldur's gate",
+      'grand theft auto',
+      'gta',
+      'red dead',
+      'nba 2k',
+      'call of duty',
+      'final fantasy',
+      'dying light',
+      'star wars outlaws',
+      'avatar',
+      'elden ring',
+      'warhammer',
+      'mortal kombat',
+      'destiny',
     ];
     const found = titles.filter(item => {
       const title = (item.ProductTitle || '').toLowerCase();
@@ -1383,7 +1589,11 @@ function CloudScreen({navigation, route}: any) {
       // Concurrently fetch SIGL collections
       const [gpRes, newRes, ubiRes, ownRes, leaveRes, recentRes] =
         await Promise.allSettled([
-          fetchSiglTitles(SIGL_GAME_PASS, lookupMap, isGamePassSubscriptionTitle),
+          fetchSiglTitles(
+            SIGL_GAME_PASS,
+            lookupMap,
+            isGamePassSubscriptionTitle,
+          ),
           fetchSiglTitles(SIGL_RECENTLY_ADDED, lookupMap),
           fetchSiglTitles(SIGL_UBISOFT_CLASSICS, lookupMap, isUbisoftTitle),
           fetchSiglTitles(SIGL_STREAM_YOUR_OWN, lookupMap),
@@ -1395,9 +1605,9 @@ function CloudScreen({navigation, route}: any) {
         isGamePassSubscriptionTitle,
       );
       const newList = newRes.status === 'fulfilled' ? newRes.value : [];
-      const ubiList = (ubiRes.status === 'fulfilled' ? ubiRes.value : []).filter(
-        isUbisoftTitle,
-      );
+      const ubiList = (
+        ubiRes.status === 'fulfilled' ? ubiRes.value : []
+      ).filter(isUbisoftTitle);
       const ownList = ownRes.status === 'fulfilled' ? ownRes.value : [];
       const leaveList = leaveRes.status === 'fulfilled' ? leaveRes.value : [];
 
@@ -1408,7 +1618,8 @@ function CloudScreen({navigation, route}: any) {
       if (leaveList.length > 0) setLeavingSoonTitles(leaveList);
 
       const recentList: any[] = [];
-      const recentVal: any = recentRes.status === 'fulfilled' ? recentRes.value : null;
+      const recentVal: any =
+        recentRes.status === 'fulfilled' ? recentRes.value : null;
       if (recentVal?.results) {
         recentVal.results.forEach((item: any) => {
           const pid = item.details?.productId;
@@ -1433,9 +1644,16 @@ function CloudScreen({navigation, route}: any) {
       });
 
       // Prefetch top images for instantaneous visual appearance
-      const prefetchPool = [...recentList.slice(0, 6), ...gpList.slice(0, 6), ...leaveList.slice(0, 6)];
+      const prefetchPool = [
+        ...recentList.slice(0, 6),
+        ...gpList.slice(0, 6),
+        ...leaveList.slice(0, 6),
+      ];
       prefetchPool.forEach((item: any) => {
-        const raw = item?.Image_Poster?.URL || item?.Image_Tile?.URL || item?.details?.posterUrl;
+        const raw =
+          item?.Image_Poster?.URL ||
+          item?.Image_Tile?.URL ||
+          item?.details?.posterUrl;
         if (raw && typeof raw === 'string') {
           const full = raw.startsWith('http') ? raw : `https:${raw}`;
           try {
@@ -1527,11 +1745,15 @@ function CloudScreen({navigation, route}: any) {
             if (cacheData.recentTitles) setRecentTitles(cacheData.recentTitles);
             if (cacheData.playWithGamePassTitles) {
               setGamePassTitles(
-                cacheData.playWithGamePassTitles.filter(isGamePassSubscriptionTitle),
+                cacheData.playWithGamePassTitles.filter(
+                  isGamePassSubscriptionTitle,
+                ),
               );
             }
             if (cacheData.ubisoftTitles) {
-              setUbisoftTitlesData(cacheData.ubisoftTitles.filter(isUbisoftTitle));
+              setUbisoftTitlesData(
+                cacheData.ubisoftTitles.filter(isUbisoftTitle),
+              );
             }
             if (cacheData.streamYourOwnTitles) {
               setStreamYourOwnTitlesData(cacheData.streamYourOwnTitles);
@@ -1591,7 +1813,9 @@ function CloudScreen({navigation, route}: any) {
     if (Platform.OS === 'android') {
       const regionInfo = getRegionDisplayInfo(regionName);
       ToastAndroid.show(
-        `${t('Saved')}: ${regionInfo.flag} ${regionInfo.name} (${newSettings.force_region_ip || 'Auto'})`,
+        `${t('Saved')}: ${regionInfo.flag} ${regionInfo.name} (${
+          newSettings.force_region_ip || 'Auto'
+        })`,
         ToastAndroid.SHORT,
       );
     }
@@ -1612,7 +1836,9 @@ function CloudScreen({navigation, route}: any) {
 
       const isUsbMode = settings.bind_usb_device;
       const usbController = isUsbMode ? 1 : 0;
-      const postUrl = `${activeToken.getDefaultRegion().baseUri}/v5/sessions/cloud/play`;
+      const postUrl = `${
+        activeToken.getDefaultRegion().baseUri
+      }/v5/sessions/cloud/play`;
 
       const streamPage =
         settings.render_engine === 'web'
@@ -1733,7 +1959,8 @@ function CloudScreen({navigation, route}: any) {
   const isScreenFocused = useIsFocused();
   const [isGamepadActive, setIsGamepadActive] = useGamepadActiveState();
   const isGamepadConnected = useGamepadConnectedState();
-  const shouldHidePlayButton = Platform.isTV || (isGamepadConnected && isGamepadActive);
+  const shouldHidePlayButton =
+    Platform.isTV || (isGamepadConnected && isGamepadActive);
   const sectionListRefs = React.useRef<Record<string, any>>({});
   const carouselScrollLeftMap = React.useRef<Record<string, number>>({});
   const lastCarouselFocusRef = React.useRef<{
@@ -1752,10 +1979,15 @@ function CloudScreen({navigation, route}: any) {
   // Available sections list for controller navigation
   const availableSections = React.useMemo(() => {
     if (filterCategory !== 'all' || keyword.length > 0) {
-      return [{ id: 'grid', data: pagedTitles, hasMore: false }];
+      return [{id: 'grid', data: pagedTitles, hasMore: false}];
     }
     const maxItems = Platform.isTV ? 6 : 10;
-    const list: { id: string; data: any[]; hasMore: boolean; categoryKey?: any }[] = [];
+    const list: {
+      id: string;
+      data: any[];
+      hasMore: boolean;
+      categoryKey?: any;
+    }[] = [];
     if (recentTitles.length > 0) {
       list.push({
         id: 'recent',
@@ -1805,7 +2037,7 @@ function CloudScreen({navigation, route}: any) {
       });
     }
     if (pagedTitles.length > 0) {
-      list.push({ id: 'grid', data: pagedTitles, hasMore: false });
+      list.push({id: 'grid', data: pagedTitles, hasMore: false});
     }
     return list;
   }, [
@@ -1832,7 +2064,9 @@ function CloudScreen({navigation, route}: any) {
   React.useEffect(() => {
     if (focusedSection === 'header') return;
     if (availableSections.length > 0) {
-      const currentExists = availableSections.some(s => s.id === focusedSection);
+      const currentExists = availableSections.some(
+        s => s.id === focusedSection,
+      );
       if (!currentExists) {
         setFocusedSection(availableSections[0].id);
         setFocusedIndex(0);
@@ -1858,28 +2092,42 @@ function CloudScreen({navigation, route}: any) {
     leavingSoonList.length,
   ]);
 
-  const visibleCardsCount = isLandscape ? 5 : (isLargeScreen ? 3 : 2);
+  const visibleCardsCount = isLandscape ? 5 : isLargeScreen ? 3 : 2;
   const secHeight = isLandscape ? 225 : 255;
 
   const handleShowAll = React.useCallback(
     (categoryKey: any) => {
       if (filterCategory === 'all') {
-        const targetSec = availableSections.find(s => s.categoryKey === categoryKey);
+        const targetSec = availableSections.find(
+          s => s.categoryKey === categoryKey,
+        );
         const isCurrentSec = targetSec && focusedSection === targetSec.id;
 
         const savedSection = isCurrentSec
           ? focusedSection
-          : (targetSec ? targetSec.id : (focusedSection !== 'header' && focusedSection !== 'grid' ? focusedSection : 'recent'));
+          : targetSec
+          ? targetSec.id
+          : focusedSection !== 'header' && focusedSection !== 'grid'
+          ? focusedSection
+          : 'recent';
 
         const savedIndex = isCurrentSec ? focusedIndex : 0;
         const curSec = availableSections.find(s => s.id === savedSection);
-        const isShowAllCard = !!(curSec && curSec.hasMore && savedIndex === curSec.data.length);
+        const isShowAllCard = !!(
+          curSec &&
+          curSec.hasMore &&
+          savedIndex === curSec.data.length
+        );
 
-        const curSecIdx = availableSections.findIndex(s => s.id === savedSection);
+        const curSecIdx = availableSections.findIndex(
+          s => s.id === savedSection,
+        );
         const verticalOffset =
           currentScrollOffsetRef.current > 0
             ? currentScrollOffsetRef.current
-            : (curSecIdx >= 0 ? curSecIdx * secHeight : 0);
+            : curSecIdx >= 0
+            ? curSecIdx * secHeight
+            : 0;
         const scrollLeft = carouselScrollLeftMap.current[savedSection] || 0;
 
         lastCarouselFocusRef.current = {
@@ -1895,7 +2143,13 @@ function CloudScreen({navigation, route}: any) {
       setCurrentPage(1);
       scrollToTop();
     },
-    [availableSections, filterCategory, focusedIndex, focusedSection, secHeight],
+    [
+      availableSections,
+      filterCategory,
+      focusedIndex,
+      focusedSection,
+      secHeight,
+    ],
   );
 
   const handleBackToHome = React.useCallback(() => {
@@ -1925,7 +2179,8 @@ function CloudScreen({navigation, route}: any) {
             } catch (e) {}
           } else {
             const leftOffset =
-              (saved.scrollLeft || Math.max(0, saved.index - visibleCardsCount + 1)) *
+              (saved.scrollLeft ||
+                Math.max(0, saved.index - visibleCardsCount + 1)) *
               (horizontalCardWidth + 10);
             try {
               secRef.scrollToOffset?.({
@@ -1988,10 +2243,12 @@ function CloudScreen({navigation, route}: any) {
     if (direction === 'left') {
       if (focusedHeaderItem === 'settings') setFocusedHeaderItem('region');
       else if (focusedHeaderItem === 'filter') setFocusedHeaderItem('sort');
-      else if (focusedHeaderItem === 'sort' && filterCategory !== 'all') setFocusedHeaderItem('back');
+      else if (focusedHeaderItem === 'sort' && filterCategory !== 'all')
+        setFocusedHeaderItem('back');
     } else if (direction === 'right') {
       if (focusedHeaderItem === 'region') setFocusedHeaderItem('settings');
-      else if (focusedHeaderItem === 'sort' && filterCategory === 'all') setFocusedHeaderItem('filter');
+      else if (focusedHeaderItem === 'sort' && filterCategory === 'all')
+        setFocusedHeaderItem('filter');
       else if (focusedHeaderItem === 'back') setFocusedHeaderItem('sort');
     } else if (direction === 'up') {
       if (
@@ -2043,8 +2300,11 @@ function CloudScreen({navigation, route}: any) {
           const nextRow = Math.floor(nextIdx / numColumns);
           const currentRow = Math.floor(focusedIndex / numColumns);
           if (nextRow !== currentRow) {
-            const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
-            const offset = carouselsCount * secHeight + nextRow * (cardHeight + 10);
+            const carouselsCount = availableSections.filter(
+              s => s.id !== 'grid',
+            ).length;
+            const offset =
+              carouselsCount * secHeight + nextRow * (cardHeight + 10);
             flatListRef.current?.scrollToOffset?.({
               offset,
               animated: true,
@@ -2053,7 +2313,9 @@ function CloudScreen({navigation, route}: any) {
         }
       } else {
         // Horizontal carousel: max index is curSec.data.length if curSec.hasMore (the "Show all" card)
-        const maxFocusIdx = curSec.hasMore ? curSec.data.length : curSec.data.length - 1;
+        const maxFocusIdx = curSec.hasMore
+          ? curSec.data.length
+          : curSec.data.length - 1;
         if (focusedIndex < maxFocusIdx) {
           const nextIdx = focusedIndex + 1;
           setFocusedIndex(nextIdx);
@@ -2065,7 +2327,8 @@ function CloudScreen({navigation, route}: any) {
               });
             } catch (e) {}
           } else {
-            const currentLeft = carouselScrollLeftMap.current[focusedSection] || 0;
+            const currentLeft =
+              carouselScrollLeftMap.current[focusedSection] || 0;
             if (nextIdx >= currentLeft + visibleCardsCount) {
               const newLeft = nextIdx - visibleCardsCount + 1;
               carouselScrollLeftMap.current[focusedSection] = newLeft;
@@ -2094,15 +2357,19 @@ function CloudScreen({navigation, route}: any) {
           const prevRow = Math.floor(prevIdx / numColumns);
           const currentRow = Math.floor(focusedIndex / numColumns);
           if (prevRow !== currentRow) {
-            const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
-            const offset = carouselsCount * secHeight + prevRow * (cardHeight + 10);
+            const carouselsCount = availableSections.filter(
+              s => s.id !== 'grid',
+            ).length;
+            const offset =
+              carouselsCount * secHeight + prevRow * (cardHeight + 10);
             flatListRef.current?.scrollToOffset?.({
               offset,
               animated: true,
             });
           }
         } else {
-          const currentLeft = carouselScrollLeftMap.current[focusedSection] || 0;
+          const currentLeft =
+            carouselScrollLeftMap.current[focusedSection] || 0;
           if (prevIdx < currentLeft) {
             const newLeft = prevIdx;
             carouselScrollLeftMap.current[focusedSection] = newLeft;
@@ -2122,7 +2389,9 @@ function CloudScreen({navigation, route}: any) {
         return;
       }
 
-      const curSecIdx = availableSections.findIndex(s => s.id === focusedSection);
+      const curSecIdx = availableSections.findIndex(
+        s => s.id === focusedSection,
+      );
       if (curSecIdx < 0) return;
 
       const viewportH = isLandscape ? screenHeight - 70 : screenHeight - 120;
@@ -2134,8 +2403,11 @@ function CloudScreen({navigation, route}: any) {
         if (nextGridIdx < curSec.data.length) {
           setFocusedIndex(nextGridIdx);
           const nextRow = Math.floor(nextGridIdx / numColumns);
-          const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
-          const rowTop = carouselsCount * secHeight + nextRow * (cardHeight + 10);
+          const carouselsCount = availableSections.filter(
+            s => s.id !== 'grid',
+          ).length;
+          const rowTop =
+            carouselsCount * secHeight + nextRow * (cardHeight + 10);
           const rowBottom = rowTop + cardHeight + 10;
           if (rowBottom > currentScrollY + viewportH) {
             flatListRef.current?.scrollToOffset?.({
@@ -2153,14 +2425,21 @@ function CloudScreen({navigation, route}: any) {
         if (curSecIdx < availableSections.length - 1) {
           const nextSec = availableSections[curSecIdx + 1];
           setFocusedSection(nextSec.id);
-          const maxIdx = nextSec.hasMore ? nextSec.data.length : nextSec.data.length - 1;
+          const maxIdx = nextSec.hasMore
+            ? nextSec.data.length
+            : nextSec.data.length - 1;
           const nextIdx = Math.min(focusedIndex, maxIdx);
           setFocusedIndex(nextIdx);
 
           if (nextSec.id === 'grid') {
-            const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
+            const carouselsCount = availableSections.filter(
+              s => s.id !== 'grid',
+            ).length;
             const gridTop = carouselsCount * secHeight;
-            if (gridTop + (cardHeight + 10) > currentScrollY + viewportH || gridTop < currentScrollY) {
+            if (
+              gridTop + (cardHeight + 10) > currentScrollY + viewportH ||
+              gridTop < currentScrollY
+            ) {
               flatListRef.current?.scrollToOffset?.({
                 offset: Math.max(0, gridTop - 20),
                 animated: true,
@@ -2210,7 +2489,9 @@ function CloudScreen({navigation, route}: any) {
         return;
       }
 
-      const curSecIdx = availableSections.findIndex(s => s.id === focusedSection);
+      const curSecIdx = availableSections.findIndex(
+        s => s.id === focusedSection,
+      );
       if (curSecIdx < 0) return;
 
       const viewportH = isLandscape ? screenHeight - 70 : screenHeight - 120;
@@ -2221,8 +2502,11 @@ function CloudScreen({navigation, route}: any) {
           const prevGridIdx = focusedIndex - numColumns;
           setFocusedIndex(prevGridIdx);
           const prevRow = Math.floor(prevGridIdx / numColumns);
-          const carouselsCount = availableSections.filter(s => s.id !== 'grid').length;
-          const rowTop = carouselsCount * secHeight + prevRow * (cardHeight + 10);
+          const carouselsCount = availableSections.filter(
+            s => s.id !== 'grid',
+          ).length;
+          const rowTop =
+            carouselsCount * secHeight + prevRow * (cardHeight + 10);
           if (rowTop < currentScrollY) {
             flatListRef.current?.scrollToOffset?.({
               offset: Math.max(0, rowTop - 20),
@@ -2234,7 +2518,9 @@ function CloudScreen({navigation, route}: any) {
           if (curSecIdx > 0) {
             const prevSec = availableSections[curSecIdx - 1];
             setFocusedSection(prevSec.id);
-            const maxIdx = prevSec.hasMore ? prevSec.data.length : prevSec.data.length - 1;
+            const maxIdx = prevSec.hasMore
+              ? prevSec.data.length
+              : prevSec.data.length - 1;
             const nextIdx = Math.min(focusedIndex, maxIdx);
             setFocusedIndex(nextIdx);
             const targetSecTop = (curSecIdx - 1) * secHeight;
@@ -2254,7 +2540,11 @@ function CloudScreen({navigation, route}: any) {
             // No sections above: move up to header
             setFocusedSection('header');
             setFocusedHeaderItem(
-              filterCategory !== 'all' ? 'back' : (isLandscape ? 'search' : 'sort'),
+              filterCategory !== 'all'
+                ? 'back'
+                : isLandscape
+                ? 'search'
+                : 'sort',
             );
             flatListRef.current?.scrollToOffset?.({
               offset: 0,
@@ -2266,7 +2556,9 @@ function CloudScreen({navigation, route}: any) {
         if (curSecIdx > 0) {
           const prevSec = availableSections[curSecIdx - 1];
           setFocusedSection(prevSec.id);
-          const maxIdx = prevSec.hasMore ? prevSec.data.length : prevSec.data.length - 1;
+          const maxIdx = prevSec.hasMore
+            ? prevSec.data.length
+            : prevSec.data.length - 1;
           const nextIdx = Math.min(focusedIndex, maxIdx);
           setFocusedIndex(nextIdx);
           const targetSecTop = (curSecIdx - 1) * secHeight;
@@ -2306,7 +2598,7 @@ function CloudScreen({navigation, route}: any) {
           // Top carousel: move up to header
           setFocusedSection('header');
           setFocusedHeaderItem(
-            filterCategory !== 'all' ? 'back' : (isLandscape ? 'search' : 'sort'),
+            filterCategory !== 'all' ? 'back' : isLandscape ? 'search' : 'sort',
           );
           flatListRef.current?.scrollToOffset?.({
             offset: 0,
@@ -2528,7 +2820,11 @@ function CloudScreen({navigation, route}: any) {
           t={t}
         />
         <View style={styles.catalogDividerHeader}>
-          <Text style={[styles.catalogSectionTitle, isLight && styles.catalogSectionTitleLight]}>
+          <Text
+            style={[
+              styles.catalogSectionTitle,
+              isLight && styles.catalogSectionTitleLight,
+            ]}>
             {t('All')}
           </Text>
         </View>
@@ -2561,7 +2857,8 @@ function CloudScreen({navigation, route}: any) {
   ]);
 
   // Grid item renderer with stabilized focus index
-  const focusedGridIndex = isGamepadActive && focusedSection === 'grid' ? focusedIndex : -1;
+  const focusedGridIndex =
+    isGamepadActive && focusedSection === 'grid' ? focusedIndex : -1;
   const renderGridItem = React.useCallback(
     ({item, index}: {item: any; index: number}) => (
       <XStreamingGameCard
@@ -2639,17 +2936,29 @@ function CloudScreen({navigation, route}: any) {
   );
 
   const isRegionFocused =
-    isGamepadActive && focusedSection === 'header' && focusedHeaderItem === 'region';
+    isGamepadActive &&
+    focusedSection === 'header' &&
+    focusedHeaderItem === 'region';
   const isSettingsFocused =
-    isGamepadActive && focusedSection === 'header' && focusedHeaderItem === 'settings';
+    isGamepadActive &&
+    focusedSection === 'header' &&
+    focusedHeaderItem === 'settings';
   const isSearchFocused =
-    isGamepadActive && focusedSection === 'header' && focusedHeaderItem === 'search';
+    isGamepadActive &&
+    focusedSection === 'header' &&
+    focusedHeaderItem === 'search';
   const isSortFocused =
-    isGamepadActive && focusedSection === 'header' && focusedHeaderItem === 'sort';
+    isGamepadActive &&
+    focusedSection === 'header' &&
+    focusedHeaderItem === 'sort';
   const isFilterFocused =
-    isGamepadActive && focusedSection === 'header' && focusedHeaderItem === 'filter';
+    isGamepadActive &&
+    focusedSection === 'header' &&
+    focusedHeaderItem === 'filter';
   const isBackFocused =
-    isGamepadActive && focusedSection === 'header' && focusedHeaderItem === 'back';
+    isGamepadActive &&
+    focusedSection === 'header' &&
+    focusedHeaderItem === 'back';
 
   // Contextual hints for gamepad HUD
   const gamepadHints: GamepadHintItem[] = React.useMemo(() => {
@@ -2669,7 +2978,10 @@ function CloudScreen({navigation, route}: any) {
 
     if (focusedSection === 'header') {
       return [
-        {button: 'A', label: focusedHeaderItem === 'back' ? t('Back') : t('Select')},
+        {
+          button: 'A',
+          label: focusedHeaderItem === 'back' ? t('Back') : t('Select'),
+        },
         {button: 'B', label: t('Back')},
       ];
     }
@@ -2685,7 +2997,8 @@ function CloudScreen({navigation, route}: any) {
 
     const curSec = availableSections.find(s => s.id === focusedSection);
     if (curSec) {
-      const isShowAllCardFocused = curSec.hasMore && focusedIndex === curSec.data.length;
+      const isShowAllCardFocused =
+        curSec.hasMore && focusedIndex === curSec.data.length;
       if (isShowAllCardFocused) {
         return [
           {button: 'A', label: t('Show all')},
@@ -2746,7 +3059,11 @@ function CloudScreen({navigation, route}: any) {
               isLargeScreen && styles.topHeaderLarge,
               isLandscape && styles.topHeaderLandscape,
             ]}>
-            <View style={[styles.headerMainRow, isLandscape && styles.headerMainRowLandscape]}>
+            <View
+              style={[
+                styles.headerMainRow,
+                isLandscape && styles.headerMainRowLandscape,
+              ]}>
               <View style={styles.profileRow}>
                 {gamerpic ? (
                   <Image
@@ -2760,7 +3077,13 @@ function CloudScreen({navigation, route}: any) {
                 ) : (
                   <XboxLogo
                     size={isLandscape ? 30 : 38}
-                    color={displayTier === 'Free' ? (isLight ? '#6B7280' : '#8b949e') : primary}
+                    color={
+                      displayTier === 'Free'
+                        ? isLight
+                          ? '#6B7280'
+                          : '#8b949e'
+                        : primary
+                    }
                   />
                 )}
                 <View style={styles.profileInfo}>
@@ -2778,15 +3101,22 @@ function CloudScreen({navigation, route}: any) {
                       styles.subscriptionBadgeWrap,
                       isLandscape && styles.subscriptionBadgeWrapLandscape,
                       displayTier !== 'Free'
-                        ? {backgroundColor: primary + '1A', borderColor: primary + '40'}
-                        : (isLight ? styles.subscriptionBadgeWrapFreeLight : styles.subscriptionBadgeWrapFree),
+                        ? {
+                            backgroundColor: primary + '1A',
+                            borderColor: primary + '40',
+                          }
+                        : isLight
+                        ? styles.subscriptionBadgeWrapFreeLight
+                        : styles.subscriptionBadgeWrapFree,
                     ]}>
                     <View
                       style={[
                         styles.subscriptionDot,
                         displayTier !== 'Free'
                           ? {backgroundColor: primary}
-                          : (isLight ? styles.subscriptionDotFreeLight : styles.subscriptionDotFree),
+                          : isLight
+                          ? styles.subscriptionDotFreeLight
+                          : styles.subscriptionDotFree,
                       ]}
                     />
                     <Text
@@ -2795,7 +3125,9 @@ function CloudScreen({navigation, route}: any) {
                         isLandscape && styles.subscriptionBadgeLandscape,
                         displayTier !== 'Free'
                           ? {color: primary}
-                          : (isLight ? styles.subscriptionBadgeFreeLight : styles.subscriptionBadgeFree),
+                          : isLight
+                          ? styles.subscriptionBadgeFreeLight
+                          : styles.subscriptionBadgeFree,
                       ]}>
                       {displayTier}
                     </Text>
@@ -2815,10 +3147,19 @@ function CloudScreen({navigation, route}: any) {
                       styles.headerButtonFocused,
                       {borderColor: isLight ? primary : '#FFFFFF'},
                     ],
-                    pressed && (isLight ? styles.serverButtonPressedLight : styles.serverButtonPressed),
+                    pressed &&
+                      (isLight
+                        ? styles.serverButtonPressedLight
+                        : styles.serverButtonPressed),
                   ]}>
-                  <Text style={styles.serverFlag}>{currentRegionInfo.flag}</Text>
-                  <Text style={[styles.serverCode, isLight && styles.serverCodeLight]}>
+                  <Text style={styles.serverFlag}>
+                    {currentRegionInfo.flag}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.serverCode,
+                      isLight && styles.serverCodeLight,
+                    ]}>
                     {currentRegionInfo.code}
                   </Text>
                   <Icon
@@ -2841,7 +3182,10 @@ function CloudScreen({navigation, route}: any) {
                       styles.headerButtonFocused,
                       {borderColor: isLight ? primary : '#FFFFFF'},
                     ],
-                    pressed && (isLight ? styles.settingsIconButtonPressedLight : styles.settingsIconButtonPressed),
+                    pressed &&
+                      (isLight
+                        ? styles.settingsIconButtonPressedLight
+                        : styles.settingsIconButtonPressed),
                   ]}>
                   <Icon
                     source="cog-outline"
@@ -2853,7 +3197,11 @@ function CloudScreen({navigation, route}: any) {
             </View>
 
             {/* Search Bar Row - in landscape integrates sort/filter/count */}
-            <View style={[styles.searchRow, isLandscape && styles.searchRowLandscape]}>
+            <View
+              style={[
+                styles.searchRow,
+                isLandscape && styles.searchRowLandscape,
+              ]}>
               <Pressable
                 focusable={true}
                 onPress={handleOpenSearch}
@@ -2865,19 +3213,25 @@ function CloudScreen({navigation, route}: any) {
                     styles.searchBarButtonFocused,
                     {borderColor: isLight ? primary : '#FFFFFF'},
                   ],
-                  pressed && (isLight ? styles.searchBarButtonPressedLight : styles.searchBarButtonPressed),
+                  pressed &&
+                    (isLight
+                      ? styles.searchBarButtonPressedLight
+                      : styles.searchBarButtonPressed),
                 ]}>
                 <Icon
                   source="magnify"
                   size={20}
-                  color={keyword ? primary : (isLight ? '#6B7280' : '#8b949e')}
+                  color={keyword ? primary : isLight ? '#6B7280' : '#8b949e'}
                 />
                 <Text
                   style={[
                     styles.searchBarText,
                     isLandscape && styles.searchBarTextLandscape,
                     isLight && styles.searchBarTextLight,
-                    keyword.length > 0 && (isLight ? styles.searchBarTextActiveLight : styles.searchBarTextActive),
+                    keyword.length > 0 &&
+                      (isLight
+                        ? styles.searchBarTextActiveLight
+                        : styles.searchBarTextActive),
                   ]}
                   numberOfLines={1}>
                   {keyword || t('Find games')}
@@ -2911,18 +3265,30 @@ function CloudScreen({navigation, route}: any) {
                       isLight && styles.iconPillButtonLight,
                       sortBy !== 'relevance' && [
                         styles.iconPillButtonActive,
-                        {borderColor: primary + '66', backgroundColor: primary + '1A'},
+                        {
+                          borderColor: primary + '66',
+                          backgroundColor: primary + '1A',
+                        },
                       ],
                       (isSortFocused || focused) && [
                         styles.pillButtonFocused,
                         {borderColor: isLight ? primary : '#FFFFFF'},
                       ],
-                      pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                      pressed &&
+                        (isLight
+                          ? styles.iconPillButtonPressedLight
+                          : styles.iconPillButtonPressed),
                     ]}>
                     <Icon
                       source="sort-variant"
                       size={18}
-                      color={sortBy !== 'relevance' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                      color={
+                        sortBy !== 'relevance'
+                          ? primary
+                          : isLight
+                          ? '#374151'
+                          : '#FFFFFF'
+                      }
                     />
                   </Pressable>
 
@@ -2936,23 +3302,43 @@ function CloudScreen({navigation, route}: any) {
                       isLight && styles.iconPillButtonLight,
                       filterCategory !== 'all' && [
                         styles.iconPillButtonActive,
-                        {borderColor: primary + '66', backgroundColor: primary + '1A'},
+                        {
+                          borderColor: primary + '66',
+                          backgroundColor: primary + '1A',
+                        },
                       ],
                       (isFilterFocused || focused) && [
                         styles.pillButtonFocused,
                         {borderColor: isLight ? primary : '#FFFFFF'},
                       ],
-                      pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                      pressed &&
+                        (isLight
+                          ? styles.iconPillButtonPressedLight
+                          : styles.iconPillButtonPressed),
                     ]}>
                     <Icon
                       source="filter-variant"
                       size={18}
-                      color={filterCategory !== 'all' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                      color={
+                        filterCategory !== 'all'
+                          ? primary
+                          : isLight
+                          ? '#374151'
+                          : '#FFFFFF'
+                      }
                     />
                   </Pressable>
 
-                  <View style={[styles.countPill, isLight && styles.countPillLight]}>
-                    <Text style={[styles.countText, isLight && styles.countTextLight]}>
+                  <View
+                    style={[
+                      styles.countPill,
+                      isLight && styles.countPillLight,
+                    ]}>
+                    <Text
+                      style={[
+                        styles.countText,
+                        isLight && styles.countTextLight,
+                      ]}>
                       {`${filteredTitles.length} ${t('available')}`}
                     </Text>
                   </View>
@@ -2974,25 +3360,39 @@ function CloudScreen({navigation, route}: any) {
                 onPress={handleBackToHome}
                 style={({pressed, focused}: any) => [
                   styles.categoryBackButton,
-                  {backgroundColor: primary + '1A', borderColor: primary + '40'},
+                  {
+                    backgroundColor: primary + '1A',
+                    borderColor: primary + '40',
+                  },
                   (isBackFocused || focused) && [
                     styles.categoryBackButtonFocused,
                     {borderColor: isLight ? primary : '#FFFFFF'},
                   ],
-                  pressed && [styles.categoryBackButtonPressed, {backgroundColor: primary + '33'}],
+                  pressed && [
+                    styles.categoryBackButtonPressed,
+                    {backgroundColor: primary + '33'},
+                  ],
                 ]}>
                 <Icon source="arrow-left" size={18} color={primary} />
-                <Text style={[styles.categoryBackText, {color: primary}]}>{t('Back')}</Text>
+                <Text style={[styles.categoryBackText, {color: primary}]}>
+                  {t('Back')}
+                </Text>
               </Pressable>
 
               <View style={styles.categoryTitleWrap}>
                 <Text
-                  style={[styles.categoryTitleText, isLight && styles.categoryTitleTextLight]}
+                  style={[
+                    styles.categoryTitleText,
+                    isLight && styles.categoryTitleTextLight,
+                  ]}
                   numberOfLines={1}>
                   {filterLabel}
                 </Text>
                 <Text
-                  style={[styles.categoryCountText, isLight && styles.categoryCountTextLight]}>
+                  style={[
+                    styles.categoryCountText,
+                    isLight && styles.categoryCountTextLight,
+                  ]}>
                   {`${filteredTitles.length} ${t('available')}`}
                 </Text>
               </View>
@@ -3006,23 +3406,42 @@ function CloudScreen({navigation, route}: any) {
                   styles.iconPillButton,
                   isLight && styles.iconPillButtonLight,
                   styles.categorySortIconBtn,
-                  sortBy !== 'relevance' && [styles.iconPillButtonActive, {borderColor: primary + '66', backgroundColor: primary + '1A'}],
+                  sortBy !== 'relevance' && [
+                    styles.iconPillButtonActive,
+                    {
+                      borderColor: primary + '66',
+                      backgroundColor: primary + '1A',
+                    },
+                  ],
                   (isSortFocused || focused) && [
                     styles.pillButtonFocused,
                     {borderColor: isLight ? primary : '#FFFFFF'},
                   ],
-                  pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                  pressed &&
+                    (isLight
+                      ? styles.iconPillButtonPressedLight
+                      : styles.iconPillButtonPressed),
                 ]}>
                 <Icon
                   source="sort-variant"
                   size={18}
-                  color={sortBy !== 'relevance' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                  color={
+                    sortBy !== 'relevance'
+                      ? primary
+                      : isLight
+                      ? '#374151'
+                      : '#FFFFFF'
+                  }
                 />
               </Pressable>
             </View>
           ) : (
             !isLandscape && (
-              <View style={[styles.filterRow, isLargeScreen && styles.filterRowLarge]}>
+              <View
+                style={[
+                  styles.filterRow,
+                  isLargeScreen && styles.filterRowLarge,
+                ]}>
                 <Pressable
                   focusable={true}
                   onPress={() => setShowSortModal(true)}
@@ -3031,17 +3450,32 @@ function CloudScreen({navigation, route}: any) {
                   style={({pressed, focused}: any) => [
                     styles.iconPillButton,
                     isLight && styles.iconPillButtonLight,
-                    sortBy !== 'relevance' && [styles.iconPillButtonActive, {borderColor: primary + '66', backgroundColor: primary + '1A'}],
+                    sortBy !== 'relevance' && [
+                      styles.iconPillButtonActive,
+                      {
+                        borderColor: primary + '66',
+                        backgroundColor: primary + '1A',
+                      },
+                    ],
                     (isSortFocused || focused) && [
                       styles.pillButtonFocused,
                       {borderColor: isLight ? primary : '#FFFFFF'},
                     ],
-                    pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                    pressed &&
+                      (isLight
+                        ? styles.iconPillButtonPressedLight
+                        : styles.iconPillButtonPressed),
                   ]}>
                   <Icon
                     source="sort-variant"
                     size={18}
-                    color={sortBy !== 'relevance' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                    color={
+                      sortBy !== 'relevance'
+                        ? primary
+                        : isLight
+                        ? '#374151'
+                        : '#FFFFFF'
+                    }
                   />
                 </Pressable>
 
@@ -3053,22 +3487,42 @@ function CloudScreen({navigation, route}: any) {
                   style={({pressed, focused}: any) => [
                     styles.iconPillButton,
                     isLight && styles.iconPillButtonLight,
-                    filterCategory !== 'all' && [styles.iconPillButtonActive, {borderColor: primary + '66', backgroundColor: primary + '1A'}],
+                    filterCategory !== 'all' && [
+                      styles.iconPillButtonActive,
+                      {
+                        borderColor: primary + '66',
+                        backgroundColor: primary + '1A',
+                      },
+                    ],
                     (isFilterFocused || focused) && [
                       styles.pillButtonFocused,
                       {borderColor: isLight ? primary : '#FFFFFF'},
                     ],
-                    pressed && (isLight ? styles.iconPillButtonPressedLight : styles.iconPillButtonPressed),
+                    pressed &&
+                      (isLight
+                        ? styles.iconPillButtonPressedLight
+                        : styles.iconPillButtonPressed),
                   ]}>
                   <Icon
                     source="filter-variant"
                     size={18}
-                    color={filterCategory !== 'all' ? primary : (isLight ? '#374151' : '#FFFFFF')}
+                    color={
+                      filterCategory !== 'all'
+                        ? primary
+                        : isLight
+                        ? '#374151'
+                        : '#FFFFFF'
+                    }
                   />
                 </Pressable>
 
-                <View style={[styles.countPill, isLight && styles.countPillLight]}>
-                  <Text style={[styles.countText, isLight && styles.countTextLight]}>
+                <View
+                  style={[styles.countPill, isLight && styles.countPillLight]}>
+                  <Text
+                    style={[
+                      styles.countText,
+                      isLight && styles.countTextLight,
+                    ]}>
                     {`${filteredTitles.length} ${t('available')}`}
                   </Text>
                 </View>
@@ -3110,7 +3564,9 @@ function CloudScreen({navigation, route}: any) {
                 currentScrollOffsetRef.current = e.nativeEvent.contentOffset.y;
               }}
               scrollEventThrottle={48}
-              extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${shouldHidePlayButton}_${focusedSection === 'grid' ? focusedIndex : ''}`}
+              extraData={`${primary}_${isLight}_${isLandscape}_${isGamepadActive}_${shouldHidePlayButton}_${
+                focusedSection === 'grid' ? focusedIndex : ''
+              }`}
               numColumns={numColumns}
               keyExtractor={itemKeyExtractor}
               columnWrapperStyle={styles.columnWrapper}
@@ -3121,13 +3577,14 @@ function CloudScreen({navigation, route}: any) {
               ]}
               ListHeaderComponent={carouselsHeader}
               renderItem={renderGridItem}
-              initialNumToRender={Platform.isTV ? 6 : (isLandscape ? 8 : 6)}
-              maxToRenderPerBatch={Platform.isTV ? 4 : (isLandscape ? 6 : 4)}
+              initialNumToRender={Platform.isTV ? 6 : isLandscape ? 8 : 6}
+              maxToRenderPerBatch={Platform.isTV ? 4 : isLandscape ? 6 : 4}
               windowSize={Platform.isTV ? 3 : 5}
               removeClippedSubviews={Platform.OS === 'android'}
               onScrollToIndexFailed={info => {
                 try {
-                  const offset = (info as any).offset ?? (info.index * (cardHeight + 10));
+                  const offset =
+                    (info as any).offset ?? info.index * (cardHeight + 10);
                   flatListRef.current?.scrollToOffset({
                     offset,
                     animated: true,
@@ -3242,17 +3699,20 @@ const styles = StyleSheet.create({
   },
   topHeader: {
     paddingHorizontal: 14,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 6 : 14,
+    paddingTop:
+      Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 6 : 14,
     paddingBottom: 10,
   },
   topHeaderLarge: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 6 : 16,
+    paddingTop:
+      Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 6 : 16,
     paddingBottom: 12,
   },
   topHeaderLandscape: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 4 : 10,
+    paddingTop:
+      Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 4 : 10,
     paddingBottom: 6,
   },
   headerMainRow: {
