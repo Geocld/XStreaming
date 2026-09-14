@@ -1,5 +1,6 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {getSettings} from '../store/settingStore';
+import {storage} from '../store/mmkv';
 import {debugFactory} from '../utils/debug';
 import {Address6} from 'ip-address';
 import TokenStore from '../xal/tokenstore';
@@ -15,8 +16,20 @@ type AuthContext = {
   _xal?: Xal;
 } | null;
 
+type PersistedCloudSession = {
+  type: 'cloud';
+  titleId: string;
+  sessionPath: string;
+  host: string;
+  createdAt: number;
+  lastUsedAt: number;
+};
+
+const CLOUD_SESSION_STORAGE_KEY = 'xcloud.activeSession';
+
 export default class XcloudApi {
   private sessionId = '';
+  private sessionPath = '';
   private readonly host: string;
   private gsToken: string;
   private readonly type: 'home' | 'cloud';
@@ -53,6 +66,126 @@ export default class XcloudApi {
         Authorization: 'Bearer ' + this.gsToken,
       },
     };
+  }
+
+  private getSessionUrl(resource = ''): string {
+    if (!this.sessionId && !this.sessionPath) {
+      throw new Error('Streaming session is not started');
+    }
+
+    const sessionHost = this.sessionHost || this.host;
+    const sessionUrl = this.sessionPath
+      ? this.sessionPath.startsWith('http')
+        ? this.sessionPath
+        : `${sessionHost}/${this.sessionPath.replace(/^\/+/, '')}`
+      : `${this.host}/v5/sessions/${this.type}/${this.sessionId}`;
+
+    return resource ? `${sessionUrl}/${resource}` : sessionUrl;
+  }
+
+  private setSessionPath(sessionPath: string, host = this.host) {
+    if (!sessionPath) {
+      throw new Error('Streaming session path is missing');
+    }
+
+    this.sessionPath = sessionPath;
+    this.sessionHost = host;
+    const pathParts = sessionPath.split('/').filter(Boolean);
+    this.sessionId = pathParts[pathParts.length - 1] || '';
+  }
+
+  private sessionHost = '';
+
+  private clearSession() {
+    this.sessionId = '';
+    this.sessionPath = '';
+    this.sessionHost = '';
+  }
+
+  private getPersistedCloudSession(): PersistedCloudSession | null {
+    if (this.type !== 'cloud') {
+      return null;
+    }
+
+    const value = storage.getString(CLOUD_SESSION_STORAGE_KEY);
+    if (!value) {
+      return null;
+    }
+
+    try {
+      const session = JSON.parse(value) as PersistedCloudSession;
+      if (
+        session?.type !== 'cloud' ||
+        !session.titleId ||
+        !session.sessionPath ||
+        !session.host
+      ) {
+        return null;
+      }
+      return session;
+    } catch {
+      return null;
+    }
+  }
+
+  private savePersistedCloudSession(
+    titleId: string,
+    createdAt = Date.now(),
+  ) {
+    if (this.type !== 'cloud' || !titleId || !this.sessionPath) {
+      return;
+    }
+
+    const session: PersistedCloudSession = {
+      type: 'cloud',
+      titleId,
+      sessionPath: this.sessionPath,
+      host: this.sessionHost || this.host,
+      createdAt,
+      lastUsedAt: Date.now(),
+    };
+    storage.set(CLOUD_SESSION_STORAGE_KEY, JSON.stringify(session));
+  }
+
+  private clearPersistedCloudSession() {
+    if (this.type === 'cloud') {
+      storage.delete(CLOUD_SESSION_STORAGE_KEY);
+    }
+  }
+
+  private isInvalidSessionError(error: unknown): boolean {
+    if (typeof error === 'string') {
+      return error.startsWith('Streaming failed:');
+    }
+
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      return status === 404 || status === 410;
+    }
+
+    return false;
+  }
+
+  private async getConfiguration(): Promise<any> {
+    const result = await this.authedGet(this.getSessionUrl('configuration'), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    log.info(
+      '[startSession] /configuration res:',
+      JSON.stringify(result.data),
+    );
+    const keepAlivePulseInSeconds = Number(
+      result.data?.keepAlivePulseInSeconds,
+    );
+    if (
+      Number.isFinite(keepAlivePulseInSeconds) &&
+      keepAlivePulseInSeconds > 0
+    ) {
+      this.keepAlivePulseInSeconds = keepAlivePulseInSeconds;
+    }
+    return result.data;
   }
 
   private isAuthError(error: unknown): boolean {
@@ -154,9 +287,39 @@ export default class XcloudApi {
     return Math.max(pulse, 5) * 1000;
   }
 
-  startSession(consoleId: string, resolution: number): Promise<any> {
+  async startSession(consoleId: string, resolution: number): Promise<any> {
     log.info('[startSession] consoleId:', consoleId);
     this.isStoped = false;
+
+    if (this.type === 'cloud') {
+      const persistedSession = this.getPersistedCloudSession();
+      if (
+        persistedSession &&
+        persistedSession.titleId === consoleId
+      ) {
+        try {
+          this.setSessionPath(persistedSession.sessionPath, persistedSession.host);
+          await this.waitState();
+          const configuration = await this.getConfiguration();
+          this.savePersistedCloudSession(
+            consoleId,
+            persistedSession.createdAt,
+          );
+          log.info('[startSession] reused persisted cloud session');
+          return configuration;
+        } catch (error) {
+          if (!this.isInvalidSessionError(error)) {
+            throw error;
+          }
+          log.info('[startSession] persisted cloud session is invalid');
+          this.clearPersistedCloudSession();
+          this.clearSession();
+        }
+      } else if (persistedSession) {
+        this.clearPersistedCloudSession();
+      }
+    }
+
     let osName = 'android';
 
     if (resolution === 1080) {
@@ -167,147 +330,126 @@ export default class XcloudApi {
     } else {
       osName = 'android';
     }
-    return new Promise<any>((resolve, reject) => {
-      const _settings = getSettings();
-      const deviceInfo = JSON.stringify({
-        appInfo: {
-          env: {
-            // clientAppId: 'Microsoft.GamingApp',
-            // clientAppType: 'native',
-            // clientAppVersion: '2203.1001.4.0',
-            // clientSdkVersion: '8.5.2',
-            // httpEnvironment: 'prod',
-            // sdkInstallId: '',
-            clientAppId: 'www.xbox.com',
-            clientAppType: 'browser',
-            clientAppVersion: '29.9.35',
-            clientSdkVersion: '10.6.8',
-            httpEnvironment: 'prod',
-            sdkInstallId: '',
+    const _settings = getSettings();
+    const deviceInfo = JSON.stringify({
+      appInfo: {
+        env: {
+          // clientAppId: 'Microsoft.GamingApp',
+          // clientAppType: 'native',
+          // clientAppVersion: '2203.1001.4.0',
+          // clientSdkVersion: '8.5.2',
+          // httpEnvironment: 'prod',
+          // sdkInstallId: '',
+          clientAppId: 'www.xbox.com',
+          clientAppType: 'browser',
+          clientAppVersion: '29.9.35',
+          clientSdkVersion: '10.6.8',
+          httpEnvironment: 'prod',
+          sdkInstallId: '',
+        },
+      },
+      dev: {
+        hw: {
+          make: 'Microsoft',
+          model: 'unknown',
+          platformType: 'desktop',
+          sdktype: 'web',
+        },
+        os: {
+          // name: 'android', // 720P
+          // name: 'windows', // 1080P
+          // name: 'tizen', // 1080P(HQ) or 1440P
+          // For console streaming
+          name: osName,
+          ver: '22631.2715',
+          platform: 'desktop',
+        },
+        displayInfo: {
+          dimensions: {
+            widthInPixels: 4096,
+            heightInPixels: 2160,
+          },
+          pixelDensity: {
+            dpiX: 1,
+            dpiY: 1,
           },
         },
-        dev: {
-          hw: {
-            make: 'Microsoft',
-            model: 'unknown',
-            platformType: 'desktop',
-            sdktype: 'web',
-          },
-          os: {
-            // name: 'android', // 720P
-            // name: 'windows', // 1080P
-            // name: 'tizen', // 1080P(HQ) or 1440P
-            // For console streaming
-            name: osName,
-            ver: '22631.2715',
-            platform: 'desktop',
-          },
-          displayInfo: {
-            dimensions: {
-              widthInPixels: 4096,
-              heightInPixels: 2160,
-            },
-            pixelDensity: {
-              dpiX: 1,
-              dpiY: 1,
-            },
-          },
-          browser: {
-            browserName: 'edge',
-            browserVersion: '140.0.3485.66',
-          },
+        browser: {
+          browserName: 'edge',
+          browserVersion: '140.0.3485.66',
         },
-      });
-
-      const body = JSON.stringify({
-        clientSessionId: '',
-        titleId: this.type === 'cloud' ? consoleId : '',
-        systemUpdateGroup: '',
-        settings: {
-          nanoVersion: 'V3;WebrtcTransport.dll',
-          enableTextToSpeech: false,
-          highContrast: 0,
-          locale: _settings.preferred_game_language
-            ? _settings.preferred_game_language
-            : 'en-US',
-          useIceConnection: false,
-          timezoneOffsetMinutes: 120,
-          sdkType: 'web',
-          // For xCloud streaming
-          // osName: resolution === 720 ? 'android' : 'windows',
-          osName,
-        },
-        serverId: this.type === 'home' ? consoleId : '',
-        fallbackRegionNames: [],
-      });
-
-      this.authedPost(`${this.host}/v5/sessions/${this.type}/play`, body, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-MS-Device-Info': deviceInfo,
-        },
-      })
-        .then(res => {
-          if (res.status === 200 || res.status === 202) {
-            log.info(
-              `[startSession] ${this.host}/v5/sessions/${this.type}/play res:`,
-              res.data,
-            );
-            const sessionId = res.data.sessionPath.split('/')[3];
-            this.sessionId = sessionId;
-
-            this.waitState()
-              .then(() => {
-                this.authedGet(
-                  `${this.host}/v5/sessions/${this.type}/${this.sessionId}/configuration`,
-                  {
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                  },
-                ).then(result => {
-                  log.info(
-                    '[startSession] /configuration res:',
-                    JSON.stringify(result.data),
-                  );
-                  const keepAlivePulseInSeconds = Number(
-                    result.data?.keepAlivePulseInSeconds,
-                  );
-                  if (
-                    Number.isFinite(keepAlivePulseInSeconds) &&
-                    keepAlivePulseInSeconds > 0
-                  ) {
-                    this.keepAlivePulseInSeconds = keepAlivePulseInSeconds;
-                  }
-                  resolve(result.data);
-                });
-              })
-              .catch(error => {
-                reject(error);
-              });
-          }
-        })
-        .catch(e => {
-          log.info('[startSession] error:', e);
-          reject(e);
-        });
+      },
     });
+
+    const body = JSON.stringify({
+      clientSessionId: '',
+      titleId: this.type === 'cloud' ? consoleId : '',
+      systemUpdateGroup: '',
+      settings: {
+        nanoVersion: 'V3;WebrtcTransport.dll',
+        enableTextToSpeech: false,
+        highContrast: 0,
+        locale: _settings.preferred_game_language
+          ? _settings.preferred_game_language
+          : 'en-US',
+        useIceConnection: false,
+        timezoneOffsetMinutes: 120,
+        sdkType: 'web',
+        // For xCloud streaming
+        // osName: resolution === 720 ? 'android' : 'windows',
+        osName,
+      },
+      serverId: this.type === 'home' ? consoleId : '',
+      fallbackRegionNames: [],
+    });
+
+    try {
+      const res = await this.authedPost(
+        `${this.host}/v5/sessions/${this.type}/play`,
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-MS-Device-Info': deviceInfo,
+          },
+        },
+      );
+      if (res.status !== 200 && res.status !== 202) {
+        throw new Error(`[startSession] unexpected status: ${res.status}`);
+      }
+
+      log.info(
+        `[startSession] ${this.host}/v5/sessions/${this.type}/play res:`,
+        res.data,
+      );
+      this.setSessionPath(res.data?.sessionPath);
+      this.savePersistedCloudSession(consoleId);
+      await this.waitState();
+      return await this.getConfiguration();
+    } catch (error) {
+      if (this.isInvalidSessionError(error)) {
+        this.clearPersistedCloudSession();
+        this.clearSession();
+      }
+      log.info('[startSession] error:', error);
+      throw error;
+    }
   }
 
   // Check host streaming status is ready or not
   waitState(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      this.authedGet(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/state`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      this.authedGet(this.getSessionUrl('state'), {
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+      })
         .then(res => {
           log.info('[waitState] res:', res.data);
           const _state = res.data;
+          if (_state.transferUri) {
+            this.sessionHost = _state.transferUri;
+          }
           switch (_state.state) {
             // Streaming ready
             case 'Provisioned':
@@ -362,7 +504,7 @@ export default class XcloudApi {
               break;
             }
             case 'Failed':
-              reject('Streaming failed: ' + _state.errorDetails.message);
+              reject('Streaming failed: ' + _state.errorDetails?.message);
               break;
             default:
               log.info('unknown state:', _state);
@@ -412,25 +554,18 @@ export default class XcloudApi {
           },
         },
       });
-      this.authedPost(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-        body,
-        {
+      this.authedPost(this.getSessionUrl('sdp'), body, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }).then(() => {
+        // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
+        this.authedGet(this.getSessionUrl('sdp'), {
           headers: {
-            Accept: 'application/json',
             'Content-Type': 'application/json',
           },
-        },
-      ).then(() => {
-        // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
-        this.authedGet(
-          `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        ).then(res => {
+        }).then(res => {
           log.info('[sendSDPOffer] res.data:', res.data);
           if (res.data && res.data.exchangeResponse) {
             resolve(res.data);
@@ -440,14 +575,11 @@ export default class XcloudApi {
                 clearInterval(checkInterval);
                 return;
               }
-              this.authedGet(
-                `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
-                {
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
+              this.authedGet(this.getSessionUrl('sdp'), {
+                headers: {
+                  'Content-Type': 'application/json',
                 },
-              )
+              })
                 .then(res2 => {
                   if (res2.data && res2.data.exchangeResponse) {
                     resolve(res2.data);
@@ -477,7 +609,7 @@ export default class XcloudApi {
         },
       });
       this.authedPost(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+        this.getSessionUrl('sdp'),
         body,
         {
           headers: {
@@ -488,7 +620,7 @@ export default class XcloudApi {
       ).then(() => {
         // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
         this.authedGet(
-          `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+          this.getSessionUrl('sdp'),
           {
             headers: {
               'Content-Type': 'application/json',
@@ -505,7 +637,7 @@ export default class XcloudApi {
                 return;
               }
               this.authedGet(
-                `${this.host}/v5/sessions/${this.type}/${this.sessionId}/sdp`,
+                this.getSessionUrl('sdp'),
                 {
                   headers: {
                     'Content-Type': 'application/json',
@@ -533,7 +665,7 @@ export default class XcloudApi {
   checkIceResponse(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       this.authedGet(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`,
+        this.getSessionUrl('ice'),
         {
           headers: {
             'Content-Type': 'application/json',
@@ -672,7 +804,7 @@ export default class XcloudApi {
         candidate: iceCandidates,
       };
       this.authedPost(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/ice`,
+        this.getSessionUrl('ice'),
         JSON.stringify(postData),
         {
           headers: {
@@ -699,7 +831,7 @@ export default class XcloudApi {
   sendMSALAuth(userToken: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.authedPost(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/connect`,
+        this.getSessionUrl('connect'),
         {
           userToken,
         },
@@ -721,7 +853,7 @@ export default class XcloudApi {
   sendKeepalive(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       this.authedPost(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}/keepalive`,
+        this.getSessionUrl('keepalive'),
         {},
         {
           headers: {
@@ -742,11 +874,13 @@ export default class XcloudApi {
     return new Promise<any>((resolve, reject) => {
       this.isStoped = true;
       if (!this.sessionId) {
+        this.clearPersistedCloudSession();
+        this.clearSession();
         resolve({});
         return;
       }
       this.authedDelete(
-        `${this.host}/v5/sessions/${this.type}/${this.sessionId}`,
+        this.getSessionUrl(),
         {
           headers: {
             'Content-Type': 'application/json',
@@ -755,9 +889,13 @@ export default class XcloudApi {
       )
         .then(res => {
           log.info('Stream stop:', res);
+          this.clearPersistedCloudSession();
+          this.clearSession();
           resolve(res.data);
         })
         .catch(e => {
+          this.clearPersistedCloudSession();
+          this.clearSession();
           reject(e);
         });
     });

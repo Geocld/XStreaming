@@ -53,6 +53,7 @@ const log = debugFactory('NativeStreamScreen');
 const CONNECTED = 'connected';
 const CLOSED = 'closed';
 const FAILED = 'failed';
+const DISCONNECTED = 'disconnected';
 const DUALSENSE = 'DualSenseController';
 const LIVE_GAMEPAD_PROFILE = 'LiveLayout';
 const PICTURE_IN_PICTURE_MODE_CHANGED = 'pictureInPictureModeChanged';
@@ -96,6 +97,8 @@ const SYSTEM_UI_TARGET_SHOW_VIRTUAL_KEYBOARD =
 const STREAMING_TOUCHCONTROLS_SCOPE = '/streaming/touchcontrols';
 const STOP_STREAM_TIMEOUT_MS = 5000;
 const PROCESSED_FRAME_FEEDBACK_DECODE_MS = 10;
+const RECONNECT_INTERVAL_MS = 1000;
+const MAX_RECONNECT_ATTEMPTS = 20;
 
 const getFrameFeedbackNowMs = () => {
   return globalThis.performance?.now?.() ?? Date.now();
@@ -252,6 +255,11 @@ export function NativeStreamScreenBase({
   const keepaliveInterval = React.useRef<any>(null);
   const performanceInterval = React.useRef<any>(null);
   const connectStateRef = React.useRef<any>('');
+  const reconnectTimerRef = React.useRef<any>(null);
+  const reconnectPendingRef = React.useRef(false);
+  const reconnectAttemptsRef = React.useRef(0);
+  const reconnectExhaustedRef = React.useRef(false);
+  const activeWebrtcClientRef = React.useRef<any>(null);
 
   const gpDownEventListener = React.useRef<any>(undefined);
   const gpUpEventListener = React.useRef<any>(undefined);
@@ -629,6 +637,55 @@ export function NativeStreamScreenBase({
       log.warn('stopStream failed or timed out:', error);
     }
   }, []);
+
+  const scheduleReconnect = React.useCallback(() => {
+    if (
+      route.params?.streamType !== 'cloud' ||
+      isRequestExit.current ||
+      !isConnected.current
+    ) {
+      return false;
+    }
+
+    if (reconnectExhaustedRef.current) {
+      return true;
+    }
+
+    if (reconnectTimerRef.current || reconnectPendingRef.current) {
+      return true;
+    }
+
+    if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      reconnectExhaustedRef.current = true;
+      setLoading(true);
+      Alert.alert(t('Warning'), t('Reconnected failed'), [
+        {
+          text: t('Confirm'),
+          style: 'default',
+          onPress: () => {
+            handleExitRef.current();
+          },
+        },
+      ]);
+      return true;
+    }
+
+    reconnectAttemptsRef.current += 1;
+    setLoading(true);
+    setLoadingText(
+      `${t('Connecting...')} (${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`,
+    );
+
+    reconnectTimerRef.current = setTimeout(() => {
+      reconnectTimerRef.current = null;
+      reconnectPendingRef.current = true;
+      if (!isRequestExit.current) {
+        setWebrtcClient(new webRTCClient());
+      }
+    }, RECONNECT_INTERVAL_MS);
+
+    return true;
+  }, [route.params?.streamType, t]);
 
   // event
   const usbGpEventListener = React.useRef<any>(undefined);
@@ -1294,6 +1351,7 @@ export function NativeStreamScreenBase({
             route.params?.streamType === 'cloud'
               ? xCloudApiRef.current
               : xHomeApiRef.current;
+          isRequestExit.current = true;
           setLoading(true);
           setIsExiting(true);
           waitStopStream(_streamApi).then(finishStreamExit);
@@ -1349,6 +1407,8 @@ export function NativeStreamScreenBase({
     }
 
     if (streamApi && webrtcClient !== undefined) {
+      activeWebrtcClientRef.current = webrtcClient;
+      reconnectPendingRef.current = false;
       webrtcClient.init();
 
       remoteStream.current = new MediaStream(undefined);
@@ -1391,7 +1451,19 @@ export function NativeStreamScreenBase({
       });
 
       webrtcClient.setConnectedHandler(state => {
+        if (activeWebrtcClientRef.current !== webrtcClient) {
+          return;
+        }
+
         if (state === CONNECTED) {
+          if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current);
+            reconnectTimerRef.current = null;
+          }
+          reconnectPendingRef.current = false;
+          reconnectAttemptsRef.current = 0;
+          reconnectExhaustedRef.current = false;
+
           // Connected
           if (!isConnected.current) {
             ToastAndroid.show(t('Connected'), ToastAndroid.SHORT);
@@ -1472,25 +1544,18 @@ export function NativeStreamScreenBase({
               });
             }, 16);
           }
+        } else if (state === DISCONNECTED) {
+          scheduleReconnect();
         } else if (state === CLOSED) {
           if (isRequestExit.current) {
             return;
           }
-          if (connectStateRef.current !== CONNECTED) {
+          if (isConnected.current && scheduleReconnect()) {
+            // Keep the cloud session alive while the WebRTC transport retries.
+          } else if (connectStateRef.current !== CONNECTED) {
             return;
-          }
-          Alert.alert(t('Warning'), t('Streaming is closed'), [
-            {
-              text: t('Confirm'),
-              style: 'default',
-              onPress: () => {
-                exit();
-              },
-            },
-          ]);
-        } else if (state === FAILED) {
-          if (isConnected.current) {
-            Alert.alert(t('Warning'), t('Reconnected failed'), [
+          } else {
+            Alert.alert(t('Warning'), t('Streaming is closed'), [
               {
                 text: t('Confirm'),
                 style: 'default',
@@ -1499,6 +1564,10 @@ export function NativeStreamScreenBase({
                 },
               },
             ]);
+          }
+        } else if (state === FAILED) {
+          if (isConnected.current) {
+            scheduleReconnect();
           } else {
             Alert.alert(t('Warning'), t('NAT failed'), [
               {
@@ -1636,6 +1705,7 @@ export function NativeStreamScreenBase({
       });
 
       const exit = async () => {
+        isRequestExit.current = true;
         setLoading(false);
         webrtcClient && webrtcClient.close();
         await waitStopStream(streamApi);
@@ -1781,6 +1851,9 @@ export function NativeStreamScreenBase({
                       setLoadingText(`${t('Exchange ICE successfully...')}`);
                     })
                     .catch(e => {
+                      if (scheduleReconnect()) {
+                        return;
+                      }
                       Alert.alert(
                         t('Warning'),
                         '[sendICECandidates] fail:' + e,
@@ -1798,6 +1871,9 @@ export function NativeStreamScreenBase({
                 });
               })
               .catch(e => {
+                if (scheduleReconnect()) {
+                  return;
+                }
                 Alert.alert(t('Warning'), '[sendSDPOffer] fail:' + e, [
                   {
                     text: t('Confirm'),
@@ -1811,6 +1887,9 @@ export function NativeStreamScreenBase({
           });
         })
         .catch(e => {
+          if (scheduleReconnect()) {
+            return;
+          }
           if (e !== '') {
             let msg = '';
             if (typeof e === 'string') {
@@ -1865,6 +1944,13 @@ export function NativeStreamScreenBase({
       beforeRemoveListener();
       FullScreenManager.immersiveModeOff();
       stopVibrate();
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      if (activeWebrtcClientRef.current === webrtcClient) {
+        activeWebrtcClientRef.current = null;
+      }
       webrtcClient && webrtcClient.close();
       usbGpEventListener.current && usbGpEventListener.current.remove();
       gpDownEventListener.current && gpDownEventListener.current.remove();
@@ -1936,6 +2022,7 @@ export function NativeStreamScreenBase({
     finishStreamExit,
     waitStopStream,
     supportedSystemUis,
+    scheduleReconnect,
     portraitMode,
     isInPictureInPicture,
     setManualLeftThumbPressed,
@@ -2103,6 +2190,12 @@ export function NativeStreamScreenBase({
       if (isExiting) {
         return;
       }
+      isRequestExit.current = true;
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      reconnectPendingRef.current = false;
       setIsExiting(true);
       webrtcClient && webrtcClient.close();
       await waitStopStream(streamApi);
