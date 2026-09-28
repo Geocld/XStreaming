@@ -549,6 +549,7 @@ export default {
     'Sort: Relevance': 'Urutkan: Relevansi',
     Filters: 'Filter',
     available: 'tersedia',
+    'Game available': 'Game tersedia',
     Store: 'Toko',
     Library: 'Pustaka',
     Relevance: 'Relevansi',
@@ -558,6 +559,19 @@ export default {
     'Cloud Server': 'Server Cloud',
     Favorites: 'Favorit',
     'Play with Game Pass': 'Mainkan dengan Game Pass',
+    'Stream for free with ads': 'Streaming gratis dengan iklan',
+    'Start cloud game with ads': 'Mulai cloud game dengan iklan',
+    'Get game': 'Dapatkan game',
+    PurchaseNoticeTitle: 'Informasi Pembelian',
+    PurchaseNoticeDesc:
+      'Untuk melanjutkan pembelian game, silakan buka web Xbox menggunakan HP atau PC Anda',
+    Close: 'Tutup',
+    'Load more': 'Muat lebih banyak',
+    StreamForFreeWithAdsDesc:
+      'Hanya untuk waktu terbatas, mainkan game pilihan secara gratis melalui cloud gaming. Syarat dan batas sesi berlaku.',
+    'Preview features': 'Fitur pratinjau (Xbox Insider)',
+    'Preview features description':
+      'Aktifkan fitur pratinjau Xbox Insider, seperti streaming cloud gratis dengan iklan',
     'Recently Added': 'Baru ditambahkan',
     'Ubisoft+ Classic': 'Ubisoft+ Classic',
     'Stream your own game': 'Stream game milik Anda',

@@ -102,9 +102,10 @@ export default class GamepadDriver implements Driver {
       : [];
 
     if (!this._isVirtualButtonPressing) {
+      const clonedStates = gpStates.map(state => ({...state}));
       this._application
         ?.getChannelProcessor('input')
-        .queueGamepadStates(gpStates);
+        .queueGamepadStates(clonedStates);
     }
 
     // requestAnimationFrame(() => { this.run() })

@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Build;
 import android.util.Log;
 import android.util.Rational;
+import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.util.SparseIntArray;
 import com.facebook.react.ReactActivity;
@@ -124,6 +125,17 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   private final Object controllerIndexLock = new Object();
   private final SparseIntArray controllerIndexByDeviceId = new SparseIntArray();
   private final SparseBooleanArray usedControllerIndices = new SparseBooleanArray();
+
+  private static class ControllerMotionState {
+    float lastLeftTrigger = -1f;
+    float lastRightTrigger = -1f;
+    double lastLeftStickX = 999.0;
+    double lastLeftStickY = 999.0;
+    double lastRightStickX = 999.0;
+    double lastRightStickY = 999.0;
+  }
+  private final SparseArray<ControllerMotionState> motionStateByDeviceId = new SparseArray<>();
+
   private InputManager inputManager;
   // Menu gamepad navigation state
   private String lastMenuNavAction = null;
@@ -189,12 +201,13 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   }
 
   private int allocateControllerIndexLocked() {
-    int index = 0;
-    while (usedControllerIndices.get(index, false)) {
-      index++;
+    for (int i = 0; i < 4; i++) {
+      if (!usedControllerIndices.get(i, false)) {
+        usedControllerIndices.put(i, true);
+        return i;
+      }
     }
-    usedControllerIndices.put(index, true);
-    return index;
+    return 0;
   }
 
   private int getOrAssignControllerIndex(int deviceId) {
@@ -222,6 +235,7 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
         controllerIndexByDeviceId.delete(deviceId);
         usedControllerIndices.delete(index);
       }
+      motionStateByDeviceId.remove(deviceId);
     }
   }
 
@@ -669,14 +683,31 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
         }
       }
 
-//      Log.d("MainActivity1", "Left Trigger:" + lTrigger);
-//      Log.d("MainActivity1", "Right Trigger:" + rTrigger);
+      int deviceId = event.getDeviceId();
+      ControllerMotionState motionState;
+      synchronized (controllerIndexLock) {
+        motionState = motionStateByDeviceId.get(deviceId);
+        if (motionState == null) {
+          motionState = new ControllerMotionState();
+          motionStateByDeviceId.put(deviceId, motionState);
+        }
+      }
 
-      WritableMap triggerParams = Arguments.createMap();
-      triggerParams.putDouble("leftTrigger", lTrigger);
-      triggerParams.putDouble("rightTrigger", rTrigger);
-      putControllerInfo(triggerParams, event);
-      sendEvent("onTrigger", triggerParams);
+      boolean triggerChanged =
+          Math.abs(lTrigger - motionState.lastLeftTrigger) >= 0.005f ||
+          (lTrigger == 0f && motionState.lastLeftTrigger != 0f) ||
+          Math.abs(rTrigger - motionState.lastRightTrigger) >= 0.005f ||
+          (rTrigger == 0f && motionState.lastRightTrigger != 0f);
+
+      if (triggerChanged) {
+        motionState.lastLeftTrigger = lTrigger;
+        motionState.lastRightTrigger = rTrigger;
+        WritableMap triggerParams = Arguments.createMap();
+        triggerParams.putDouble("leftTrigger", lTrigger);
+        triggerParams.putDouble("rightTrigger", rTrigger);
+        putControllerInfo(triggerParams, event);
+        sendEvent("onTrigger", triggerParams);
+      }
 
       int deadzonePercentage = 10;
       int leftStickXAxis = MotionEvent.AXIS_X;
@@ -755,15 +786,28 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
         rightStickY = -1;
       }
 
-      //  Log.d("MainActivity1", "right axisX:" + rightStickX);
-      //  Log.d("MainActivity1", "right axisY:" + rightStickY);
-      WritableMap stickParams = Arguments.createMap();
-      stickParams.putDouble("leftStickX", leftStickX);
-      stickParams.putDouble("leftStickY", leftStickY);
-      stickParams.putDouble("rightStickX", rightStickX);
-      stickParams.putDouble("rightStickY", rightStickY);
-      putControllerInfo(stickParams, event);
-      sendEvent("onStickMove", stickParams);
+      boolean stickChanged =
+          Math.abs(leftStickX - motionState.lastLeftStickX) >= 0.005 ||
+          Math.abs(leftStickY - motionState.lastLeftStickY) >= 0.005 ||
+          Math.abs(rightStickX - motionState.lastRightStickX) >= 0.005 ||
+          Math.abs(rightStickY - motionState.lastRightStickY) >= 0.005 ||
+          (leftStickX == 0.0 && leftStickY == 0.0 && (motionState.lastLeftStickX != 0.0 || motionState.lastLeftStickY != 0.0)) ||
+          (rightStickX == 0.0 && rightStickY == 0.0 && (motionState.lastRightStickX != 0.0 || motionState.lastRightStickY != 0.0));
+
+      if (stickChanged) {
+        motionState.lastLeftStickX = leftStickX;
+        motionState.lastLeftStickY = leftStickY;
+        motionState.lastRightStickX = rightStickX;
+        motionState.lastRightStickY = rightStickY;
+
+        WritableMap stickParams = Arguments.createMap();
+        stickParams.putDouble("leftStickX", leftStickX);
+        stickParams.putDouble("leftStickY", leftStickY);
+        stickParams.putDouble("rightStickX", rightStickX);
+        stickParams.putDouble("rightStickY", rightStickY);
+        putControllerInfo(stickParams, event);
+        sendEvent("onStickMove", stickParams);
+      }
     }
     return true;
   }

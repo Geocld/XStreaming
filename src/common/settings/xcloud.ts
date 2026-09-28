@@ -59,6 +59,16 @@ const xcloud = [
     ),
     data: [],
   },
+  {
+    name: 'preview_features',
+    type: 'radio',
+    title: t('Preview features'),
+    description: t('Preview features description'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
 ];
 
 export default xcloud;

@@ -217,23 +217,21 @@ class SessionStatsTracker {
     try {
       if (!this._isActive || !sample) return;
 
-      const rtt = parseNumeric(sample.rtt);
-      if (rtt !== null && rtt >= 0) this._rttSamples.push(rtt);
+      const pushBounded = (arr: number[], val: number | null, minVal: number = 0) => {
+        if (val !== null && val >= minVal) {
+          if (arr.length >= 300) {
+            arr.shift();
+          }
+          arr.push(val);
+        }
+      };
 
-      const br = parseNumeric(sample.bitrate);
-      if (br !== null && br > 0) this._bitrateSamples.push(br);
-
-      const pl = parseNumeric(sample.packetLoss);
-      if (pl !== null && pl >= 0) this._packetLossSamples.push(pl);
-
-      const jit = parseNumeric(sample.jitter);
-      if (jit !== null && jit >= 0) this._jitterSamples.push(jit);
-
-      const fps = parseNumeric(sample.fps);
-      if (fps !== null && fps > 0) this._fpsSamples.push(fps);
-
-      const decode = parseNumeric(sample.decode);
-      if (decode !== null && decode >= 0) this._decodeSamples.push(decode);
+      pushBounded(this._rttSamples, parseNumeric(sample.rtt), 0);
+      pushBounded(this._bitrateSamples, parseNumeric(sample.bitrate), 0.001);
+      pushBounded(this._packetLossSamples, parseNumeric(sample.packetLoss), 0);
+      pushBounded(this._jitterSamples, parseNumeric(sample.jitter), 0);
+      pushBounded(this._fpsSamples, parseNumeric(sample.fps), 0.001);
+      pushBounded(this._decodeSamples, parseNumeric(sample.decode), 0);
 
       if (typeof sample.bytesReceived === 'number' && sample.bytesReceived > this._maxBytesReceived) {
         this._maxBytesReceived = sample.bytesReceived;

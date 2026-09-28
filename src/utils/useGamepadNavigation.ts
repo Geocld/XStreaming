@@ -41,12 +41,27 @@ let isGlobalListenerAttached = false;
 let isBackHandlerAttached = false;
 let lastGlobalAction: string | null = null;
 let lastGlobalTime: number = 0;
+let isNavigationSuspended = false;
+
+export function suspendGamepadNavigation() {
+  isNavigationSuspended = true;
+}
+
+export function resumeGamepadNavigation() {
+  isNavigationSuspended = false;
+}
+
+export function isGamepadNavigationSuspended() {
+  return isNavigationSuspended;
+}
 
 function ensureBackHandlerListener() {
   if (isBackHandlerAttached) return;
   isBackHandlerAttached = true;
 
   BackHandler.addEventListener('hardwareBackPress', () => {
+    if (isNavigationSuspended) return false;
+
     const activeEntries = handlerStack
       .filter(
         entry =>
@@ -80,6 +95,7 @@ function ensureGlobalNavigationListener() {
   DeviceEventEmitter.addListener(
     'onMenuNavigation',
     (data: {action?: NavAction}) => {
+      if (isNavigationSuspended) return;
       if (!data || !data.action) return;
 
       const now = Date.now();
@@ -198,6 +214,7 @@ export function useGamepadActiveState(initialValue?: boolean) {
     );
 
     const navSub = DeviceEventEmitter.addListener('onMenuNavigation', () => {
+      if (isNavigationSuspended) return;
       setIsGamepadActive(true);
     });
 

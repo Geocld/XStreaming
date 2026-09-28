@@ -47,6 +47,10 @@ import {
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
 import sessionStatsTracker from '../utils/sessionStatsTracker';
+import {
+  suspendGamepadNavigation,
+  resumeGamepadNavigation,
+} from '../utils/useGamepadNavigation';
 
 const log = debugFactory('NativeStreamScreen');
 
@@ -242,6 +246,8 @@ export function NativeStreamScreenBase({
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
+  const lastRumbleTime = React.useRef(0);
+  const lastRumbleValues = React.useRef({weak: 0, strong: 0, lt: 0, rt: 0});
   const systemKeyboardTransactionRef = React.useRef<any>(null);
   const handleExitRef = React.useRef<(off?: boolean) => void | Promise<void>>(
     () => {},
@@ -693,12 +699,12 @@ export function NativeStreamScreenBase({
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
+    suspendGamepadNavigation();
     const isUsbMode = route.params?.isUsbMode || false;
     const usbController = route.params?.usbController || 'Xbox360Controller';
 
     const _settings = getSettings();
     setSettings(_settings);
-    const buttonPressTimers = new Map<string, any>();
     resetGamepadState(gpState, 0);
     manualLeftThumbPressedRef.current = false;
     autoSprintLeftThumbPressedRef.current = false;
@@ -954,13 +960,6 @@ export function NativeStreamScreenBase({
             return;
           }
 
-          const buttonKey = `${event.gamepadIndex ?? 0}_${keyName}`;
-          const existingTimer = buttonPressTimers.get(buttonKey);
-          if (existingTimer) {
-            clearTimeout(existingTimer);
-            buttonPressTimers.delete(buttonKey);
-          }
-
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (_settings.short_trigger) {
               targetState[keyName] = 1;
@@ -1011,13 +1010,6 @@ export function NativeStreamScreenBase({
             return;
           }
 
-          const buttonKey = `${event.gamepadIndex ?? 0}_${keyName}`;
-          const existingTimer = buttonPressTimers.get(buttonKey);
-          if (existingTimer) {
-            clearTimeout(existingTimer);
-            buttonPressTimers.delete(buttonKey);
-          }
-
           if (keyName === 'Menu') {
             if (menuLongPressTimer.current) {
               clearTimeout(menuLongPressTimer.current);
@@ -1037,29 +1029,23 @@ export function NativeStreamScreenBase({
             }
           }
 
-          const releaseButton = () => {
-            if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-              if (_settings.short_trigger) {
-                targetState[keyName] = 0;
-              }
-            } else {
+          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+            if (_settings.short_trigger) {
               targetState[keyName] = 0;
             }
-            if (keyName === 'LeftThumb' && targetState === gpState) {
-              setManualLeftThumbPressed(false);
+          } else {
+            targetState[keyName] = 0;
+          }
+          if (keyName === 'LeftThumb' && targetState === gpState) {
+            setManualLeftThumbPressed(false);
+          }
+          if (webrtcClient) {
+            if (_settings.coop && coopGpStates) {
+              webrtcClient.setGamepadState(coopGpStates);
+            } else {
+              webrtcClient.setGamepadState(targetState);
             }
-            if (webrtcClient) {
-              if (_settings.coop && coopGpStates) {
-                webrtcClient.setGamepadState(coopGpStates);
-              } else {
-                webrtcClient.setGamepadState(targetState);
-              }
-            }
-            buttonPressTimers.delete(buttonKey);
-          };
-
-          const timerId = setTimeout(releaseButton, 60);
-          buttonPressTimers.set(buttonKey, timerId);
+          }
         },
       );
 
@@ -1169,43 +1155,21 @@ export function NativeStreamScreenBase({
           // Short trigger
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
-            if (event.leftTrigger >= triggerMax) {
-              targetState.LeftTrigger = 1;
-            } else {
-              setTimeout(() => {
-                targetState.LeftTrigger = 0;
-              }, 16);
-            }
+            targetState.LeftTrigger = event.leftTrigger >= triggerMax ? 1 : 0;
           } else {
             // Line trigger
-            if (event.leftTrigger >= 0.05) {
-              targetState.LeftTrigger = event.leftTrigger;
-            } else {
-              setTimeout(() => {
-                targetState.LeftTrigger = 0;
-              }, 16);
-            }
+            targetState.LeftTrigger =
+              event.leftTrigger >= 0.05 ? event.leftTrigger : 0;
           }
 
           // Short trigger
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
-            if (event.rightTrigger >= triggerMax) {
-              targetState.RightTrigger = 1;
-            } else {
-              setTimeout(() => {
-                targetState.RightTrigger = 0;
-              }, 16);
-            }
+            targetState.RightTrigger = event.rightTrigger >= triggerMax ? 1 : 0;
           } else {
             // Line trigger
-            if (event.rightTrigger >= 0.05) {
-              targetState.RightTrigger = event.rightTrigger;
-            } else {
-              setTimeout(() => {
-                targetState.RightTrigger = 0;
-              }, 16);
-            }
+            targetState.RightTrigger =
+              event.rightTrigger >= 0.05 ? event.rightTrigger : 0;
           }
         },
       );
@@ -1365,6 +1329,7 @@ export function NativeStreamScreenBase({
           // Show confirm modal
           setShowModal(true);
           GamepadManager.setCurrentScreen('');
+          resumeGamepadNavigation();
         }
       }
     });
@@ -1680,7 +1645,11 @@ export function NativeStreamScreenBase({
             leftTrigger <= 0 &&
             rightTrigger <= 0;
           if (shouldStop) {
+            if (!isRumbling.current) {
+              return;
+            }
             isRumbling.current = false;
+            lastRumbleValues.current = {weak: 0, strong: 0, lt: 0, rt: 0};
             GamepadManager.vibrate(
               0,
               0,
@@ -1692,7 +1661,27 @@ export function NativeStreamScreenBase({
             return;
           }
 
+          const now = Date.now();
+          const prev = lastRumbleValues.current;
+          if (
+            isRumbling.current &&
+            now - lastRumbleTime.current < 35 &&
+            Math.abs(weakMagnitude - prev.weak) < 4 &&
+            Math.abs(strongMagnitude - prev.strong) < 4 &&
+            Math.abs(leftTrigger - prev.lt) < 4 &&
+            Math.abs(rightTrigger - prev.rt) < 4
+          ) {
+            return;
+          }
+
           isRumbling.current = true;
+          lastRumbleTime.current = now;
+          lastRumbleValues.current = {
+            weak: weakMagnitude,
+            strong: strongMagnitude,
+            lt: leftTrigger,
+            rt: rightTrigger,
+          };
           GamepadManager.vibrate(
             duration > 0 ? duration : 30,
             weakMagnitude,
@@ -1972,8 +1961,6 @@ export function NativeStreamScreenBase({
         clearTimeout(menuLongPressTimer.current);
         menuLongPressTimer.current = null;
       }
-      buttonPressTimers.forEach(timerId => clearTimeout(timerId));
-      buttonPressTimers.clear();
       if (frameTimer.current) {
         clearInterval(frameTimer.current);
         frameTimer.current = null;
@@ -1998,6 +1985,7 @@ export function NativeStreamScreenBase({
       autoSprintLeftThumbPressedRef.current = false;
       syncLeftThumbButton(gpState);
       GamepadManager.setCurrentScreen('');
+      resumeGamepadNavigation();
       SdlGamepadManager?.stopController?.();
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
@@ -2094,10 +2082,14 @@ export function NativeStreamScreenBase({
   ]);
 
   React.useEffect(() => {
+    const isReportEnabled =
+      String(settings.show_session_report) === 'true';
+
     if (
       connectState !== CONNECTED ||
       !webrtcClient ||
-      typeof webrtcClient.getStreamState !== 'function'
+      typeof webrtcClient.getStreamState !== 'function' ||
+      (!showPerformance && !isReportEnabled)
     ) {
       if (performanceInterval.current) {
         clearInterval(performanceInterval.current);
@@ -2113,7 +2105,7 @@ export function NativeStreamScreenBase({
           if (showPerformance) {
             setPerformance(res);
           }
-          if (res) {
+          if (res && isReportEnabled) {
             sessionStatsTracker.recordSample({
               rtt: res.rtt,
               bitrate: res.br,
@@ -2139,7 +2131,12 @@ export function NativeStreamScreenBase({
         performanceInterval.current = null;
       }
     };
-  }, [connectState, showPerformance, webrtcClient]);
+  }, [
+    connectState,
+    showPerformance,
+    settings.show_session_report,
+    webrtcClient,
+  ]);
 
   const handlePowerOff = React.useCallback(async () => {
     const webApi = new WebApi(webToken);
@@ -2219,6 +2216,7 @@ export function NativeStreamScreenBase({
   const handleCloseModal = React.useCallback(() => {
     setShowModal(false);
     GamepadManager.setCurrentScreen('stream');
+    suspendGamepadNavigation();
 
     if (!isConnected.current) {
       setLoading(true);
@@ -2594,6 +2592,7 @@ export function NativeStreamScreenBase({
 
     optionsDialogOpenRef.current = true;
     GamepadManager.setCurrentScreen('');
+    resumeGamepadNavigation();
 
     const items: Array<{id: string; title: string}> = [];
     if (connectState === CONNECTED) {

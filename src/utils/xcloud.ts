@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 import TokenStore from '../xal/tokenstore';
-import {getWebToken} from '../store/webTokenStore';
-import {storage} from '../store/mmkv';
-import {debugFactory} from './debug';
+import { getWebToken } from '../store/webTokenStore';
+import { storage } from '../store/mmkv';
+import { debugFactory } from './debug';
 
 const log = debugFactory('XCloudUtils');
 
@@ -13,6 +13,74 @@ export const SIGL_RECENTLY_ADDED = '06323672-b8c8-43cc-b0de-32d5a9834749'; // Re
 export const SIGL_UBISOFT_CLASSICS = '66ec875c-a391-44f5-9a54-a28bd6f976ce'; // Ubisoft+ Classics
 export const SIGL_STREAM_YOUR_OWN = 'e4c1d680-2c70-45e4-a38d-8a292c68c700'; // Stream your own games
 export const SIGL_LEAVING_SOON = '31ff2361-2772-4622-849b-f4f1abb4ad1b'; // Leaving soon
+export const SIGL_STREAM_FREE_WITH_ADS = '51f14e5d-bdcb-4e04-b9cb-76e5057702df'; // Stream for free with ads (Fresno)
+
+// Microsoft official Fresno / Free with Ads catalog product IDs
+export const FRESNO_FREE_WITH_ADS_PRODUCT_IDS = new Set<string>([
+  'BT5P2X999VH2', // Fortnite
+  '9N0QWXC09MPT', // Once Human
+  '9P4837D6TSFD', // Tom Clancy's Rainbow Six Siege - Free Access
+  '9NNFG8BQRCXL', // Call of Duty: Warzone
+  '9P22THR57FV7', // Call of Duty: Black Ops 6 - Launcher
+  '9PMFDKG5F9R7', // Call of Duty: Modern Warfare III
+  '9P6LNN3KZ75R', // Fortnite Battle Royale
+  '9N872NBW5XG5', // Call of Duty: Modern Warfare II
+  '9N76QGDS5GJR', // Where Winds Meet
+  'C3B1V55CDL0C', // Brawlhalla
+  '9PC5KKHSMCT5', // Fortnite OG
+  '9NSSDJRBX2HD', // Fortnite Save the World
+  '9PJFMVBP16CT', // LEGO Fortnite
+  '9MZL842T57QN', // Fortnite Festival
+  '9NHFDZRD753R', // LEGO Fortnite Brick Life
+]);
+
+// Validator for Free with Ads / F2P cloud stream titles
+export const isFreeWithAdsTitle = (item: any): boolean => {
+  if (!item) return false;
+  const pid = String(
+    item.productId || item.details?.productId || item.details?.ProductId || '',
+  ).toUpperCase();
+  if (pid && FRESNO_FREE_WITH_ADS_PRODUCT_IDS.has(pid)) {
+    return true;
+  }
+  const details = item.details || {};
+  const programs = details.programs || [];
+  if (
+    programs.some(
+      (p: string) =>
+        String(p).toUpperCase().includes('F2P') ||
+        String(p).toUpperCase().includes('FRESNO'),
+    )
+  ) {
+    return true;
+  }
+  const title = (item.ProductTitle || '').toLowerCase();
+  const freeKeywords = [
+    'fortnite',
+    'once human',
+    'rainbow six',
+    'warzone',
+    'brawlhalla',
+    'destiny 2',
+    'apex legends',
+    'fall guys',
+    'roblox',
+    'genshin',
+    'zenless',
+    'pubg',
+    'warframe',
+    'free access',
+  ];
+  if (freeKeywords.some(kw => title.includes(kw))) {
+    return true;
+  }
+  return Boolean(
+    details.isFreeInStore ||
+    details.hasEntitlement ||
+    details.freeAccess ||
+    item.isFree,
+  );
+};
 
 // Validator for Game Pass subscription titles (excludes F2P and buy-to-play games)
 export const isGamePassSubscriptionTitle = (item: any): boolean => {
@@ -131,7 +199,7 @@ export const fetchSiglTitles = async (
   try {
     const res = await axios.get(
       `https://catalog.gamepass.com/sigls/v2?id=${siglId}&market=US&language=en-US`,
-      {timeout: 10000},
+      { timeout: 10000 },
     );
     if (Array.isArray(res.data)) {
       const list: any[] = [];
@@ -163,58 +231,96 @@ export const fetchSiglTitles = async (
 
 // Region metadata display helper
 export const getRegionDisplayInfo = (regionName: string) => {
-  if (!regionName) return {flag: '🌐', code: 'AUTO', name: 'Auto'};
+  if (!regionName) return { flag: '🌐', code: 'AUTO', name: 'Auto' };
   const lower = regionName.toLowerCase();
   if (lower.includes('koreacentral') || lower.includes('korea')) {
-    return {flag: '🇰🇷', code: 'KOR', name: 'Korea Central'};
+    return { flag: '🇰🇷', code: 'KOR', name: 'Korea Central' };
   }
   if (lower.includes('japaneast') || lower.includes('japan')) {
-    return {flag: '🇯🇵', code: 'JPN', name: 'Japan East'};
+    return { flag: '🇯🇵', code: 'JPN', name: 'Japan East' };
   }
   if (lower.includes('australiaeast') || lower.includes('australia')) {
-    return {flag: '🇦🇺', code: 'AUS', name: 'Australia East'};
+    return { flag: '🇦🇺', code: 'AUS', name: 'Australia East' };
   }
   if (lower.includes('southeastasia') || lower.includes('singapore')) {
-    return {flag: '🇸🇬', code: 'SGP', name: 'Southeast Asia'};
+    return { flag: '🇸🇬', code: 'SGP', name: 'Southeast Asia' };
   }
   if (lower.includes('westus2') || lower.includes('westus')) {
-    return {flag: '🇺🇸', code: 'USW', name: 'West US'};
+    return { flag: '🇺🇸', code: 'USW', name: 'West US' };
   }
   if (lower.includes('eastus2') || lower.includes('eastus')) {
-    return {flag: '🇺🇸', code: 'USE', name: 'East US'};
+    return { flag: '🇺🇸', code: 'USE', name: 'East US' };
   }
   if (lower.includes('southcentralus')) {
-    return {flag: '🇺🇸', code: 'USSC', name: 'South Central US'};
+    return { flag: '🇺🇸', code: 'USSC', name: 'South Central US' };
   }
   if (lower.includes('northcentralus')) {
-    return {flag: '🇺🇸', code: 'USNC', name: 'North Central US'};
+    return { flag: '🇺🇸', code: 'USNC', name: 'North Central US' };
   }
   if (lower.includes('westeurope')) {
-    return {flag: '🇪🇺', code: 'EUW', name: 'West Europe'};
+    return { flag: '🇪🇺', code: 'EUW', name: 'West Europe' };
   }
   if (lower.includes('northeurope')) {
-    return {flag: '🇪🇺', code: 'EUN', name: 'North Europe'};
+    return { flag: '🇪🇺', code: 'EUN', name: 'North Europe' };
   }
   if (lower.includes('brazilsouth') || lower.includes('brazil')) {
-    return {flag: '🇧🇷', code: 'BRA', name: 'Brazil South'};
+    return { flag: '🇧🇷', code: 'BRA', name: 'Brazil South' };
   }
   if (lower.includes('india') || lower.includes('centralindia')) {
-    return {flag: '🇮🇳', code: 'IND', name: 'India'};
+    return { flag: '🇮🇳', code: 'IND', name: 'India' };
   }
   if (lower.includes('chile')) {
-    return {flag: '🇨🇱', code: 'CHL', name: 'Chile Central'};
+    return { flag: '🇨🇱', code: 'CHL', name: 'Chile Central' };
   }
   if (lower.includes('mexico')) {
-    return {flag: '🇲🇽', code: 'MEX', name: 'Mexico Central'};
+    return { flag: '🇲🇽', code: 'MEX', name: 'Mexico Central' };
   }
   if (lower.includes('uk') || lower.includes('unitedkingdom')) {
-    return {flag: '🇬🇧', code: 'UK', name: 'United Kingdom'};
+    return { flag: '🇬🇧', code: 'UK', name: 'United Kingdom' };
   }
   return {
     flag: '🌐',
     code: regionName.slice(0, 4).toUpperCase(),
     name: regionName,
   };
+};
+
+// Fast token offering check to instantly detect Free tier without network requests
+export const detectTokenTier = (xCloudToken?: any): string | undefined => {
+  if (!xCloudToken) return undefined;
+  const offering =
+    xCloudToken?.getOffering?.() ||
+    xCloudToken?.offering ||
+    (xCloudToken?.getDefaultRegion?.()?.baseUri?.includes('xgpuwebf2p')
+      ? 'xgpuwebf2p'
+      : undefined) ||
+    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) =>
+      r.baseUri?.includes('xgpuwebf2p'),
+    )
+      ? 'xgpuwebf2p'
+      : undefined);
+
+  if (offering === 'xgpuwebf2p') {
+    return 'Free';
+  }
+  return undefined;
+};
+
+// Cached account tier management with user isolation
+export const getCachedAccountTier = (userKey?: string): string => {
+  if (userKey) {
+    return storage.getString(`user.account_tier.${userKey}`) || '';
+  }
+  return '';
+};
+
+export const saveCachedAccountTier = (tier: string, userKey?: string) => {
+  if (!tier) return;
+  if (userKey) {
+    storage.set(`user.account_tier.${userKey}`, tier);
+    storage.set('user.account_tier_owner', userKey);
+  }
+  storage.set('user.account_tier', tier);
 };
 
 // Account tier detector from cloud titles (Free, Essential, Premium, Ultimate)
@@ -232,29 +338,51 @@ export const detectAccountTier = (
       r.baseUri?.includes('xgpuwebf2p'),
     )
       ? 'xgpuwebf2p'
-      : undefined) ||
-    (xCloudToken?.data?.offeringSettings?.regions?.some?.((r: any) =>
-      r.baseUri?.includes('xgpuweb'),
-    )
-      ? 'xgpuweb'
       : undefined);
 
-  // If token is explicitly free-to-play, user has no active Game Pass subscription
   if (offering === 'xgpuwebf2p') {
     return 'Free';
   }
 
   if (!Array.isArray(titleResults) || titleResults.length === 0) {
-    return offering === 'xgpuweb' ? 'Ultimate' : 'Free';
+    return 'Free';
   }
 
   let detected = 'Free';
   let hasActiveSubscription = false;
 
   for (const item of titleResults) {
+    if (!item) continue;
+    const title = (item.ProductTitle || item.title || item.titleId || '').toLowerCase();
+    if (
+      isFreeWithAdsTitle(item) ||
+      title.includes('halo infinite') ||
+      title.includes('fortnite') ||
+      title.includes('brawlhalla') ||
+      title.includes('destiny') ||
+      title.includes('pubg') ||
+      title.includes('roblox') ||
+      title.includes('warframe') ||
+      title.includes('apex legends') ||
+      title.includes('fallout shelter') ||
+      title.includes('kartrider') ||
+      title.includes('world of tanks') ||
+      title.includes('warzone') ||
+      title.includes('the finals')
+    ) {
+      continue;
+    }
+
     const rawSubs =
       item.details?.userSubscriptions || item.userSubscriptions || [];
     const rawProgs = item.details?.userPrograms || item.userPrograms || [];
+    const hasEntitlement = item.details?.hasEntitlement ?? item.hasEntitlement;
+    const isFreeInStore = item.details?.isFreeInStore ?? item.isFreeInStore;
+
+    const rawPrograms =
+      hasEntitlement && !isFreeInStore
+        ? item.details?.programs || item.programs || []
+        : [];
 
     const subs = (Array.isArray(rawSubs) ? rawSubs : [rawSubs]).map((s: any) =>
       String(s || '').toUpperCase(),
@@ -262,8 +390,11 @@ export const detectAccountTier = (
     const progs = (Array.isArray(rawProgs) ? rawProgs : [rawProgs]).map(
       (p: any) => String(p || '').toUpperCase(),
     );
+    const progList = (
+      Array.isArray(rawPrograms) ? rawPrograms : [rawPrograms]
+    ).map((p: any) => String(p || '').toUpperCase());
 
-    const all = [...subs, ...progs];
+    const all = [...subs, ...progs, ...progList];
 
     if (
       all.some(
@@ -308,9 +439,6 @@ export const detectAccountTier = (
   }
 
   if (!hasActiveSubscription) {
-    if (offering === 'xgpuweb') {
-      return 'Ultimate';
-    }
     return 'Free';
   }
 
@@ -369,7 +497,7 @@ export const resolveXboxGamertag = (
       sisu?.getGamertag?.() ||
       sisu?.data?.AuthorizationToken?.DisplayClaims?.xui?.[0]?.gtg;
     if (sisuGtg) return sisuGtg;
-  } catch {}
+  } catch { }
 
   if (streamingTokens?.xHomeToken?.getGamertag) {
     const gt = streamingTokens.xHomeToken.getGamertag();

@@ -463,5 +463,20 @@ export default {
       '설정에서 매크로 활성화 가능',
     'Enable macro button and edit its action sequence in one place.':
       '매크로 설정 및 편집',
+    'Play with Game Pass': 'Game Pass로 플레이',
+    'Stream for free with ads': '광고 시청 후 무료 스트리밍',
+    'Get game': '게임 받기',
+    PurchaseNoticeTitle: '구매 안내',
+    PurchaseNoticeDesc:
+      '게임을 계속 구매하려면 스마트폰이나 PC에서 Xbox 웹을 열어주세요',
+    Close: '닫기',
+    'Load more': '더 보기',
+    available: '개 이용 가능',
+    'Game available': '개 게임 이용 가능',
+    StreamForFreeWithAdsDesc:
+      '기간 한정으로 클라우드 게이밍을 통해 엄선된 게임을 무료로 플레이할 수 있습니다. 약관 및 세션 제한이 적용됩니다.',
+    'Preview features': '미리 보기 기능 (Xbox Insider)',
+    'Preview features description':
+      '광고 기반 무료 클라우드 스트리밍 등 Xbox Insider 미리 보기 기능을 활성화합니다.',
   },
 };

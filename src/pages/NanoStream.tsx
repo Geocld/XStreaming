@@ -24,6 +24,10 @@ import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
 import sessionStatsTracker from '../utils/sessionStatsTracker';
 import {getSettings} from '../store/settingStore';
+import {
+  suspendGamepadNavigation,
+  resumeGamepadNavigation,
+} from '../utils/useGamepadNavigation';
 
 const {FullScreenManager, GamepadManager, NativeInputDialog, UsbRumbleManager} =
   NativeModules;
@@ -365,6 +369,7 @@ function NanoStreamScreen({navigation, route}: any) {
     Orientation.unlockAllOrientations();
     FullScreenManager?.immersiveModeOff?.();
     GamepadManager?.setCurrentScreen?.('');
+    resumeGamepadNavigation();
 
     const currentSettings = getSettings();
     const isShowReport =
@@ -413,6 +418,7 @@ function NanoStreamScreen({navigation, route}: any) {
 
     optionsDialogOpenRef.current = true;
     GamepadManager?.setCurrentScreen?.('');
+    resumeGamepadNavigation();
 
     const items: Array<{id: string; title: string}> = [];
     if (isConnectedRef.current) {
@@ -443,6 +449,7 @@ function NanoStreamScreen({navigation, route}: any) {
     const result = await showNativeOptionsDialog(items);
     optionsDialogOpenRef.current = false;
     GamepadManager?.setCurrentScreen?.('stream');
+    suspendGamepadNavigation();
 
     if (result?.action !== 'select') {
       return;
@@ -556,8 +563,6 @@ function NanoStreamScreen({navigation, route}: any) {
       syncLeftThumbButton();
     };
 
-    const buttonPressTimers = new Map<string, any>();
-
     if (isUsbMode) {
       usbGpEventListener.current = eventEmitter.addListener(
         'onGamepadReport',
@@ -602,12 +607,6 @@ function NanoStreamScreen({navigation, route}: any) {
             return;
           }
 
-          const existingTimer = buttonPressTimers.get(keyName);
-          if (existingTimer) {
-            clearTimeout(existingTimer);
-            buttonPressTimers.delete(keyName);
-          }
-
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
             if (settings.short_trigger) {
               inputStateRef.current.buttons[keyName] = 1;
@@ -631,30 +630,18 @@ function NanoStreamScreen({navigation, route}: any) {
             return;
           }
 
-          const existingTimer = buttonPressTimers.get(keyName);
-          if (existingTimer) {
-            clearTimeout(existingTimer);
-            buttonPressTimers.delete(keyName);
-          }
-
-          const releaseButton = () => {
-            if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-              if (settings.short_trigger) {
-                inputStateRef.current.buttons[keyName] = 0;
-              }
-            } else {
+          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+            if (settings.short_trigger) {
               inputStateRef.current.buttons[keyName] = 0;
             }
-            if (keyName === 'LeftThumb') {
-              manualLeftThumbPressedRef.current = false;
-              syncLeftThumbButton();
-            }
-            sendGamepadState();
-            buttonPressTimers.delete(keyName);
-          };
-
-          const timerId = setTimeout(releaseButton, 60);
-          buttonPressTimers.set(keyName, timerId);
+          } else {
+            inputStateRef.current.buttons[keyName] = 0;
+          }
+          if (keyName === 'LeftThumb') {
+            manualLeftThumbPressedRef.current = false;
+            syncLeftThumbButton();
+          }
+          sendGamepadState();
         },
       );
 
@@ -752,8 +739,6 @@ function NanoStreamScreen({navigation, route}: any) {
         clearInterval(gamepadTimerRef.current);
         gamepadTimerRef.current = null;
       }
-      buttonPressTimers.forEach(timerId => clearTimeout(timerId));
-      buttonPressTimers.clear();
       manualLeftThumbPressedRef.current = false;
       autoSprintLeftThumbPressedRef.current = false;
       isTriggerWorkRef.current = false;
@@ -1049,6 +1034,7 @@ function NanoStreamScreen({navigation, route}: any) {
     Orientation.lockToLandscape();
     FullScreenManager?.immersiveModeOn?.();
     GamepadManager?.setCurrentScreen?.('stream');
+    suspendGamepadNavigation();
     setLoading(true);
     setLoadingText(t('Connecting...'));
 
@@ -1083,6 +1069,7 @@ function NanoStreamScreen({navigation, route}: any) {
       Orientation.unlockAllOrientations();
       FullScreenManager?.immersiveModeOff?.();
       GamepadManager?.setCurrentScreen?.('');
+      resumeGamepadNavigation();
       inputStateRef.current = createNanoInputState();
     };
   }, [connectUserToken, streamInfo.sessionId, streamInfo.streamType, t]);

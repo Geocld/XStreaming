@@ -467,5 +467,20 @@ export default {
       '設定で有効化可能',
     'Enable macro button and edit its action sequence in one place.':
       'マクロ設定',
+    'Play with Game Pass': 'Game Pass でプレイ',
+    'Stream for free with ads': '広告付きで無料ストリーミング',
+    'Get game': 'ゲームを入手',
+    PurchaseNoticeTitle: '購入について',
+    PurchaseNoticeDesc:
+      'ゲームの購入を続行するには、スマートフォンまたはPCからXboxウェブサイトを開いてください',
+    Close: '閉じる',
+    'Load more': 'さらに読み込む',
+    available: '本利用可能',
+    'Game available': '本のゲームが利用可能',
+    StreamForFreeWithAdsDesc:
+      '期間限定で、クラウドゲームを通じて厳選されたゲームを無料でプレイできます。利用規約とセッション制限が適用されます。',
+    'Preview features': 'プレビュー機能 (Xbox Insider)',
+    'Preview features description':
+      'Xbox Insider プレビュー機能（広告付き無料クラウドストリーミングなど）を有効にします',
   },
 };

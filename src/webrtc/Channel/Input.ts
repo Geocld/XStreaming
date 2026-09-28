@@ -143,11 +143,6 @@ export default class InputChannel extends BaseChannel {
   }
 
   onMessage(event: any) {
-    console.log(
-      'Channel/Input.ts - [' + this._channelName + '] onMessage:',
-      event,
-    );
-
     const dataView = new DataView(event.data);
 
     let i = 0;
@@ -207,7 +202,21 @@ export default class InputChannel extends BaseChannel {
   }
 
   getGamepadQueue(size = 30) {
-    return this._gamepadFrames.splice(0, size - 1);
+    const len = this._gamepadFrames.length;
+    if (len === 0) {
+      return [];
+    }
+    // If the queue only has 1 or 2 frames, take all of them
+    if (len <= 2) {
+      return this._gamepadFrames.splice(0, len);
+    }
+    // If frames have accumulated (e.g. during intense combat or temporary thread stall),
+    // drop obsolete intermediate frames so the server receives the latest state immediately!
+    // Never allow a backlog of 30+ frames to slowly drain over multiple intervals,
+    // which causes stuck analog sticks and spinning camera.
+    const latestFrames = this._gamepadFrames.slice(-2);
+    this._gamepadFrames.length = 0;
+    return latestFrames;
   }
 
   getGamepadQueueLength() {
@@ -224,6 +233,10 @@ export default class InputChannel extends BaseChannel {
 
   queueGamepadState(input: InputFrame) {
     if (input !== null) {
+      // Bound the queue to prevent unbounded growth if interval is delayed
+      if (this._gamepadFrames.length >= 6) {
+        this._gamepadFrames.splice(0, this._gamepadFrames.length - 2);
+      }
       return this._gamepadFrames.push(input);
     }
   }

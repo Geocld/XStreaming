@@ -14,13 +14,16 @@ const STORE_KEY = 'user.xcloud';
 //   cacheTime: 1755052925902
 // };
 
-export const saveXcloudData = (data: any) => {
+export const saveXcloudData = (data: any, userKey?: string) => {
   log.info('saveXcloudData');
   if (!data) {
     return;
   }
   const toSave = Object.assign({}, data);
   toSave.cacheTime = new Date().getTime();
+  if (userKey) {
+    toSave.userKey = userKey;
+  }
   if (toSave.titleMap) {
     delete toSave.titleMap;
   }
@@ -31,13 +34,16 @@ export const saveXcloudData = (data: any) => {
   }
 };
 
-export const getXcloudData = (): any => {
+export const getXcloudData = (userKey?: string): any => {
   let data = storage.getString(STORE_KEY);
   if (!data) {
     return null;
   }
   try {
     const _data = JSON.parse(data) as any;
+    if (userKey && _data.userKey && _data.userKey !== userKey) {
+      return null;
+    }
     return _data;
   } catch {
     return null;
@@ -47,6 +53,10 @@ export const getXcloudData = (): any => {
 export const clearXcloudData = () => {
   const starTitles = getXcloudData()?.starTitles || [];
   storage.set(STORE_KEY, JSON.stringify({starTitles}));
+  try {
+    storage.delete('user.account_tier');
+    storage.delete('user.account_tier_owner');
+  } catch {}
 };
 
 export const isxCloudDataValid = (data: any) => {

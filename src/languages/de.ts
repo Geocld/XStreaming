@@ -515,5 +515,20 @@ export default {
       'Der Makroschalter befindet sich unter Einstellungen -> Virtuelle Makrotaste. Diese Seite bearbeitet nur die Aktionsfolge.',
     'Enable macro button and edit its action sequence in one place.':
       'Makrotaste aktivieren und Aktionsfolge an einem Ort bearbeiten.',
+    'Play with Game Pass': 'Mit Game Pass spielen',
+    'Stream for free with ads': 'Kostenlos mit Werbung streamen',
+    'Get game': 'Spiel holen',
+    PurchaseNoticeTitle: 'Kaufinformation',
+    PurchaseNoticeDesc:
+      'Um den Spielkauf fortzusetzen, öffnen Sie bitte die Xbox-Website auf Ihrem Smartphone oder PC',
+    Close: 'Schließen',
+    'Load more': 'Mehr laden',
+    available: 'verfügbar',
+    'Game available': 'Spiele verfügbar',
+    StreamForFreeWithAdsDesc:
+      'Nur für begrenzte Zeit ausgewählte Spiele kostenlos per Cloud-Gaming spielen. Es gelten Bedingungen und Sitzungslimits.',
+    'Preview features': 'Vorschaufunktionen (Xbox Insider)',
+    'Preview features description':
+      'Xbox Insider-Vorschaufunktionen aktivieren, z. B. werbefinanziertes kostenloses Cloud-Gaming',
   },
 };

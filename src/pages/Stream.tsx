@@ -51,6 +51,10 @@ import {
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
 import sessionStatsTracker from '../utils/sessionStatsTracker';
+import {
+  suspendGamepadNavigation,
+  resumeGamepadNavigation,
+} from '../utils/useGamepadNavigation';
 
 const log = debugFactory('StreamScreen');
 
@@ -132,6 +136,9 @@ function StreamScreen({navigation, route}: any) {
   const [volume, setVolume] = React.useState(1);
   const [showGamepadEditor, setShowGamepadEditor] = React.useState(false);
   const [isRumbling, setIsRumbling] = React.useState(false);
+  const isRumblingRef = React.useRef(false);
+  const lastRumbleTime = React.useRef(0);
+  const lastRumbleValues = React.useRef({weak: 0, strong: 0, lt: 0, rt: 0});
   const [editorProfile, setEditorProfile] = React.useState('');
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   const [openMicro, setOpenMicro] = React.useState(false);
@@ -182,6 +189,7 @@ function StreamScreen({navigation, route}: any) {
 
   React.useEffect(() => {
     GamepadManager.setCurrentScreen('stream');
+    suspendGamepadNavigation();
     const isUsbMode = route.params?.isUsbMode || false;
     const usbController = route.params?.usbController || 'Xbox360Controller';
 
@@ -432,8 +440,6 @@ function StreamScreen({navigation, route}: any) {
           ),
         ).catch(() => {});
       }
-      const buttonPressTimers = new Map<string, any>();
-
       gpDownEventListener.current = eventEmitter.addListener(
         'onGamepadKeyDown',
         event => {
@@ -442,12 +448,6 @@ function StreamScreen({navigation, route}: any) {
           const keyName = gpMaping[keyCode];
           if (!keyName) {
             return;
-          }
-
-          const existingTimer = buttonPressTimers.get(keyName);
-          if (existingTimer) {
-            clearTimeout(existingTimer);
-            buttonPressTimers.delete(keyName);
           }
 
           if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
@@ -470,20 +470,14 @@ function StreamScreen({navigation, route}: any) {
             return;
           }
 
-          const releaseButton = () => {
-            if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
-              if (_settings.short_trigger) {
-                gpState[keyName] = 0;
-              }
-            } else {
+          if (keyName === 'LeftTrigger' || keyName === 'RightTrigger') {
+            if (_settings.short_trigger) {
               gpState[keyName] = 0;
             }
-            postData2Webview('gamepad', gpState);
-            buttonPressTimers.delete(keyName);
-          };
-
-          const timerId = setTimeout(releaseButton, 60);
-          buttonPressTimers.set(keyName, timerId);
+          } else {
+            gpState[keyName] = 0;
+          }
+          postData2Webview('gamepad', gpState);
         },
       );
 
@@ -560,43 +554,21 @@ function StreamScreen({navigation, route}: any) {
           // Short trigger
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
-            if (event.leftTrigger >= triggerMax) {
-              gpState.LeftTrigger = 1;
-            } else {
-              setTimeout(() => {
-                gpState.LeftTrigger = 0;
-              }, 16);
-            }
+            gpState.LeftTrigger = event.leftTrigger >= triggerMax ? 1 : 0;
           } else {
             // Line trigger
-            if (event.leftTrigger >= 0.05) {
-              gpState.LeftTrigger = event.leftTrigger;
-            } else {
-              setTimeout(() => {
-                gpState.LeftTrigger = 0;
-              }, 16);
-            }
+            gpState.LeftTrigger =
+              event.leftTrigger >= 0.05 ? event.leftTrigger : 0;
           }
 
           // Short trigger
           if (_settings.short_trigger) {
             triggerMax = _settings.dead_zone;
-            if (event.rightTrigger >= triggerMax) {
-              gpState.RightTrigger = 1;
-            } else {
-              setTimeout(() => {
-                gpState.RightTrigger = 0;
-              }, 16);
-            }
+            gpState.RightTrigger = event.rightTrigger >= triggerMax ? 1 : 0;
           } else {
             // Line trigger
-            if (event.rightTrigger >= 0.05) {
-              gpState.RightTrigger = event.rightTrigger;
-            } else {
-              setTimeout(() => {
-                gpState.RightTrigger = 0;
-              }, 16);
-            }
+            gpState.RightTrigger =
+              event.rightTrigger >= 0.05 ? event.rightTrigger : 0;
           }
         },
       );
@@ -753,6 +725,7 @@ function StreamScreen({navigation, route}: any) {
           // Show confirm modal
           setShowModal(true);
           GamepadManager.setCurrentScreen('');
+          resumeGamepadNavigation();
         }
       }
     });
@@ -816,6 +789,7 @@ function StreamScreen({navigation, route}: any) {
       timer.current && clearInterval(timer.current);
       PipManager?.setAutoPipEnabled?.(false);
       GamepadManager.setCurrentScreen('');
+      resumeGamepadNavigation();
       SdlGamepadManager?.stopController?.();
       SensorModule.stopSensor();
       GamepadSensorModule.stopSensor();
@@ -896,6 +870,7 @@ function StreamScreen({navigation, route}: any) {
   const handleCloseModal = () => {
     setShowModal(false);
     GamepadManager.setCurrentScreen('stream');
+    suspendGamepadNavigation();
     if (settings.gamepad_kernal === 'Web') {
       // @ts-ignore
       webviewRef.current && webviewRef.current.requestFocus();
@@ -1145,12 +1120,38 @@ function StreamScreen({navigation, route}: any) {
           leftTrigger <= 0 &&
           rightTrigger <= 0;
         if (shouldStop) {
+          if (!isRumblingRef.current) {
+            return;
+          }
+          isRumblingRef.current = false;
           setIsRumbling(false);
+          lastRumbleValues.current = {weak: 0, strong: 0, lt: 0, rt: 0};
           GamepadManager.vibrate(0, 0, 0, 0, 0, settings.rumble_intensity || 3);
           return;
         }
 
+        const now = Date.now();
+        const prev = lastRumbleValues.current;
+        if (
+          isRumblingRef.current &&
+          now - lastRumbleTime.current < 35 &&
+          Math.abs(weakMagnitude - prev.weak) < 4 &&
+          Math.abs(strongMagnitude - prev.strong) < 4 &&
+          Math.abs(leftTrigger - prev.lt) < 4 &&
+          Math.abs(rightTrigger - prev.rt) < 4
+        ) {
+          return;
+        }
+
+        isRumblingRef.current = true;
         setIsRumbling(true);
+        lastRumbleTime.current = now;
+        lastRumbleValues.current = {
+          weak: weakMagnitude,
+          strong: strongMagnitude,
+          lt: leftTrigger,
+          rt: rightTrigger,
+        };
         GamepadManager.vibrate(
           duration > 0 ? duration : 30,
           weakMagnitude,
@@ -1161,7 +1162,7 @@ function StreamScreen({navigation, route}: any) {
         );
       }
     }
-    if (type === 'audioVibration' && !isRumbling) {
+    if (type === 'audioVibration' && !isRumblingRef.current) {
       GamepadManager.vibrate(30, 10, 0, 0, 0, settings.rumble_intensity || 3);
     }
     if (type === 'performance') {
@@ -1184,8 +1185,10 @@ function StreamScreen({navigation, route}: any) {
           perf.decode = oldPerf.decode;
         }
       }
-      setPerformance(perf);
-      if (perf) {
+      if (showPerformance) {
+        setPerformance(perf);
+      }
+      if (perf && String(settings.show_session_report) === 'true') {
         sessionStatsTracker.recordSample({
           rtt: perf.rtt,
           bitrate: perf.br,

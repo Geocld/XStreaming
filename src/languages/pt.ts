@@ -532,5 +532,20 @@ export default {
       'O botão para ativar a macro está em Configurações -> Botão macro virtual. Esta página serve apenas para editar a sequência de ações.',
     'Enable macro button and edit its action sequence in one place.':
       'Ative o botão macro e edite sua sequência de ações em um único lugar.',
+    'Play with Game Pass': 'Jogar com Game Pass',
+    'Stream for free with ads': 'Transmitir grátis com anúncios',
+    'Get game': 'Obter jogo',
+    PurchaseNoticeTitle: 'Informações de compra',
+    PurchaseNoticeDesc:
+      'Para continuar comprando o jogo, abra a página da Xbox pelo celular ou PC',
+    Close: 'Fechar',
+    'Load more': 'Carregar mais',
+    available: 'disponível',
+    'Game available': 'Jogos disponíveis',
+    StreamForFreeWithAdsDesc:
+      'Por tempo limitado, jogue títulos selecionados gratuitamente pelo cloud gaming. Termos e limites de sessão se aplicam.',
+    'Preview features': 'Recursos de prévia (Xbox Insider)',
+    'Preview features description':
+      'Ative recursos de teste do Xbox Insider, como streaming em nuvem gratuito com anúncios',
   },
 };

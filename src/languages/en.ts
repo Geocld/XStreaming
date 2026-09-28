@@ -543,6 +543,7 @@ export default {
     'Sort: Relevance': 'Sort: Relevance',
     Filters: 'Filters',
     available: 'available',
+    'Game available': 'Games available',
     Store: 'Store',
     Library: 'Library',
     Relevance: 'Relevance',
@@ -552,6 +553,18 @@ export default {
     'Cloud Server': 'Cloud Server',
     Favorites: 'Favorites',
     'Play with Game Pass': 'Play with Game Pass',
+    'Stream for free with ads': 'Stream for free with ads',
+    'Get game': 'Get game',
+    PurchaseNoticeTitle: 'Purchase Information',
+    PurchaseNoticeDesc:
+      'To continue purchasing game, please open Xbox web using your Phone or PC',
+    Close: 'Close',
+    'Load more': 'Load more',
+    StreamForFreeWithAdsDesc:
+      'For a limited time only, play select games for free with cloud gaming. Terms and session limits apply.',
+    'Preview features': 'Preview features (Xbox Insider)',
+    'Preview features description':
+      'Enable Xbox Insider preview features, such as ad-supported free cloud gaming stream',
     'Recently Added': 'Recently Added',
     'Ubisoft+ Classic': 'Ubisoft+ Classic',
     'Stream your own game': 'Stream your own game',

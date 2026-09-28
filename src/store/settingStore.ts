@@ -1,13 +1,13 @@
-import {storage} from './mmkv';
-import {debugFactory} from '../utils/debug';
-import {NativeModules, DeviceEventEmitter} from 'react-native';
+import { storage } from './mmkv';
+import { debugFactory } from '../utils/debug';
+import { NativeModules, DeviceEventEmitter } from 'react-native';
 import {
   DEFAULT_VIRTUAL_MACRO_LONG_PRESS_MS,
   DEFAULT_VIRTUAL_MACRO_LONG_STEPS,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
-import {DEFAULT_THEME_PRIMARY_COLOR} from '../utils/themeColor';
-import {getSystemLocale} from '../utils/locale';
+import { DEFAULT_THEME_PRIMARY_COLOR } from '../utils/themeColor';
+import { getSystemLocale } from '../utils/locale';
 const log = debugFactory('settingStore');
 
 export const SETTINGS_CHANGED_EVENT = 'SETTINGS_CHANGED';
@@ -101,6 +101,7 @@ export type Settings = {
   enable_microphone: boolean;
   debug: boolean;
   show_session_report: boolean;
+  preview_features: boolean;
 };
 
 const defaultSettings: Settings = {
@@ -193,6 +194,7 @@ const defaultSettings: Settings = {
   enable_microphone: false,
   debug: false,
   show_session_report: true,
+  preview_features: false,
 };
 
 let cachedSettings: Settings | null = null;
