@@ -80,6 +80,7 @@ export default {
     'Long press Nexus': 'Tahan tombol Nexus',
     Disconnect: 'Putuskan koneksi',
     'Disconnect and power off': 'Putuskan koneksi & matikan konsol',
+    'Save session & disconnect': 'Simpan sesi & putuskan koneksi',
     NoXGP:
       'Akun Anda belum memiliki langganan XGP atau akses xCloud tidak tersedia di wilayah Anda. Periksa izin akun Anda atau ubah wilayah di pengaturan dan coba lagi.\nJika Anda telah mengubah wilayah, aktifkan opsi login kode otorisasi di pengaturan.',
     Recently: 'Terakhir dimainkan',
@@ -96,7 +97,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Pilih resolusi streaming, mendukung 720P/1080P/1080P(HQ)',
     resolutionTips:
-      '\n1. 1080P(HQ) mendukung bitrate >= 15 Mbps untuk visual yang lebih tajam dan jernih.\n2. Streaming konsol lokal hanya mendukung 720P/1080P/1080P(HQ).\n3. Resolusi 1440P hanya didukung oleh beberapa game xCloud tertentu dan tidak berlaku untuk streaming konsol.\n4. Microsoft sedang menyesuaikan kebijakan resolusi xCloud. Sebagian game Xbox Game Pass Ultimate saat ini hanya mendukung 720P/1440P.',
+      '\n1. 1080P(HQ) mendukung bitrate >= 15 Mbps untuk visual yang lebih tajam dan jernih.\n2. Streaming konsol lokal hanya mendukung 720P/1080P/1080P(HQ).\n3. Resolusi 1440P hanya didukung oleh beberapa game xCloud tertentu dan tidak berlaku untuk streaming konsol.\n4. Microsoft sedang menyesuaikan kebijakan resolusi xCloud. Sebagian game Xbox Game Pass Ultimate saat ini hanya mendukung 720P/1440P.\n5. Karena batasan protokol Microsoft, Microsoft Store tidak dapat digunakan secara normal saat streaming konsol dalam mode 1080P(HQ). Jika perlu menggunakan Store, silakan beralih ke 720P/1080P.',
     'Host stream bitrate': 'Bitrate streaming konsol',
     'Cloud stream bitrate': 'Bitrate cloud gaming',
     'Audio bitrate': 'Bitrate audio',

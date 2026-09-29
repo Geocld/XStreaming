@@ -77,6 +77,7 @@ export default {
     'Long press Nexus': '长按西瓜键',
     Disconnect: '断开连接',
     'Disconnect and power off': '断开连接并关机',
+    'Save session & disconnect': '保存会话并断开',
     NoXGP:
       '你没有开通XGP或所在地区没有xCloud权限，请检查账号权限或到设置中修改地区重试。\n如你已修改地区，请在设置中开启授权登录尝试解决。',
     Recently: '最近游玩',
@@ -96,7 +97,8 @@ export default {
 1.1080P(HQ)支持码率>=15Mbps 高码率运行，清晰度度更高
 2.主机串流只支持720P/1080P/1080P(HQ)
 3. 1440P只支持xCloud部分游戏，主机串流不支持
-4. xCloud目前微软调整分辨率策略，部分游戏Xbox Game Pass Ultimate级别会员目前只支持720P/1440P分辨率`,
+4. xCloud目前微软调整分辨率策略，部分游戏Xbox Game Pass Ultimate级别会员目前只支持720P/1440P分辨率
+5. 因为微软的协议限制，1080P(HQ)模式下主机串流无法正常使用微软商店，如需使用商店，请切换到720P/1080P`,
     'Host stream bitrate': '主机串流码率',
     'Cloud stream bitrate': '云游戏码率',
     'Audio bitrate': '声音',

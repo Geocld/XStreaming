@@ -63,6 +63,7 @@ export default {
     'Long press Nexus': 'Nexusを長押し',
     Disconnect: '切断',
     'Disconnect and power off': '切断して電源を切る',
+    'Save session & disconnect': 'セッションを保存して切断',
     NoXGP:
       'XGPUが見つかりません。サブスクリプションまたは地域設定を確認してください।',
     Recently: '最近',
@@ -79,7 +80,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '解像度設定 (720P/1080P対応)',
     resolutionTips:
-      '1080P(HQ)には高速な通信環境が必要です。コンソールは最大1080Pまで対応しています।',
+      '1080P(HQ)には高速な通信環境が必要です。コンソールは最大1080Pまで対応しています。Microsoftのプロトコル制限により、1080P(HQ)モードのコンソールストリーミングではMicrosoft Storeを正常に利用できません。Storeを利用する必要がある場合は、720P/1080Pに切り替えてください。',
     'Host stream bitrate': 'ホストビットレート',
     'Cloud stream bitrate': 'クラウドビットレート',
     'Audio bitrate': 'オーディオビットレート',

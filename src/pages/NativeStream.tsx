@@ -625,14 +625,20 @@ export function NativeStreamScreenBase({
     Orientation.unlockAllOrientations();
     FullScreenManager.immersiveModeOff();
     const currentSettings = getSettings();
-    const isShowReport =
-      String(currentSettings.show_session_report) === 'true';
+    const isShowReport = String(currentSettings.show_session_report) === 'true';
     const sessionReport = isShowReport
       ? sessionStatsTracker.finishSession()
       : undefined;
     navigation.navigate({
       name: getStreamDestination(),
       params: {needRefresh: true, sessionReport},
+    });
+  }, [getStreamDestination, navigation]);
+
+  const pureStreamExit = React.useCallback(() => {
+    navigation.navigate({
+      name: getStreamDestination(),
+      params: {needRefresh: false, sessionReport: false},
     });
   }, [getStreamDestination, navigation]);
 
@@ -679,7 +685,9 @@ export function NativeStreamScreenBase({
     reconnectAttemptsRef.current += 1;
     setLoading(true);
     setLoadingText(
-      `${t('Connecting...')} (${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`,
+      `${t('Connecting...')} (${
+        reconnectAttemptsRef.current
+      }/${MAX_RECONNECT_ATTEMPTS})`,
     );
 
     reconnectTimerRef.current = setTimeout(() => {
@@ -2082,8 +2090,7 @@ export function NativeStreamScreenBase({
   ]);
 
   React.useEffect(() => {
-    const isReportEnabled =
-      String(settings.show_session_report) === 'true';
+    const isReportEnabled = String(settings.show_session_report) === 'true';
 
     if (
       connectState !== CONNECTED ||
@@ -2636,6 +2643,12 @@ export function NativeStreamScreenBase({
           title: t('Disconnect and power off'),
         });
       }
+      if (route.params?.streamType === 'cloud') {
+        items.push({
+          id: 'saveSessionAndDisconnect',
+          title: t('Save session & disconnect'),
+        });
+      }
     }
     items.push({
       id: 'disconnect',
@@ -2689,6 +2702,9 @@ export function NativeStreamScreenBase({
       case 'disconnectPowerOff':
         requestExit(true);
         break;
+      case 'saveSessionAndDisconnect':
+        pureStreamExit();
+        break;
       case 'disconnect':
         requestExit(false);
         break;
@@ -2707,6 +2723,7 @@ export function NativeStreamScreenBase({
     openSendTextDialog,
     portraitMode,
     requestExit,
+    pureStreamExit,
     route.params?.streamType,
     settings.enable_microphone,
     settings.power_on,

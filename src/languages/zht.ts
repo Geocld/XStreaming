@@ -62,6 +62,7 @@ export default {
     'Long press Nexus': '長按西瓜鍵',
     Disconnect: '斷開連接',
     'Disconnect and power off': '斷開連接并關機',
+    'Save session & disconnect': '儲存會話並斷開',
     NoXGP:
       '您未開通XGP或所在地區沒有xCloud權限，請檢查帳號權限或到設定中修改地區重試。\n 如您已修改地區，請在設定中開啟授權登入嘗試解決。',
     Recently: '最近遊玩',
@@ -78,7 +79,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '設置串流分辨率，支持720P/1080P切換',
     resolutionTips:
-      '\n1. 1080P（高品質）支援碼率 >=15Mbps，以高碼率運行，清晰度更高。\n2. 主機串流僅支援 720P/1080P/1080P（高品質）。\n3. 1440P 僅支援部分 xCloud 遊戲，主機串流不支援此解析度。\n4. 目前微軟已調整 xCloud 的解析度策略，部分遊戲對 Xbox Game Pass Ultimate 級別會員僅支援 720P/1440P 解析度。',
+      '\n1. 1080P（高品質）支援碼率 >=15Mbps，以高碼率運行，清晰度更高。\n2. 主機串流僅支援 720P/1080P/1080P（高品質）。\n3. 1440P 僅支援部分 xCloud 遊戲，主機串流不支援此解析度。\n4. 目前微軟已調整 xCloud 的解析度策略，部分遊戲對 Xbox Game Pass Ultimate 級別會員僅支援 720P/1440P 解析度。\n5. 因微軟協議限制，1080P（高品質）模式下主機串流無法正常使用 Microsoft Store，如需使用商店，請切換至 720P/1080P。',
     'Host stream bitrate': '主機串流碼率',
     'Cloud stream bitrate': '雲遊戲碼率',
     'Audio bitrate': '声音碼率',

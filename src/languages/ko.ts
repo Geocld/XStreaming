@@ -62,6 +62,7 @@ export default {
     'Long press Nexus': 'Nexus 길게 누르기',
     Disconnect: '연결 끊기',
     'Disconnect and power off': '연결 끊고 전원 끄기',
+    'Save session & disconnect': '세션 저장 및 연결 끊기',
     NoXGP:
       'XGPU가 없거나 해당 지역에서 xCloud를 사용할 수 없습니다. 계정 권한을 확인하거나 설정에서 지역을 변경하세요.',
     Recently: '최근 항목',
@@ -78,7 +79,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '해상도 설정 (720P/1080P 지원)',
     resolutionTips:
-      '1080P(HQ)는 더 나은 화질을 위해 높은 비트레이트를 지원합니다. 콘솔은 최대 1080P까지만 지원합니다.',
+      '1080P(HQ)는 더 나은 화질을 위해 높은 비트레이트를 지원합니다. 콘솔은 최대 1080P까지만 지원합니다. Microsoft 프로토콜 제한으로 인해 1080P(HQ) 모드의 콘솔 스트리밍 중에는 Microsoft Store를 정상적으로 사용할 수 없습니다. Store를 사용해야 한다면 720P/1080P로 전환하세요.',
     'Host stream bitrate': '호스트 비트레이트',
     'Cloud stream bitrate': '클라우드 비트레이트',
     'Audio bitrate': '오디오 비트레이트',

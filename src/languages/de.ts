@@ -63,6 +63,7 @@ export default {
     'Long press Nexus': 'Nexus lange drücken',
     Disconnect: 'Trennen',
     'Disconnect and power off': 'Trennen und ausschalten',
+    'Save session & disconnect': 'Sitzung speichern und trennen',
     NoXGP:
       'Du hast kein XGP oder xCloud ist in deiner Region nicht verfügbar. Prüfe die Kontoberechtigung oder ändere die Region in den Einstellungen.\nWenn die Region bereits geändert wurde, aktiviere die Anmeldung per Autorisierungscode.',
     Recently: 'Zuletzt gespielt',
@@ -79,7 +80,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Auflösung festlegen, unterstützt 720P/1080P/1080P(HQ)',
     resolutionTips:
-      '\n1. 1080P(HQ) unterstützt Bitraten ab 15 Mbps für bessere Bildqualität.\n2. Konsolenstreaming unterstützt nur 720P/1080P/1080P(HQ).\n3. 1440P wird nur von einigen xCloud-Spielen unterstützt, nicht beim Konsolenstreaming.\n4. Microsoft passt die xCloud-Auflösungspolitik an. Einige Game-Pass-Ultimate-Spiele unterstützen derzeit nur 720P/1440P.',
+      '\n1. 1080P(HQ) unterstützt Bitraten ab 15 Mbps für bessere Bildqualität.\n2. Konsolenstreaming unterstützt nur 720P/1080P/1080P(HQ).\n3. 1440P wird nur von einigen xCloud-Spielen unterstützt, nicht beim Konsolenstreaming.\n4. Microsoft passt die xCloud-Auflösungspolitik an. Einige Game-Pass-Ultimate-Spiele unterstützen derzeit nur 720P/1440P.\n5. Aufgrund von Microsoft-Protokollbeschränkungen kann der Microsoft Store im 1080P(HQ)-Modus beim Konsolenstreaming nicht normal verwendet werden. Wechsle zu 720P/1080P, wenn du den Store nutzen möchtest.',
     'Host stream bitrate': 'Bitrate für Konsolenstreaming',
     'Cloud stream bitrate': 'Bitrate für Cloud-Gaming',
     'Audio bitrate': 'Audio-Bitrate',

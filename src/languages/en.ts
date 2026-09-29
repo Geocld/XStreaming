@@ -79,6 +79,7 @@ export default {
     'Long press Nexus': 'Long press Nexus',
     Disconnect: 'Disconnect',
     'Disconnect and power off': 'Disconnect and power off',
+    'Save session & disconnect': 'Save session & disconnect',
     NoXGP:
       'You do not have XGP or xCloud access is unavailable in your region. Check your account permissions or change the region in settings and try again.\nIf you have already changed the region, enable auth code login in settings.',
     Recently: 'Recently played',
@@ -95,7 +96,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Set resolution, support 720P/1080P/1080P(HQ)',
     resolutionTips:
-      '\n1. 1080P(HQ) supports bitrates >= 15 Mbps for higher clarity.\n2. Console streaming only supports 720P/1080P/1080P(HQ).\n3. 1440P is only supported by some xCloud games and is not supported for console streaming.\n4. Microsoft is adjusting xCloud resolution policy. Some Xbox Game Pass Ultimate games currently only support 720P/1440P.',
+      '\n1. 1080P(HQ) supports bitrates >= 15 Mbps for higher clarity.\n2. Console streaming only supports 720P/1080P/1080P(HQ).\n3. 1440P is only supported by some xCloud games and is not supported for console streaming.\n4. Microsoft is adjusting xCloud resolution policy. Some Xbox Game Pass Ultimate games currently only support 720P/1440P.\n5. Due to Microsoft protocol restrictions, the Microsoft Store cannot be used normally during console streaming in 1080P(HQ) mode. Switch to 720P/1080P if you need to use the Store.',
     'Host stream bitrate': 'Host stream bitrate',
     'Cloud stream bitrate': 'Cloud stream bitrate',
     'Audio bitrate': 'Audio bitrate',

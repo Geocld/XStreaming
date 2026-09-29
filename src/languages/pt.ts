@@ -65,6 +65,7 @@ export default {
     'Long press Nexus': 'Manter Nexus pressionado',
     Disconnect: 'Desconectar',
     'Disconnect and power off': 'Desconectar e desligar',
+    'Save session & disconnect': 'Salvar sessão e desconectar',
     NoXGP:
       'Você não possui XGP ou o xCloud não está disponível na sua região. Verifique as permissões da conta ou altere a região nas configurações.\nSe você já alterou a região, ative o login por código de autorização.',
     Recently: 'Jogados recentemente',
@@ -81,7 +82,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Definir resolução. Compatível com 720p/1080p/1080p (HQ)',
     resolutionTips:
-      '\n1. 1080p (HQ) oferece maior nitidez, mas requer uma conexão de pelo menos 15 Mbps.\n2. O streaming do console suporta apenas 720p/1080p/1080p (HQ).\n3. 1440p é compatível apenas com alguns jogos do xCloud, não com o streaming do console.\n4. A Microsoft está ajustando a resolução do xCloud. Alguns jogos do Game Pass Ultimate suportam apenas 720p/1440p.',
+      '\n1. 1080p (HQ) oferece maior nitidez, mas requer uma conexão de pelo menos 15 Mbps.\n2. O streaming do console suporta apenas 720p/1080p/1080p (HQ).\n3. 1440p é compatível apenas com alguns jogos do xCloud, não com o streaming do console.\n4. A Microsoft está ajustando a resolução do xCloud. Alguns jogos do Game Pass Ultimate suportam apenas 720p/1440p.\n5. Devido a restrições de protocolo da Microsoft, a Microsoft Store não pode ser usada normalmente durante o streaming do console no modo 1080p (HQ). Se precisar usar a loja, mude para 720p/1080p.',
     'Host stream bitrate': 'Qualidade do streaming do console',
     'Cloud stream bitrate': 'Qualidade dos jogos na nuvem',
     'Audio bitrate': 'Qualidade do áudio',
