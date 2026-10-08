@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   Alert,
-  ActivityIndicator,
   Platform,
   ScrollView,
   Dimensions,
@@ -45,6 +44,7 @@ import {
 } from '../store/consolesStore';
 import MsalAuth from '../components/MsalAuth';
 import SessionReportModal from '../components/SessionReportModal';
+import Spinner from '../components/Spinner';
 
 const log = debugFactory('HomeScreen');
 
@@ -873,12 +873,16 @@ function HomeScreen({navigation, route}) {
       .catch(e => {
         log.error('MSAL device code error:', e);
         setMsalBtnLoading(false);
-        Alert.alert(t('Error'), 'MSAL device code error: ' + (e?.message || String(e)), [
-          {
-            text: t('Confirm'),
-            style: 'default',
-          },
-        ]);
+        Alert.alert(
+          t('Error'),
+          'MSAL device code error: ' + (e?.message || String(e)),
+          [
+            {
+              text: t('Confirm'),
+              style: 'default',
+            },
+          ],
+        );
       });
   };
 
@@ -952,20 +956,6 @@ function HomeScreen({navigation, route}) {
           onPress={() => navigation.navigate('Settings')}>
           &nbsp;{t('Settings')}&nbsp;
         </Button>
-      </View>
-    );
-  };
-
-  const renderLoadingOverlay = () => {
-    if (!loading) {
-      return null;
-    }
-    return (
-      <View style={styles.nonModalLoadingOverlay}>
-        <ActivityIndicator size="large" color="#107C10" />
-        {loadingText ? (
-          <Text style={styles.nonModalLoadingText}>{loadingText}</Text>
-        ) : null}
       </View>
     );
   };
@@ -1156,7 +1146,7 @@ function HomeScreen({navigation, route}) {
       onTouchStart={() => {
         if (!Platform.isTV) setIsGamepadActive(false);
       }}>
-      {renderLoadingOverlay()}
+      <Spinner loading={loading} text={loadingText} />
 
       {showUsbWarnModal && renderUsbWarningModal()}
 
@@ -1299,18 +1289,6 @@ const styles = StyleSheet.create({
   consoleGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-  },
-  nonModalLoadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  nonModalLoadingText: {
-    color: '#107C10',
-    marginTop: 12,
-    fontSize: 16,
   },
   listContainer: {},
   consoleItem: {
