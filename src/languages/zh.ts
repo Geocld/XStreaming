@@ -445,6 +445,18 @@ export default {
     'Hold Buttons': '保持按键',
     FSR_desc:
       '启用FSR(FidelityFX Super Resolution)实现超分辨率，可以在不增加带宽的情况下提升画面清晰度，但会增加CPU/GPU负载，可能会导致部分设备发热严重，请酌情使用。',
+    SmartFrameGenerationTitle: '智能插帧',
+    SmartFrameGenerationDesc:
+      '导入Lossless.dll后，为原生串流生成中间帧以提升流畅度。会增加 GPU 负载，部分设备可能不兼容或运行不稳定，建议骁龙8gen以上设备使用，天玑或其他设备请酌情使用。',
+    LosslessDllImportTitle: '导入 Lossless.dll',
+    LosslessDllImportDesc:
+      '请自行准备合法来源且文件名为 Lossless.dll 的文件并导入一次。文件会保存在应用私有目录中，应用每次启动无需重复导入。',
+    ImportLosslessDll: '导入 DLL',
+    LosslessDllImported: 'Lossless.dll 已导入，已经可以正常使用插帧功能。',
+    LosslessDllNotImported: '尚未导入 Lossless.dll。',
+    LosslessDllImportSuccess: 'Lossless.dll 导入成功',
+    LosslessDllImportFailed: 'Lossless.dll 导入失败',
+    LosslessDllImportUnavailable: '当前设备无法导入 DLL。',
     fsr_sharpness_title: 'FSR锐化',
     fsr_sharpness_desc: '调整FSR锐化',
     'FSR started': 'FSR已启动',
@@ -530,12 +542,12 @@ export default {
     'Get game': '获取游戏',
     PurchaseNoticeTitle: '购买提示',
     PurchaseNoticeDesc: '如需继续购买游戏，请在手机或电脑上打开 Xbox 网页',
-    Close: '关闭',
     'Load more': '加载更多',
     StreamForFreeWithAdsDesc:
       '限时体验，通过云游戏免费游玩精选游戏。适用条款和单次会话时长限制。',
     'Preview features': '预览功能 (Xbox Insider)',
-    'Preview features description': '启用 Xbox Insider 预览功能（如含广告的免费云游戏串流）',
+    'Preview features description':
+      '启用 Xbox Insider 预览功能（如含广告的免费云游戏串流）',
     'Recently Added': '最新添加',
     'Ubisoft+ Classic': 'Ubisoft+ 经典',
     'Stream your own game': '串流你拥有的游戏',

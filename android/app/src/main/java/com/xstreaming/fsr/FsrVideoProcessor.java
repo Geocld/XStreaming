@@ -356,6 +356,7 @@ public class FsrVideoProcessor implements VideoProcessor {
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffers[0]);
         try {
+            easu.use();
             easu.setSamplerTexIdUniform("inputTexture", frameTexture, 0);
             if (inputTextureSize != null) {
                 easu.setFloatsUniform("inputTextureSize", inputTextureSize);
@@ -388,6 +389,7 @@ public class FsrVideoProcessor implements VideoProcessor {
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
         try {
+            rcas.use();
             rcas.setSamplerTexIdUniform("inputTexture", textures[0], 0);
             if (needInputSize) {
                 rcas.setFloatsUniform("inputTextureSize", outputSize);
@@ -433,6 +435,7 @@ public class FsrVideoProcessor implements VideoProcessor {
         }
 
         try {
+            program.use();
             program.setSamplerTexIdUniform("inputTexture", frameTexture, 0);
             if (inputTextureSize != null) {
                 program.setFloatsUniform("inputTextureSize", inputTextureSize);
@@ -517,6 +520,7 @@ public class FsrVideoProcessor implements VideoProcessor {
         GlProgram program;
         try {
             program = ensurePassthroughProgram();
+            program.use();
             program.setSamplerTexIdUniform("inputTexture", frameTexture, 0);
             program.setFloatsUniform("uTexTransform", transformMatrix);
             program.setFloatUniform("uHdrToneMap", shouldApplySoftwareHdrToneMap() ? 1f : 0f);

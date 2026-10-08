@@ -26,6 +26,22 @@ const display = [
     ],
   },
   {
+    name: 'smart_frame_generation',
+    type: 'radio',
+    title: t('SmartFrameGenerationTitle'),
+    description: t('SmartFrameGenerationDesc'),
+    data: [
+      {value: false, text: t('Disable')},
+      {value: true, text: t('Enable')},
+    ],
+  },
+  {
+    name: 'smart_frame_generation_dll',
+    type: 'action',
+    title: t('LosslessDllImportTitle'),
+    description: t('LosslessDllImportDesc'),
+  },
+  {
     name: 'video_format',
     type: 'radio',
     title: t('Video stream format'),

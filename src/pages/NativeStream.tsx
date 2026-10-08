@@ -34,6 +34,7 @@ import VirtualGamepadEditor, {
 } from '../components/VirtualGamepadEditor';
 import PerfPanel from '../components/PerfPanel';
 import RTCFsrView from '../components/RTCFsrView';
+import RTCFrameGenView from '../components/RTCFrameGenView';
 import NativeTouchOverlay from '../components/NativeTouchOverlay';
 import PortraitVirtualGamepad, {
   PortraitGamepadControl,
@@ -71,6 +72,7 @@ const {
   GamepadSensorModule,
   PipManager,
   NativeInputDialog,
+  FrameGenStatsModule,
 } = NativeModules;
 
 let defaultMaping: any = GAMEPAD_MAPING;
@@ -260,6 +262,7 @@ export function NativeStreamScreenBase({
   const audioGainRef = React.useRef(1);
   const keepaliveInterval = React.useRef<any>(null);
   const performanceInterval = React.useRef<any>(null);
+  const frameGenStatsSampleRef = React.useRef<any>(null);
   const connectStateRef = React.useRef<any>('');
   const reconnectTimerRef = React.useRef<any>(null);
   const reconnectPendingRef = React.useRef(false);
@@ -1459,11 +1462,6 @@ export function NativeStreamScreenBase({
             setShowVirtualGamepad(true);
           }
 
-          // Alway show performance
-          if (!portraitMode && _settings.show_performance) {
-            setShowPerformance(true);
-          }
-
           setRemote(remoteStream.current.toURL());
 
           const sendFrame = () => {
@@ -2091,6 +2089,8 @@ export function NativeStreamScreenBase({
 
   React.useEffect(() => {
     const isReportEnabled = String(settings.show_session_report) === 'true';
+    const smartFrameGenerationEnabled =
+      !!settings.smart_frame_generation && !!showPerformance;
 
     if (
       connectState !== CONNECTED ||
@@ -2102,15 +2102,85 @@ export function NativeStreamScreenBase({
         clearInterval(performanceInterval.current);
         performanceInterval.current = null;
       }
+      frameGenStatsSampleRef.current = null;
       return;
     }
+
+    const roundFps = (value: number) =>
+      Number.isFinite(value) && value >= 0 ? Math.round(value * 10) / 10 : 0;
+
+    const mergeFrameGenStats = async (streamPerformance: any) => {
+      if (
+        !showPerformance ||
+        !smartFrameGenerationEnabled ||
+        !FrameGenStatsModule ||
+        typeof FrameGenStatsModule.getStats !== 'function'
+      ) {
+        frameGenStatsSampleRef.current = null;
+        return streamPerformance;
+      }
+
+      try {
+        const stats = await FrameGenStatsModule.getStats();
+        const currentSample = {
+          timestampMs: Date.now(),
+          generatedFrameCount: Number(stats?.generatedFrameCount) || 0,
+          postedFrameCount: Number(stats?.postedFrameCount) || 0,
+          uniqueCaptureCount: Number(stats?.uniqueCaptureCount) || 0,
+        };
+        const previousSample = frameGenStatsSampleRef.current;
+        const streamFps = Number(streamPerformance?.fps) || 0;
+        let rawFps = roundFps(streamFps);
+        let generatedFps = 0;
+        let totalFps = rawFps;
+
+        if (
+          previousSample &&
+          currentSample.timestampMs > previousSample.timestampMs &&
+          currentSample.generatedFrameCount >=
+            previousSample.generatedFrameCount &&
+          currentSample.postedFrameCount >= previousSample.postedFrameCount &&
+          currentSample.uniqueCaptureCount >= previousSample.uniqueCaptureCount
+        ) {
+          const elapsedSeconds =
+            (currentSample.timestampMs - previousSample.timestampMs) / 1000;
+          const rawDelta =
+            currentSample.uniqueCaptureCount -
+            previousSample.uniqueCaptureCount;
+          const generatedDelta =
+            currentSample.generatedFrameCount -
+            previousSample.generatedFrameCount;
+          const totalDelta =
+            currentSample.postedFrameCount - previousSample.postedFrameCount;
+
+          if (elapsedSeconds > 0) {
+            rawFps =
+              rawDelta > 0 ? roundFps(rawDelta / elapsedSeconds) : rawFps;
+            generatedFps = roundFps(generatedDelta / elapsedSeconds);
+            totalFps =
+              totalDelta > 0
+                ? roundFps(totalDelta / elapsedSeconds)
+                : roundFps(rawFps + generatedFps);
+          }
+        }
+
+        frameGenStatsSampleRef.current = currentSample;
+        return {
+          ...streamPerformance,
+          framegen: {rawFps, generatedFps, totalFps},
+        };
+      } catch (e) {
+        frameGenStatsSampleRef.current = null;
+        return streamPerformance;
+      }
+    };
 
     const updatePerformance = () => {
       webrtcClient
         .getStreamState()
-        .then(res => {
+        .then(async res => {
           if (showPerformance) {
-            setPerformance(res);
+            setPerformance(await mergeFrameGenStats(res));
           }
           if (res && isReportEnabled) {
             sessionStatsTracker.recordSample({
@@ -2137,10 +2207,12 @@ export function NativeStreamScreenBase({
         clearInterval(performanceInterval.current);
         performanceInterval.current = null;
       }
+      frameGenStatsSampleRef.current = null;
     };
   }, [
     connectState,
     showPerformance,
+    settings.smart_frame_generation,
     settings.show_session_report,
     webrtcClient,
   ]);
@@ -2830,6 +2902,29 @@ export function NativeStreamScreenBase({
     }
 
     const objectFit = video_format === 'Zoom' ? 'cover' : 'contain';
+
+    if (settings.smart_frame_generation) {
+      return (
+        <View style={containerStyle}>
+          <RTCFrameGenView
+            style={playerStyle}
+            zOrder={9}
+            objectFit={objectFit}
+            streamURL={remote}
+            videoFormat={video_format || ''}
+            fsrEnabled={useFsrRenderer}
+            fsrSharpness={fsrSharpness}
+            logVerbose={!!settings.debug}
+            videoFps={60}
+          />
+          <NativeTouchOverlay
+            enabled={!!settings.native_touch && !isInPictureInPicture}
+            videoFormat={video_format || ''}
+            onPointerInput={handleNativePointerInput}
+          />
+        </View>
+      );
+    }
 
     if (useFsrRenderer) {
       return (

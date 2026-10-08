@@ -452,6 +452,18 @@ export default {
     'Hold Buttons': 'Tasten halten',
     FSR_desc:
       'Enable FSR (FidelityFX Super Resolution) to improve image clarity without increasing bandwidth. It increases CPU/GPU load and may cause overheating on some devices. Use with care.',
+    SmartFrameGenerationTitle: 'Smart Frame Generation',
+    SmartFrameGenerationDesc:
+      'Generiert nach dem Import von Lossless.dll Zwischenbilder für flüssigeres natives Streaming. Dies erhöht die GPU-Last und kann auf einigen Geräten inkompatibel oder instabil sein. Empfohlen für Geräte mit Snapdragon 8 Gen oder neuer; auf Dimensity- oder anderen Geräten mit Bedacht verwenden.',
+    LosslessDllImportTitle: 'Lossless.dll importieren',
+    LosslessDllImportDesc:
+      'Stelle eine legal bezogene Datei namens Lossless.dll bereit und importiere sie einmal. Sie wird im privaten App-Speicher abgelegt und muss nicht bei jedem Start erneut importiert werden.',
+    ImportLosslessDll: 'DLL importieren',
+    LosslessDllImported: 'Lossless.dll wurde importiert und die Frame-Interpolation ist einsatzbereit.',
+    LosslessDllNotImported: 'Lossless.dll wurde noch nicht importiert.',
+    LosslessDllImportSuccess: 'Lossless.dll wurde erfolgreich importiert.',
+    LosslessDllImportFailed: 'Lossless.dll konnte nicht importiert werden',
+    LosslessDllImportUnavailable: 'Der DLL-Import ist auf diesem Gerät nicht verfügbar.',
     fsr_sharpness_title: 'FSR sharpness',
     fsr_sharpness_desc: 'Adjust FSR sharpness',
     'FSR started': 'FSR gestartet',

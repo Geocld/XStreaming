@@ -471,6 +471,18 @@ export default {
     'Hold Buttons': 'Tombol Tahan',
     FSR_desc:
       'Aktifkan teknologi AMD FSR (FidelityFX Super Resolution) untuk meningkatkan ketajaman visual gambar tanpa menambah konsumsi bandwidth. Fitur ini meningkatkan beban prosesor dan grafis; gunakan dengan bijak.',
+    SmartFrameGenerationTitle: 'Pembuatan frame cerdas',
+    SmartFrameGenerationDesc:
+      'Setelah mengimpor Lossless.dll, buat frame perantara pada streaming native untuk meningkatkan kelancaran. Ini menambah beban GPU dan mungkin tidak kompatibel atau tidak stabil di beberapa perangkat. Disarankan untuk perangkat Snapdragon 8 Gen ke atas; gunakan dengan bijak di perangkat Dimensity atau lainnya.',
+    LosslessDllImportTitle: 'Impor Lossless.dll',
+    LosslessDllImportDesc:
+      'Siapkan file Lossless.dll dari sumber yang sah dan impor satu kali. File disimpan di penyimpanan privat aplikasi sehingga tidak perlu diimpor setiap kali aplikasi dijalankan.',
+    ImportLosslessDll: 'Impor DLL',
+    LosslessDllImported: 'Lossless.dll sudah diimpor dan interpolasi frame siap digunakan.',
+    LosslessDllNotImported: 'Lossless.dll belum diimpor.',
+    LosslessDllImportSuccess: 'Lossless.dll berhasil diimpor.',
+    LosslessDllImportFailed: 'Gagal mengimpor Lossless.dll',
+    LosslessDllImportUnavailable: 'Impor DLL tidak tersedia di perangkat ini.',
     fsr_sharpness_title: 'Ketajaman FSR',
     fsr_sharpness_desc: 'Atur tingkat ketajaman peningkatan visual FSR',
     'FSR started': 'FSR telah aktif',

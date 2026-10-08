@@ -373,6 +373,18 @@ export default {
     HoldButtonsSettingsDesc: 'Configura botones de pulsación larga.',
     'Hold Buttons': 'Mantener botones',
     FSR_desc: 'Mejora la imagen con FSR.',
+    SmartFrameGenerationTitle: 'Generación inteligente de fotogramas',
+    SmartFrameGenerationDesc:
+      'Tras importar Lossless.dll, genera fotogramas intermedios en la transmisión nativa para mejorar la fluidez. Aumenta la carga de la GPU y puede ser incompatible o inestable en algunos dispositivos. Recomendado para dispositivos con Snapdragon 8 Gen o superior; en Dimensity u otros dispositivos, úsalo con precaución.',
+    LosslessDllImportTitle: 'Importar Lossless.dll',
+    LosslessDllImportDesc:
+      'Prepara un archivo de origen legal llamado Lossless.dll e impórtalo una sola vez. Se guarda en el almacenamiento privado de la aplicación y no tendrás que importarlo cada vez que la inicies.',
+    ImportLosslessDll: 'Importar DLL',
+    LosslessDllImported: 'Lossless.dll se importó y la interpolación de fotogramas ya está lista para usar.',
+    LosslessDllNotImported: 'Lossless.dll aún no se ha importado.',
+    LosslessDllImportSuccess: 'Lossless.dll se importó correctamente.',
+    LosslessDllImportFailed: 'No se pudo importar Lossless.dll',
+    LosslessDllImportUnavailable: 'La importación de DLL no está disponible en este dispositivo.',
     fsr_sharpness_title: 'Nitidez FSR',
     fsr_sharpness_desc: 'Ajusta la nitidez.',
     'FSR started': 'FSR iniciado',

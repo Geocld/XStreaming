@@ -409,6 +409,18 @@ export default {
     HoldButtonsSettingsDesc: '버튼 유지 기능 설정',
     'Hold Buttons': '홀드 버튼',
     FSR_desc: 'FSR로 화질 개선',
+    SmartFrameGenerationTitle: '스마트 프레임 생성',
+    SmartFrameGenerationDesc:
+      'Lossless.dll을 가져온 후 네이티브 스트리밍에 중간 프레임을 생성해 부드러움을 향상합니다. GPU 부하가 증가하며 일부 기기에서는 호환되지 않거나 불안정할 수 있습니다. Snapdragon 8 Gen 이상 기기에서 사용을 권장하며, Dimensity나 기타 기기에서는 신중히 사용하세요.',
+    LosslessDllImportTitle: 'Lossless.dll 가져오기',
+    LosslessDllImportDesc:
+      '합법적으로 준비한 Lossless.dll 파일을 한 번 가져오세요. 앱의 비공개 저장소에 보관되므로 앱을 실행할 때마다 다시 가져올 필요가 없습니다.',
+    ImportLosslessDll: 'DLL 가져오기',
+    LosslessDllImported: 'Lossless.dll을 가져왔으며 프레임 보간 기능을 사용할 수 있습니다.',
+    LosslessDllNotImported: 'Lossless.dll을 아직 가져오지 않았습니다.',
+    LosslessDllImportSuccess: 'Lossless.dll을 성공적으로 가져왔습니다.',
+    LosslessDllImportFailed: 'Lossless.dll을 가져오지 못했습니다',
+    LosslessDllImportUnavailable: '이 기기에서는 DLL 가져오기를 사용할 수 없습니다.',
     fsr_sharpness_title: 'FSR 선명도',
     fsr_sharpness_desc: '선명도 조절',
     'FSR started': 'FSR 시작됨',

@@ -424,6 +424,18 @@ export default {
     HoldButtonsSettingsDesc: 'बटन को दबाए रखने के लिए इसका उपयोग करें।',
     'Hold Buttons': 'होल्ड बटन',
     FSR_desc: 'FSR के साथ बेहतर स्पष्टता पाएं।',
+    SmartFrameGenerationTitle: 'स्मार्ट फ्रेम जनरेशन',
+    SmartFrameGenerationDesc:
+      'Lossless.dll आयात करने के बाद, स्मूथनेस बढ़ाने के लिए नेटिव स्ट्रीमिंग में बीच के फ्रेम बनाता है। इससे GPU लोड बढ़ता है और कुछ डिवाइस पर यह असंगत या अस्थिर हो सकता है। Snapdragon 8 Gen या उससे बेहतर डिवाइस के लिए अनुशंसित; Dimensity या अन्य डिवाइस पर सावधानी से उपयोग करें।',
+    LosslessDllImportTitle: 'Lossless.dll आयात करें',
+    LosslessDllImportDesc:
+      'कानूनी रूप से प्राप्त Lossless.dll फ़ाइल तैयार करके इसे एक बार आयात करें। यह ऐप के निजी स्टोरेज में सुरक्षित रहती है, इसलिए हर बार ऐप शुरू करने पर दोबारा आयात की आवश्यकता नहीं है।',
+    ImportLosslessDll: 'DLL आयात करें',
+    LosslessDllImported: 'Lossless.dll आयात हो चुकी है और फ्रेम इंटरपोलेशन उपयोग के लिए तैयार है।',
+    LosslessDllNotImported: 'Lossless.dll अभी आयात नहीं हुई है।',
+    LosslessDllImportSuccess: 'Lossless.dll सफलतापूर्वक आयात हुई।',
+    LosslessDllImportFailed: 'Lossless.dll आयात नहीं हो सकी',
+    LosslessDllImportUnavailable: 'इस डिवाइस पर DLL आयात उपलब्ध नहीं है।',
     fsr_sharpness_title: 'FSR तीक्ष्णता',
     fsr_sharpness_desc: 'स्पष्टता सेट करें।',
     'FSR started': 'FSR शुरू हुआ',

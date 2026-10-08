@@ -96,6 +96,7 @@ export type Settings = {
   theme_primary_color: string;
   show_menu: boolean;
   fsr: boolean;
+  smart_frame_generation: boolean;
   coop: boolean;
   use_msal_login: boolean;
   enable_microphone: boolean;
@@ -189,6 +190,7 @@ const defaultSettings: Settings = {
   theme_primary_color: DEFAULT_THEME_PRIMARY_COLOR,
   show_menu: false,
   fsr: false,
+  smart_frame_generation: false,
   coop: false,
   use_msal_login: false,
   enable_microphone: false,

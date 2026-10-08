@@ -427,7 +427,19 @@ export default {
       '自動保持按鍵功能可以讓你在按住某個按鍵時，自動保持該按鍵為按下狀態，直到你再次點擊該按鍵。適用於需要持續按住某個按鍵的遊戲場景，例如競速遊戲中的加速，射擊遊戲中的開火等。',
     'Hold Buttons': '保持按鍵',
     FSR_desc:
-      '啟用 FSR（FidelityFX 超級解析度）可在不增加帶寬的情況下提升畫面清晰度，但會增加 CPU/GPU 負載，可能導致部分裝置過熱，請酌情使用。',
+      '啟用 FSR (FidelityFX Super Resolution) 改善畫面清晰度，不增加頻寬但會提高 CPU/GPU 負載，部分裝置可能會過熱，請斟酌使用。',
+    SmartFrameGenerationTitle: '智慧插幀',
+    SmartFrameGenerationDesc:
+      '匯入 Lossless.dll 後，為原生串流產生中間幀以提升流暢度。會增加 GPU 負載，部分裝置可能不相容或運作不穩定，建議 Snapdragon 8 Gen 以上裝置使用，天璣或其他裝置請斟酌使用。',
+    LosslessDllImportTitle: '匯入 Lossless.dll',
+    LosslessDllImportDesc:
+      '請自行準備合法來源且檔名為 Lossless.dll 的檔案並匯入一次。檔案會儲存在應用程式私有目錄中，每次啟動應用程式都不必重新匯入。',
+    ImportLosslessDll: '匯入 DLL',
+    LosslessDllImported: 'Lossless.dll 已匯入，已經可以正常使用插幀功能。',
+    LosslessDllNotImported: '尚未匯入 Lossless.dll。',
+    LosslessDllImportSuccess: 'Lossless.dll 匯入成功。',
+    LosslessDllImportFailed: 'Lossless.dll 匯入失敗',
+    LosslessDllImportUnavailable: '此裝置無法匯入 DLL。',
     fsr_sharpness_title: 'FSR銳化',
     fsr_sharpness_desc: '調整FSR銳化',
     'FSR started': 'FSR已啟動',

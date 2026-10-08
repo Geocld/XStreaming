@@ -413,6 +413,18 @@ export default {
     HoldButtonsSettingsDesc: 'ボタン維持の設定',
     'Hold Buttons': 'ホールドボタン',
     FSR_desc: 'FSRで画質向上',
+    SmartFrameGenerationTitle: 'スマートフレーム生成',
+    SmartFrameGenerationDesc:
+      'Lossless.dllをインポート後、ネイティブストリーミングで中間フレームを生成して滑らかさを向上します。GPU負荷が増え、一部の端末では非対応または動作が不安定になる場合があります。Snapdragon 8 Gen以降の端末での使用を推奨し、Dimensityやその他の端末では様子を見ながら使用してください。',
+    LosslessDllImportTitle: 'Lossless.dllをインポート',
+    LosslessDllImportDesc:
+      '正規に入手したLossless.dllを一度インポートしてください。アプリ専用ストレージに保存されるため、起動のたびに再インポートする必要はありません。',
+    ImportLosslessDll: 'DLLをインポート',
+    LosslessDllImported: 'Lossless.dllがインポートされ、フレーム補間を利用できます。',
+    LosslessDllNotImported: 'Lossless.dllはまだインポートされていません。',
+    LosslessDllImportSuccess: 'Lossless.dllをインポートしました。',
+    LosslessDllImportFailed: 'Lossless.dllをインポートできませんでした',
+    LosslessDllImportUnavailable: 'この端末ではDLLをインポートできません。',
     fsr_sharpness_title: 'FSR鮮明度',
     fsr_sharpness_desc: '鮮明度調整',
     'FSR started': 'FSR開始',

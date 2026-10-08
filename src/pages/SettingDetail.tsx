@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   ScrollView,
+  Alert,
   NativeModules,
   ToastAndroid,
   Platform,
@@ -51,6 +52,7 @@ import {
 } from '../utils/regionSync';
 
 const {UsbRumbleManager} = NativeModules;
+const {FrameGenAssetModule} = NativeModules;
 
 function SettingDetailScreen({navigation, route}) {
   const {t} = useTranslation();
@@ -61,6 +63,7 @@ function SettingDetailScreen({navigation, route}) {
   const [value2, setValue2] = React.useState<any>('');
   const [currentMetas, setCurrentMetas] = React.useState<any>(null);
   const [settings, setSettings] = React.useState<any>({});
+  const [losslessDllImported, setLosslessDllImported] = React.useState(false);
   const regions = React.useRef<any>([]);
   const xgpuRegions = React.useRef<any>([]);
 
@@ -159,6 +162,18 @@ function SettingDetailScreen({navigation, route}) {
       setValue(currentVal);
       setCurrent(name);
       setCurrentMetas(metas);
+      if (
+        name === 'smart_frame_generation' ||
+        name === 'smart_frame_generation_dll'
+      ) {
+        if (typeof FrameGenAssetModule?.isLosslessDllImported === 'function') {
+          FrameGenAssetModule.isLosslessDllImported()
+            .then((imported: boolean) => setLosslessDllImported(!!imported))
+            .catch(() => setLosslessDllImported(false));
+        } else {
+          setLosslessDllImported(false);
+        }
+      }
       navigation.setOptions({
         title: metas.title || '',
       });
@@ -207,6 +222,36 @@ function SettingDetailScreen({navigation, route}) {
   };
 
   const handleSave = () => {
+    if (
+      currentMetas?.name === 'smart_frame_generation' &&
+      (value === true || value === 'true') &&
+      !losslessDllImported
+    ) {
+      Alert.alert(t('Warning'), t('LosslessDllNotImported'));
+      return;
+    }
+
+    if (currentMetas?.name === 'smart_frame_generation_dll') {
+      if (!FrameGenAssetModule?.importLosslessDll) {
+        Alert.alert(t('Warning'), t('LosslessDllImportUnavailable'));
+        return;
+      }
+      FrameGenAssetModule.importLosslessDll()
+        .then(() => {
+          setLosslessDllImported(true);
+          Alert.alert(t('Warning'), t('LosslessDllImportSuccess'));
+        })
+        .catch((error: any) => {
+          if (error?.code !== 'USER_CANCEL') {
+            Alert.alert(
+              t('Warning'),
+              `${t('LosslessDllImportFailed')}: ${error?.message || ''}`,
+            );
+          }
+        });
+      return;
+    }
+
     let shouldRestart = false;
     if (current === 'locale') {
       handleSaveSettings();
@@ -348,6 +393,10 @@ function SettingDetailScreen({navigation, route}) {
   }, [currentMetas]);
 
   const numOptions = optionsList.length;
+  const isOptionDisabled = (item: {value: any}) =>
+    currentMetas?.name === 'smart_frame_generation' &&
+    item.value === true &&
+    !losslessDllImported;
   const customSliderIndex = hasCustomBitrateSlider ? numOptions : -1;
   const saveButtonIndex = isSliderType
     ? 1
@@ -397,7 +446,7 @@ function SettingDetailScreen({navigation, route}) {
         navigation.goBack();
       } else if (!isSliderType && focusedIndex < numOptions) {
         const opt = optionsList[focusedIndex];
-        if (opt) {
+        if (opt && !isOptionDisabled(opt)) {
           setValue(opt.value);
         }
       }
@@ -430,6 +479,7 @@ function SettingDetailScreen({navigation, route}) {
         <RadioButton.Item
           label={item.label}
           value={item.value}
+          disabled={isOptionDisabled(item)}
           color={item.color}
           uncheckedColor={item.uncheckedColor}
           labelStyle={
@@ -445,6 +495,15 @@ function SettingDetailScreen({navigation, route}) {
   const renderOptions = () => {
     if (!currentMetas) {
       return null;
+    }
+    if (currentMetas.type === 'action') {
+      return (
+        <Text style={styles.actionStatus}>
+          {losslessDllImported
+            ? t('LosslessDllImported')
+            : t('LosslessDllNotImported')}
+        </Text>
+      );
     }
     if (
       currentMetas.name === 'xhome_bitrate_mode' ||
@@ -641,7 +700,7 @@ function SettingDetailScreen({navigation, route}) {
               styles.tvButtonFocused,
           ]}
           onPress={handleSave}>
-          {t('Save')}
+          {currentMetas?.type === 'action' ? t('ImportLosslessDll') : t('Save')}
         </Button>
         <Button
           mode={
@@ -706,6 +765,10 @@ const styles = StyleSheet.create({
   },
   sliderTitle: {
     padding: 10,
+  },
+  actionStatus: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   slider: {
     width: '100%',

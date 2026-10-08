@@ -24,6 +24,23 @@ const PerfPanel: React.FC<Props> = ({performance = {}, streamType}) => {
   const rttLabel = `${t('RTT')}${
     xcloudRegionFlag ? `(${xcloudRegionFlag})` : ''
   }`;
+  const framegen = performance.framegen;
+  const hasFrameGenFps =
+    framegen &&
+    (framegen.rawFps !== undefined ||
+      framegen.generatedFps !== undefined ||
+      framegen.totalFps !== undefined);
+  const rawFramegenFps = Number(framegen?.rawFps);
+  const generatedFramegenFps = Number(framegen?.generatedFps);
+  const totalFramegenFps = Number(framegen?.totalFps);
+  const formatFps = (fps: number) =>
+    Number.isFinite(fps) && fps >= 0 ? fps.toFixed(1) : '-1';
+  const fpsText =
+    hasFrameGenFps && Number.isFinite(totalFramegenFps) && totalFramegenFps >= 0
+      ? `${t('FPS')}: ${formatFps(totalFramegenFps)} (${formatFps(
+          rawFramegenFps,
+        )}+${formatFps(generatedFramegenFps)})`
+      : `${t('FPS')}: ${performance.fps || '-1'}`;
 
   React.useEffect(() => {
     const getBattery = () => {
@@ -97,7 +114,7 @@ const PerfPanel: React.FC<Props> = ({performance = {}, streamType}) => {
         </View>
         <View>
           <Text style={styles.text}>
-            {t('FPS')}: {performance.fps || '-1'} {isHorizon ? '| ' : ''}
+            {fpsText} {isHorizon ? '| ' : ''}
           </Text>
         </View>
         <View>
