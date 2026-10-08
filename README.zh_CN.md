@@ -43,6 +43,7 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 - 串流Xbox One、Xbox Series S/X的音视频
 - 支持1080P/1080P(HQ)
 - AMD FidelityFX super resolution v1 [FSR 1]
+- 基于lsfg的帧生成，骁龙设备实现30fps -> 60fps, 60fps -> 120fps的体验
 - 支持外接、蓝牙、虚拟手柄，支持手柄振动
 - 支持Webview/Native双渲染模式切换
 - 支持手柄按键映射
@@ -54,8 +55,12 @@ XStreaming是一款开源的Xbox/云游戏串流移动端客户端，借鉴了[G
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.png" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.png" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings1.png" width="400" />
 
+
 ## 兼容性
 XStreaming v2新增了双渲染内核机制，已兼容webview低于91的设备，如果串流界面出现白屏或无响应的情况，请在`设置 - 渲染引擎 - 选择Native`，即可用安卓原生渲染引擎播放视频流。
+
+## 关于帧生成
+`XStreaming`帧生成基于[LSFG-Android](https://github.com/FrankBarretta/LSFG-Android)，需要使用正版`Lossless.dll`导入后方可使用完整的帧生成功能，本项目不会提供`Lossless.dll`文件，请支持正版LSFG并获取正版`Lossless.dll`。
 
 ## 本地开发
 
@@ -152,4 +157,4 @@ XStreaming 的发展离不开这些 Hacker 们，他们贡献了大量能力，�
 
 ### 开源协议
 
-XStreaming 遵循 [MIT 协议](./LICENSE).
+XStreaming 严格遵循 [AGPL v3 协议](./LICENSE)，如其他项目借鉴本项目实现，请严格遵循此协议。

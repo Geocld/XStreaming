@@ -46,6 +46,7 @@ The outstanding open-source project [LunarNX](https://github.com/thinkzhou/Lunar
 - Stream video and audio from the Xbox One and Xbox Series S/X
 - Support for 1080P/1080P(HQ) resolution
 - AMD FidelityFX super resolution v1 [FSR 1]
+- LSFG-based frame generation, enabling a 30fps -> 60fps and 60fps -> 120fps experience on Snapdragon devices.
 - Support for virtual\OTG\bluetooth gamepad controls
 - Support controller rumble
 - Support Android TV
@@ -56,6 +57,9 @@ The outstanding open-source project [LunarNX](https://github.com/thinkzhou/Lunar
 
 <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/game.png" width="400" />
 <img src="https://github.com/Geocld/XStreaming/blob/main/images/home.png" width="400" /> <img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/xcloud.png" width="400" /><img src="https://raw.githubusercontent.com/Geocld/XStreaming/main/images/settings1.png" width="400" />
+
+## About Frame Generation
+`XStreaming` frame generation is based on [LSFG-Android](https://github.com/FrankBarretta/LSFG-Android). You need to import a genuine `Lossless.dll` to use the full frame generation functionality. This project will not provide the `Lossless.dll` file. Please support genuine LSFG and obtain a genuine `Lossless.dll`.
 
 ## Compatibility
 
@@ -157,4 +161,4 @@ XStreaming's development can not be without these Hackers. They contributed a lo
 
 ### License
 
-XStreaming is [MIT licensed](./LICENSE).
+XStreaming strictly complies with the [AGPL v3 license](./LICENSE). If other projects refer to or borrow from this project's implementation, please strictly comply with this license.
