@@ -673,7 +673,9 @@ class webRTCClient {
                           currentDecodeTime -= 15;
                         }
 
-                        performances.decode = `${currentDecodeTime.toFixed(2)}ms`;
+                        performances.decode = `${currentDecodeTime.toFixed(
+                          2,
+                        )}ms`;
                       } else {
                         performances.decode = '--';
                       }

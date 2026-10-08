@@ -2,7 +2,7 @@ import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {getSettings} from '../store/settingStore';
 import {storage} from '../store/mmkv';
 import {debugFactory} from '../utils/debug';
-import {Address6} from 'ip-address';
+import {expandTeredoCandidates} from './teredoCandidates';
 import TokenStore from '../xal/tokenstore';
 import Msal from '../xal/msal';
 import Xal from '../xal';
@@ -128,10 +128,7 @@ export default class XcloudApi {
     }
   }
 
-  private savePersistedCloudSession(
-    titleId: string,
-    createdAt = Date.now(),
-  ) {
+  private savePersistedCloudSession(titleId: string, createdAt = Date.now()) {
     if (this.type !== 'cloud' || !titleId || !this.sessionPath) {
       return;
     }
@@ -172,10 +169,7 @@ export default class XcloudApi {
         'Content-Type': 'application/json',
       },
     });
-    log.info(
-      '[startSession] /configuration res:',
-      JSON.stringify(result.data),
-    );
+    log.info('[startSession] /configuration res:', JSON.stringify(result.data));
     const keepAlivePulseInSeconds = Number(
       result.data?.keepAlivePulseInSeconds,
     );
@@ -293,18 +287,15 @@ export default class XcloudApi {
 
     if (this.type === 'cloud') {
       const persistedSession = this.getPersistedCloudSession();
-      if (
-        persistedSession &&
-        persistedSession.titleId === consoleId
-      ) {
+      if (persistedSession && persistedSession.titleId === consoleId) {
         try {
-          this.setSessionPath(persistedSession.sessionPath, persistedSession.host);
+          this.setSessionPath(
+            persistedSession.sessionPath,
+            persistedSession.host,
+          );
           await this.waitState();
           const configuration = await this.getConfiguration();
-          this.savePersistedCloudSession(
-            consoleId,
-            persistedSession.createdAt,
-          );
+          this.savePersistedCloudSession(consoleId, persistedSession.createdAt);
           log.info('[startSession] reused persisted cloud session');
           return configuration;
         } catch (error) {
@@ -608,25 +599,18 @@ export default class XcloudApi {
           isMediaStreamsChatRenegotiation: true,
         },
       });
-      this.authedPost(
-        this.getSessionUrl('sdp'),
-        body,
-        {
+      this.authedPost(this.getSessionUrl('sdp'), body, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }).then(() => {
+        // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
+        this.authedGet(this.getSessionUrl('sdp'), {
           headers: {
-            Accept: 'application/json',
             'Content-Type': 'application/json',
           },
-        },
-      ).then(() => {
-        // The first post for SDP did not return, so a GET request for SDP response needs to be initiated.
-        this.authedGet(
-          this.getSessionUrl('sdp'),
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        ).then(res => {
+        }).then(res => {
           log.info('[sendSChatSdp] res.data:', res.data);
           if (res.data && res.data.exchangeResponse) {
             resolve(res.data);
@@ -636,14 +620,11 @@ export default class XcloudApi {
                 clearInterval(checkInterval);
                 return;
               }
-              this.authedGet(
-                this.getSessionUrl('sdp'),
-                {
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
+              this.authedGet(this.getSessionUrl('sdp'), {
+                headers: {
+                  'Content-Type': 'application/json',
                 },
-              )
+              })
                 .then(res2 => {
                   if (res2.data && res2.data.exchangeResponse) {
                     resolve(res2.data);
@@ -664,14 +645,11 @@ export default class XcloudApi {
 
   checkIceResponse(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      this.authedGet(
-        this.getSessionUrl('ice'),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      this.authedGet(this.getSessionUrl('ice'), {
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+      })
         .then(iceResponse => {
           const iceResult = iceResponse.data;
           log.info('[checkIceResponse] res:', iceResult);
@@ -689,101 +667,11 @@ export default class XcloudApi {
             }, 1000);
           } else {
             const exchangeIce = JSON.parse(iceResult.exchangeResponse);
-            const computedCandidates: any[] = [];
-
-            // Find Teredo Address and extract remote ip
-            for (const candidate in exchangeIce) {
-              const candidateAddress =
-                exchangeIce[candidate].candidate.split(' ');
-              if (
-                candidateAddress.length > 4 &&
-                candidateAddress[4].substr(0, 4) === '2001'
-              ) {
-                const address = new Address6(candidateAddress[4]);
-                const teredo = address.inspectTeredo();
-
-                computedCandidates.push({
-                  candidate:
-                    'a=candidate:10 1 UDP 1 ' +
-                    teredo.client4 +
-                    ' 9002 typ host ',
-                  messageType: 'iceCandidate',
-                  sdpMLineIndex: '0',
-                  sdpMid: '0',
-                });
-                computedCandidates.push({
-                  candidate:
-                    'a=candidate:11 1 UDP 1 ' +
-                    teredo.client4 +
-                    ' ' +
-                    teredo.udpPort +
-                    ' typ host ',
-                  messageType: 'iceCandidate',
-                  sdpMLineIndex: '0',
-                  sdpMid: '0',
-                });
-              }
-
-              computedCandidates.push(exchangeIce[candidate]);
-            }
-
-            const pattern = new RegExp(
-              /^(?:a=)?candidate:(?<foundation>\d+) (?<component>\d+) (?<protocol>\w+) (?<priority>\d+) (?<ip>[^\s]+) (?<port>\d+) (?<the_rest>.*)/,
+            resolve(
+              this.type === 'home'
+                ? expandTeredoCandidates(exchangeIce, getSettings().ipv6)
+                : exchangeIce,
             );
-
-            const lst: Array<Record<string, any>> = [];
-            for (const item of computedCandidates) {
-              if (item.candidate === 'a=end-of-candidates') {
-                continue;
-              }
-
-              const pats = pattern.exec(item.candidate);
-              if (pats && pats.groups) {
-                const groups = pats.groups;
-                lst.push(groups);
-              }
-            }
-
-            // PerferIPV6
-            const _settings = getSettings();
-            if (_settings.ipv6) {
-              lst.sort((a, b) => {
-                const firstIp = a.ip;
-                const secondIp = b.ip;
-
-                return !firstIp.includes(':') && secondIp.includes(':')
-                  ? 1
-                  : -1;
-              });
-            }
-
-            const newCandidates: any[] = [];
-            let foundation = 1;
-
-            const newCandidate = (candidate: string) => {
-              return {
-                candidate: candidate,
-                messageType: 'iceCandidate',
-                sdpMLineIndex: '0',
-                sdpMid: '0',
-              };
-            };
-
-            lst.forEach(item => {
-              item.foundation = foundation;
-              item.priority = foundation === 1 ? 2130706431 : 1;
-
-              newCandidates.push(
-                newCandidate(
-                  `a=candidate:${item.foundation} 1 UDP ${item.priority} ${item.ip} ${item.port} ${item.the_rest}`,
-                ),
-              );
-              ++foundation;
-            });
-
-            newCandidates.push(newCandidate('a=end-of-candidates'));
-
-            resolve(newCandidates);
           }
         })
         .catch(e => {
@@ -803,15 +691,11 @@ export default class XcloudApi {
         messageType: 'iceCandidate',
         candidate: iceCandidates,
       };
-      this.authedPost(
-        this.getSessionUrl('ice'),
-        JSON.stringify(postData),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      this.authedPost(this.getSessionUrl('ice'), JSON.stringify(postData), {
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+      })
         .then(() => {
           // Check ICE result
           this.checkIceResponse()
@@ -879,14 +763,11 @@ export default class XcloudApi {
         resolve({});
         return;
       }
-      this.authedDelete(
-        this.getSessionUrl(),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      this.authedDelete(this.getSessionUrl(), {
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+      })
         .then(res => {
           log.info('Stream stop:', res);
           this.clearPersistedCloudSession();
