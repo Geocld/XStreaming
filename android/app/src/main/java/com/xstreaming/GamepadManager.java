@@ -53,7 +53,6 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         VibratorManager vibratorManager = null;
         Vibrator vibrator = null;
         boolean quadVibrators = false;
-        boolean hasRealGamepad = false;
         int[] vibratorIds = null;
         long lastCheckTime = 0;
     }
@@ -65,7 +64,6 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         cachedTarget.vibratorManager = null;
         cachedTarget.vibrator = null;
         cachedTarget.quadVibrators = false;
-        cachedTarget.hasRealGamepad = false;
         cachedTarget.vibratorIds = null;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -78,7 +76,6 @@ public class GamepadManager extends ReactContextBaseJavaModule {
                         (dev.getSources() & InputDevice.SOURCE_GAMEPAD) != 0;
                 if (!isGamepad || !isGameControllerDevice(dev)) continue;
 
-                cachedTarget.hasRealGamepad = true;
                 VibratorManager vm = dev.getVibratorManager();
                 if (vm == null) continue;
 
@@ -464,7 +461,7 @@ public class GamepadManager extends ReactContextBaseJavaModule {
         }
 
         Vibrator targetVibrator = cachedTarget.vibrator;
-        if (targetVibrator == null && !cachedTarget.hasRealGamepad) {
+        if (targetVibrator == null) {
             targetVibrator = (Vibrator) reactContext.getSystemService(Context.VIBRATOR_SERVICE);
         }
 
