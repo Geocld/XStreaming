@@ -948,6 +948,9 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   @Override
   protected void onDestroy() {
     try {
+      if (com.xstreaming.recording.GameRecorder.getInstance().isRecording()) {
+        com.xstreaming.recording.GameRecorder.getInstance().stopRecording(null);
+      }
       unregisterReceiver(menuNavReceiver);
     } catch (Exception ignored) {}
     super.onDestroy();

@@ -24,7 +24,8 @@ public class LowLatencyVideoDecoderFactory implements VideoDecoderFactory {
             return null;
         }
 
-        if (codecInfo != null && codecInfo.name != null && codecInfo.name.equalsIgnoreCase("H264")) {
+        if (codecInfo != null && codecInfo.name != null &&
+                (codecInfo.name.equalsIgnoreCase("H264") || codecInfo.name.equalsIgnoreCase("H265") || codecInfo.name.equalsIgnoreCase("HEVC"))) {
             return new LowLatencyVideoDecoder(decoder);
         }
 

@@ -13,6 +13,7 @@ import com.umeng.commonsdk.UMConfigure;
 import com.oney.WebRTCModule.WebRTCModuleOptions;
 import com.oney.WebRTCModule.EglUtils;
 import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoEncoderFactory;
+import com.xstreaming.recording.GameRecorderPackage;
 import com.xstreaming.touchcontrols.AnalogStickPackage;
 import com.xstreaming.touchcontrols.ButtonViewPackage;
 import com.xstreaming.webrtc.LowLatencyVideoDecoderFactory;
@@ -67,6 +68,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new ConfigTransferPackage());
             packages.add(new FrameGenAssetPackage());
             packages.add(new ShortcutManagerPackage());
+            packages.add(new GameRecorderPackage());
           return packages;
         }
 
@@ -135,9 +137,7 @@ public class MainApplication extends Application implements ReactApplication {
     WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
     EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
     options.videoEncoderFactory = new H264AndSoftwareVideoEncoderFactory(eglContext);
-    if (LowLatencyDecoderConfig.isEnabled(this)) {
-        options.videoDecoderFactory = new LowLatencyVideoDecoderFactory(eglContext);
-    }
+    options.videoDecoderFactory = new LowLatencyVideoDecoderFactory(eglContext);
 
     boolean stereoEnabled = AudioConfig.isStereoEnabled(this);
     AudioAttributes audioAttributes = new AudioAttributes.Builder()
@@ -152,6 +152,17 @@ public class MainApplication extends Application implements ReactApplication {
                 .setUseStereoInput(false)
                 .setUseStereoOutput(stereoEnabled)
                 .setEnableVolumeLogger(false);
+
+    audioDeviceModuleBuilder.setAudioTrackStateCallback(new JavaAudioDeviceModule.AudioTrackStateCallback() {
+      @Override
+      public void onWebRtcAudioTrackStart() {
+        com.xstreaming.webrtc.WebRtcAudioHook.hookAudioTrack(options.audioDeviceModule);
+      }
+
+      @Override
+      public void onWebRtcAudioTrackStop() {
+      }
+    });
 
     options.audioDeviceModule = audioDeviceModuleBuilder.createAudioDeviceModule();
 

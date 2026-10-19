@@ -33,6 +33,8 @@ import VirtualGamepadEditor, {
   ButtonConfig,
 } from '../components/VirtualGamepadEditor';
 import PerfPanel from '../components/PerfPanel';
+import RecordingIndicator from '../components/RecordingIndicator';
+import gameRecorder from '../utils/gameRecorder';
 import RTCFsrView from '../components/RTCFsrView';
 import RTCFrameGenView from '../components/RTCFrameGenView';
 import NativeTouchOverlay from '../components/NativeTouchOverlay';
@@ -245,6 +247,17 @@ export function NativeStreamScreenBase({
     React.useState(false);
   const [openMicro, setOpenMicro] = React.useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
+  const [isRecording, setIsRecording] = React.useState(false);
+
+  React.useEffect(() => {
+    return () => {
+      gameRecorder.isRecording().then(recording => {
+        if (recording) {
+          gameRecorder.stopRecording().catch(() => {});
+        }
+      });
+    };
+  }, []);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
@@ -2673,6 +2686,9 @@ export function NativeStreamScreenBase({
     GamepadManager.setCurrentScreen('');
     resumeGamepadNavigation();
 
+    const activeRecording = await gameRecorder.isRecording().catch(() => false);
+    setIsRecording(activeRecording);
+
     const items: Array<{id: string; title: string}> = [];
     if (connectState === CONNECTED) {
       items.push({
@@ -2682,6 +2698,10 @@ export function NativeStreamScreenBase({
       items.push({
         id: 'toggleVirtualGamepad',
         title: t('Toggle Virtual Gamepad'),
+      });
+      items.push({
+        id: 'toggleRecording',
+        title: activeRecording ? t('Stop Recording') : t('Start Recording'),
       });
       if (showVirtualGamepad) {
         items.push({
@@ -2750,6 +2770,41 @@ export function NativeStreamScreenBase({
         }
         setShowVirtualGamepad(!showVirtualGamepad);
         break;
+      case 'toggleRecording': {
+        const currentlyRecording = await gameRecorder.isRecording().catch(() => false);
+        if (currentlyRecording) {
+          try {
+            await gameRecorder.stopRecording();
+            setIsRecording(false);
+            ToastAndroid.show(
+              t('Recording saved to Movies/XStreaming'),
+              ToastAndroid.LONG,
+            );
+          } catch (err: any) {
+            setIsRecording(false);
+            ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
+          }
+        } else {
+          try {
+            await gameRecorder.startRecording(1920, 1080);
+            setIsRecording(true);
+            if (activeWebrtcClientRef.current) {
+              activeWebrtcClientRef.current.requestVideoKeyframe(true);
+              setTimeout(() => {
+                activeWebrtcClientRef.current?.requestVideoKeyframe(true);
+              }, 200);
+              setTimeout(() => {
+                activeWebrtcClientRef.current?.requestVideoKeyframe(true);
+              }, 500);
+            }
+            ToastAndroid.show(t('Recording started'), ToastAndroid.SHORT);
+          } catch (err: any) {
+            setIsRecording(false);
+            ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
+          }
+        }
+        break;
+      }
       case 'editVirtualGamepad':
         handleOpenGamepadEditor();
         break;
@@ -2802,6 +2857,7 @@ export function NativeStreamScreenBase({
     showNativeOptionsDialog,
     showPerformance,
     showVirtualGamepad,
+    isRecording,
     t,
   ]);
 
@@ -3099,6 +3155,8 @@ export function NativeStreamScreenBase({
         onSave={handleSaveGamepadLayout}
         onCancel={() => setShowGamepadEditor(false)}
       />
+
+      <RecordingIndicator visible={isRecording} />
 
       {renderMenu()}
     </View>

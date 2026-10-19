@@ -21,6 +21,8 @@ import PerfPanel from '../components/PerfPanel';
 import Spinner from '../components/Spinner';
 import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
+import RecordingIndicator from '../components/RecordingIndicator';
+import gameRecorder from '../utils/gameRecorder';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
 import sessionStatsTracker from '../utils/sessionStatsTracker';
 import {getSettings} from '../store/settingStore';
@@ -179,6 +181,17 @@ function NanoStreamScreen({navigation, route}: any) {
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(
     !!settings.show_virtual_gamead,
   );
+  const [isRecording, setIsRecording] = React.useState(false);
+
+  React.useEffect(() => {
+    return () => {
+      gameRecorder.isRecording().then(recording => {
+        if (recording) {
+          gameRecorder.stopRecording().catch(() => {});
+        }
+      });
+    };
+  }, []);
   const selectedStreamingToken = React.useMemo(() => {
     return streamType === 'cloud'
       ? streamingTokens?.xCloudToken
@@ -420,15 +433,18 @@ function NanoStreamScreen({navigation, route}: any) {
     GamepadManager?.setCurrentScreen?.('');
     resumeGamepadNavigation();
 
+    const activeRecording = await gameRecorder.isRecording().catch(() => false);
+    setIsRecording(activeRecording);
+
     const items: Array<{id: string; title: string}> = [];
     if (isConnectedRef.current) {
-      // items.push({
-      //   id: 'togglePerformance',
-      //   title: t('Toggle Performance'),
-      // });
       items.push({
         id: 'toggleVirtualGamepad',
         title: t('Toggle Virtual Gamepad'),
+      });
+      items.push({
+        id: 'toggleRecording',
+        title: activeRecording ? t('Stop Recording') : t('Start Recording'),
       });
       items.push({
         id: 'pressNexus',
@@ -462,6 +478,32 @@ function NanoStreamScreen({navigation, route}: any) {
       case 'toggleVirtualGamepad':
         setShowVirtualGamepad(value => !value);
         break;
+      case 'toggleRecording': {
+        const currentlyRecording = await gameRecorder.isRecording().catch(() => false);
+        if (currentlyRecording) {
+          try {
+            await gameRecorder.stopRecording();
+            setIsRecording(false);
+            ToastAndroid.show(
+              t('Recording saved to Movies/XStreaming'),
+              ToastAndroid.LONG,
+            );
+          } catch (err: any) {
+            setIsRecording(false);
+            ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
+          }
+        } else {
+          try {
+            await gameRecorder.startRecording(1920, 1080);
+            setIsRecording(true);
+            ToastAndroid.show(t('Recording started'), ToastAndroid.SHORT);
+          } catch (err: any) {
+            setIsRecording(false);
+            ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
+          }
+        }
+        break;
+      }
       case 'pressNexus':
         sendNexusPress(120);
         break;
@@ -474,7 +516,7 @@ function NanoStreamScreen({navigation, route}: any) {
       default:
         break;
     }
-  }, [handleExit, sendNexusPress, showNativeOptionsDialog, streamType, t]);
+  }, [handleExit, isRecording, sendNexusPress, showNativeOptionsDialog, streamType, t]);
 
   React.useEffect(() => {
     const isUsbMode = !!route.params?.isUsbMode;
@@ -1213,6 +1255,7 @@ function NanoStreamScreen({navigation, route}: any) {
       {showPerformance && (
         <PerfPanel performance={performance} streamType={streamType} />
       )}
+      <RecordingIndicator visible={isRecording} />
       {renderVirtualGamepad()}
     </View>
   );
