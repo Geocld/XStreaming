@@ -14,6 +14,7 @@ import com.oney.WebRTCModule.WebRTCModuleOptions;
 import com.oney.WebRTCModule.EglUtils;
 import com.oney.WebRTCModule.webrtcutils.H264AndSoftwareVideoEncoderFactory;
 import com.xstreaming.recording.GameRecorderPackage;
+import com.xstreaming.screenshot.ScreenshotPackage;
 import com.xstreaming.touchcontrols.AnalogStickPackage;
 import com.xstreaming.touchcontrols.ButtonViewPackage;
 import com.xstreaming.webrtc.LowLatencyVideoDecoderFactory;
@@ -69,6 +70,7 @@ public class MainApplication extends Application implements ReactApplication {
             packages.add(new FrameGenAssetPackage());
             packages.add(new ShortcutManagerPackage());
             packages.add(new GameRecorderPackage());
+            packages.add(new ScreenshotPackage());
           return packages;
         }
 

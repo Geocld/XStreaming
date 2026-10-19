@@ -35,6 +35,7 @@ import VirtualGamepadEditor, {
 import PerfPanel from '../components/PerfPanel';
 import RecordingIndicator from '../components/RecordingIndicator';
 import gameRecorder from '../utils/gameRecorder';
+import screenshot from '../utils/screenshot';
 import RTCFsrView from '../components/RTCFsrView';
 import RTCFrameGenView from '../components/RTCFrameGenView';
 import NativeTouchOverlay from '../components/NativeTouchOverlay';
@@ -2703,6 +2704,10 @@ export function NativeStreamScreenBase({
         id: 'toggleRecording',
         title: activeRecording ? t('Stop Recording') : t('Start Recording'),
       });
+      items.push({
+        id: 'takeScreenshot',
+        title: t('Take Screenshot'),
+      });
       if (showVirtualGamepad) {
         items.push({
           id: 'editVirtualGamepad',
@@ -2802,6 +2807,18 @@ export function NativeStreamScreenBase({
             setIsRecording(false);
             ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
           }
+        }
+        break;
+      }
+      case 'takeScreenshot': {
+        try {
+          await screenshot.captureScreen();
+          ToastAndroid.show(
+            t('Screenshot saved to Pictures/XStreaming'),
+            ToastAndroid.SHORT,
+          );
+        } catch (err: any) {
+          ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
         }
         break;
       }

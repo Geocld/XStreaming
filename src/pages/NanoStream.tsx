@@ -23,6 +23,7 @@ import VirtualGamepad from '../components/VirtualGamepad';
 import CustomVirtualGamepad from '../components/CustomVirtualGamepad';
 import RecordingIndicator from '../components/RecordingIndicator';
 import gameRecorder from '../utils/gameRecorder';
+import screenshot from '../utils/screenshot';
 import {VIRTUAL_MACRO_BUTTON_NAME} from '../utils/virtualMacro';
 import sessionStatsTracker from '../utils/sessionStatsTracker';
 import {getSettings} from '../store/settingStore';
@@ -447,6 +448,10 @@ function NanoStreamScreen({navigation, route}: any) {
         title: activeRecording ? t('Stop Recording') : t('Start Recording'),
       });
       items.push({
+        id: 'takeScreenshot',
+        title: t('Take Screenshot'),
+      });
+      items.push({
         id: 'pressNexus',
         title: t('Press Nexus'),
       });
@@ -501,6 +506,18 @@ function NanoStreamScreen({navigation, route}: any) {
             setIsRecording(false);
             ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
           }
+        }
+        break;
+      }
+      case 'takeScreenshot': {
+        try {
+          await screenshot.captureScreen();
+          ToastAndroid.show(
+            t('Screenshot saved to Pictures/XStreaming'),
+            ToastAndroid.SHORT,
+          );
+        } catch (err: any) {
+          ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
         }
         break;
       }
