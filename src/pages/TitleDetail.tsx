@@ -40,7 +40,18 @@ import { useGamepadNavigation } from '../utils/useGamepadNavigation';
 import { debugFactory } from '../utils/debug';
 import { storage } from '../store/mmkv';
 import { isFreeWithAdsTitle, getCachedAccountTier } from '../utils/xcloud';
-import games from '../mock/games.json';
+
+let cachedGames: Record<string, any> | null = null;
+const getGames = () => {
+  if (!cachedGames) {
+    try {
+      cachedGames = require('../mock/games.json');
+    } catch {
+      cachedGames = {};
+    }
+  }
+  return cachedGames;
+};
 
 const { UsbRumbleManager, FullScreenManager, ShortcutManager } = NativeModules;
 
@@ -573,13 +584,19 @@ function TitleDetail({ navigation, route }) {
     isStar = true;
   }
 
-  let description = '';
-  if (
-    titleItem &&
-    games[titleItem.XboxTitleId] &&
-    games[titleItem.XboxTitleId].short_description
-  ) {
-    description = games[titleItem.XboxTitleId].short_description;
+  let description =
+    titleItem?.ProductDescription ||
+    titleItem?.details?.description ||
+    '';
+  if (!description && titleItem?.XboxTitleId) {
+    const fallbackGames = getGames();
+    if (
+      fallbackGames &&
+      fallbackGames[titleItem.XboxTitleId] &&
+      fallbackGames[titleItem.XboxTitleId].short_description
+    ) {
+      description = fallbackGames[titleItem.XboxTitleId].short_description;
+    }
   }
 
   const renderLargeActionButton = (
