@@ -254,4 +254,11 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(ConsoleItem);
+export default React.memo(ConsoleItem, (prev, next) => {
+  if (prev.isFocused !== next.isFocused) return false;
+  if (prev.consoleItem?.serverId !== next.consoleItem?.serverId) return false;
+  if (prev.consoleItem?.powerState !== next.consoleItem?.powerState) return false;
+  if (prev.consoleItem?.deviceName !== next.consoleItem?.deviceName) return false;
+  if (prev.consoleItem?.consoleType !== next.consoleItem?.consoleType) return false;
+  return true;
+});

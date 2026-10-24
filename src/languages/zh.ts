@@ -73,6 +73,8 @@ export default {
     'Search game': '搜索游戏',
     'Toggle Performance': '显示/隐藏性能信息',
     'Toggle Virtual Gamepad': '显示/隐藏虚拟手柄',
+    'Take Screenshot': '截取屏幕',
+    'Screenshot saved to Pictures/XStreaming': '截图已保存至 Pictures/XStreaming',
     'Press Nexus': '按下西瓜键',
     'Long press Nexus': '长按西瓜键',
     Disconnect: '断开连接',

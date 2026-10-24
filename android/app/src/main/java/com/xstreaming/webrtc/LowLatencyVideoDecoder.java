@@ -24,13 +24,22 @@ class LowLatencyVideoDecoder implements VideoDecoder {
     private final VideoDecoder delegate;
     private boolean patched;
 
+    private int streamWidth = 1920;
+    private int streamHeight = 1080;
+
     LowLatencyVideoDecoder(VideoDecoder delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public VideoCodecStatus initDecode(Settings settings, Callback decodeCallback) {
-        patchMediaCodecWrapperFactory();
+        if (settings != null) {
+            streamWidth = settings.width > 0 ? settings.width : 1920;
+            streamHeight = settings.height > 0 ? settings.height : 1080;
+        }
+        if (com.xstreaming.MainActivity.instance != null && com.xstreaming.LowLatencyDecoderConfig.isEnabled(com.xstreaming.MainActivity.instance)) {
+            patchMediaCodecWrapperFactory();
+        }
         return delegate.initDecode(settings, decodeCallback);
     }
 
@@ -40,13 +49,40 @@ class LowLatencyVideoDecoder implements VideoDecoder {
     }
 
     @Override
+    public long createNative(long nativePeerConnectionFactory) {
+        return delegate.createNative(nativePeerConnectionFactory);
+    }
+
+    @Override
     public VideoCodecStatus decode(EncodedImage frame, DecodeInfo info) {
+        if (frame != null && frame.buffer != null) {
+            try {
+                boolean isKey = frame.frameType == EncodedImage.FrameType.VideoFrameKey;
+                if (isKey) {
+                    com.xstreaming.recording.GameRecorder.getInstance().cacheSpsPps(frame.buffer);
+                }
+                if (com.xstreaming.recording.GameRecorder.getInstance().isRecording()) {
+                    int width = frame.encodedWidth > 0 ? frame.encodedWidth : streamWidth;
+                    int height = frame.encodedHeight > 0 ? frame.encodedHeight : streamHeight;
+                    long ptsUs = frame.captureTimeNs > 0 ? frame.captureTimeNs / 1000L : System.nanoTime() / 1000L;
+                    com.xstreaming.recording.GameRecorder.getInstance().feedVideoFrame(
+                            frame.buffer,
+                            ptsUs,
+                            isKey,
+                            width,
+                            height
+                    );
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "Error recording video frame", t);
+            }
+        }
         return delegate.decode(frame, info);
     }
 
     @Override
     public String getImplementationName() {
-        return delegate.getImplementationName() + "+xstreaming-low-latency";
+        return delegate.getImplementationName();
     }
 
     private void patchMediaCodecWrapperFactory() {

@@ -75,6 +75,8 @@ export default {
     'Search game': 'Search games',
     'Toggle Performance': 'Show/hide performance',
     'Toggle Virtual Gamepad': 'Show/hide virtual gamepad',
+    'Take Screenshot': 'Take Screenshot',
+    'Screenshot saved to Pictures/XStreaming': 'Screenshot saved to Pictures/XStreaming',
     'Press Nexus': 'Press Nexus',
     'Long press Nexus': 'Long press Nexus',
     Disconnect: 'Disconnect',

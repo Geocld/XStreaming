@@ -76,6 +76,8 @@ export default {
     'Search game': 'Cari game',
     'Toggle Performance': 'Tampilkan/sembunyikan performa',
     'Toggle Virtual Gamepad': 'Tampilkan/sembunyikan kontroler virtual',
+    'Take Screenshot': 'Ambil Tangkapan Layar',
+    'Screenshot saved to Pictures/XStreaming': 'Tangkapan layar tersimpan di Pictures/XStreaming',
     'Press Nexus': 'Tekan tombol Nexus',
     'Long press Nexus': 'Tahan tombol Nexus',
     Disconnect: 'Putuskan koneksi',
