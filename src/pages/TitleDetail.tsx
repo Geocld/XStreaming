@@ -25,6 +25,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import Spinner from '../components/Spinner';
+import XcloudApi from '../xCloud';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSettings } from '../store/settingStore';
 import { getXcloudData, saveXcloudData } from '../store/xcloudStore';
@@ -174,7 +175,45 @@ function TitleDetail({ navigation, route }) {
   const [settings, setSettings] = React.useState<any>({});
   const [starTitles, setStarTitles] = React.useState<any>([]);
   const [shortcutLoadFailed, setShortcutLoadFailed] = React.useState(false);
-  // const streamingTokens = useSelector(state => state.streamingTokens);
+  const streamingTokens = useSelector((state: any) => state.streamingTokens);
+  const [queueWaitSeconds, setQueueWaitSeconds] = React.useState<number | null>(
+    null,
+  );
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const titleId = titleItem?.titleId || titleItem?.XCloudTitleId;
+    if (streamingTokens?.xCloudToken && titleId) {
+      setQueueWaitSeconds(null);
+      try {
+        const xcloudApi = new XcloudApi(
+          streamingTokens.xCloudToken.getDefaultRegion().baseUri,
+          streamingTokens.xCloudToken.data.gsToken,
+          'cloud',
+          authentication,
+        );
+        xcloudApi
+          .getTitleWaitTime(titleId)
+          .then(waitData => {
+            if (!isMounted || !waitData) {
+              return;
+            }
+            const waitTime =
+              waitData.estimatedTotalWaitTimeInSeconds ??
+              waitData.estimatedAllocationTimeInSeconds ??
+              0;
+            setQueueWaitSeconds(waitTime);
+          })
+          .catch(() => {});
+      } catch (e) {}
+    } else {
+      setQueueWaitSeconds(null);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [streamingTokens?.xCloudToken, titleItem, authentication]);
+
   const [showUsbWarnModal, setShowUsbWarnShowModal] = React.useState(false);
   const isLandscape = screenWidth > screenHeight;
   const isLargeScreen = Platform.isTV || isLandscape;
@@ -440,6 +479,7 @@ function TitleDetail({ navigation, route }) {
         usbController,
         gameTitle,
         titleItem,
+        accountTier,
       },
     });
   };
@@ -773,6 +813,34 @@ function TitleDetail({ navigation, route }) {
           },
           isLargeScreen && styles.buttonWrapLarge,
         ]}>
+        {queueWaitSeconds !== null && (
+          <View
+            style={[
+              styles.queueNoticeWrap,
+              isLargeScreen && styles.queueNoticeWrapLarge,
+            ]}>
+            <Text
+              style={[
+                styles.queueNoticeText,
+                {
+                  color:
+                    queueWaitSeconds > 0
+                      ? primary
+                      : isLight
+                      ? '#059669'
+                      : '#10B981',
+                },
+              ]}>
+              {queueWaitSeconds > 60
+                ? `⏱ ${t('Estimated wait: ~{{min}} min', {
+                    min: Math.ceil(queueWaitSeconds / 60),
+                  })}`
+                : queueWaitSeconds > 0
+                ? `⏱ ${t('Estimated wait: < 1 min')}`
+                : `⚡ ${t('No queue')}`}
+            </Text>
+          </View>
+        )}
         {isLargeScreen ? (
           <>
             {renderLargeActionButton(
@@ -1083,6 +1151,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
+  },
+  queueNoticeWrap: {
+    paddingVertical: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  queueNoticeWrapLarge: {
+    marginRight: 'auto',
+    marginBottom: 0,
+    paddingHorizontal: 8,
+  },
+  queueNoticeText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   button: {
     marginTop: 10,

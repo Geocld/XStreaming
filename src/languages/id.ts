@@ -406,6 +406,21 @@ export default {
     'Modify controller response rate':
       'Sesuaikan frekuensi pembaruan input kontroler untuk respons lebih cepat',
     'Connecting...': 'Menghubungkan...',
+    'In queue: ~{{min}} min wait': 'Dalam antrean: perkiraan tunggu ~{{min}} menit',
+    'In queue: less than a minute...': 'Dalam antrean: kurang dari satu menit...',
+    'In queue, waiting for available server...': 'Dalam antrean, menunggu server tersedia...',
+    'Allocating cloud server...': 'Mengalokasikan server cloud...',
+    'Ready to connect, authenticating...': 'Siap terhubung, mengautentikasi...',
+    'Position in queue: {{pos}}': 'Posisi antrean: {{pos}}',
+    'Estimated wait: ~{{min}} min': 'Perkiraan tunggu: ~{{min}} mnt',
+    'Estimated wait: < 1 min': 'Perkiraan tunggu: < 1 mnt',
+    'No queue': 'Tanpa antrean',
+    'Session Playtime': 'Waktu Sesi Bermain',
+    Playtime: 'Waktu bermain',
+    'Session limit warning': 'Peringatan Batas Waktu Sesi',
+    '{{min}} minutes remaining in this session. Save your progress soon!':
+      'Sisa {{min}} menit lagi pada sesi ini. Segera simpan progres game Anda!',
+    '{{min}} min left': 'sisa {{min}} mnt',
     'Disconnecting...': 'Memutuskan koneksi...',
     'Configuration obtained successfully, initiating offer...':
       'Konfigurasi berhasil diperoleh, memulai negosiasi penawaran (offer)...',
@@ -580,7 +595,6 @@ export default {
     PurchaseNoticeTitle: 'Informasi Pembelian',
     PurchaseNoticeDesc:
       'Untuk melanjutkan pembelian game, silakan buka web Xbox menggunakan HP atau PC Anda',
-    Close: 'Tutup',
     'Load more': 'Muat lebih banyak',
     StreamForFreeWithAdsDesc:
       'Hanya untuk waktu terbatas, mainkan game pilihan secara gratis melalui cloud gaming. Syarat dan batas sesi berlaku.',

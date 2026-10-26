@@ -402,6 +402,21 @@ export default {
     'Polling rate': 'Polling rate',
     'Modify controller response rate': 'Modify controller response rate',
     'Connecting...': 'Connecting...',
+    'In queue: ~{{min}} min wait': 'In queue: ~{{min}} min wait',
+    'In queue: less than a minute...': 'In queue: less than a minute...',
+    'In queue, waiting for available server...': 'In queue, waiting for available server...',
+    'Allocating cloud server...': 'Allocating cloud server...',
+    'Ready to connect, authenticating...': 'Ready to connect, authenticating...',
+    'Position in queue: {{pos}}': 'Position in queue: {{pos}}',
+    'Estimated wait: ~{{min}} min': 'Estimated wait: ~{{min}} min',
+    'Estimated wait: < 1 min': 'Estimated wait: < 1 min',
+    'No queue': 'No queue',
+    'Session Playtime': 'Session Playtime',
+    Playtime: 'Playtime',
+    'Session limit warning': 'Session limit warning',
+    '{{min}} minutes remaining in this session. Save your progress soon!':
+      '{{min}} minutes remaining in this session. Save your progress soon!',
+    '{{min}} min left': '{{min}} min left',
     'Disconnecting...': 'Disconnecting...',
     'Configuration obtained successfully, initiating offer...':
       'Configuration obtained successfully, initiating offer...',
@@ -573,7 +588,6 @@ export default {
     PurchaseNoticeTitle: 'Purchase Information',
     PurchaseNoticeDesc:
       'To continue purchasing game, please open Xbox web using your Phone or PC',
-    Close: 'Close',
     'Load more': 'Load more',
     StreamForFreeWithAdsDesc:
       'For a limited time only, play select games for free with cloud gaming. Terms and session limits apply.',

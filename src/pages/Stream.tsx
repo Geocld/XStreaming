@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   View,
+  Text,
   Alert,
   NativeModules,
   Vibration,
@@ -24,6 +25,7 @@ import {
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
+import Spinner from '../components/Spinner';
 import XcloudApi from '../xCloud';
 import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
@@ -50,7 +52,8 @@ import {
   VIRTUAL_MACRO_BUTTON_NAME,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
-import sessionStatsTracker from '../utils/sessionStatsTracker';
+import sessionStatsTracker, {formatDuration} from '../utils/sessionStatsTracker';
+import {getCloudSessionTimeLimitSeconds} from '../utils/xcloud';
 import {
   suspendGamepadNavigation,
   resumeGamepadNavigation,
@@ -127,6 +130,8 @@ function StreamScreen({navigation, route}: any) {
   const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [connectState, setConnectState] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [loadingText, setLoadingText] = React.useState('');
   const [performance, setPerformance] = React.useState<any>({});
   const [showPerformance, setShowPerformance] = React.useState(false);
   const [needPoweroff, setNeedPoweroff] = React.useState(false);
@@ -169,6 +174,115 @@ function StreamScreen({navigation, route}: any) {
   const activeMacroSticksRef = React.useRef<Set<string>>(new Set());
   const isMacroLoopRunningRef = React.useRef(false);
   const webviewRef = React.useRef(null);
+  const sessionStartTimeRef = React.useRef(0);
+  const sessionLimitSecondsRef = React.useRef(0);
+  const hasReminded15MinRef = React.useRef(false);
+  const hasReminded5MinRef = React.useRef(false);
+  const playtimeReminderTimerRef = React.useRef<any>(null);
+  const [playtimeReminder, setPlaytimeReminder] = React.useState<{
+    visible: boolean;
+    minutes: number;
+  }>({visible: false, minutes: 0});
+
+  const triggerPlaytimeReminder = React.useCallback(
+    (minutes: number) => {
+      setPlaytimeReminder({
+        visible: true,
+        minutes,
+      });
+      try {
+        Vibration.vibrate([0, 250, 150, 250]);
+      } catch {}
+      try {
+        GamepadManager.vibrate(
+          400,
+          0.5,
+          0.5,
+          0.2,
+          0.2,
+          settings?.rumble_intensity || 3,
+        );
+      } catch {}
+      if (playtimeReminderTimerRef.current) {
+        clearTimeout(playtimeReminderTimerRef.current);
+      }
+      playtimeReminderTimerRef.current = setTimeout(() => {
+        setPlaytimeReminder(prev => ({...prev, visible: false}));
+      }, 8500);
+    },
+    [settings?.rumble_intensity],
+  );
+
+  const sessionLimitSeconds = React.useMemo(() => {
+    return getCloudSessionTimeLimitSeconds({
+      streamType: route.params?.streamType,
+      accountTier: route.params?.accountTier,
+      titleItem: route.params?.titleItem,
+      serverLimitSeconds: xCloudApiRef.current?.getSessionLimitInSeconds?.(),
+    });
+  }, [
+    route.params?.streamType,
+    route.params?.accountTier,
+    route.params?.titleItem,
+  ]);
+
+  React.useEffect(() => {
+    sessionLimitSecondsRef.current = sessionLimitSeconds;
+  }, [sessionLimitSeconds]);
+
+  React.useEffect(() => {
+    let interval: any = null;
+    if (connectState === CONNECTED) {
+      if (!sessionStartTimeRef.current) {
+        sessionStartTimeRef.current = Date.now();
+      }
+      interval = setInterval(() => {
+        const now = Date.now();
+        if (sessionStartTimeRef.current > 0) {
+          const elapsed = Math.max(
+            0,
+            Math.floor((now - sessionStartTimeRef.current) / 1000),
+          );
+          const limit = sessionLimitSecondsRef.current;
+          const playtimeStr = formatDuration(elapsed);
+          const playtimeFormatted =
+            limit > 0 ? `${playtimeStr} / ${formatDuration(limit)}` : playtimeStr;
+
+          setPerformance(prev => {
+            if (!prev) {
+              return {playtimeFormatted};
+            }
+            return {...prev, playtimeFormatted};
+          });
+
+          if (limit > 0 && elapsed >= 30) {
+            const remaining = limit - elapsed;
+            if (
+              remaining <= 15 * 60 &&
+              remaining > 0 &&
+              !hasReminded15MinRef.current
+            ) {
+              hasReminded15MinRef.current = true;
+              triggerPlaytimeReminder(15);
+            } else if (
+              remaining <= 5 * 60 &&
+              remaining > 0 &&
+              !hasReminded5MinRef.current
+            ) {
+              hasReminded5MinRef.current = true;
+              triggerPlaytimeReminder(5);
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [connectState, triggerPlaytimeReminder]);
 
   React.useEffect(() => {
     let layoutTimer: any = null;
@@ -845,6 +959,9 @@ function StreamScreen({navigation, route}: any) {
     if (isExiting) {
       return;
     }
+    if (playtimeReminderTimerRef.current) {
+      clearTimeout(playtimeReminderTimerRef.current);
+    }
     setIsExiting(true);
     Orientation.unlockAllOrientations();
     streamApi.stopStream().then(() => {
@@ -905,12 +1022,58 @@ function StreamScreen({navigation, route}: any) {
       const _settings = getSettings();
       log.info('Get localSettings:', _settings);
 
+      setLoading(true);
+      setLoadingText(t('Connecting...'));
+
+      const handleQueueProgress = (info: any) => {
+        if (info.state === 'WaitingForResources') {
+          if (
+            typeof info.estimatedWaitInSeconds === 'number' &&
+            info.estimatedWaitInSeconds > 0
+          ) {
+            if (info.estimatedWaitInSeconds > 60) {
+              const minutes = Math.ceil(info.estimatedWaitInSeconds / 60);
+              let msg = t('In queue: ~{{min}} min wait', {min: minutes});
+              if (info.position) {
+                msg +=
+                  '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+              }
+              setLoadingText(msg);
+            } else {
+              let msg = t('In queue: less than a minute...');
+              if (info.position) {
+                msg +=
+                  '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+              }
+              setLoadingText(msg);
+            }
+          } else {
+            let msg = t('In queue, waiting for available server...');
+            if (info.position) {
+              msg +=
+                '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+            }
+            setLoadingText(msg);
+          }
+        } else if (info.state === 'Provisioning') {
+          setLoadingText(t('Allocating cloud server...'));
+        } else if (info.state === 'ReadyToConnect') {
+          setLoadingText(t('Ready to connect, authenticating...'));
+        }
+      };
+
       streamApi
-        .startSession(route.params?.sessionId, _settings.resolution)
+        .startSession(
+          route.params?.sessionId,
+          _settings.resolution,
+          handleQueueProgress,
+        )
         .then(configuration => {
+          setLoading(false);
           postData2Webview('startSessionEnd', configuration);
         })
         .catch(e => {
+          setLoading(false);
           if (e !== '') {
             let msg = '';
             if (typeof e === 'string') {
@@ -1197,6 +1360,16 @@ function StreamScreen({navigation, route}: any) {
           perf.decode = oldPerf.decode;
         }
       }
+      if (sessionStartTimeRef.current > 0) {
+        const elapsed = Math.max(
+          0,
+          Math.floor((Date.now() - sessionStartTimeRef.current) / 1000),
+        );
+        const limit = sessionLimitSecondsRef.current;
+        const playtimeStr = formatDuration(elapsed);
+        perf.playtimeFormatted =
+          limit > 0 ? `${playtimeStr} / ${formatDuration(limit)}` : playtimeStr;
+      }
       if (showPerformance) {
         setPerformance(perf);
       }
@@ -1224,6 +1397,9 @@ function StreamScreen({navigation, route}: any) {
       }
       setConnectState(message);
       if (message === CONNECTED) {
+        if (!sessionStartTimeRef.current) {
+          sessionStartTimeRef.current = Date.now();
+        }
         if (!isConnected.current) {
           const gameTitle =
             route.params?.gameTitle ||
@@ -1677,8 +1853,53 @@ function StreamScreen({navigation, route}: any) {
   const isNativeLikeKernel =
     settings.gamepad_kernal === 'Native' || settings.gamepad_kernal === 'SDL';
 
+  let playtimeDescription = '';
+  if (sessionStartTimeRef.current > 0) {
+    const elapsed = Math.max(
+      0,
+      Math.floor((Date.now() - sessionStartTimeRef.current) / 1000),
+    );
+    const playtimeStr = formatDuration(elapsed);
+    const limit = sessionLimitSecondsRef.current;
+    if (limit > 0) {
+      const remaining = Math.max(0, limit - elapsed);
+      playtimeDescription = `${playtimeStr} / ${formatDuration(
+        limit,
+      )} (${t('{{min}} min left', {min: Math.ceil(remaining / 60)})})`;
+    } else {
+      playtimeDescription = playtimeStr;
+    }
+  }
+
   return (
     <>
+      {playtimeReminder.visible && !isInPictureInPicture && (
+        <View style={styles.playtimeReminderBanner} pointerEvents="box-none">
+          <View style={styles.playtimeReminderCard}>
+            <Text style={styles.playtimeReminderIcon}>⚠️</Text>
+            <View style={styles.playtimeReminderTextWrap}>
+              <Text style={styles.playtimeReminderTitle}>
+                {t('Session limit warning')}
+              </Text>
+              <Text style={styles.playtimeReminderMessage}>
+                {t(
+                  '{{min}} minutes remaining in this session. Save your progress soon!',
+                  {min: playtimeReminder.minutes},
+                )}
+              </Text>
+            </View>
+            <IconButton
+              icon="close"
+              size={18}
+              iconColor="#fff"
+              onPress={() =>
+                setPlaytimeReminder(prev => ({...prev, visible: false}))
+              }
+            />
+          </View>
+        </View>
+      )}
+
       {!isInPictureInPicture && showPerformance && isNativeLikeKernel && (
         <PerfPanel performance={performance} />
       )}
@@ -1778,6 +1999,13 @@ function StreamScreen({navigation, route}: any) {
             <Card.Content>
               <ScrollView style={{maxHeight: modalMaxHeight}}>
                 <List.Section>
+                  {connectState === CONNECTED && Boolean(playtimeDescription) && (
+                    <List.Item
+                      title={`⏱️ ${t('Session Playtime')}`}
+                      description={playtimeDescription}
+                      background={background}
+                    />
+                  )}
                   {connectState === CONNECTED && (
                     <List.Item
                       title={t('Toggle Performance')}
@@ -1958,6 +2186,18 @@ function StreamScreen({navigation, route}: any) {
         </View>
       )}
 
+      {loading && !isInPictureInPicture && (
+        <Spinner
+          loading={true}
+          text={loadingText}
+          cancelable={true}
+          closeCb={() => {
+            setLoading(false);
+            requestExit();
+          }}
+        />
+      )}
+
       <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
         <WebView
           ref={instance => {
@@ -2011,6 +2251,48 @@ const styles = StyleSheet.create({
     right: 5,
     bottom: 5,
     zIndex: 10,
+  },
+  playtimeReminderBanner: {
+    position: 'absolute',
+    top: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  playtimeReminderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(20, 20, 20, 0.94)',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#E6A23C',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    maxWidth: '90%',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  playtimeReminderIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  playtimeReminderTextWrap: {
+    flexShrink: 1,
+    marginRight: 8,
+  },
+  playtimeReminderTitle: {
+    color: '#E6A23C',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  playtimeReminderMessage: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 2,
   },
 });
 

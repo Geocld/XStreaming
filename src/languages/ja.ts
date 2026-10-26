@@ -486,7 +486,6 @@ export default {
     PurchaseNoticeTitle: '購入について',
     PurchaseNoticeDesc:
       'ゲームの購入を続行するには、スマートフォンまたはPCからXboxウェブサイトを開いてください',
-    Close: '閉じる',
     'Load more': 'さらに読み込む',
     available: '本利用可能',
     'Game available': '本のゲームが利用可能',
@@ -495,5 +494,8 @@ export default {
     'Preview features': 'プレビュー機能 (Xbox Insider)',
     'Preview features description':
       'Xbox Insider プレビュー機能（広告付き無料クラウドストリーミングなど）を有効にします',
+    'Estimated wait: ~{{min}} min': '推定待ち時間: ~{{min}} 分',
+    'Estimated wait: < 1 min': '推定待ち時間: 1 分未満',
+    'No queue': '待ち時間なし',
   },
 };

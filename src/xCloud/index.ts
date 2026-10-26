@@ -27,6 +27,12 @@ type PersistedCloudSession = {
 
 const CLOUD_SESSION_STORAGE_KEY = 'xcloud.activeSession';
 
+export type QueueStateInfo = {
+  state: string;
+  estimatedWaitInSeconds?: number;
+  position?: number;
+};
+
 export default class XcloudApi {
   private sessionId = '';
   private sessionPath = '';
@@ -37,6 +43,34 @@ export default class XcloudApi {
   private isStoped = false;
   private keepAlivePulseInSeconds = 20;
   private refreshGsTokenPromise: Promise<void> | null = null;
+  private onQueueStateChange?: (info: QueueStateInfo) => void;
+  private currentTitleId = '';
+  private lastWaitTimeFetch = 0;
+  private cachedEstimatedWait = 0;
+  private lastWaitTimeUpdate = 0;
+  private sessionLimitInSeconds = 0;
+
+  getSessionLimitInSeconds(): number {
+    return this.sessionLimitInSeconds;
+  }
+
+  setOnQueueStateChange(cb?: (info: QueueStateInfo) => void) {
+    this.onQueueStateChange = cb;
+  }
+
+  async getTitleWaitTime(titleId: string): Promise<any> {
+    try {
+      const res = await this.authedGet(`${this.host}/v1/waittime/${titleId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return res.data;
+    } catch (e) {
+      log.info('[getTitleWaitTime] error:', e);
+      return null;
+    }
+  }
 
   constructor(
     host: string,
@@ -281,9 +315,20 @@ export default class XcloudApi {
     return Math.max(pulse, 5) * 1000;
   }
 
-  async startSession(consoleId: string, resolution: number): Promise<any> {
+  async startSession(
+    consoleId: string,
+    resolution: number,
+    onQueueProgress?: (info: QueueStateInfo) => void,
+  ): Promise<any> {
     log.info('[startSession] consoleId:', consoleId);
     this.isStoped = false;
+    this.currentTitleId = this.type === 'cloud' ? consoleId : '';
+    this.cachedEstimatedWait = 0;
+    this.lastWaitTimeFetch = 0;
+    this.lastWaitTimeUpdate = 0;
+    if (onQueueProgress) {
+      this.onQueueStateChange = onQueueProgress;
+    }
 
     if (this.type === 'cloud') {
       const persistedSession = this.getPersistedCloudSession();
@@ -428,86 +473,137 @@ export default class XcloudApi {
   }
 
   // Check host streaming status is ready or not
-  waitState(): Promise<any> {
-    return new Promise<any>((resolve, reject) => {
-      this.authedGet(this.getSessionUrl('state'), {
+  async waitState(): Promise<any> {
+    try {
+      const res = await this.authedGet(this.getSessionUrl('state'), {
         headers: {
           'Content-Type': 'application/json',
         },
-      })
-        .then(res => {
-          log.info('[waitState] res:', res.data);
-          const _state = res.data;
-          if (_state.transferUri) {
-            this.sessionHost = _state.transferUri;
+      });
+      log.info('[waitState] res:', res.data);
+      const _state = res.data;
+      if (_state.transferUri) {
+        this.sessionHost = _state.transferUri;
+      }
+      if (typeof _state.maxSessionDurationInSeconds === 'number') {
+        this.sessionLimitInSeconds = _state.maxSessionDurationInSeconds;
+      } else if (typeof _state.sessionTimeoutInSeconds === 'number') {
+        this.sessionLimitInSeconds = _state.sessionTimeoutInSeconds;
+      } else if (typeof _state.sessionLimitInMinutes === 'number') {
+        this.sessionLimitInSeconds = _state.sessionLimitInMinutes * 60;
+      }
+      switch (_state.state) {
+        case 'Provisioned':
+          this.onQueueStateChange?.({state: 'Provisioned'});
+          return _state;
+        case 'WaitingForResources':
+        case 'Provisioning': {
+          if (this.isStoped) {
+            throw '';
           }
-          switch (_state.state) {
-            // Streaming ready
-            case 'Provisioned':
-              resolve(_state);
-              break;
-            // Connecting
-            case 'WaitingForResources':
-            case 'Provisioning':
-              if (this.isStoped) {
-                // Canceled
-                // reject('Streaming canceled');
-                reject('');
-              } else {
-                setTimeout(() => {
-                  // Continue
-                  this.waitState()
-                    .then(state => {
-                      resolve(state);
-                    })
-                    .catch(error => {
-                      reject(error);
-                    });
-                }, 1000);
-              }
-              break;
-            case 'ReadyToConnect': {
-              const auth = this.requireAuthContext();
-              auth._tokenStore.load();
-              const authMethod = auth._tokenStore.getAuthenticationMethod();
 
-              let tokenPromise: Promise<MsalToken>;
-              if (authMethod === 'msal' && auth._msal) {
-                tokenPromise = auth._msal.getMsalToken();
-              } else if (auth._xal) {
-                tokenPromise = auth._xal.getMsalToken(auth._tokenStore);
-              } else {
-                reject(new Error('Authentication provider is missing'));
-                return;
-              }
+          let waitSeconds: number | undefined =
+            typeof _state.estimatedTotalWaitTimeInSeconds === 'number'
+              ? _state.estimatedTotalWaitTimeInSeconds
+              : typeof _state.estimatedAllocationTimeInSeconds === 'number'
+              ? _state.estimatedAllocationTimeInSeconds +
+                (_state.estimatedProvisioningTimeInSeconds || 0)
+              : typeof _state.waitingDetails?.estimatedWaitInSeconds === 'number'
+              ? _state.waitingDetails.estimatedWaitInSeconds
+              : typeof _state.waitingDetails?.estimatedTotalWaitTimeInSeconds ===
+                'number'
+              ? _state.waitingDetails.estimatedTotalWaitTimeInSeconds
+              : undefined;
 
-              tokenPromise.then((msalToken: MsalToken) => {
-                this.sendMSALAuth(msalToken.data.lpt).then(() => {
-                  this.waitState()
-                    .then(state => {
-                      resolve(state);
-                    })
-                    .catch(error => {
-                      reject(error);
-                    });
-                });
-              });
-              break;
+          let position: number | undefined =
+            typeof _state.position === 'number'
+              ? _state.position
+              : typeof _state.queuePosition === 'number'
+              ? _state.queuePosition
+              : typeof _state.waitingDetails?.position === 'number'
+              ? _state.waitingDetails.position
+              : typeof _state.waitingDetails?.positionInQueue === 'number'
+              ? _state.waitingDetails.positionInQueue
+              : undefined;
+
+          const now = Date.now();
+          if (
+            waitSeconds === undefined &&
+            _state.state === 'WaitingForResources' &&
+            this.type === 'cloud' &&
+            this.currentTitleId &&
+            now - this.lastWaitTimeFetch > 15000
+          ) {
+            this.lastWaitTimeFetch = now;
+            try {
+              const waitData = await this.getTitleWaitTime(this.currentTitleId);
+              if (waitData) {
+                if (
+                  typeof waitData.estimatedTotalWaitTimeInSeconds === 'number'
+                ) {
+                  waitSeconds = waitData.estimatedTotalWaitTimeInSeconds;
+                } else if (
+                  typeof waitData.estimatedAllocationTimeInSeconds === 'number'
+                ) {
+                  waitSeconds =
+                    waitData.estimatedAllocationTimeInSeconds +
+                    (waitData.estimatedProvisioningTimeInSeconds || 0);
+                }
+                if (typeof waitData.position === 'number') {
+                  position = waitData.position;
+                }
+              }
+            } catch (e) {
+              log.info('[waitState] getTitleWaitTime error:', e);
             }
-            case 'Failed':
-              reject('Streaming failed: ' + _state.errorDetails?.message);
-              break;
-            default:
-              log.info('unknown state:', _state);
-              reject('Streaming failed');
-              break;
           }
-        })
-        .catch(e => {
-          log.info('[waitState] error:', e);
-          reject(e);
-        });
-    });
+
+          if (typeof waitSeconds === 'number' && waitSeconds > 0) {
+            this.cachedEstimatedWait = waitSeconds;
+            this.lastWaitTimeUpdate = now;
+          } else if (this.cachedEstimatedWait > 0) {
+            const elapsed = Math.floor((now - this.lastWaitTimeUpdate) / 1000);
+            waitSeconds = Math.max(0, this.cachedEstimatedWait - elapsed);
+          }
+
+          this.onQueueStateChange?.({
+            state: _state.state,
+            estimatedWaitInSeconds: waitSeconds,
+            position,
+          });
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return await this.waitState();
+        }
+        case 'ReadyToConnect': {
+          this.onQueueStateChange?.({state: 'ReadyToConnect'});
+          const auth = this.requireAuthContext();
+          auth._tokenStore.load();
+          const authMethod = auth._tokenStore.getAuthenticationMethod();
+
+          let tokenPromise: Promise<MsalToken>;
+          if (authMethod === 'msal' && auth._msal) {
+            tokenPromise = auth._msal.getMsalToken();
+          } else if (auth._xal) {
+            tokenPromise = auth._xal.getMsalToken(auth._tokenStore);
+          } else {
+            throw new Error('Authentication provider is missing');
+          }
+
+          const msalToken = await tokenPromise;
+          await this.sendMSALAuth(msalToken.data.lpt);
+          return await this.waitState();
+        }
+        case 'Failed':
+          throw 'Streaming failed: ' + _state.errorDetails?.message;
+        default:
+          log.info('unknown state:', _state);
+          throw 'Streaming failed';
+      }
+    } catch (e) {
+      log.info('[waitState] error:', e);
+      throw e;
+    }
   }
 
   // sendSDPOffer
