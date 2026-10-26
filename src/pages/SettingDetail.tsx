@@ -96,6 +96,10 @@ function SettingDetailScreen({navigation, route}) {
   );
 
   React.useEffect(() => {
+    if (Platform.isTV && route.params?.id === 'picture_in_picture') {
+      navigation.goBack();
+      return;
+    }
     const _settings = getSettings();
     setSettings(_settings);
 

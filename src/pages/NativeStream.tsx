@@ -248,6 +248,7 @@ export function NativeStreamScreenBase({
     React.useState(false);
   const [openMicro, setOpenMicro] = React.useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
+  const isInPictureInPictureRef = React.useRef(false);
   const [isRecording, setIsRecording] = React.useState(false);
 
   React.useEffect(() => {
@@ -408,7 +409,7 @@ export function NativeStreamScreenBase({
 
   const showNativeInputDialog = React.useCallback(
     async (options: any) => {
-      if (isInPictureInPicture || !NativeInputDialog?.showTextInput) {
+      if (isInPictureInPictureRef.current || !NativeInputDialog?.showTextInput) {
         return null;
       }
 
@@ -418,7 +419,7 @@ export function NativeStreamScreenBase({
         return null;
       }
     },
-    [isInPictureInPicture],
+    [],
   );
 
   const openSystemKeyboardDialog = React.useCallback(
@@ -862,10 +863,12 @@ export function NativeStreamScreenBase({
       'change',
       async state => {
         if (
+          !Platform.isTV &&
           !portraitMode &&
           state === 'background' &&
           isConnected.current &&
-          _settings.picture_in_picture
+          _settings.picture_in_picture &&
+          !isInPictureInPictureRef.current
         ) {
           try {
             const enteredPip = await PipManager?.enterPipMode?.();
@@ -881,6 +884,7 @@ export function NativeStreamScreenBase({
       PICTURE_IN_PICTURE_MODE_CHANGED,
       event => {
         const nextIsInPip = !!event?.isInPictureInPictureMode;
+        isInPictureInPictureRef.current = nextIsInPip;
         setIsInPictureInPicture(nextIsInPip);
         if (nextIsInPip) {
           setShowModal(false);
@@ -891,6 +895,8 @@ export function NativeStreamScreenBase({
           );
           macroSequenceTimersRef.current = [];
           closeSystemKeyboardModal();
+        } else if (!portraitMode) {
+          Orientation.lockToLandscape();
         }
       },
     );
@@ -1009,7 +1015,7 @@ export function NativeStreamScreenBase({
           if (
             keyName === 'Menu' &&
             !portraitMode &&
-            !isInPictureInPicture &&
+            !isInPictureInPictureRef.current &&
             !menuLongPressTimer.current
           ) {
             menuLongPressTriggered.current = false;
@@ -1473,7 +1479,7 @@ export function NativeStreamScreenBase({
           setLoading(false);
           isConnected.current = true;
           PipManager?.setAutoPipEnabled?.(
-            !portraitMode && !!_settings.picture_in_picture,
+            !Platform.isTV && !portraitMode && !!_settings.picture_in_picture,
           );
 
           // Alway show virtual gamepad
@@ -2037,7 +2043,6 @@ export function NativeStreamScreenBase({
     supportedSystemUis,
     scheduleReconnect,
     portraitMode,
-    isInPictureInPicture,
     setManualLeftThumbPressed,
     syncAutoSprint,
     syncLeftThumbButton,

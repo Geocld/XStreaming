@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Build;
 import android.util.Log;
@@ -830,7 +831,11 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   }
 
   public void setAutoPipEnabled(boolean enabled) {
-    autoPipEnabled = enabled && "stream".equals(GamepadManager.getCurrentScreen());
+    if (isTvDevice()) {
+      autoPipEnabled = false;
+      return;
+    }
+    autoPipEnabled = enabled;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && supportsPipMode()) {
       try {
         setPictureInPictureParams(createPipParams(autoPipEnabled));
@@ -841,10 +846,7 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   }
 
   public boolean enterPipModeIfPossible() {
-    if (!"stream".equals(GamepadManager.getCurrentScreen())) {
-      return false;
-    }
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !supportsPipMode()) {
+    if (isTvDevice() || Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !supportsPipMode()) {
       return false;
     }
     if (isInPictureInPictureMode()) {
@@ -858,7 +860,15 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
     }
   }
 
+  private boolean isTvDevice() {
+    return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+            || getPackageManager().hasSystemFeature("android.hardware.type.television");
+  }
+
   private boolean supportsPipMode() {
+    if (isTvDevice()) {
+      return false;
+    }
     return getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
   }
 
@@ -867,6 +877,13 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
             .setAspectRatio(new Rational(16, 9));
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
       builder.setAutoEnterEnabled(autoEnterEnabled);
+      builder.setSeamlessResizeEnabled(true);
+    }
+    View contentView = findViewById(android.R.id.content);
+    if (contentView != null && contentView.getWidth() > 0 && contentView.getHeight() > 0) {
+      Rect sourceRect = new Rect();
+      contentView.getGlobalVisibleRect(sourceRect);
+      builder.setSourceRectHint(sourceRect);
     }
     return builder.build();
   }
@@ -874,6 +891,12 @@ public class MainActivity extends ReactActivity implements UsbDriverService.UsbD
   @Override
   public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
     super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+    if (!isInPictureInPictureMode && autoPipEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      try {
+        setPictureInPictureParams(createPipParams(true));
+      } catch (RuntimeException ignored) {
+      }
+    }
     WritableMap params = Arguments.createMap();
     params.putBoolean("isInPictureInPictureMode", isInPictureInPictureMode);
     sendEvent("pictureInPictureModeChanged", params);

@@ -143,6 +143,7 @@ function StreamScreen({navigation, route}: any) {
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   const [openMicro, setOpenMicro] = React.useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
+  const isInPictureInPictureRef = React.useRef(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
 
@@ -332,9 +333,11 @@ function StreamScreen({navigation, route}: any) {
       'change',
       async state => {
         if (
+          !Platform.isTV &&
           state === 'background' &&
           isConnected.current &&
-          _settings.picture_in_picture
+          _settings.picture_in_picture &&
+          !isInPictureInPictureRef.current
         ) {
           try {
             const enteredPip = await PipManager?.enterPipMode?.();
@@ -350,6 +353,7 @@ function StreamScreen({navigation, route}: any) {
       PICTURE_IN_PICTURE_MODE_CHANGED,
       event => {
         const nextIsInPip = !!event?.isInPictureInPictureMode;
+        isInPictureInPictureRef.current = nextIsInPip;
         setIsInPictureInPicture(nextIsInPip);
         if (nextIsInPip) {
           postData2Webview('hidePerformance', {});
@@ -363,11 +367,14 @@ function StreamScreen({navigation, route}: any) {
             clearTimeout(timeoutId),
           );
           macroSequenceTimersRef.current = [];
-        } else if (
-          _settings.show_performance &&
-          _settings.gamepad_kernal === 'Web'
-        ) {
-          postData2Webview('showPerformance', {});
+        } else {
+          Orientation.lockToLandscape();
+          if (
+            _settings.show_performance &&
+            _settings.gamepad_kernal === 'Web'
+          ) {
+            postData2Webview('showPerformance', {});
+          }
         }
       },
     );
@@ -1274,7 +1281,9 @@ function StreamScreen({navigation, route}: any) {
         setShowVirtualGamepad(true);
       }
       if (message === CONNECTED) {
-        PipManager?.setAutoPipEnabled?.(!!settings.picture_in_picture);
+        PipManager?.setAutoPipEnabled?.(
+          !Platform.isTV && !!settings.picture_in_picture,
+        );
       }
 
       // Alway show performance
