@@ -154,6 +154,8 @@ function StreamScreen({navigation, route}: any) {
   const triggerEventListener = React.useRef<any>(undefined);
   const timer = React.useRef<any>(undefined);
   const isRightstickMoving = React.useRef(false);
+  const physicalRightStick = React.useRef({x: 0, y: 0});
+  const gyroStick = React.useRef({x: 0, y: 0});
   const isTriggerWork = React.useRef(false);
 
   const usbGpEventListener = React.useRef<any>(undefined);
@@ -520,17 +522,24 @@ function StreamScreen({navigation, route}: any) {
           gpState.LeftThumbXAxis = normaliseAxis(event.leftStickX);
           gpState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
 
-          if (
-            Math.abs(event.rightStickX) > 0.1 ||
-            Math.abs(event.rightStickY) > 0.1
-          ) {
+          const normRx = normaliseAxis(event.rightStickX);
+          const normRy = normaliseAxis(event.rightStickY);
+          physicalRightStick.current = {x: normRx, y: normRy};
+
+          if (Math.abs(normRx) > 0.05 || Math.abs(normRy) > 0.05) {
             isRightstickMoving.current = true;
           } else {
             isRightstickMoving.current = false;
           }
 
-          gpState.RightThumbXAxis = normaliseAxis(event.rightStickX);
-          gpState.RightThumbYAxis = normaliseAxis(event.rightStickY);
+          gpState.RightThumbXAxis = Math.max(
+            -1,
+            Math.min(1, Number((normRx + gyroStick.current.x).toFixed(3))),
+          );
+          gpState.RightThumbYAxis = Math.max(
+            -1,
+            Math.min(1, Number((normRy + gyroStick.current.y).toFixed(3))),
+          );
         },
       );
 
@@ -592,76 +601,72 @@ function StreamScreen({navigation, route}: any) {
         params => {
           const {x, y} = params;
 
-          let stickX: any = x / 32767;
-          let stickY: any = y / 32767;
+          let stickX = x / 32767;
+          let stickY = y / 32767;
 
-          // gyroscope only work when Rightstick not moving
-          if (!isRightstickMoving.current) {
-            const scaleX =
-              _settings.sensor_sensitivity_x > 10000
-                ? _settings.sensor_sensitivity_x / 10000
-                : 1;
+          const scaleX =
+            _settings.sensor_sensitivity_x > 10000
+              ? _settings.sensor_sensitivity_x / 10000
+              : 1;
 
-            const scaleY =
-              _settings.sensor_sensitivity_y > 10000
-                ? _settings.sensor_sensitivity_y / 10000
-                : 1;
+          const scaleY =
+            _settings.sensor_sensitivity_y > 10000
+              ? _settings.sensor_sensitivity_y / 10000
+              : 1;
 
-            switch (_settings.sensor_invert) {
-              case 1: // x
-                stickX = -stickX;
-                break;
-              case 2: // y
-                stickY = -stickY;
-                break;
-              case 3: // All
-                stickX = -stickX;
-                stickY = -stickY;
-                break;
-              case 4: // x <-> y
-                const temp = stickX;
-                stickX = stickY;
-                stickY = temp;
-                break;
-              default:
-                break;
-            }
-            // gyroscope only work when LT button press
-            if (_settings.sensor_type === 1) {
-              if (gpState.LeftTrigger >= _settings.dead_zone) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 2) {
-              // LB
-              if (gpState.LeftShoulder > 0) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 3) {
-              // LT/LB
-              if (
-                gpState.LeftTrigger >= _settings.dead_zone ||
-                gpState.LeftShoulder > 0
-              ) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 4) {
-              // Global
-              gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-              gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-            }
+          switch (_settings.sensor_invert) {
+            case 1: // x
+              stickX = -stickX;
+              break;
+            case 2: // y
+              stickY = -stickY;
+              break;
+            case 3: // All
+              stickX = -stickX;
+              stickY = -stickY;
+              break;
+            case 4: // x <-> y
+              const temp = stickX;
+              stickX = stickY;
+              stickY = temp;
+              break;
+            default:
+              break;
           }
+
+          let isGyroTriggerActive = false;
+          if (_settings.sensor_type === 1) {
+            isGyroTriggerActive = gpState.LeftTrigger >= _settings.dead_zone;
+          } else if (_settings.sensor_type === 2) {
+            isGyroTriggerActive = gpState.LeftShoulder > 0;
+          } else if (_settings.sensor_type === 3) {
+            isGyroTriggerActive =
+              gpState.LeftTrigger >= _settings.dead_zone ||
+              gpState.LeftShoulder > 0;
+          } else if (_settings.sensor_type === 4) {
+            isGyroTriggerActive = true;
+          }
+
+          if (isGyroTriggerActive) {
+            gyroStick.current = {
+              x: Number((stickX * scaleX).toFixed(3)),
+              y: Number((stickY * scaleY).toFixed(3)),
+            };
+          } else {
+            gyroStick.current = {x: 0, y: 0};
+          }
+
+          const baseStickX = physicalRightStick.current.x;
+          const baseStickY = physicalRightStick.current.y;
+
+          gpState.RightThumbXAxis = Math.max(
+            -1,
+            Math.min(1, Number((baseStickX + gyroStick.current.x).toFixed(3))),
+          );
+          gpState.RightThumbYAxis = Math.max(
+            -1,
+            Math.min(1, Number((baseStickY + gyroStick.current.y).toFixed(3))),
+          );
         },
       );
     }
@@ -1522,13 +1527,22 @@ function StreamScreen({navigation, route}: any) {
     }
 
     if (id === 'right') {
-      if (Math.abs(leveledX) > 0 || Math.abs(leveledY) > 0) {
+      const vx = Number(leveledX);
+      const vy = Number(-leveledY);
+      physicalRightStick.current = {x: vx, y: vy};
+      if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
         isRightstickMoving.current = true;
       } else {
         isRightstickMoving.current = false;
       }
-      gpState.RightThumbXAxis = Number(leveledX);
-      gpState.RightThumbYAxis = Number(-leveledY);
+      gpState.RightThumbXAxis = Math.max(
+        -1,
+        Math.min(1, Number((vx + gyroStick.current.x).toFixed(3))),
+      );
+      gpState.RightThumbYAxis = Math.max(
+        -1,
+        Math.min(1, Number((vy + gyroStick.current.y).toFixed(3))),
+      );
     } else {
       gpState.LeftThumbXAxis = Number(leveledX);
       gpState.LeftThumbYAxis = Number(-leveledY);
