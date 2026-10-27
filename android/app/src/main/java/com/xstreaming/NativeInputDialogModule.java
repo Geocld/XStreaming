@@ -379,7 +379,7 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
                         String text = finalPlaytimeLabel + ": " + formatDuration(elapsed);
                         if (sessionLimitSeconds > 0) {
                             long remaining = Math.max(0, sessionLimitSeconds - elapsed);
-                            int remainingMinutes = Math.max(1, (int) Math.ceil(remaining / 60.0));
+                            int remainingMinutes = (int) Math.max(0, Math.ceil(remaining / 60.0));
                             String minStr = minLeftLabel.contains("%d")
                                     ? String.format(java.util.Locale.US, minLeftLabel, remainingMinutes)
                                     : (remainingMinutes + " min left");

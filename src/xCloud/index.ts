@@ -54,6 +54,11 @@ export default class XcloudApi {
     return this.sessionLimitInSeconds;
   }
 
+  getSessionCreatedAt(): number {
+    const session = this.getPersistedCloudSession();
+    return session?.createdAt || 0;
+  }
+
   setOnQueueStateChange(cb?: (info: QueueStateInfo) => void) {
     this.onQueueStateChange = cb;
   }

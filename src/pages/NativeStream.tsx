@@ -52,7 +52,12 @@ import {
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
 import sessionStatsTracker, {formatDuration} from '../utils/sessionStatsTracker';
-import {getCloudSessionTimeLimitSeconds} from '../utils/xcloud';
+import {
+  getCloudSessionTimeLimitSeconds,
+  getActiveStreamStartTime,
+  saveActiveStreamStartTime,
+  clearActiveStreamStartTime,
+} from '../utils/xcloud';
 import {
   suspendGamepadNavigation,
   resumeGamepadNavigation,
@@ -286,8 +291,32 @@ export function NativeStreamScreenBase({
   const reconnectAttemptsRef = React.useRef(0);
   const reconnectExhaustedRef = React.useRef(false);
   const activeWebrtcClientRef = React.useRef<any>(null);
-  const sessionStartTimeRef = React.useRef(0);
+  const initialSessionStartTime = React.useMemo(() => {
+    return getActiveStreamStartTime(
+      route.params?.streamType,
+      route.params?.sessionId,
+    );
+  }, [route.params?.sessionId, route.params?.streamType]);
+
+  const sessionStartTimeRef = React.useRef(initialSessionStartTime);
   const sessionLimitSecondsRef = React.useRef(0);
+
+  const ensureSessionStartTime = React.useCallback(() => {
+    if (!sessionStartTimeRef.current) {
+      const active = getActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+      );
+      sessionStartTimeRef.current = active > 0 ? active : Date.now();
+      saveActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+        sessionStartTimeRef.current,
+        sessionLimitSecondsRef.current,
+      );
+    }
+    return sessionStartTimeRef.current;
+  }, [route.params?.sessionId, route.params?.streamType]);
   const hasReminded15MinRef = React.useRef(false);
   const hasReminded5MinRef = React.useRef(false);
   const playtimeReminderTimerRef = React.useRef<any>(null);
@@ -1532,8 +1561,27 @@ export function NativeStreamScreenBase({
           setLoadingText(`${t(CONNECTED)}`);
           setLoading(false);
           isConnected.current = true;
-          if (!sessionStartTimeRef.current) {
-            sessionStartTimeRef.current = Date.now();
+          ensureSessionStartTime();
+          if (route.params?.streamType === 'cloud') {
+            const serverLimit =
+              streamApi?.getSessionLimitInSeconds?.() ||
+              xCloudApiRef.current?.getSessionLimitInSeconds?.() ||
+              0;
+            const limit = getCloudSessionTimeLimitSeconds({
+              streamType: route.params?.streamType,
+              accountTier: route.params?.accountTier,
+              titleItem: route.params?.titleItem,
+              serverLimitSeconds: serverLimit,
+            });
+            if (limit > 0) {
+              sessionLimitSecondsRef.current = limit;
+              saveActiveStreamStartTime(
+                route.params?.streamType,
+                route.params?.sessionId,
+                sessionStartTimeRef.current,
+                limit,
+              );
+            }
           }
           PipManager?.setAutoPipEnabled?.(
             !Platform.isTV && !portraitMode && !!_settings.picture_in_picture,
@@ -2191,6 +2239,7 @@ export function NativeStreamScreenBase({
         gamePoster,
         sessionId: route.params?.sessionId,
         streamType: route.params?.streamType,
+        sessionStartTime: sessionStartTimeRef.current,
         codec: activeSettings?.codec,
         resolution:
           activeSettings?.resolution === 1081
@@ -2444,6 +2493,7 @@ export function NativeStreamScreenBase({
       reconnectPendingRef.current = false;
       setIsExiting(true);
       webrtcClient && webrtcClient.close();
+      clearActiveStreamStartTime(route.params?.sessionId);
       await waitStopStream(streamApi);
       if (off) {
         handlePowerOff();
@@ -2871,8 +2921,30 @@ export function NativeStreamScreenBase({
       category?: string;
     }> = [];
     if (connectState === CONNECTED) {
-      if (!sessionStartTimeRef.current) {
-        sessionStartTimeRef.current = Date.now();
+      ensureSessionStartTime();
+      if (
+        sessionLimitSecondsRef.current <= 0 &&
+        route.params?.streamType === 'cloud'
+      ) {
+        const serverLimit =
+          streamApi?.getSessionLimitInSeconds?.() ||
+          xCloudApiRef.current?.getSessionLimitInSeconds?.() ||
+          0;
+        const limit = getCloudSessionTimeLimitSeconds({
+          streamType: route.params?.streamType,
+          accountTier: route.params?.accountTier,
+          titleItem: route.params?.titleItem,
+          serverLimitSeconds: serverLimit,
+        });
+        if (limit > 0) {
+          sessionLimitSecondsRef.current = limit;
+          saveActiveStreamStartTime(
+            route.params?.streamType,
+            route.params?.sessionId,
+            sessionStartTimeRef.current,
+            limit,
+          );
+        }
       }
       if (sessionStartTimeRef.current > 0) {
         const elapsed = Math.floor(

@@ -125,9 +125,11 @@ class SessionStatsTracker {
     streamType?: string;
     codec?: string;
     resolution?: string;
+    sessionStartTime?: number;
   }) {
     try {
-      this._sessionStartTime = Date.now();
+      this._sessionStartTime =
+        params?.sessionStartTime || this._sessionStartTime || Date.now();
       this._isActive = true;
       this._gameTitle = params?.gameTitle || 'Xbox Cloud Gaming';
       this._codec = params?.codec ? params.codec.toUpperCase() : 'H.264';

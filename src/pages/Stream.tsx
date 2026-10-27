@@ -53,7 +53,12 @@ import {
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
 import sessionStatsTracker, {formatDuration} from '../utils/sessionStatsTracker';
-import {getCloudSessionTimeLimitSeconds} from '../utils/xcloud';
+import {
+  getCloudSessionTimeLimitSeconds,
+  getActiveStreamStartTime,
+  saveActiveStreamStartTime,
+  clearActiveStreamStartTime,
+} from '../utils/xcloud';
 import {
   suspendGamepadNavigation,
   resumeGamepadNavigation,
@@ -174,8 +179,32 @@ function StreamScreen({navigation, route}: any) {
   const activeMacroSticksRef = React.useRef<Set<string>>(new Set());
   const isMacroLoopRunningRef = React.useRef(false);
   const webviewRef = React.useRef(null);
-  const sessionStartTimeRef = React.useRef(0);
+  const initialSessionStartTime = React.useMemo(() => {
+    return getActiveStreamStartTime(
+      route.params?.streamType,
+      route.params?.sessionId,
+    );
+  }, [route.params?.sessionId, route.params?.streamType]);
+
+  const sessionStartTimeRef = React.useRef(initialSessionStartTime);
   const sessionLimitSecondsRef = React.useRef(0);
+
+  const ensureSessionStartTime = React.useCallback(() => {
+    if (!sessionStartTimeRef.current) {
+      const active = getActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+      );
+      sessionStartTimeRef.current = active > 0 ? active : Date.now();
+      saveActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+        sessionStartTimeRef.current,
+        sessionLimitSecondsRef.current,
+      );
+    }
+    return sessionStartTimeRef.current;
+  }, [route.params?.sessionId, route.params?.streamType]);
   const hasReminded15MinRef = React.useRef(false);
   const hasReminded5MinRef = React.useRef(false);
   const playtimeReminderTimerRef = React.useRef<any>(null);
@@ -233,8 +262,30 @@ function StreamScreen({navigation, route}: any) {
   React.useEffect(() => {
     let interval: any = null;
     if (connectState === CONNECTED) {
-      if (!sessionStartTimeRef.current) {
-        sessionStartTimeRef.current = Date.now();
+      ensureSessionStartTime();
+      if (
+        sessionLimitSecondsRef.current <= 0 &&
+        route.params?.streamType === 'cloud'
+      ) {
+        const serverLimit =
+          streamApi?.getSessionLimitInSeconds?.() ||
+          xCloudApiRef.current?.getSessionLimitInSeconds?.() ||
+          0;
+        const limit = getCloudSessionTimeLimitSeconds({
+          streamType: route.params?.streamType,
+          accountTier: route.params?.accountTier,
+          titleItem: route.params?.titleItem,
+          serverLimitSeconds: serverLimit,
+        });
+        if (limit > 0) {
+          sessionLimitSecondsRef.current = limit;
+          saveActiveStreamStartTime(
+            route.params?.streamType,
+            route.params?.sessionId,
+            sessionStartTimeRef.current,
+            limit,
+          );
+        }
       }
       interval = setInterval(() => {
         const now = Date.now();
@@ -964,6 +1015,7 @@ function StreamScreen({navigation, route}: any) {
     }
     setIsExiting(true);
     Orientation.unlockAllOrientations();
+    clearActiveStreamStartTime(route.params?.sessionId);
     streamApi.stopStream().then(() => {
       if (needPoweroff) {
         handlePowerOff();

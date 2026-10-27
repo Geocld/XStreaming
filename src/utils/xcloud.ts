@@ -567,7 +567,7 @@ export const getCloudSessionTimeLimitSeconds = (params: {
     params.accountTier ||
     (owner ? getCachedAccountTier(owner) : '') ||
     storage.getString('user.account_tier') ||
-    ''
+    'Free'
   ).trim();
 
   const isSubscriber = /^(ultimate|premium|essential|core|standard)$/i.test(
@@ -578,9 +578,103 @@ export const getCloudSessionTimeLimitSeconds = (params: {
     return 0;
   }
 
-  if (params.titleItem && isFreeWithAdsTitle(params.titleItem)) {
-    return 30 * 60;
+  const title = String(
+    params.titleItem?.ProductTitle ||
+      params.titleItem?.title ||
+      params.titleItem?.titleName ||
+      params.titleItem?.titleId ||
+      '',
+  ).toLowerCase();
+
+  if (title.includes('fortnite')) {
+    return 60 * 60;
   }
+
+  return 30 * 60;
+};
+
+const ACTIVE_STREAM_SESSION_PREFIX = 'stream.active_session.';
+
+export type ActiveStreamSessionMeta = {
+  sessionId: string;
+  streamType: string;
+  createdAt: number;
+  lastActiveAt: number;
+  limitSeconds?: number;
+};
+
+export const getActiveStreamStartTime = (
+  streamType?: string,
+  sessionId?: string,
+): number => {
+  if (!sessionId) {
+    return 0;
+  }
+
+  if (streamType === 'cloud') {
+    try {
+      const raw = storage.getString('xcloud.activeSession');
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (
+          data &&
+          (data.titleId === sessionId || !sessionId) &&
+          typeof data.createdAt === 'number' &&
+          data.createdAt > 0
+        ) {
+          if (Date.now() - data.createdAt < 6 * 3600 * 1000) {
+            return data.createdAt;
+          }
+        }
+      }
+    } catch {}
+  }
+
+  try {
+    const raw = storage.getString(`${ACTIVE_STREAM_SESSION_PREFIX}${sessionId}`);
+    if (raw) {
+      const data = JSON.parse(raw) as ActiveStreamSessionMeta;
+      if (
+        data &&
+        typeof data.createdAt === 'number' &&
+        data.createdAt > 0
+      ) {
+        if (Date.now() - data.createdAt < 6 * 3600 * 1000) {
+          return data.createdAt;
+        }
+      }
+    }
+  } catch {}
 
   return 0;
 };
+
+export const saveActiveStreamStartTime = (
+  streamType?: string,
+  sessionId?: string,
+  createdAt: number = Date.now(),
+  limitSeconds?: number,
+): void => {
+  if (!sessionId) {
+    return;
+  }
+  const meta: ActiveStreamSessionMeta = {
+    sessionId,
+    streamType: streamType || 'cloud',
+    createdAt,
+    lastActiveAt: Date.now(),
+    limitSeconds,
+  };
+  storage.set(
+    `${ACTIVE_STREAM_SESSION_PREFIX}${sessionId}`,
+    JSON.stringify(meta),
+  );
+};
+
+export const clearActiveStreamStartTime = (sessionId?: string): void => {
+  if (!sessionId) {
+    return;
+  }
+  storage.delete(`${ACTIVE_STREAM_SESSION_PREFIX}${sessionId}`);
+};
+

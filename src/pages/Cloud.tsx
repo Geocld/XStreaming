@@ -1696,9 +1696,10 @@ function CloudScreen({navigation, route}: any) {
         usbController,
         gameTitle,
         titleItem,
+        accountTier,
       });
     },
-    [navigation, effectiveXCloudToken, streamingTokens.xCloudToken],
+    [navigation, effectiveXCloudToken, streamingTokens.xCloudToken, accountTier],
   );
 
   // Direct game launch handler
