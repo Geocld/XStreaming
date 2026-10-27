@@ -2822,7 +2822,16 @@ export function NativeStreamScreenBase({
   }, []);
 
   const showNativeOptionsDialog = React.useCallback(
-    async (items: Array<{id: string; title: string}>, options: any = {}) => {
+    async (
+      items: Array<{
+        id: string;
+        title: string;
+        active?: boolean;
+        category?: string;
+        icon?: string;
+      }>,
+      options: any = {},
+    ) => {
       if (!NativeInputDialog?.showOptions) {
         return null;
       }
@@ -2855,8 +2864,16 @@ export function NativeStreamScreenBase({
     const activeRecording = await gameRecorder.isRecording().catch(() => false);
     setIsRecording(activeRecording);
 
-    const items: Array<{id: string; title: string}> = [];
+    const items: Array<{
+      id: string;
+      title: string;
+      active?: boolean;
+      category?: string;
+    }> = [];
     if (connectState === CONNECTED) {
+      if (!sessionStartTimeRef.current) {
+        sessionStartTimeRef.current = Date.now();
+      }
       if (sessionStartTimeRef.current > 0) {
         const elapsed = Math.floor(
           (Date.now() - sessionStartTimeRef.current) / 1000,
@@ -2880,14 +2897,17 @@ export function NativeStreamScreenBase({
       items.push({
         id: 'togglePerformance',
         title: t('Toggle Performance'),
+        active: showPerformance,
       });
       items.push({
         id: 'toggleVirtualGamepad',
         title: t('Toggle Virtual Gamepad'),
+        active: showVirtualGamepad,
       });
       items.push({
         id: 'toggleRecording',
         title: activeRecording ? t('Stop Recording') : t('Start Recording'),
+        active: activeRecording,
       });
       items.push({
         id: 'takeScreenshot',
@@ -2903,6 +2923,7 @@ export function NativeStreamScreenBase({
         items.push({
           id: 'toggleMicrophone',
           title: openMicro ? t('Close Microphone') : t('Open Microphone'),
+          active: openMicro,
         });
       }
       items.push({
@@ -2940,6 +2961,10 @@ export function NativeStreamScreenBase({
     const result = await showNativeOptionsDialog(items, {
       showAudioGainControl: connectState === CONNECTED,
       audioGain,
+      sessionStartTime: sessionStartTimeRef.current,
+      sessionLimitSeconds: sessionLimitSecondsRef.current,
+      sessionPlaytimeLabel: t('Session Playtime'),
+      minLeftLabel: t('{{min}} min left', {min: 999}).replace('999', '%d'),
     });
     optionsDialogOpenRef.current = false;
 
