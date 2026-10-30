@@ -342,6 +342,7 @@ export default {
     Text: '텍스트',
     'Send text': '텍스트 전송',
     Volume: '볼륨',
+    Boost: '오디오 증폭',
     Audio_volume_title: '볼륨 조절',
     Audio_volume_desc: '오디오 증폭 설정',
     Audio_stereo_title: '스테레오 출력',

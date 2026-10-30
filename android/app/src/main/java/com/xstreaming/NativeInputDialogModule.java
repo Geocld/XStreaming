@@ -18,6 +18,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -320,25 +321,7 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
 
             LinearLayout headerBar = new LinearLayout(activity);
             headerBar.setOrientation(LinearLayout.HORIZONTAL);
-            headerBar.setGravity(Gravity.CENTER_VERTICAL);
-
-            TextView headerTitle = new TextView(activity);
-            headerTitle.setText("STREAM CONTROLS");
-            headerTitle.setTextColor(Color.parseColor("#9CA3AF"));
-            headerTitle.setTextSize(11);
-            headerTitle.setTypeface(Typeface.DEFAULT_BOLD);
-            headerTitle.setLetterSpacing(0.06f);
-            headerBar.addView(headerTitle, new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
-
-            View spacer = new View(activity);
-            headerBar.addView(spacer, new LinearLayout.LayoutParams(
-                    0,
-                    1,
-                    1f
-            ));
+            headerBar.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
 
             LinearLayout playtimeChip = new LinearLayout(activity);
             playtimeChip.setOrientation(LinearLayout.HORIZONTAL);
@@ -417,6 +400,7 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
             closeBtn.setTypeface(Typeface.DEFAULT_BOLD);
             closeBtn.setGravity(Gravity.CENTER);
             closeBtn.setFocusable(true);
+            closeBtn.setFocusableInTouchMode(true);
             closeBtn.setClickable(true);
             GradientDrawable closeBg = new GradientDrawable();
             closeBg.setColor(Color.argb(24, 255, 255, 255));
@@ -443,12 +427,13 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
             final TextView finalAudioGainLabel;
 
             if (showAudioGainControl) {
+                final String audioGainTitle = getString(options, "audioGainLabel", "Boost");
                 LinearLayout audioGainContent = new LinearLayout(activity);
                 audioGainContent.setOrientation(LinearLayout.HORIZONTAL);
                 audioGainContent.setGravity(Gravity.CENTER_VERTICAL);
                 audioGainContent.setPadding(dp(activity, 10), dp(activity, 4), dp(activity, 10), dp(activity, 4));
                 audioGainContent.setFocusable(true);
-                audioGainContent.setFocusableInTouchMode(false);
+                audioGainContent.setFocusableInTouchMode(true);
                 audioGainContent.setClickable(true);
                 audioGainContent.setBackground(createOptionBackground(activity, false));
 
@@ -463,7 +448,7 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
                 audioGainContent.addView(boostIcon, boostIconParams);
 
                 TextView boostLabel = new TextView(activity);
-                boostLabel.setText("Boost");
+                boostLabel.setText(audioGainTitle);
                 boostLabel.setTextColor(Color.parseColor("#E5E7EB"));
                 boostLabel.setTextSize(12);
                 boostLabel.setTypeface(Typeface.DEFAULT_BOLD);
@@ -558,7 +543,18 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
                     heightMeasureSpec = MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.AT_MOST);
                     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
                 }
+
+                @Override
+                public boolean executeKeyEvent(KeyEvent event) {
+                    // The dialog owns DPAD navigation. ScrollView would otherwise
+                    // consume up/down keys as scroll commands before the dialog
+                    // can move focus between option buttons.
+                    return false;
+                }
             };
+            scrollView.setFocusable(false);
+            scrollView.setFocusableInTouchMode(false);
+            scrollView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
             scrollView.setOverScrollMode(View.OVER_SCROLL_NEVER);
             scrollView.setVerticalScrollBarEnabled(false);
 
@@ -602,8 +598,6 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
             final List<View> optionViews = new ArrayList<>();
 
             if (!tools.isEmpty()) {
-                leftCol.addView(createSectionHeader(activity, "OVERLAY & TOOLS"));
-
                 for (OptionItem it : tools) {
                     View view = createCompactItemView(activity, it, false, () -> {
                         resolveCurrentOption("select", it.originalIndex, it.id);
@@ -624,7 +618,6 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
             }
 
             if (!controllers.isEmpty()) {
-                rightCol.addView(createSectionHeader(activity, "CONTROLLER"));
                 for (OptionItem it : controllers) {
                     View view = createCompactItemView(activity, it, false, () -> {
                         resolveCurrentOption("select", it.originalIndex, it.id);
@@ -665,17 +658,6 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
             }
 
             if (!sessions.isEmpty() || !dangers.isEmpty()) {
-                TextView sessionHeader = createSectionHeader(activity, "SESSION");
-                if (!controllers.isEmpty() || !generals.isEmpty()) {
-                    LinearLayout.LayoutParams shParams = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                    );
-                    shParams.topMargin = dp(activity, 4);
-                    rightCol.addView(sessionHeader, shParams);
-                } else {
-                    rightCol.addView(sessionHeader);
-                }
                 for (OptionItem it : sessions) {
                     View view = createCompactItemView(activity, it, false, () -> {
                         resolveCurrentOption("select", it.originalIndex, it.id);
@@ -868,10 +850,39 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
         btn.setGravity(Gravity.CENTER_VERTICAL);
         btn.setPadding(dp(activity, 10), dp(activity, 6), dp(activity, 10), dp(activity, 6));
         btn.setFocusable(true);
-        btn.setFocusableInTouchMode(false);
+        // The dialog can be opened while the window is still in touch mode.
+        // Keep options focusable there so requestFocus() establishes a real
+        // controller target and the focused StateListDrawable is rendered.
+        btn.setFocusableInTouchMode(true);
         btn.setClickable(true);
         btn.setBackground(createOptionBackground(activity, isDanger));
         btn.setOnClickListener(v -> onClick.run());
+        btn.setOnTouchListener((v, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    v.requestFocusFromTouch();
+                    v.setPressed(true);
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    boolean wasPressed = v.isPressed();
+                    v.setPressed(false);
+                    if (wasPressed) {
+                        v.performClick();
+                    }
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    v.setPressed(event.getX() >= 0
+                            && event.getX() < v.getWidth()
+                            && event.getY() >= 0
+                            && event.getY() < v.getHeight());
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                    v.setPressed(false);
+                    return true;
+                default:
+                    return true;
+            }
+        });
 
         ImageView iconView = new ImageView(activity);
         iconView.setImageResource(item.iconRes);
@@ -922,17 +933,6 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
         }
 
         return btn;
-    }
-
-    private TextView createSectionHeader(Activity activity, String title) {
-        TextView header = new TextView(activity);
-        header.setText(title);
-        header.setTextColor(Color.parseColor("#9CA3AF"));
-        header.setTextSize(10);
-        header.setTypeface(Typeface.DEFAULT_BOLD);
-        header.setLetterSpacing(0.08f);
-        header.setPadding(dp(activity, 2), dp(activity, 4), dp(activity, 2), dp(activity, 2));
-        return header;
     }
 
     private long parseElapsedSeconds(String text) {

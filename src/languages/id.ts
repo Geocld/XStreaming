@@ -390,6 +390,7 @@ export default {
     Text: 'Teks',
     'Send text': 'Kirim teks',
     Volume: 'Volume',
+    Boost: 'Penguat',
     Audio_volume_title: 'Penguat volume audio',
     Audio_volume_desc:
       'Jika volume suara bawaan terasa kurang kencang, perkuat sumber audio di sini. Perhatian: Volume berlebih dapat mengganggu pendengaran.',

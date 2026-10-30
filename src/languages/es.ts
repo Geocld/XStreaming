@@ -306,6 +306,7 @@ export default {
     Text: 'Texto',
     'Send text': 'Enviar texto',
     Volume: 'Volumen',
+    Boost: 'Refuerzo',
     Audio_volume_title: 'Control de volumen',
     Audio_volume_desc: 'Amplifica el volumen del audio.',
     Audio_stereo_title: 'Salida estéreo',

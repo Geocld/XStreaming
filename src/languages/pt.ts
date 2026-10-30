@@ -380,6 +380,7 @@ export default {
     Text: 'Texto',
     'Send text': 'Enviar texto',
     Volume: 'Volume',
+    Boost: 'Reforço',
     Audio_volume_title: 'Controle de volume',
     Audio_volume_desc:
       'Se o volume máximo padrão não for suficiente, aumente o volume do áudio aqui. Um volume excessivo pode prejudicar a audição.',

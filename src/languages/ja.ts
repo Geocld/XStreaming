@@ -344,6 +344,7 @@ export default {
     Text: 'テキスト',
     'Send text': 'テキスト送信',
     Volume: '音量',
+    Boost: 'ブースト',
     Audio_volume_title: '音量調整',
     Audio_volume_desc: 'オーディオ増幅',
     Audio_stereo_title: 'ステレオ出力',

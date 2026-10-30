@@ -353,6 +353,7 @@ export default {
     Text: 'टेक्स्ट',
     'Send text': 'टेक्स्ट भेजें',
     Volume: 'वॉल्यूम',
+    Boost: 'ऑडियो बूस्ट',
     Audio_volume_title: 'वॉल्यूम नियंत्रण',
     Audio_volume_desc: 'आवाज़ को तेज़ करें।',
     Audio_stereo_title: 'स्टीरियो आउटपुट',
