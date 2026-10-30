@@ -56,7 +56,9 @@ import {
   VIRTUAL_MACRO_BUTTON_NAME,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
-import sessionStatsTracker, {formatDuration} from '../utils/sessionStatsTracker';
+import sessionStatsTracker, {
+  formatDuration,
+} from '../utils/sessionStatsTracker';
 import {
   getCloudSessionTimeLimitSeconds,
   getActiveStreamStartTime,
@@ -330,31 +332,34 @@ export function NativeStreamScreenBase({
     minutes: number;
   }>({visible: false, minutes: 0});
 
-  const triggerPlaytimeReminder = React.useCallback((minutes: number) => {
-    setPlaytimeReminder({
-      visible: true,
-      minutes,
-    });
-    try {
-      Vibration.vibrate([0, 250, 150, 250]);
-    } catch {}
-    try {
-      GamepadManager.vibrate(
-        400,
-        0.5,
-        0.5,
-        0.2,
-        0.2,
-        settings?.rumble_intensity || 3,
-      );
-    } catch {}
-    if (playtimeReminderTimerRef.current) {
-      clearTimeout(playtimeReminderTimerRef.current);
-    }
-    playtimeReminderTimerRef.current = setTimeout(() => {
-      setPlaytimeReminder(prev => ({...prev, visible: false}));
-    }, 8500);
-  }, [settings?.rumble_intensity]);
+  const triggerPlaytimeReminder = React.useCallback(
+    (minutes: number) => {
+      setPlaytimeReminder({
+        visible: true,
+        minutes,
+      });
+      try {
+        Vibration.vibrate([0, 250, 150, 250]);
+      } catch {}
+      try {
+        GamepadManager.vibrate(
+          400,
+          0.5,
+          0.5,
+          0.2,
+          0.2,
+          settings?.rumble_intensity || 3,
+        );
+      } catch {}
+      if (playtimeReminderTimerRef.current) {
+        clearTimeout(playtimeReminderTimerRef.current);
+      }
+      playtimeReminderTimerRef.current = setTimeout(() => {
+        setPlaytimeReminder(prev => ({...prev, visible: false}));
+      }, 8500);
+    },
+    [settings?.rumble_intensity],
+  );
 
   const sessionLimitSeconds = React.useMemo(() => {
     return getCloudSessionTimeLimitSeconds({
@@ -558,20 +563,17 @@ export function NativeStreamScreenBase({
     closeSystemKeyboardModal();
   }, [closeSystemKeyboardModal]);
 
-  const showNativeInputDialog = React.useCallback(
-    async (options: any) => {
-      if (isInPictureInPictureRef.current || !NativeInputDialog?.showTextInput) {
-        return null;
-      }
+  const showNativeInputDialog = React.useCallback(async (options: any) => {
+    if (isInPictureInPictureRef.current || !NativeInputDialog?.showTextInput) {
+      return null;
+    }
 
-      try {
-        return await NativeInputDialog.showTextInput(options);
-      } catch (error) {
-        return null;
-      }
-    },
-    [],
-  );
+    try {
+      return await NativeInputDialog.showTextInput(options);
+    } catch (error) {
+      return null;
+    }
+  }, []);
 
   const openSystemKeyboardDialog = React.useCallback(
     async (event: any, payload: any) => {
@@ -2449,9 +2451,7 @@ export function NativeStreamScreenBase({
         const playtimeStr = formatDuration(elapsed);
         const limit = sessionLimitSecondsRef.current;
         playtimeFormatted =
-          limit > 0
-            ? `${playtimeStr} / ${formatDuration(limit)}`
-            : playtimeStr;
+          limit > 0 ? `${playtimeStr} / ${formatDuration(limit)}` : playtimeStr;
 
         if (limit > 0 && elapsed >= 30) {
           const remaining = limit - elapsed;
@@ -3142,7 +3142,9 @@ export function NativeStreamScreenBase({
         setShowVirtualGamepad(!showVirtualGamepad);
         break;
       case 'toggleRecording': {
-        const currentlyRecording = await gameRecorder.isRecording().catch(() => false);
+        const currentlyRecording = await gameRecorder
+          .isRecording()
+          .catch(() => false);
         if (currentlyRecording) {
           try {
             await gameRecorder.stopRecording();
