@@ -70,6 +70,7 @@ import {
   isxCloudDataValid,
 } from '../store/xcloudStore';
 import {getSettings, saveSettings} from '../store/settingStore';
+import {enableSystemRotationSuggestions} from '../utils/orientation';
 import {getStreamToken, isStreamTokenValid} from '../store/streamTokenStore';
 import {getWebToken, isWebTokenValid} from '../store/webTokenStore';
 import {storage} from '../store/mmkv';
@@ -1186,6 +1187,12 @@ function CloudScreen({navigation, route}: any) {
   }, [accountTier, effectiveXCloudToken, streamingTokens?.xCloudToken]);
 
   const isFocused = useIsFocused();
+
+  React.useEffect(() => {
+    if (isFocused) {
+      enableSystemRotationSuggestions();
+    }
+  }, [isFocused]);
   const [previewFeaturesEnabled, setPreviewFeaturesEnabled] =
     React.useState<boolean>(() => {
       const settings = getSettings();

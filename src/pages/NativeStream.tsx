@@ -18,6 +18,11 @@ import {IconButton} from 'react-native-paper';
 import {RTCView, MediaStream, RTCRtpReceiver} from 'react-native-webrtc';
 import Orientation from 'react-native-orientation-locker';
 import Spinner from '../components/Spinner';
+import {
+  applyScreenOrientation,
+  getCurrentScreenOrientation,
+  type ScreenOrientation,
+} from '../utils/orientation';
 import {useSelector} from 'react-redux';
 import XcloudApi from '../xCloud';
 import WebApi from '../web';
@@ -395,6 +400,10 @@ export function NativeStreamScreenBase({
   const manualLeftThumbPressedRef = React.useRef(false);
   const autoSprintLeftThumbPressedRef = React.useRef(false);
   const supportedSystemUis = React.useMemo(() => [10, 19], []);
+  const orientationLockTimer = React.useRef<any>(null);
+  const orientationLayoutTimer = React.useRef<any>(null);
+  const returnOrientationRef = React.useRef<ScreenOrientation | null>(null);
+  const shouldRestoreOrientationRef = React.useRef(false);
 
   const isTriggerWork = React.useRef(false);
 
@@ -431,26 +440,85 @@ export function NativeStreamScreenBase({
     [syncLeftThumbButton],
   );
 
+  const clearOrientationTimers = React.useCallback(() => {
+    if (orientationLockTimer.current) {
+      clearTimeout(orientationLockTimer.current);
+      orientationLockTimer.current = null;
+    }
+    if (orientationLayoutTimer.current) {
+      clearTimeout(orientationLayoutTimer.current);
+      orientationLayoutTimer.current = null;
+    }
+  }, []);
+
   React.useEffect(() => {
-    let layoutTimer: any = null;
-    const lockTimer = setTimeout(() => {
+    let isActive = true;
+    shouldRestoreOrientationRef.current = false;
+    returnOrientationRef.current = null;
+
+    getCurrentScreenOrientation().then(orientation => {
+      if (isActive) {
+        returnOrientationRef.current = orientation;
+      }
+    });
+
+    const handleDeviceOrientationChange = (orientation: string) => {
+      if (portraitMode) {
+        return;
+      }
+
+      if (orientation === 'LANDSCAPE-LEFT') {
+        Orientation.lockToLandscapeLeft();
+      } else if (orientation === 'LANDSCAPE-RIGHT') {
+        Orientation.lockToLandscapeRight();
+      }
+    };
+
+    if (!portraitMode) {
+      Orientation.addDeviceOrientationListener(handleDeviceOrientationChange);
+    }
+
+    orientationLockTimer.current = setTimeout(() => {
       if (portraitMode) {
         Orientation.lockToPortrait();
       } else {
         Orientation.lockToLandscape();
       }
 
-      layoutTimer = setTimeout(() => {}, 100);
+      orientationLayoutTimer.current = setTimeout(() => {}, 100);
     }, 500);
 
     return () => {
-      clearTimeout(lockTimer);
-      if (layoutTimer) {
-        clearTimeout(layoutTimer);
+      isActive = false;
+      clearOrientationTimers();
+      if (!portraitMode) {
+        Orientation.removeDeviceOrientationListener(
+          handleDeviceOrientationChange,
+        );
       }
-      Orientation.unlockAllOrientations();
+
+      if (shouldRestoreOrientationRef.current) {
+        applyScreenOrientation(returnOrientationRef.current);
+        shouldRestoreOrientationRef.current = false;
+      } else {
+        Orientation.unlockAllOrientations();
+      }
     };
-  }, [route.params?.sessionId, route.params?.streamType, portraitMode]);
+  }, [
+    clearOrientationTimers,
+    portraitMode,
+    route.params?.sessionId,
+    route.params?.streamType,
+  ]);
+
+  const markOrientationForRestore = React.useCallback(() => {
+    clearOrientationTimers();
+    shouldRestoreOrientationRef.current = true;
+  }, [clearOrientationTimers]);
+
+  const restorePreviousOrientation = React.useCallback(() => {
+    applyScreenOrientation(returnOrientationRef.current);
+  }, []);
 
   const closeSystemKeyboardModal = React.useCallback(() => {
     NativeInputDialog?.dismiss?.();
@@ -725,7 +793,8 @@ export function NativeStreamScreenBase({
   const finishStreamExit = React.useCallback(() => {
     setIsExiting(false);
     setLoading(false);
-    Orientation.unlockAllOrientations();
+    markOrientationForRestore();
+    restorePreviousOrientation();
     FullScreenManager.immersiveModeOff();
     const currentSettings = getSettings();
     const isShowReport = String(currentSettings.show_session_report) === 'true';
@@ -736,14 +805,26 @@ export function NativeStreamScreenBase({
       name: getStreamDestination(),
       params: {needRefresh: true, sessionReport},
     });
-  }, [getStreamDestination, navigation]);
+  }, [
+    getStreamDestination,
+    markOrientationForRestore,
+    navigation,
+    restorePreviousOrientation,
+  ]);
 
   const pureStreamExit = React.useCallback(() => {
+    markOrientationForRestore();
+    restorePreviousOrientation();
     navigation.navigate({
       name: getStreamDestination(),
       params: {needRefresh: false, sessionReport: false},
     });
-  }, [getStreamDestination, navigation]);
+  }, [
+    getStreamDestination,
+    markOrientationForRestore,
+    navigation,
+    restorePreviousOrientation,
+  ]);
 
   const waitStopStream = React.useCallback(async (api: any) => {
     try {
@@ -1417,7 +1498,7 @@ export function NativeStreamScreenBase({
               setLoadingText(t('Disconnecting...'));
               setIsExiting(true);
               webrtcClient && webrtcClient.close();
-              Orientation.unlockAllOrientations();
+              markOrientationForRestore();
               await waitStopStream(_streamApi);
               finishStreamExit();
             },
@@ -2099,7 +2180,8 @@ export function NativeStreamScreenBase({
                 text: t('Confirm'),
                 style: 'default',
                 onPress: () => {
-                  Orientation.unlockAllOrientations();
+                  markOrientationForRestore();
+                  restorePreviousOrientation();
                   const dest =
                     route.params?.streamType === 'cloud' ? 'Cloud' : 'Home';
                   navigation.navigate(dest);
@@ -2189,6 +2271,8 @@ export function NativeStreamScreenBase({
     handleAudioGainChange,
     closeSystemKeyboardModal,
     finishStreamExit,
+    markOrientationForRestore,
+    restorePreviousOrientation,
     waitStopStream,
     supportedSystemUis,
     scheduleReconnect,

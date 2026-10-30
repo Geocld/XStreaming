@@ -21,6 +21,7 @@ import HomeItem from '../components/HomeItem';
 import GamepadFooterHints, {
   GamepadHintItem,
 } from '../components/GamepadFooterHints';
+import {enableSystemRotationSuggestions} from '../utils/orientation';
 import {getSettings, saveSettings} from '../store/settingStore';
 
 import Authentication from '../Authentication';
@@ -134,6 +135,9 @@ function HomeScreen({navigation, route}) {
   const _isFocused = React.useRef(isFocused);
   React.useEffect(() => {
     _isFocused.current = isFocused;
+    if (isFocused) {
+      enableSystemRotationSuggestions();
+    }
   }, [isFocused]);
 
   const {width, height} = useWindowDimensions();
