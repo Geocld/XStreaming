@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   View,
+  Text,
   Image,
   Alert,
   NativeModules,
@@ -33,6 +34,9 @@ import VirtualGamepadEditor, {
   ButtonConfig,
 } from '../components/VirtualGamepadEditor';
 import PerfPanel from '../components/PerfPanel';
+import RecordingIndicator from '../components/RecordingIndicator';
+import gameRecorder from '../utils/gameRecorder';
+import screenshot from '../utils/screenshot';
 import RTCFsrView from '../components/RTCFsrView';
 import RTCFrameGenView from '../components/RTCFrameGenView';
 import NativeTouchOverlay from '../components/NativeTouchOverlay';
@@ -47,7 +51,13 @@ import {
   VIRTUAL_MACRO_BUTTON_NAME,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
-import sessionStatsTracker from '../utils/sessionStatsTracker';
+import sessionStatsTracker, {formatDuration} from '../utils/sessionStatsTracker';
+import {
+  getCloudSessionTimeLimitSeconds,
+  getActiveStreamStartTime,
+  saveActiveStreamStartTime,
+  clearActiveStreamStartTime,
+} from '../utils/xcloud';
 import {
   suspendGamepadNavigation,
   resumeGamepadNavigation,
@@ -245,6 +255,18 @@ export function NativeStreamScreenBase({
     React.useState(false);
   const [openMicro, setOpenMicro] = React.useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
+  const isInPictureInPictureRef = React.useRef(false);
+  const [isRecording, setIsRecording] = React.useState(false);
+
+  React.useEffect(() => {
+    return () => {
+      gameRecorder.isRecording().then(recording => {
+        if (recording) {
+          gameRecorder.stopRecording().catch(() => {});
+        }
+      });
+    };
+  }, []);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
   const isRumbling = React.useRef(false);
@@ -269,6 +291,82 @@ export function NativeStreamScreenBase({
   const reconnectAttemptsRef = React.useRef(0);
   const reconnectExhaustedRef = React.useRef(false);
   const activeWebrtcClientRef = React.useRef<any>(null);
+  const initialSessionStartTime = React.useMemo(() => {
+    return getActiveStreamStartTime(
+      route.params?.streamType,
+      route.params?.sessionId,
+    );
+  }, [route.params?.sessionId, route.params?.streamType]);
+
+  const sessionStartTimeRef = React.useRef(initialSessionStartTime);
+  const sessionLimitSecondsRef = React.useRef(0);
+
+  const ensureSessionStartTime = React.useCallback(() => {
+    if (!sessionStartTimeRef.current) {
+      const active = getActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+      );
+      sessionStartTimeRef.current = active > 0 ? active : Date.now();
+      saveActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+        sessionStartTimeRef.current,
+        sessionLimitSecondsRef.current,
+      );
+    }
+    return sessionStartTimeRef.current;
+  }, [route.params?.sessionId, route.params?.streamType]);
+  const hasReminded15MinRef = React.useRef(false);
+  const hasReminded5MinRef = React.useRef(false);
+  const playtimeReminderTimerRef = React.useRef<any>(null);
+  const [playtimeReminder, setPlaytimeReminder] = React.useState<{
+    visible: boolean;
+    minutes: number;
+  }>({visible: false, minutes: 0});
+
+  const triggerPlaytimeReminder = React.useCallback((minutes: number) => {
+    setPlaytimeReminder({
+      visible: true,
+      minutes,
+    });
+    try {
+      Vibration.vibrate([0, 250, 150, 250]);
+    } catch {}
+    try {
+      GamepadManager.vibrate(
+        400,
+        0.5,
+        0.5,
+        0.2,
+        0.2,
+        settings?.rumble_intensity || 3,
+      );
+    } catch {}
+    if (playtimeReminderTimerRef.current) {
+      clearTimeout(playtimeReminderTimerRef.current);
+    }
+    playtimeReminderTimerRef.current = setTimeout(() => {
+      setPlaytimeReminder(prev => ({...prev, visible: false}));
+    }, 8500);
+  }, [settings?.rumble_intensity]);
+
+  const sessionLimitSeconds = React.useMemo(() => {
+    return getCloudSessionTimeLimitSeconds({
+      streamType: route.params?.streamType,
+      accountTier: route.params?.accountTier,
+      titleItem: route.params?.titleItem,
+      serverLimitSeconds: xCloudApiRef.current?.getSessionLimitInSeconds?.(),
+    });
+  }, [
+    route.params?.streamType,
+    route.params?.accountTier,
+    route.params?.titleItem,
+  ]);
+
+  React.useEffect(() => {
+    sessionLimitSecondsRef.current = sessionLimitSeconds;
+  }, [sessionLimitSeconds]);
 
   const gpDownEventListener = React.useRef<any>(undefined);
   const gpUpEventListener = React.useRef<any>(undefined);
@@ -277,6 +375,8 @@ export function NativeStreamScreenBase({
   const stickEventListener = React.useRef<any>(undefined);
   const triggerEventListener = React.useRef<any>(undefined);
   const isRightstickMoving = React.useRef(false);
+  const physicalRightStick = React.useRef({x: 0, y: 0});
+  const gyroStick = React.useRef({x: 0, y: 0});
   const timer = React.useRef<any>(undefined);
   const menuLongPressTimer = React.useRef<any>(undefined);
   const menuLongPressTriggered = React.useRef(false);
@@ -392,7 +492,7 @@ export function NativeStreamScreenBase({
 
   const showNativeInputDialog = React.useCallback(
     async (options: any) => {
-      if (isInPictureInPicture || !NativeInputDialog?.showTextInput) {
+      if (isInPictureInPictureRef.current || !NativeInputDialog?.showTextInput) {
         return null;
       }
 
@@ -402,7 +502,7 @@ export function NativeStreamScreenBase({
         return null;
       }
     },
-    [isInPictureInPicture],
+    [],
   );
 
   const openSystemKeyboardDialog = React.useCallback(
@@ -846,10 +946,12 @@ export function NativeStreamScreenBase({
       'change',
       async state => {
         if (
+          !Platform.isTV &&
           !portraitMode &&
           state === 'background' &&
           isConnected.current &&
-          _settings.picture_in_picture
+          _settings.picture_in_picture &&
+          !isInPictureInPictureRef.current
         ) {
           try {
             const enteredPip = await PipManager?.enterPipMode?.();
@@ -865,6 +967,7 @@ export function NativeStreamScreenBase({
       PICTURE_IN_PICTURE_MODE_CHANGED,
       event => {
         const nextIsInPip = !!event?.isInPictureInPictureMode;
+        isInPictureInPictureRef.current = nextIsInPip;
         setIsInPictureInPicture(nextIsInPip);
         if (nextIsInPip) {
           setShowModal(false);
@@ -875,6 +978,8 @@ export function NativeStreamScreenBase({
           );
           macroSequenceTimersRef.current = [];
           closeSystemKeyboardModal();
+        } else if (!portraitMode) {
+          Orientation.lockToLandscape();
         }
       },
     );
@@ -993,7 +1098,7 @@ export function NativeStreamScreenBase({
           if (
             keyName === 'Menu' &&
             !portraitMode &&
-            !isInPictureInPicture &&
+            !isInPictureInPictureRef.current &&
             !menuLongPressTimer.current
           ) {
             menuLongPressTriggered.current = false;
@@ -1128,17 +1233,24 @@ export function NativeStreamScreenBase({
           targetState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
           syncAutoSprint(targetState, !!_settings.auto_sprint);
 
-          if (
-            Math.abs(event.rightStickX) > 0.1 ||
-            Math.abs(event.rightStickY) > 0.1
-          ) {
+          const normRx = normaliseAxis(event.rightStickX);
+          const normRy = normaliseAxis(event.rightStickY);
+          physicalRightStick.current = {x: normRx, y: normRy};
+
+          if (Math.abs(normRx) > 0.05 || Math.abs(normRy) > 0.05) {
             isRightstickMoving.current = true;
           } else {
             isRightstickMoving.current = false;
           }
 
-          targetState.RightThumbXAxis = normaliseAxis(event.rightStickX);
-          targetState.RightThumbYAxis = normaliseAxis(event.rightStickY);
+          targetState.RightThumbXAxis = Math.max(
+            -1,
+            Math.min(1, Number((normRx + gyroStick.current.x).toFixed(3))),
+          );
+          targetState.RightThumbYAxis = Math.max(
+            -1,
+            Math.min(1, Number((normRy + gyroStick.current.y).toFixed(3))),
+          );
         },
       );
 
@@ -1212,76 +1324,72 @@ export function NativeStreamScreenBase({
         params => {
           const {x, y} = params;
 
-          let stickX: any = x / 32767;
-          let stickY: any = y / 32767;
+          let stickX = x / 32767;
+          let stickY = y / 32767;
 
-          // gyroscope only work when Rightstick not moving
-          if (!isRightstickMoving.current) {
-            const scaleX =
-              _settings.sensor_sensitivity_x > 10000
-                ? _settings.sensor_sensitivity_x / 10000
-                : 1;
+          const scaleX =
+            _settings.sensor_sensitivity_x > 10000
+              ? _settings.sensor_sensitivity_x / 10000
+              : 1;
 
-            const scaleY =
-              _settings.sensor_sensitivity_y > 10000
-                ? _settings.sensor_sensitivity_y / 10000
-                : 1;
+          const scaleY =
+            _settings.sensor_sensitivity_y > 10000
+              ? _settings.sensor_sensitivity_y / 10000
+              : 1;
 
-            switch (_settings.sensor_invert) {
-              case 1: // x
-                stickX = -stickX;
-                break;
-              case 2: // y
-                stickY = -stickY;
-                break;
-              case 3: // All
-                stickX = -stickX;
-                stickY = -stickY;
-                break;
-              case 4: // x <-> y
-                const temp = stickX;
-                stickX = stickY;
-                stickY = temp;
-                break;
-              default:
-                break;
-            }
-            // gyroscope only work when LT button press
-            if (_settings.sensor_type === 1) {
-              if (gpState.LeftTrigger >= _settings.dead_zone) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 2) {
-              // LB
-              if (gpState.LeftShoulder > 0) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 3) {
-              // LT/LB
-              if (
-                gpState.LeftTrigger >= _settings.dead_zone ||
-                gpState.LeftShoulder > 0
-              ) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 4) {
-              // Global
-              gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-              gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-            }
+          switch (_settings.sensor_invert) {
+            case 1: // x
+              stickX = -stickX;
+              break;
+            case 2: // y
+              stickY = -stickY;
+              break;
+            case 3: // All
+              stickX = -stickX;
+              stickY = -stickY;
+              break;
+            case 4: // x <-> y
+              const temp = stickX;
+              stickX = stickY;
+              stickY = temp;
+              break;
+            default:
+              break;
           }
+
+          let isGyroTriggerActive = false;
+          if (_settings.sensor_type === 1) {
+            isGyroTriggerActive = gpState.LeftTrigger >= _settings.dead_zone;
+          } else if (_settings.sensor_type === 2) {
+            isGyroTriggerActive = gpState.LeftShoulder > 0;
+          } else if (_settings.sensor_type === 3) {
+            isGyroTriggerActive =
+              gpState.LeftTrigger >= _settings.dead_zone ||
+              gpState.LeftShoulder > 0;
+          } else if (_settings.sensor_type === 4) {
+            isGyroTriggerActive = true;
+          }
+
+          if (isGyroTriggerActive) {
+            gyroStick.current = {
+              x: Number((stickX * scaleX).toFixed(3)),
+              y: Number((stickY * scaleY).toFixed(3)),
+            };
+          } else {
+            gyroStick.current = {x: 0, y: 0};
+          }
+
+          const baseStickX = physicalRightStick.current.x;
+          const baseStickY = physicalRightStick.current.y;
+
+          gpState.RightThumbXAxis = Math.max(
+            -1,
+            Math.min(1, Number((baseStickX + gyroStick.current.x).toFixed(3))),
+          );
+          gpState.RightThumbYAxis = Math.max(
+            -1,
+            Math.min(1, Number((baseStickY + gyroStick.current.y).toFixed(3))),
+          );
         },
       );
     }
@@ -1453,8 +1561,30 @@ export function NativeStreamScreenBase({
           setLoadingText(`${t(CONNECTED)}`);
           setLoading(false);
           isConnected.current = true;
+          ensureSessionStartTime();
+          if (route.params?.streamType === 'cloud') {
+            const serverLimit =
+              streamApi?.getSessionLimitInSeconds?.() ||
+              xCloudApiRef.current?.getSessionLimitInSeconds?.() ||
+              0;
+            const limit = getCloudSessionTimeLimitSeconds({
+              streamType: route.params?.streamType,
+              accountTier: route.params?.accountTier,
+              titleItem: route.params?.titleItem,
+              serverLimitSeconds: serverLimit,
+            });
+            if (limit > 0) {
+              sessionLimitSecondsRef.current = limit;
+              saveActiveStreamStartTime(
+                route.params?.streamType,
+                route.params?.sessionId,
+                sessionStartTimeRef.current,
+                limit,
+              );
+            }
+          }
           PipManager?.setAutoPipEnabled?.(
-            !portraitMode && !!_settings.picture_in_picture,
+            !Platform.isTV && !portraitMode && !!_settings.picture_in_picture,
           );
 
           // Alway show virtual gamepad
@@ -1812,8 +1942,53 @@ export function NativeStreamScreenBase({
         }
       };
 
+      const handleQueueProgress = (info: {
+        state: string;
+        estimatedWaitInSeconds?: number;
+        position?: number;
+      }) => {
+        if (info.state === 'WaitingForResources') {
+          if (
+            typeof info.estimatedWaitInSeconds === 'number' &&
+            info.estimatedWaitInSeconds > 0
+          ) {
+            if (info.estimatedWaitInSeconds > 60) {
+              const minutes = Math.ceil(info.estimatedWaitInSeconds / 60);
+              let msg = t('In queue: ~{{min}} min wait', {min: minutes});
+              if (info.position) {
+                msg +=
+                  '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+              }
+              setLoadingText(msg);
+            } else {
+              let msg = t('In queue: less than a minute...');
+              if (info.position) {
+                msg +=
+                  '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+              }
+              setLoadingText(msg);
+            }
+          } else {
+            let msg = t('In queue, waiting for available server...');
+            if (info.position) {
+              msg +=
+                '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+            }
+            setLoadingText(msg);
+          }
+        } else if (info.state === 'Provisioning') {
+          setLoadingText(t('Allocating cloud server...'));
+        } else if (info.state === 'ReadyToConnect') {
+          setLoadingText(t('Ready to connect, authenticating...'));
+        }
+      };
+
       streamApi
-        .startSession(route.params?.sessionId, _settings.resolution)
+        .startSession(
+          route.params?.sessionId,
+          _settings.resolution,
+          handleQueueProgress,
+        )
         .then(() => {
           setLoadingText(
             `${t('Configuration obtained successfully, initiating offer...')}`,
@@ -2018,7 +2193,6 @@ export function NativeStreamScreenBase({
     supportedSystemUis,
     scheduleReconnect,
     portraitMode,
-    isInPictureInPicture,
     setManualLeftThumbPressed,
     syncAutoSprint,
     syncLeftThumbButton,
@@ -2065,6 +2239,7 @@ export function NativeStreamScreenBase({
         gamePoster,
         sessionId: route.params?.sessionId,
         streamType: route.params?.streamType,
+        sessionStartTime: sessionStartTimeRef.current,
         codec: activeSettings?.codec,
         resolution:
           activeSettings?.resolution === 1081
@@ -2176,9 +2351,50 @@ export function NativeStreamScreenBase({
     };
 
     const updatePerformance = () => {
+      const now = Date.now();
+      if (!sessionStartTimeRef.current && isConnected.current) {
+        sessionStartTimeRef.current = now;
+      }
+
+      let playtimeFormatted = '';
+      if (sessionStartTimeRef.current > 0) {
+        const elapsed = Math.max(
+          0,
+          Math.floor((now - sessionStartTimeRef.current) / 1000),
+        );
+        const playtimeStr = formatDuration(elapsed);
+        const limit = sessionLimitSecondsRef.current;
+        playtimeFormatted =
+          limit > 0
+            ? `${playtimeStr} / ${formatDuration(limit)}`
+            : playtimeStr;
+
+        if (limit > 0 && elapsed >= 30) {
+          const remaining = limit - elapsed;
+          if (
+            remaining <= 15 * 60 &&
+            remaining > 0 &&
+            !hasReminded15MinRef.current
+          ) {
+            hasReminded15MinRef.current = true;
+            triggerPlaytimeReminder(15);
+          } else if (
+            remaining <= 5 * 60 &&
+            remaining > 0 &&
+            !hasReminded5MinRef.current
+          ) {
+            hasReminded5MinRef.current = true;
+            triggerPlaytimeReminder(5);
+          }
+        }
+      }
+
       webrtcClient
         .getStreamState()
         .then(async res => {
+          if (res) {
+            res.playtimeFormatted = playtimeFormatted;
+          }
           if (showPerformance) {
             setPerformance(await mergeFrameGenStats(res));
           }
@@ -2206,6 +2422,9 @@ export function NativeStreamScreenBase({
       if (performanceInterval.current) {
         clearInterval(performanceInterval.current);
         performanceInterval.current = null;
+      }
+      if (playtimeReminderTimerRef.current) {
+        clearTimeout(playtimeReminderTimerRef.current);
       }
       frameGenStatsSampleRef.current = null;
     };
@@ -2274,6 +2493,7 @@ export function NativeStreamScreenBase({
       reconnectPendingRef.current = false;
       setIsExiting(true);
       webrtcClient && webrtcClient.close();
+      clearActiveStreamStartTime(route.params?.sessionId);
       await waitStopStream(streamApi);
       if (off) {
         handlePowerOff();
@@ -2543,13 +2763,22 @@ export function NativeStreamScreenBase({
     }
 
     if (id === 'right') {
-      if (Math.abs(leveledX) > 0 || Math.abs(leveledY) > 0) {
+      const vx = Number(leveledX);
+      const vy = Number(leveledY);
+      physicalRightStick.current = {x: vx, y: vy};
+      if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
         isRightstickMoving.current = true;
       } else {
         isRightstickMoving.current = false;
       }
-      gpState.RightThumbXAxis = Number(leveledX);
-      gpState.RightThumbYAxis = Number(leveledY);
+      gpState.RightThumbXAxis = Math.max(
+        -1,
+        Math.min(1, Number((vx + gyroStick.current.x).toFixed(3))),
+      );
+      gpState.RightThumbYAxis = Math.max(
+        -1,
+        Math.min(1, Number((vy + gyroStick.current.y).toFixed(3))),
+      );
     } else {
       gpState.LeftThumbXAxis = Number(leveledX);
       gpState.LeftThumbYAxis = Number(leveledY);
@@ -2643,7 +2872,16 @@ export function NativeStreamScreenBase({
   }, []);
 
   const showNativeOptionsDialog = React.useCallback(
-    async (items: Array<{id: string; title: string}>, options: any = {}) => {
+    async (
+      items: Array<{
+        id: string;
+        title: string;
+        active?: boolean;
+        category?: string;
+        icon?: string;
+      }>,
+      options: any = {},
+    ) => {
       if (!NativeInputDialog?.showOptions) {
         return null;
       }
@@ -2673,15 +2911,79 @@ export function NativeStreamScreenBase({
     GamepadManager.setCurrentScreen('');
     resumeGamepadNavigation();
 
-    const items: Array<{id: string; title: string}> = [];
+    const activeRecording = await gameRecorder.isRecording().catch(() => false);
+    setIsRecording(activeRecording);
+
+    const items: Array<{
+      id: string;
+      title: string;
+      active?: boolean;
+      category?: string;
+    }> = [];
     if (connectState === CONNECTED) {
+      ensureSessionStartTime();
+      if (
+        sessionLimitSecondsRef.current <= 0 &&
+        route.params?.streamType === 'cloud'
+      ) {
+        const serverLimit =
+          streamApi?.getSessionLimitInSeconds?.() ||
+          xCloudApiRef.current?.getSessionLimitInSeconds?.() ||
+          0;
+        const limit = getCloudSessionTimeLimitSeconds({
+          streamType: route.params?.streamType,
+          accountTier: route.params?.accountTier,
+          titleItem: route.params?.titleItem,
+          serverLimitSeconds: serverLimit,
+        });
+        if (limit > 0) {
+          sessionLimitSecondsRef.current = limit;
+          saveActiveStreamStartTime(
+            route.params?.streamType,
+            route.params?.sessionId,
+            sessionStartTimeRef.current,
+            limit,
+          );
+        }
+      }
+      if (sessionStartTimeRef.current > 0) {
+        const elapsed = Math.floor(
+          (Date.now() - sessionStartTimeRef.current) / 1000,
+        );
+        const durationStr = formatDuration(elapsed);
+        let title = `${t('Session Playtime')}: ${durationStr}`;
+        if (sessionLimitSecondsRef.current > 0) {
+          const remaining = Math.max(
+            0,
+            sessionLimitSecondsRef.current - elapsed,
+          );
+          title += ` (${t('{{min}} min left', {
+            min: Math.max(1, Math.ceil(remaining / 60)),
+          })})`;
+        }
+        items.push({
+          id: 'playtimeInfo',
+          title: `⏱️ ${title}`,
+        });
+      }
       items.push({
         id: 'togglePerformance',
         title: t('Toggle Performance'),
+        active: showPerformance,
       });
       items.push({
         id: 'toggleVirtualGamepad',
         title: t('Toggle Virtual Gamepad'),
+        active: showVirtualGamepad,
+      });
+      items.push({
+        id: 'toggleRecording',
+        title: activeRecording ? t('Stop Recording') : t('Start Recording'),
+        active: activeRecording,
+      });
+      items.push({
+        id: 'takeScreenshot',
+        title: t('Take Screenshot'),
       });
       if (showVirtualGamepad) {
         items.push({
@@ -2693,6 +2995,7 @@ export function NativeStreamScreenBase({
         items.push({
           id: 'toggleMicrophone',
           title: openMicro ? t('Close Microphone') : t('Open Microphone'),
+          active: openMicro,
         });
       }
       items.push({
@@ -2730,6 +3033,10 @@ export function NativeStreamScreenBase({
     const result = await showNativeOptionsDialog(items, {
       showAudioGainControl: connectState === CONNECTED,
       audioGain,
+      sessionStartTime: sessionStartTimeRef.current,
+      sessionLimitSeconds: sessionLimitSecondsRef.current,
+      sessionPlaytimeLabel: t('Session Playtime'),
+      minLeftLabel: t('{{min}} min left', {min: 999}).replace('999', '%d'),
     });
     optionsDialogOpenRef.current = false;
 
@@ -2750,6 +3057,53 @@ export function NativeStreamScreenBase({
         }
         setShowVirtualGamepad(!showVirtualGamepad);
         break;
+      case 'toggleRecording': {
+        const currentlyRecording = await gameRecorder.isRecording().catch(() => false);
+        if (currentlyRecording) {
+          try {
+            await gameRecorder.stopRecording();
+            setIsRecording(false);
+            ToastAndroid.show(
+              t('Recording saved to Movies/XStreaming'),
+              ToastAndroid.LONG,
+            );
+          } catch (err: any) {
+            setIsRecording(false);
+            ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
+          }
+        } else {
+          try {
+            await gameRecorder.startRecording(1920, 1080);
+            setIsRecording(true);
+            if (activeWebrtcClientRef.current) {
+              activeWebrtcClientRef.current.requestVideoKeyframe(true);
+              setTimeout(() => {
+                activeWebrtcClientRef.current?.requestVideoKeyframe(true);
+              }, 200);
+              setTimeout(() => {
+                activeWebrtcClientRef.current?.requestVideoKeyframe(true);
+              }, 500);
+            }
+            ToastAndroid.show(t('Recording started'), ToastAndroid.SHORT);
+          } catch (err: any) {
+            setIsRecording(false);
+            ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
+          }
+        }
+        break;
+      }
+      case 'takeScreenshot': {
+        try {
+          await screenshot.captureScreen();
+          ToastAndroid.show(
+            t('Screenshot saved to Pictures/XStreaming'),
+            ToastAndroid.SHORT,
+          );
+        } catch (err: any) {
+          ToastAndroid.show(err?.message || 'Error', ToastAndroid.SHORT);
+        }
+        break;
+      }
       case 'editVirtualGamepad':
         handleOpenGamepadEditor();
         break;
@@ -2802,6 +3156,7 @@ export function NativeStreamScreenBase({
     showNativeOptionsDialog,
     showPerformance,
     showVirtualGamepad,
+    isRecording,
     t,
   ]);
 
@@ -3051,6 +3406,33 @@ export function NativeStreamScreenBase({
         <View style={styles.portraitControls}>
           {renderPortraitVirtualGamepad()}
         </View>
+
+        {playtimeReminder.visible && (
+          <View style={styles.playtimeReminderBanner} pointerEvents="box-none">
+            <View style={styles.playtimeReminderCard}>
+              <Text style={styles.playtimeReminderIcon}>⚠️</Text>
+              <View style={styles.playtimeReminderTextWrap}>
+                <Text style={styles.playtimeReminderTitle}>
+                  {t('Session limit warning')}
+                </Text>
+                <Text style={styles.playtimeReminderMessage}>
+                  {t(
+                    '{{min}} minutes remaining in this session. Save your progress soon!',
+                    {min: playtimeReminder.minutes},
+                  )}
+                </Text>
+              </View>
+              <IconButton
+                icon="close"
+                size={18}
+                iconColor="#fff"
+                onPress={() =>
+                  setPlaytimeReminder(prev => ({...prev, visible: false}))
+                }
+              />
+            </View>
+          </View>
+        )}
       </View>
     );
   }
@@ -3099,6 +3481,35 @@ export function NativeStreamScreenBase({
         onSave={handleSaveGamepadLayout}
         onCancel={() => setShowGamepadEditor(false)}
       />
+
+      <RecordingIndicator visible={isRecording} />
+
+      {playtimeReminder.visible && !isInPictureInPicture && (
+        <View style={styles.playtimeReminderBanner} pointerEvents="box-none">
+          <View style={styles.playtimeReminderCard}>
+            <Text style={styles.playtimeReminderIcon}>⚠️</Text>
+            <View style={styles.playtimeReminderTextWrap}>
+              <Text style={styles.playtimeReminderTitle}>
+                {t('Session limit warning')}
+              </Text>
+              <Text style={styles.playtimeReminderMessage}>
+                {t(
+                  '{{min}} minutes remaining in this session. Save your progress soon!',
+                  {min: playtimeReminder.minutes},
+                )}
+              </Text>
+            </View>
+            <IconButton
+              icon="close"
+              size={18}
+              iconColor="#fff"
+              onPress={() =>
+                setPlaytimeReminder(prev => ({...prev, visible: false}))
+              }
+            />
+          </View>
+        </View>
+      )}
 
       {renderMenu()}
     </View>
@@ -3168,6 +3579,48 @@ const styles = StyleSheet.create({
     right: 5,
     bottom: 5,
     zIndex: 99,
+  },
+  playtimeReminderBanner: {
+    position: 'absolute',
+    top: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  playtimeReminderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(20, 20, 20, 0.94)',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#E6A23C',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    maxWidth: '90%',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  playtimeReminderIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  playtimeReminderTextWrap: {
+    flexShrink: 1,
+    marginRight: 8,
+  },
+  playtimeReminderTitle: {
+    color: '#E6A23C',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  playtimeReminderMessage: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 2,
   },
 });
 

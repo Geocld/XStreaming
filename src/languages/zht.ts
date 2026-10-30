@@ -507,7 +507,6 @@ export default {
     'Get game': '獲取遊戲',
     PurchaseNoticeTitle: '購買提示',
     PurchaseNoticeDesc: '如需繼續購買遊戲，請在手機或電腦上開啟 Xbox 網頁',
-    Close: '關閉',
     'Load more': '載入更多',
     available: '個可用',
     'Game available': '個遊戲可用',
@@ -539,5 +538,8 @@ export default {
     Done: '完成',
     'Direct Play': '游玩',
     Sort: '排序',
+    'Estimated wait: ~{{min}} min': '預計等待: ~{{min}} 分鐘',
+    'Estimated wait: < 1 min': '預計等待: < 1 分鐘',
+    'No queue': '無需排隊',
   },
 };

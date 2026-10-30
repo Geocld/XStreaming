@@ -1,6 +1,6 @@
 import { storage } from './mmkv';
 import { debugFactory } from '../utils/debug';
-import { NativeModules, DeviceEventEmitter } from 'react-native';
+import { NativeModules, DeviceEventEmitter, Platform } from 'react-native';
 import {
   DEFAULT_VIRTUAL_MACRO_LONG_PRESS_MS,
   DEFAULT_VIRTUAL_MACRO_LONG_STEPS,
@@ -13,6 +13,10 @@ const log = debugFactory('settingStore');
 export const SETTINGS_CHANGED_EVENT = 'SETTINGS_CHANGED';
 
 const STORE_KEY = 'user.settings';
+
+const isAndroid12OrHigher =
+  Platform.OS === 'android' && Number(Platform.Version) >= 31;
+const defaultPictureInPicture = isAndroid12OrHigher && !Platform.isTV;
 
 type DisplayOptions = {
   sharpness: number;
@@ -140,7 +144,7 @@ const defaultSettings: Settings = {
   short_trigger: false,
   auto_sprint: false,
   video_format: '',
-  picture_in_picture: false,
+  picture_in_picture: defaultPictureInPicture,
   native_portrait_mode: false,
   native_portrait_gamepad_layout: [],
   native_low_latency_decoder: false,
@@ -211,6 +215,9 @@ export const saveSettings = (settings: Settings) => {
   totalSettings.show_session_report =
     sessionReportValue === true || sessionReportValue === 'true';
   // AsyncStorage.setItem(STORE_KEY, JSON.stringify(totalSettings));
+  if (settings.picture_in_picture !== undefined) {
+    storage.set('user.settings.pip_configured', true);
+  }
   storage.set(STORE_KEY, JSON.stringify(totalSettings));
   cachedSettings = totalSettings;
   try {
@@ -260,6 +267,14 @@ export const getSettings = (): Settings => {
       merged.show_session_report =
         String(_settings.show_session_report) === 'true';
     }
+    if (Platform.isTV) {
+      merged.picture_in_picture = false;
+    } else if (
+      isAndroid12OrHigher &&
+      !storage.getBoolean('user.settings.pip_configured')
+    ) {
+      merged.picture_in_picture = true;
+    }
     cachedSettings = merged;
     return cachedSettings;
   } catch {
@@ -274,6 +289,7 @@ export const getSettings = (): Settings => {
 
 export const resetSettings = () => {
   log.info('resetSettings');
+  storage.delete('user.settings.pip_configured');
   storage.set(STORE_KEY, JSON.stringify(defaultSettings));
   cachedSettings = {
     ...defaultSettings,

@@ -25,8 +25,14 @@ public class PipManager extends ReactContextBaseJavaModule {
         return "PipManager";
     }
 
+    private boolean isTvDevice(Activity activity) {
+        return activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+                || activity.getPackageManager().hasSystemFeature("android.hardware.type.television");
+    }
+
     private boolean supportsPiPMode(Activity activity) {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && !isTvDevice(activity)
                 && activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE);
     }
 
@@ -60,6 +66,9 @@ public class PipManager extends ReactContextBaseJavaModule {
                     }
                     PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
                     builder.setAspectRatio(new Rational(16, 9));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        builder.setSeamlessResizeEnabled(true);
+                    }
                     promise.resolve(activity.enterPictureInPictureMode(builder.build()));
                     return;
                 } catch (RuntimeException ignored) {

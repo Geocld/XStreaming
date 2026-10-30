@@ -482,7 +482,6 @@ export default {
     PurchaseNoticeTitle: '구매 안내',
     PurchaseNoticeDesc:
       '게임을 계속 구매하려면 스마트폰이나 PC에서 Xbox 웹을 열어주세요',
-    Close: '닫기',
     'Load more': '더 보기',
     available: '개 이용 가능',
     'Game available': '개 게임 이용 가능',
@@ -491,5 +490,8 @@ export default {
     'Preview features': '미리 보기 기능 (Xbox Insider)',
     'Preview features description':
       '광고 기반 무료 클라우드 스트리밍 등 Xbox Insider 미리 보기 기능을 활성화합니다.',
+    'Estimated wait: ~{{min}} min': '예상 대기 시간: ~{{min}}분',
+    'Estimated wait: < 1 min': '예상 대기 시간: 1분 미만',
+    'No queue': '대기열 없음',
   },
 };

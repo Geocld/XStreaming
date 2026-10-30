@@ -442,7 +442,6 @@ export default {
     PurchaseNoticeTitle: 'Información de compra',
     PurchaseNoticeDesc:
       'Para continuar comprando el juego, abre la web de Xbox desde tu teléfono o PC',
-    Close: 'Cerrar',
     'Load more': 'Cargar más',
     available: 'disponible',
     'Game available': 'Juegos disponibles',
@@ -451,5 +450,8 @@ export default {
     'Preview features': 'Funciones de versión preliminar (Xbox Insider)',
     'Preview features description':
       'Habilita funciones de vista previa de Xbox Insider, como transmisión gratuita con anuncios',
+    'Estimated wait: ~{{min}} min': 'Espera estimada: ~{{min}} min',
+    'Estimated wait: < 1 min': 'Espera estimada: < 1 min',
+    'No queue': 'Sin cola',
   },
 };

@@ -102,6 +102,13 @@ const PerfPanel: React.FC<Props> = ({performance = {}, streamType}) => {
             {resolutionText || '-1'} {isHorizon ? '| ' : ''}{' '}
           </Text>
         </View>
+        {performance.playtimeFormatted ? (
+          <View>
+            <Text style={styles.text}>
+              ⏱️ {performance.playtimeFormatted} {isHorizon ? '| ' : ''}
+            </Text>
+          </View>
+        ) : null}
         <View>
           <Text style={styles.text}>
             {rttLabel}: {performance.rtt || '-1'} {isHorizon ? '| ' : ''}

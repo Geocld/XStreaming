@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   View,
+  Text,
   Alert,
   NativeModules,
   Vibration,
@@ -24,6 +25,7 @@ import {
 import {WebView} from 'react-native-webview';
 import Orientation from 'react-native-orientation-locker';
 import RNRestart from 'react-native-restart';
+import Spinner from '../components/Spinner';
 import XcloudApi from '../xCloud';
 import {useSelector} from 'react-redux';
 import {getSettings, saveSettings} from '../store/settingStore';
@@ -50,7 +52,13 @@ import {
   VIRTUAL_MACRO_BUTTON_NAME,
   DEFAULT_VIRTUAL_MACRO_SHORT_STEPS,
 } from '../utils/virtualMacro';
-import sessionStatsTracker from '../utils/sessionStatsTracker';
+import sessionStatsTracker, {formatDuration} from '../utils/sessionStatsTracker';
+import {
+  getCloudSessionTimeLimitSeconds,
+  getActiveStreamStartTime,
+  saveActiveStreamStartTime,
+  clearActiveStreamStartTime,
+} from '../utils/xcloud';
 import {
   suspendGamepadNavigation,
   resumeGamepadNavigation,
@@ -127,6 +135,8 @@ function StreamScreen({navigation, route}: any) {
   const [showMessageModal, setShowMessageModal] = React.useState(false);
   const [showVirtualGamepad, setShowVirtualGamepad] = React.useState(false);
   const [connectState, setConnectState] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [loadingText, setLoadingText] = React.useState('');
   const [performance, setPerformance] = React.useState<any>({});
   const [showPerformance, setShowPerformance] = React.useState(false);
   const [needPoweroff, setNeedPoweroff] = React.useState(false);
@@ -143,6 +153,7 @@ function StreamScreen({navigation, route}: any) {
   const [gamepadLayoutVersion, setGamepadLayoutVersion] = React.useState(0);
   const [openMicro, setOpenMicro] = React.useState(false);
   const [isInPictureInPicture, setIsInPictureInPicture] = React.useState(false);
+  const isInPictureInPictureRef = React.useRef(false);
   const xHomeApiRef = React.useRef<any>(undefined);
   const xCloudApiRef = React.useRef<any>(undefined);
 
@@ -154,6 +165,8 @@ function StreamScreen({navigation, route}: any) {
   const triggerEventListener = React.useRef<any>(undefined);
   const timer = React.useRef<any>(undefined);
   const isRightstickMoving = React.useRef(false);
+  const physicalRightStick = React.useRef({x: 0, y: 0});
+  const gyroStick = React.useRef({x: 0, y: 0});
   const isTriggerWork = React.useRef(false);
 
   const usbGpEventListener = React.useRef<any>(undefined);
@@ -166,6 +179,161 @@ function StreamScreen({navigation, route}: any) {
   const activeMacroSticksRef = React.useRef<Set<string>>(new Set());
   const isMacroLoopRunningRef = React.useRef(false);
   const webviewRef = React.useRef(null);
+  const initialSessionStartTime = React.useMemo(() => {
+    return getActiveStreamStartTime(
+      route.params?.streamType,
+      route.params?.sessionId,
+    );
+  }, [route.params?.sessionId, route.params?.streamType]);
+
+  const sessionStartTimeRef = React.useRef(initialSessionStartTime);
+  const sessionLimitSecondsRef = React.useRef(0);
+
+  const ensureSessionStartTime = React.useCallback(() => {
+    if (!sessionStartTimeRef.current) {
+      const active = getActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+      );
+      sessionStartTimeRef.current = active > 0 ? active : Date.now();
+      saveActiveStreamStartTime(
+        route.params?.streamType,
+        route.params?.sessionId,
+        sessionStartTimeRef.current,
+        sessionLimitSecondsRef.current,
+      );
+    }
+    return sessionStartTimeRef.current;
+  }, [route.params?.sessionId, route.params?.streamType]);
+  const hasReminded15MinRef = React.useRef(false);
+  const hasReminded5MinRef = React.useRef(false);
+  const playtimeReminderTimerRef = React.useRef<any>(null);
+  const [playtimeReminder, setPlaytimeReminder] = React.useState<{
+    visible: boolean;
+    minutes: number;
+  }>({visible: false, minutes: 0});
+
+  const triggerPlaytimeReminder = React.useCallback(
+    (minutes: number) => {
+      setPlaytimeReminder({
+        visible: true,
+        minutes,
+      });
+      try {
+        Vibration.vibrate([0, 250, 150, 250]);
+      } catch {}
+      try {
+        GamepadManager.vibrate(
+          400,
+          0.5,
+          0.5,
+          0.2,
+          0.2,
+          settings?.rumble_intensity || 3,
+        );
+      } catch {}
+      if (playtimeReminderTimerRef.current) {
+        clearTimeout(playtimeReminderTimerRef.current);
+      }
+      playtimeReminderTimerRef.current = setTimeout(() => {
+        setPlaytimeReminder(prev => ({...prev, visible: false}));
+      }, 8500);
+    },
+    [settings?.rumble_intensity],
+  );
+
+  const sessionLimitSeconds = React.useMemo(() => {
+    return getCloudSessionTimeLimitSeconds({
+      streamType: route.params?.streamType,
+      accountTier: route.params?.accountTier,
+      titleItem: route.params?.titleItem,
+      serverLimitSeconds: xCloudApiRef.current?.getSessionLimitInSeconds?.(),
+    });
+  }, [
+    route.params?.streamType,
+    route.params?.accountTier,
+    route.params?.titleItem,
+  ]);
+
+  React.useEffect(() => {
+    sessionLimitSecondsRef.current = sessionLimitSeconds;
+  }, [sessionLimitSeconds]);
+
+  React.useEffect(() => {
+    let interval: any = null;
+    if (connectState === CONNECTED) {
+      ensureSessionStartTime();
+      if (
+        sessionLimitSecondsRef.current <= 0 &&
+        route.params?.streamType === 'cloud'
+      ) {
+        const serverLimit =
+          streamApi?.getSessionLimitInSeconds?.() ||
+          xCloudApiRef.current?.getSessionLimitInSeconds?.() ||
+          0;
+        const limit = getCloudSessionTimeLimitSeconds({
+          streamType: route.params?.streamType,
+          accountTier: route.params?.accountTier,
+          titleItem: route.params?.titleItem,
+          serverLimitSeconds: serverLimit,
+        });
+        if (limit > 0) {
+          sessionLimitSecondsRef.current = limit;
+          saveActiveStreamStartTime(
+            route.params?.streamType,
+            route.params?.sessionId,
+            sessionStartTimeRef.current,
+            limit,
+          );
+        }
+      }
+      interval = setInterval(() => {
+        const now = Date.now();
+        if (sessionStartTimeRef.current > 0) {
+          const elapsed = Math.max(
+            0,
+            Math.floor((now - sessionStartTimeRef.current) / 1000),
+          );
+          const limit = sessionLimitSecondsRef.current;
+          const playtimeStr = formatDuration(elapsed);
+          const playtimeFormatted =
+            limit > 0 ? `${playtimeStr} / ${formatDuration(limit)}` : playtimeStr;
+
+          setPerformance(prev => {
+            if (!prev) {
+              return {playtimeFormatted};
+            }
+            return {...prev, playtimeFormatted};
+          });
+
+          if (limit > 0 && elapsed >= 30) {
+            const remaining = limit - elapsed;
+            if (
+              remaining <= 15 * 60 &&
+              remaining > 0 &&
+              !hasReminded15MinRef.current
+            ) {
+              hasReminded15MinRef.current = true;
+              triggerPlaytimeReminder(15);
+            } else if (
+              remaining <= 5 * 60 &&
+              remaining > 0 &&
+              !hasReminded5MinRef.current
+            ) {
+              hasReminded5MinRef.current = true;
+              triggerPlaytimeReminder(5);
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [connectState, triggerPlaytimeReminder]);
 
   React.useEffect(() => {
     let layoutTimer: any = null;
@@ -330,9 +498,11 @@ function StreamScreen({navigation, route}: any) {
       'change',
       async state => {
         if (
+          !Platform.isTV &&
           state === 'background' &&
           isConnected.current &&
-          _settings.picture_in_picture
+          _settings.picture_in_picture &&
+          !isInPictureInPictureRef.current
         ) {
           try {
             const enteredPip = await PipManager?.enterPipMode?.();
@@ -348,6 +518,7 @@ function StreamScreen({navigation, route}: any) {
       PICTURE_IN_PICTURE_MODE_CHANGED,
       event => {
         const nextIsInPip = !!event?.isInPictureInPictureMode;
+        isInPictureInPictureRef.current = nextIsInPip;
         setIsInPictureInPicture(nextIsInPip);
         if (nextIsInPip) {
           postData2Webview('hidePerformance', {});
@@ -361,11 +532,14 @@ function StreamScreen({navigation, route}: any) {
             clearTimeout(timeoutId),
           );
           macroSequenceTimersRef.current = [];
-        } else if (
-          _settings.show_performance &&
-          _settings.gamepad_kernal === 'Web'
-        ) {
-          postData2Webview('showPerformance', {});
+        } else {
+          Orientation.lockToLandscape();
+          if (
+            _settings.show_performance &&
+            _settings.gamepad_kernal === 'Web'
+          ) {
+            postData2Webview('showPerformance', {});
+          }
         }
       },
     );
@@ -520,17 +694,24 @@ function StreamScreen({navigation, route}: any) {
           gpState.LeftThumbXAxis = normaliseAxis(event.leftStickX);
           gpState.LeftThumbYAxis = normaliseAxis(event.leftStickY);
 
-          if (
-            Math.abs(event.rightStickX) > 0.1 ||
-            Math.abs(event.rightStickY) > 0.1
-          ) {
+          const normRx = normaliseAxis(event.rightStickX);
+          const normRy = normaliseAxis(event.rightStickY);
+          physicalRightStick.current = {x: normRx, y: normRy};
+
+          if (Math.abs(normRx) > 0.05 || Math.abs(normRy) > 0.05) {
             isRightstickMoving.current = true;
           } else {
             isRightstickMoving.current = false;
           }
 
-          gpState.RightThumbXAxis = normaliseAxis(event.rightStickX);
-          gpState.RightThumbYAxis = normaliseAxis(event.rightStickY);
+          gpState.RightThumbXAxis = Math.max(
+            -1,
+            Math.min(1, Number((normRx + gyroStick.current.x).toFixed(3))),
+          );
+          gpState.RightThumbYAxis = Math.max(
+            -1,
+            Math.min(1, Number((normRy + gyroStick.current.y).toFixed(3))),
+          );
         },
       );
 
@@ -592,76 +773,72 @@ function StreamScreen({navigation, route}: any) {
         params => {
           const {x, y} = params;
 
-          let stickX: any = x / 32767;
-          let stickY: any = y / 32767;
+          let stickX = x / 32767;
+          let stickY = y / 32767;
 
-          // gyroscope only work when Rightstick not moving
-          if (!isRightstickMoving.current) {
-            const scaleX =
-              _settings.sensor_sensitivity_x > 10000
-                ? _settings.sensor_sensitivity_x / 10000
-                : 1;
+          const scaleX =
+            _settings.sensor_sensitivity_x > 10000
+              ? _settings.sensor_sensitivity_x / 10000
+              : 1;
 
-            const scaleY =
-              _settings.sensor_sensitivity_y > 10000
-                ? _settings.sensor_sensitivity_y / 10000
-                : 1;
+          const scaleY =
+            _settings.sensor_sensitivity_y > 10000
+              ? _settings.sensor_sensitivity_y / 10000
+              : 1;
 
-            switch (_settings.sensor_invert) {
-              case 1: // x
-                stickX = -stickX;
-                break;
-              case 2: // y
-                stickY = -stickY;
-                break;
-              case 3: // All
-                stickX = -stickX;
-                stickY = -stickY;
-                break;
-              case 4: // x <-> y
-                const temp = stickX;
-                stickX = stickY;
-                stickY = temp;
-                break;
-              default:
-                break;
-            }
-            // gyroscope only work when LT button press
-            if (_settings.sensor_type === 1) {
-              if (gpState.LeftTrigger >= _settings.dead_zone) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 2) {
-              // LB
-              if (gpState.LeftShoulder > 0) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 3) {
-              // LT/LB
-              if (
-                gpState.LeftTrigger >= _settings.dead_zone ||
-                gpState.LeftShoulder > 0
-              ) {
-                gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-                gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-              } else {
-                gpState.RightThumbXAxis = 0;
-                gpState.RightThumbYAxis = 0;
-              }
-            } else if (_settings.sensor_type === 4) {
-              // Global
-              gpState.RightThumbXAxis = stickX.toFixed(3) * scaleX;
-              gpState.RightThumbYAxis = stickY.toFixed(3) * scaleY;
-            }
+          switch (_settings.sensor_invert) {
+            case 1: // x
+              stickX = -stickX;
+              break;
+            case 2: // y
+              stickY = -stickY;
+              break;
+            case 3: // All
+              stickX = -stickX;
+              stickY = -stickY;
+              break;
+            case 4: // x <-> y
+              const temp = stickX;
+              stickX = stickY;
+              stickY = temp;
+              break;
+            default:
+              break;
           }
+
+          let isGyroTriggerActive = false;
+          if (_settings.sensor_type === 1) {
+            isGyroTriggerActive = gpState.LeftTrigger >= _settings.dead_zone;
+          } else if (_settings.sensor_type === 2) {
+            isGyroTriggerActive = gpState.LeftShoulder > 0;
+          } else if (_settings.sensor_type === 3) {
+            isGyroTriggerActive =
+              gpState.LeftTrigger >= _settings.dead_zone ||
+              gpState.LeftShoulder > 0;
+          } else if (_settings.sensor_type === 4) {
+            isGyroTriggerActive = true;
+          }
+
+          if (isGyroTriggerActive) {
+            gyroStick.current = {
+              x: Number((stickX * scaleX).toFixed(3)),
+              y: Number((stickY * scaleY).toFixed(3)),
+            };
+          } else {
+            gyroStick.current = {x: 0, y: 0};
+          }
+
+          const baseStickX = physicalRightStick.current.x;
+          const baseStickY = physicalRightStick.current.y;
+
+          gpState.RightThumbXAxis = Math.max(
+            -1,
+            Math.min(1, Number((baseStickX + gyroStick.current.x).toFixed(3))),
+          );
+          gpState.RightThumbYAxis = Math.max(
+            -1,
+            Math.min(1, Number((baseStickY + gyroStick.current.y).toFixed(3))),
+          );
         },
       );
     }
@@ -833,8 +1010,12 @@ function StreamScreen({navigation, route}: any) {
     if (isExiting) {
       return;
     }
+    if (playtimeReminderTimerRef.current) {
+      clearTimeout(playtimeReminderTimerRef.current);
+    }
     setIsExiting(true);
     Orientation.unlockAllOrientations();
+    clearActiveStreamStartTime(route.params?.sessionId);
     streamApi.stopStream().then(() => {
       if (needPoweroff) {
         handlePowerOff();
@@ -893,12 +1074,58 @@ function StreamScreen({navigation, route}: any) {
       const _settings = getSettings();
       log.info('Get localSettings:', _settings);
 
+      setLoading(true);
+      setLoadingText(t('Connecting...'));
+
+      const handleQueueProgress = (info: any) => {
+        if (info.state === 'WaitingForResources') {
+          if (
+            typeof info.estimatedWaitInSeconds === 'number' &&
+            info.estimatedWaitInSeconds > 0
+          ) {
+            if (info.estimatedWaitInSeconds > 60) {
+              const minutes = Math.ceil(info.estimatedWaitInSeconds / 60);
+              let msg = t('In queue: ~{{min}} min wait', {min: minutes});
+              if (info.position) {
+                msg +=
+                  '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+              }
+              setLoadingText(msg);
+            } else {
+              let msg = t('In queue: less than a minute...');
+              if (info.position) {
+                msg +=
+                  '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+              }
+              setLoadingText(msg);
+            }
+          } else {
+            let msg = t('In queue, waiting for available server...');
+            if (info.position) {
+              msg +=
+                '\n' + t('Position in queue: {{pos}}', {pos: info.position});
+            }
+            setLoadingText(msg);
+          }
+        } else if (info.state === 'Provisioning') {
+          setLoadingText(t('Allocating cloud server...'));
+        } else if (info.state === 'ReadyToConnect') {
+          setLoadingText(t('Ready to connect, authenticating...'));
+        }
+      };
+
       streamApi
-        .startSession(route.params?.sessionId, _settings.resolution)
+        .startSession(
+          route.params?.sessionId,
+          _settings.resolution,
+          handleQueueProgress,
+        )
         .then(configuration => {
+          setLoading(false);
           postData2Webview('startSessionEnd', configuration);
         })
         .catch(e => {
+          setLoading(false);
           if (e !== '') {
             let msg = '';
             if (typeof e === 'string') {
@@ -1185,6 +1412,16 @@ function StreamScreen({navigation, route}: any) {
           perf.decode = oldPerf.decode;
         }
       }
+      if (sessionStartTimeRef.current > 0) {
+        const elapsed = Math.max(
+          0,
+          Math.floor((Date.now() - sessionStartTimeRef.current) / 1000),
+        );
+        const limit = sessionLimitSecondsRef.current;
+        const playtimeStr = formatDuration(elapsed);
+        perf.playtimeFormatted =
+          limit > 0 ? `${playtimeStr} / ${formatDuration(limit)}` : playtimeStr;
+      }
       if (showPerformance) {
         setPerformance(perf);
       }
@@ -1212,6 +1449,9 @@ function StreamScreen({navigation, route}: any) {
       }
       setConnectState(message);
       if (message === CONNECTED) {
+        if (!sessionStartTimeRef.current) {
+          sessionStartTimeRef.current = Date.now();
+        }
         if (!isConnected.current) {
           const gameTitle =
             route.params?.gameTitle ||
@@ -1269,7 +1509,9 @@ function StreamScreen({navigation, route}: any) {
         setShowVirtualGamepad(true);
       }
       if (message === CONNECTED) {
-        PipManager?.setAutoPipEnabled?.(!!settings.picture_in_picture);
+        PipManager?.setAutoPipEnabled?.(
+          !Platform.isTV && !!settings.picture_in_picture,
+        );
       }
 
       // Alway show performance
@@ -1522,13 +1764,22 @@ function StreamScreen({navigation, route}: any) {
     }
 
     if (id === 'right') {
-      if (Math.abs(leveledX) > 0 || Math.abs(leveledY) > 0) {
+      const vx = Number(leveledX);
+      const vy = Number(-leveledY);
+      physicalRightStick.current = {x: vx, y: vy};
+      if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
         isRightstickMoving.current = true;
       } else {
         isRightstickMoving.current = false;
       }
-      gpState.RightThumbXAxis = Number(leveledX);
-      gpState.RightThumbYAxis = Number(-leveledY);
+      gpState.RightThumbXAxis = Math.max(
+        -1,
+        Math.min(1, Number((vx + gyroStick.current.x).toFixed(3))),
+      );
+      gpState.RightThumbYAxis = Math.max(
+        -1,
+        Math.min(1, Number((vy + gyroStick.current.y).toFixed(3))),
+      );
     } else {
       gpState.LeftThumbXAxis = Number(leveledX);
       gpState.LeftThumbYAxis = Number(-leveledY);
@@ -1654,8 +1905,53 @@ function StreamScreen({navigation, route}: any) {
   const isNativeLikeKernel =
     settings.gamepad_kernal === 'Native' || settings.gamepad_kernal === 'SDL';
 
+  let playtimeDescription = '';
+  if (sessionStartTimeRef.current > 0) {
+    const elapsed = Math.max(
+      0,
+      Math.floor((Date.now() - sessionStartTimeRef.current) / 1000),
+    );
+    const playtimeStr = formatDuration(elapsed);
+    const limit = sessionLimitSecondsRef.current;
+    if (limit > 0) {
+      const remaining = Math.max(0, limit - elapsed);
+      playtimeDescription = `${playtimeStr} / ${formatDuration(
+        limit,
+      )} (${t('{{min}} min left', {min: Math.ceil(remaining / 60)})})`;
+    } else {
+      playtimeDescription = playtimeStr;
+    }
+  }
+
   return (
     <>
+      {playtimeReminder.visible && !isInPictureInPicture && (
+        <View style={styles.playtimeReminderBanner} pointerEvents="box-none">
+          <View style={styles.playtimeReminderCard}>
+            <Text style={styles.playtimeReminderIcon}>⚠️</Text>
+            <View style={styles.playtimeReminderTextWrap}>
+              <Text style={styles.playtimeReminderTitle}>
+                {t('Session limit warning')}
+              </Text>
+              <Text style={styles.playtimeReminderMessage}>
+                {t(
+                  '{{min}} minutes remaining in this session. Save your progress soon!',
+                  {min: playtimeReminder.minutes},
+                )}
+              </Text>
+            </View>
+            <IconButton
+              icon="close"
+              size={18}
+              iconColor="#fff"
+              onPress={() =>
+                setPlaytimeReminder(prev => ({...prev, visible: false}))
+              }
+            />
+          </View>
+        </View>
+      )}
+
       {!isInPictureInPicture && showPerformance && isNativeLikeKernel && (
         <PerfPanel performance={performance} />
       )}
@@ -1755,6 +2051,13 @@ function StreamScreen({navigation, route}: any) {
             <Card.Content>
               <ScrollView style={{maxHeight: modalMaxHeight}}>
                 <List.Section>
+                  {connectState === CONNECTED && Boolean(playtimeDescription) && (
+                    <List.Item
+                      title={`⏱️ ${t('Session Playtime')}`}
+                      description={playtimeDescription}
+                      background={background}
+                    />
+                  )}
                   {connectState === CONNECTED && (
                     <List.Item
                       title={t('Toggle Performance')}
@@ -1935,6 +2238,18 @@ function StreamScreen({navigation, route}: any) {
         </View>
       )}
 
+      {loading && !isInPictureInPicture && (
+        <Spinner
+          loading={true}
+          text={loadingText}
+          cancelable={true}
+          closeCb={() => {
+            setLoading(false);
+            requestExit();
+          }}
+        />
+      )}
+
       <View style={{flex: 1}} renderToHardwareTextureAndroid={true}>
         <WebView
           ref={instance => {
@@ -1988,6 +2303,48 @@ const styles = StyleSheet.create({
     right: 5,
     bottom: 5,
     zIndex: 10,
+  },
+  playtimeReminderBanner: {
+    position: 'absolute',
+    top: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  playtimeReminderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(20, 20, 20, 0.94)',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#E6A23C',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    maxWidth: '90%',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  playtimeReminderIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  playtimeReminderTextWrap: {
+    flexShrink: 1,
+    marginRight: 8,
+  },
+  playtimeReminderTitle: {
+    color: '#E6A23C',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  playtimeReminderMessage: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 2,
   },
 });
 

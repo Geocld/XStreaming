@@ -4,13 +4,23 @@ import {Card, Text, ProgressBar} from 'react-native-paper';
 import Spinner from '../components/Spinner';
 import Empty from '../components/Empty';
 import {useTranslation} from 'react-i18next';
-import moment from 'moment';
 import {useSelector} from 'react-redux';
 import WebApi from '../web';
-import games from '../mock/games.json';
 import {NavigationProp} from '../types/navigation';
 import {useGamepadNavigation, useGamepadActiveState} from '../utils/useGamepadNavigation';
 import GamepadFooterHints from '../components/GamepadFooterHints';
+
+let cachedGames: Record<string, any> | null = null;
+const getGames = () => {
+  if (!cachedGames) {
+    try {
+      cachedGames = require('../mock/games.json');
+    } catch {
+      cachedGames = {};
+    }
+  }
+  return cachedGames;
+};
 
 type Achievement = {
   name: string;
@@ -67,11 +77,16 @@ function AchivementScreen({navigation}: {navigation: NavigationProp}) {
         const list: Achievement[] = Array.isArray(data)
           ? (data as Achievement[])
           : [];
+        const fallbackGames = getGames();
         list.forEach(item => {
-          if (games[item.titleId] && games[item.titleId].image_urls) {
+          if (
+            fallbackGames &&
+            fallbackGames[item.titleId] &&
+            fallbackGames[item.titleId].image_urls
+          ) {
             item.image =
-              games[item.titleId].image_urls.box_art ||
-              games[item.titleId].image_urls.poster;
+              fallbackGames[item.titleId].image_urls.box_art ||
+              fallbackGames[item.titleId].image_urls.poster;
           }
         });
         setArchivements(list);
@@ -85,8 +100,17 @@ function AchivementScreen({navigation}: {navigation: NavigationProp}) {
   }, [webToken]);
 
   const formatTime = (isoString: string) => {
-    const date = moment(isoString).local();
-    return date.format('YYYY-MM-DD HH:mm');
+    if (!isoString) return '';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return '';
+      const pad = (n: number) => (n < 10 ? '0' + n : String(n));
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+        d.getDate(),
+      )} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    } catch {
+      return '';
+    }
   };
 
   return (

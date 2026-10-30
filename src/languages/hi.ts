@@ -501,7 +501,6 @@ export default {
     PurchaseNoticeTitle: 'खरीद जानकारी',
     PurchaseNoticeDesc:
       'गेम की खरीद जारी रखने के लिए, कृपया अपने फ़ोन या पीसी से Xbox वेब खोलें',
-    Close: 'बंद करें',
     'Load more': 'और लोड करें',
     available: 'उपलब्ध',
     'Game available': 'गेम उपलब्ध',
@@ -510,5 +509,8 @@ export default {
     'Preview features': 'पूर्वावलोकन सुविधाएं (Xbox Insider)',
     'Preview features description':
       'Xbox Insider पूर्वावलोकन सुविधाएं सक्षम करें, जैसे विज्ञापनों के साथ मुफ्त क्लाउड स्ट्रीमिंग',
+    'Estimated wait: ~{{min}} min': 'अनुमानित प्रतीक्षा: ~{{min}} मिनट',
+    'Estimated wait: < 1 min': 'अनुमानित प्रतीक्षा: < 1 मिनट',
+    'No queue': 'कोई कतार नहीं',
   },
 };

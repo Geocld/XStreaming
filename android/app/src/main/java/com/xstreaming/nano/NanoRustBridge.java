@@ -288,6 +288,18 @@ public final class NanoRustBridge {
         if (!isNativeAvailable() || !sessionActive || !videoSurfaceActive) {
             return;
         }
+        if (keyframe && data != null) {
+            com.xstreaming.recording.GameRecorder.getInstance().cacheSpsPps(data);
+        }
+        if (com.xstreaming.recording.GameRecorder.getInstance().isRecording()) {
+            com.xstreaming.recording.GameRecorder.getInstance().feedVideoFrame(
+                    data,
+                    ptsUs,
+                    keyframe,
+                    videoWidth,
+                    videoHeight
+            );
+        }
         synchronized (videoDecoderLock) {
             if (!sessionActive || !videoSurfaceActive || outputSurface == null) {
                 return;
@@ -964,6 +976,17 @@ public final class NanoRustBridge {
                     outputBuffer.limit(bufferInfo.offset + bufferInfo.size);
                     int written;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        if (com.xstreaming.recording.GameRecorder.getInstance().isRecording()) {
+                            ByteBuffer audioCopy = outputBuffer.duplicate();
+                            audioCopy.position(bufferInfo.offset);
+                            audioCopy.limit(bufferInfo.offset + bufferInfo.size);
+                            com.xstreaming.recording.GameRecorder.getInstance().feedPcmAudio(
+                                    audioCopy,
+                                    bufferInfo.presentationTimeUs,
+                                    audioSampleRate,
+                                    audioChannelCount
+                            );
+                        }
                         written = track.write(outputBuffer, bufferInfo.size, AudioTrack.WRITE_BLOCKING);
                     } else {
                         byte[] pcm = new byte[bufferInfo.size];

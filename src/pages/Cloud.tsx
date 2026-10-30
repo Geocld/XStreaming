@@ -737,6 +737,86 @@ const CarouselSection = React.memo<CarouselSectionProps>(
       [idPrefix],
     );
 
+    const renderFooter = React.useCallback(() => {
+      if (!hasMoreThanMax) return null;
+      const isShowAllCardFocused =
+        isGamepadActive &&
+        isSectionActive &&
+        focusedIndex === displayData.length;
+      return (
+        <Pressable
+          focusable={true}
+          onPress={() => onShowAll(categoryKey)}
+          style={({pressed, focused}: any) => [
+            styles.showAllCard,
+            isLight && styles.showAllCardLight,
+            {
+              width: horizontalCardWidth,
+              height: horizontalCardHeight,
+              borderColor: isShowAllCardFocused
+                ? isLight
+                  ? primary
+                  : '#FFFFFF'
+                : primary + '4D',
+              borderWidth: isShowAllCardFocused ? 2.5 : 1,
+            },
+            (isShowAllCardFocused || focused) && [
+              styles.showAllCardFocused,
+              {borderColor: isLight ? primary : '#FFFFFF'},
+            ],
+            pressed && [
+              styles.showAllCardPressed,
+              {borderColor: primary, backgroundColor: primary + '1A'},
+            ],
+          ]}>
+          <View
+            style={[
+              styles.showAllIconCircle,
+              {
+                backgroundColor: isShowAllCardFocused
+                  ? primary
+                  : primary + '1A',
+              },
+            ]}>
+            <Icon
+              source="arrow-right"
+              size={24}
+              color={isShowAllCardFocused ? '#FFFFFF' : primary}
+            />
+          </View>
+          <Text
+            style={[
+              styles.showAllCardTitle,
+              isLight && styles.showAllCardTitleLight,
+              isShowAllCardFocused && {
+                fontWeight: '700',
+                color: isLight ? primary : '#FFFFFF',
+              },
+            ]}>
+            {t('Show all')}
+          </Text>
+          <Text style={[styles.showAllCardSubtitle, {color: primary}]}>
+            {`+${data.length - maxItems} ${t('available')}`}
+          </Text>
+        </Pressable>
+      );
+    }, [
+      hasMoreThanMax,
+      isGamepadActive,
+      isSectionActive,
+      focusedIndex,
+      displayData.length,
+      onShowAll,
+      categoryKey,
+      isLight,
+      horizontalCardWidth,
+      horizontalCardHeight,
+      primary,
+      t,
+      data.length,
+      maxItems,
+    ]);
+
     return (
       <View
         style={[
@@ -815,70 +895,7 @@ const CarouselSection = React.memo<CarouselSectionProps>(
           windowSize={3}
           removeClippedSubviews={Platform.OS === 'android'}
           renderItem={renderCard}
-          ListFooterComponent={() => {
-            if (!hasMoreThanMax) return null;
-            const isShowAllCardFocused =
-              isGamepadActive &&
-              isSectionActive &&
-              focusedIndex === displayData.length;
-            return (
-              <Pressable
-                focusable={true}
-                onPress={() => onShowAll(categoryKey)}
-                style={({pressed, focused}: any) => [
-                  styles.showAllCard,
-                  isLight && styles.showAllCardLight,
-                  {
-                    width: horizontalCardWidth,
-                    height: horizontalCardHeight,
-                    borderColor: isShowAllCardFocused
-                      ? isLight
-                        ? primary
-                        : '#FFFFFF'
-                      : primary + '4D',
-                    borderWidth: isShowAllCardFocused ? 2.5 : 1,
-                  },
-                  (isShowAllCardFocused || focused) && [
-                    styles.showAllCardFocused,
-                    {borderColor: isLight ? primary : '#FFFFFF'},
-                  ],
-                  pressed && [
-                    styles.showAllCardPressed,
-                    {borderColor: primary, backgroundColor: primary + '1A'},
-                  ],
-                ]}>
-                <View
-                  style={[
-                    styles.showAllIconCircle,
-                    {
-                      backgroundColor: isShowAllCardFocused
-                        ? primary
-                        : primary + '1A',
-                    },
-                  ]}>
-                  <Icon
-                    source="arrow-right"
-                    size={24}
-                    color={isShowAllCardFocused ? '#FFFFFF' : primary}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.showAllCardTitle,
-                    isLight && styles.showAllCardTitleLight,
-                    isShowAllCardFocused && {
-                      fontWeight: '700',
-                      color: isLight ? primary : '#FFFFFF',
-                    },
-                  ]}>
-                  {t('Show all')}
-                </Text>
-                <Text style={[styles.showAllCardSubtitle, {color: primary}]}>
-                  {`+${data.length - maxItems} ${t('available')}`}
-                </Text>
-              </Pressable>
-            );
-          }}
+          ListFooterComponent={renderFooter}
         />
       </View>
     );
@@ -1679,9 +1696,10 @@ function CloudScreen({navigation, route}: any) {
         usbController,
         gameTitle,
         titleItem,
+        accountTier,
       });
     },
-    [navigation, effectiveXCloudToken, streamingTokens.xCloudToken],
+    [navigation, effectiveXCloudToken, streamingTokens.xCloudToken, accountTier],
   );
 
   // Direct game launch handler
@@ -2532,24 +2550,39 @@ function CloudScreen({navigation, route}: any) {
     },
   });
 
-  const setSectionRef = React.useCallback(
-    (idPrefix: string) => (ref: any) => {
-      sectionListRefs.current[idPrefix] = ref;
-    },
-    [],
-  );
+  const sectionRefCallbacks = React.useMemo(() => {
+    const prefixes = ['recent', 'favorites', 'free_ads', 'gp', 'new', 'ubi', 'own', 'leave'];
+    const map: Record<string, (ref: any) => void> = {};
+    prefixes.forEach(prefix => {
+      map[prefix] = (ref: any) => {
+        sectionListRefs.current[prefix] = ref;
+      };
+    });
+    return map;
+  }, []);
 
-  const onMomentumScrollEnd = React.useCallback(
-    (idPrefix: string) => (e: any) => {
-      const offsetX = e.nativeEvent.contentOffset.x;
-      const leftIdx = Math.max(
-        0,
-        Math.floor(offsetX / (horizontalCardWidth + 10)),
-      );
-      carouselScrollLeftMap.current[idPrefix] = leftIdx;
-    },
-    [horizontalCardWidth],
-  );
+  const momentumCallbacks = React.useMemo(() => {
+    const prefixes = ['recent', 'favorites', 'free_ads', 'gp', 'new', 'ubi', 'own', 'leave'];
+    const map: Record<string, (e: any) => void> = {};
+    prefixes.forEach(prefix => {
+      map[prefix] = (e: any) => {
+        const offsetX = e.nativeEvent.contentOffset.x;
+        const leftIdx = Math.max(
+          0,
+          Math.floor(offsetX / (horizontalCardWidth + 10)),
+        );
+        carouselScrollLeftMap.current[prefix] = leftIdx;
+      };
+    });
+    return map;
+  }, [horizontalCardWidth]);
+
+  const isCarouselSectionActive =
+    isGamepadActive &&
+    focusedSection !== 'grid' &&
+    focusedSection !== 'header';
+  const activeCarouselSection = isCarouselSectionActive ? focusedSection : null;
+  const activeCarouselIndex = isCarouselSectionActive ? focusedIndex : -1;
 
   const carouselsHeader = React.useMemo(() => {
     if (filterCategory !== 'all' || keyword.length > 0) {
@@ -2563,8 +2596,8 @@ function CloudScreen({navigation, route}: any) {
           data={recentTitles}
           categoryKey="recent"
           idPrefix="recent"
-          isSectionActive={isGamepadActive && focusedSection === 'recent'}
-          focusedIndex={focusedSection === 'recent' ? focusedIndex : -1}
+          isSectionActive={activeCarouselSection === 'recent'}
+          focusedIndex={activeCarouselSection === 'recent' ? activeCarouselIndex : -1}
           isGamepadActive={isGamepadActive}
           hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
@@ -2575,8 +2608,8 @@ function CloudScreen({navigation, route}: any) {
           onPress={handleViewDetail}
           onPlayPress={handleDirectPlay}
           onShowAll={handleShowAll}
-          sectionRefCallback={setSectionRef('recent')}
-          onMomentumScrollEndCallback={onMomentumScrollEnd('recent')}
+          sectionRefCallback={sectionRefCallbacks.recent}
+          onMomentumScrollEndCallback={momentumCallbacks.recent}
           t={t}
         />
         {favoriteTitles.length > 0 && (
@@ -2585,8 +2618,8 @@ function CloudScreen({navigation, route}: any) {
             data={favoriteTitles}
             categoryKey="favorites"
             idPrefix="favorites"
-            isSectionActive={isGamepadActive && focusedSection === 'favorites'}
-            focusedIndex={focusedSection === 'favorites' ? focusedIndex : -1}
+            isSectionActive={activeCarouselSection === 'favorites'}
+            focusedIndex={activeCarouselSection === 'favorites' ? activeCarouselIndex : -1}
             isGamepadActive={isGamepadActive}
             hidePlayButton={shouldHidePlayButton}
             horizontalCardWidth={horizontalCardWidth}
@@ -2597,8 +2630,8 @@ function CloudScreen({navigation, route}: any) {
             onPress={handleViewDetail}
             onPlayPress={handleDirectPlay}
             onShowAll={handleShowAll}
-            sectionRefCallback={setSectionRef('favorites')}
-            onMomentumScrollEndCallback={onMomentumScrollEnd('favorites')}
+            sectionRefCallback={sectionRefCallbacks.favorites}
+            onMomentumScrollEndCallback={momentumCallbacks.favorites}
             t={t}
           />
         )}
@@ -2609,8 +2642,8 @@ function CloudScreen({navigation, route}: any) {
             data={freeWithAdsTitlesList}
             categoryKey="free_ads"
             idPrefix="free_ads"
-            isSectionActive={isGamepadActive && focusedSection === 'free_ads'}
-            focusedIndex={focusedSection === 'free_ads' ? focusedIndex : -1}
+            isSectionActive={activeCarouselSection === 'free_ads'}
+            focusedIndex={activeCarouselSection === 'free_ads' ? activeCarouselIndex : -1}
             isGamepadActive={isGamepadActive}
             hidePlayButton={shouldHidePlayButton}
             horizontalCardWidth={horizontalCardWidth}
@@ -2621,8 +2654,8 @@ function CloudScreen({navigation, route}: any) {
             onPress={handleViewDetail}
             onPlayPress={handleDirectPlay}
             onShowAll={handleShowAll}
-            sectionRefCallback={setSectionRef('free_ads')}
-            onMomentumScrollEndCallback={onMomentumScrollEnd('free_ads')}
+            sectionRefCallback={sectionRefCallbacks.free_ads}
+            onMomentumScrollEndCallback={momentumCallbacks.free_ads}
             t={t}
           />
         )}
@@ -2631,8 +2664,8 @@ function CloudScreen({navigation, route}: any) {
           data={playWithGamePassTitles}
           categoryKey="play_gamepass"
           idPrefix="gp"
-          isSectionActive={isGamepadActive && focusedSection === 'gp'}
-          focusedIndex={focusedSection === 'gp' ? focusedIndex : -1}
+          isSectionActive={activeCarouselSection === 'gp'}
+          focusedIndex={activeCarouselSection === 'gp' ? activeCarouselIndex : -1}
           isGamepadActive={isGamepadActive}
           hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
@@ -2643,8 +2676,8 @@ function CloudScreen({navigation, route}: any) {
           onPress={handleViewDetail}
           onPlayPress={handleDirectPlay}
           onShowAll={handleShowAll}
-          sectionRefCallback={setSectionRef('gp')}
-          onMomentumScrollEndCallback={onMomentumScrollEnd('gp')}
+          sectionRefCallback={sectionRefCallbacks.gp}
+          onMomentumScrollEndCallback={momentumCallbacks.gp}
           t={t}
         />
         <CarouselSection
@@ -2652,8 +2685,8 @@ function CloudScreen({navigation, route}: any) {
           data={newTitles}
           categoryKey="new"
           idPrefix="new"
-          isSectionActive={isGamepadActive && focusedSection === 'new'}
-          focusedIndex={focusedSection === 'new' ? focusedIndex : -1}
+          isSectionActive={activeCarouselSection === 'new'}
+          focusedIndex={activeCarouselSection === 'new' ? activeCarouselIndex : -1}
           isGamepadActive={isGamepadActive}
           hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
@@ -2664,8 +2697,8 @@ function CloudScreen({navigation, route}: any) {
           onPress={handleViewDetail}
           onPlayPress={handleDirectPlay}
           onShowAll={handleShowAll}
-          sectionRefCallback={setSectionRef('new')}
-          onMomentumScrollEndCallback={onMomentumScrollEnd('new')}
+          sectionRefCallback={sectionRefCallbacks.new}
+          onMomentumScrollEndCallback={momentumCallbacks.new}
           t={t}
         />
         {!isFreeTier && (
@@ -2674,8 +2707,8 @@ function CloudScreen({navigation, route}: any) {
             data={ubisoftTitles}
             categoryKey="ubisoft"
             idPrefix="ubi"
-            isSectionActive={isGamepadActive && focusedSection === 'ubi'}
-            focusedIndex={focusedSection === 'ubi' ? focusedIndex : -1}
+            isSectionActive={activeCarouselSection === 'ubi'}
+            focusedIndex={activeCarouselSection === 'ubi' ? activeCarouselIndex : -1}
             isGamepadActive={isGamepadActive}
             hidePlayButton={shouldHidePlayButton}
             horizontalCardWidth={horizontalCardWidth}
@@ -2686,8 +2719,8 @@ function CloudScreen({navigation, route}: any) {
             onPress={handleViewDetail}
             onPlayPress={handleDirectPlay}
             onShowAll={handleShowAll}
-            sectionRefCallback={setSectionRef('ubi')}
-            onMomentumScrollEndCallback={onMomentumScrollEnd('ubi')}
+            sectionRefCallback={sectionRefCallbacks.ubi}
+            onMomentumScrollEndCallback={momentumCallbacks.ubi}
             t={t}
           />
         )}
@@ -2696,8 +2729,8 @@ function CloudScreen({navigation, route}: any) {
           data={streamYourOwnTitles}
           categoryKey="own"
           idPrefix="own"
-          isSectionActive={isGamepadActive && focusedSection === 'own'}
-          focusedIndex={focusedSection === 'own' ? focusedIndex : -1}
+          isSectionActive={activeCarouselSection === 'own'}
+          focusedIndex={activeCarouselSection === 'own' ? activeCarouselIndex : -1}
           isGamepadActive={isGamepadActive}
           hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
@@ -2708,8 +2741,8 @@ function CloudScreen({navigation, route}: any) {
           onPress={handleViewDetail}
           onPlayPress={handleDirectPlay}
           onShowAll={handleShowAll}
-          sectionRefCallback={setSectionRef('own')}
-          onMomentumScrollEndCallback={onMomentumScrollEnd('own')}
+          sectionRefCallback={sectionRefCallbacks.own}
+          onMomentumScrollEndCallback={momentumCallbacks.own}
           t={t}
         />
         <CarouselSection
@@ -2717,8 +2750,8 @@ function CloudScreen({navigation, route}: any) {
           data={leavingSoonList}
           categoryKey="leaving"
           idPrefix="leave"
-          isSectionActive={isGamepadActive && focusedSection === 'leave'}
-          focusedIndex={focusedSection === 'leave' ? focusedIndex : -1}
+          isSectionActive={activeCarouselSection === 'leave'}
+          focusedIndex={activeCarouselSection === 'leave' ? activeCarouselIndex : -1}
           isGamepadActive={isGamepadActive}
           hidePlayButton={shouldHidePlayButton}
           horizontalCardWidth={horizontalCardWidth}
@@ -2729,8 +2762,8 @@ function CloudScreen({navigation, route}: any) {
           onPress={handleViewDetail}
           onPlayPress={handleDirectPlay}
           onShowAll={handleShowAll}
-          sectionRefCallback={setSectionRef('leave')}
-          onMomentumScrollEndCallback={onMomentumScrollEnd('leave')}
+          sectionRefCallback={sectionRefCallbacks.leave}
+          onMomentumScrollEndCallback={momentumCallbacks.leave}
           t={t}
         />
         <View style={styles.catalogDividerHeader}>
@@ -2764,13 +2797,13 @@ function CloudScreen({navigation, route}: any) {
     isLandscape,
     isGamepadActive,
     shouldHidePlayButton,
-    focusedSection,
-    focusedIndex,
+    activeCarouselSection,
+    activeCarouselIndex,
     handleViewDetail,
     handleDirectPlay,
     handleShowAll,
-    setSectionRef,
-    onMomentumScrollEnd,
+    sectionRefCallbacks,
+    momentumCallbacks,
     t,
   ]);
 

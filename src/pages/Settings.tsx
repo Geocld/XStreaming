@@ -384,14 +384,16 @@ function SettingsScreen({navigation}) {
             </Text>
           </View>
 
-          {display.map((meta, idx) =>
-            renderItem(
-              meta.title,
-              meta.description,
-              () => handleItemPress(meta.name),
-              meta.name || idx,
-            ),
-          )}
+          {display
+            .filter(meta => !Platform.isTV || meta.name !== 'picture_in_picture')
+            .map((meta, idx) =>
+              renderItem(
+                meta.title,
+                meta.description,
+                () => handleItemPress(meta.name),
+                meta.name || idx,
+              ),
+            )}
 
           {renderItem(
             t('Display'),
