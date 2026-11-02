@@ -81,6 +81,11 @@ export default {
     'Press Nexus': 'Tekan tombol Nexus',
     'Long press Nexus': 'Tahan tombol Nexus',
     Disconnect: 'Putuskan koneksi',
+    'Start Recording': 'Mulai merekam',
+    'Stop Recording': 'Hentikan rekaman',
+    'Recording started': 'Perekaman dimulai',
+    'Recording saved to Movies/XStreaming':
+      'Rekaman disimpan di Movies/XStreaming',
     'Disconnect and power off': 'Putuskan koneksi & matikan konsol',
     'Save session & disconnect': 'Simpan sesi & putuskan koneksi',
     NoXGP:
@@ -99,7 +104,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Pilih resolusi streaming, mendukung 720P/1080P/1080P(HQ)',
     resolutionTips:
-      '\n1. 1080P(HQ) mendukung bitrate >= 15 Mbps untuk visual yang lebih tajam dan jernih.\n2. Streaming konsol lokal hanya mendukung 720P/1080P/1080P(HQ).\n3. Resolusi 1440P hanya didukung oleh beberapa game xCloud tertentu dan tidak berlaku untuk streaming konsol.\n4. Microsoft sedang menyesuaikan kebijakan resolusi xCloud. Sebagian game Xbox Game Pass Ultimate saat ini hanya mendukung 720P/1440P.\n5. Karena batasan protokol Microsoft, Microsoft Store tidak dapat digunakan secara normal saat streaming konsol dalam mode 1080P(HQ). Jika perlu menggunakan Store, silakan beralih ke 720P/1080P.',
+      '\n1. 1080P(HQ) mendukung bitrate minimal 15 Mbps untuk gambar yang lebih tajam.\n2. Streaming konsol secara default mendukung 720P/1080P/1080P(HQ). Untuk menggunakan 1440P, sambungkan layar yang mendukung 1440P, lalu pilih 1440P di Pengaturan > Umum > Output Tampilan.\n3. Microsoft sedang menyesuaikan kebijakan resolusi xCloud. Saat ini, beberapa game untuk anggota Xbox Game Pass Ultimate hanya mendukung 720P/1440P.\n4. Karena batasan protokol Microsoft, Microsoft Store tidak dapat digunakan secara normal saat streaming konsol dalam mode 1080P(HQ)/1440P. Beralihlah ke 720P/1080P jika perlu menggunakan Store.',
     'Host stream bitrate': 'Bitrate streaming konsol',
     'Cloud stream bitrate': 'Bitrate cloud gaming',
     'Audio bitrate': 'Bitrate audio',
@@ -390,7 +395,6 @@ export default {
     Text: 'Teks',
     'Send text': 'Kirim teks',
     Volume: 'Volume',
-    Boost: 'Penguat',
     Audio_volume_title: 'Penguat volume audio',
     Audio_volume_desc:
       'Jika volume suara bawaan terasa kurang kencang, perkuat sumber audio di sini. Perhatian: Volume berlebih dapat mengganggu pendengaran.',

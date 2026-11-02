@@ -62,6 +62,11 @@ export default {
     'Press Nexus': 'Nexusを押す',
     'Long press Nexus': 'Nexusを長押し',
     Disconnect: '切断',
+    'Start Recording': '録画を開始',
+    'Stop Recording': '録画を停止',
+    'Recording started': '録画を開始しました',
+    'Recording saved to Movies/XStreaming':
+      '録画を Movies/XStreaming に保存しました',
     'Disconnect and power off': '切断して電源を切る',
     'Save session & disconnect': 'セッションを保存して切断',
     NoXGP:
@@ -80,7 +85,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '解像度設定 (720P/1080P対応)',
     resolutionTips:
-      '1080P(HQ)には高速な通信環境が必要です。コンソールは最大1080Pまで対応しています。Microsoftのプロトコル制限により、1080P(HQ)モードのコンソールストリーミングではMicrosoft Storeを正常に利用できません。Storeを利用する必要がある場合は、720P/1080Pに切り替えてください。',
+      '\n1. 1080P(HQ)は15Mbps以上のビットレートに対応し、より鮮明な映像を楽しめます。\n2. コンソールストリーミングは標準で720P/1080P/1080P(HQ)に対応しています。1440Pを利用するには、1440P対応ディスプレイを接続し、設定 > 一般 > ディスプレイ出力で1440Pを選択してください。\n3. Microsoftは現在xCloudの解像度ポリシーを調整しています。一部のゲームはXbox Game Pass Ultimate会員でも現在720P/1440Pのみ対応しています。\n4. Microsoftのプロトコル制限により、1080P(HQ)/1440PモードのコンソールストリーミングではMicrosoft Storeを正常に利用できません。Storeを利用する場合は720P/1080Pに切り替えてください。',
     'Host stream bitrate': 'ホストビットレート',
     'Cloud stream bitrate': 'クラウドビットレート',
     'Audio bitrate': 'オーディオビットレート',
@@ -344,7 +349,6 @@ export default {
     Text: 'テキスト',
     'Send text': 'テキスト送信',
     Volume: '音量',
-    Boost: 'ブースト',
     Audio_volume_title: '音量調整',
     Audio_volume_desc: 'オーディオ増幅',
     Audio_stereo_title: 'ステレオ出力',

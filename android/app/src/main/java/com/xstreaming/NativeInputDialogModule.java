@@ -427,13 +427,12 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
             final TextView finalAudioGainLabel;
 
             if (showAudioGainControl) {
-                final String audioGainTitle = getString(options, "audioGainLabel", "Boost");
                 LinearLayout audioGainContent = new LinearLayout(activity);
                 audioGainContent.setOrientation(LinearLayout.HORIZONTAL);
                 audioGainContent.setGravity(Gravity.CENTER_VERTICAL);
                 audioGainContent.setPadding(dp(activity, 10), dp(activity, 4), dp(activity, 10), dp(activity, 4));
                 audioGainContent.setFocusable(true);
-                audioGainContent.setFocusableInTouchMode(true);
+                audioGainContent.setFocusableInTouchMode(false);
                 audioGainContent.setClickable(true);
                 audioGainContent.setBackground(createOptionBackground(activity, false));
 
@@ -447,25 +446,11 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
                 boostIconParams.rightMargin = dp(activity, 6);
                 audioGainContent.addView(boostIcon, boostIconParams);
 
-                TextView boostLabel = new TextView(activity);
-                boostLabel.setText(audioGainTitle);
-                boostLabel.setTextColor(Color.parseColor("#E5E7EB"));
-                boostLabel.setTextSize(12);
-                boostLabel.setTypeface(Typeface.DEFAULT_BOLD);
-                LinearLayout.LayoutParams boostLabelParams = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                );
-                boostLabelParams.rightMargin = dp(activity, 8);
-                audioGainContent.addView(boostLabel, boostLabelParams);
-
                 audioGainContent.setOnFocusChangeListener((v, hasFocus) -> {
                     if (hasFocus) {
                         boostIcon.setColorFilter(Color.parseColor("#10B981"));
-                        boostLabel.setTextColor(Color.parseColor("#10B981"));
                     } else {
                         boostIcon.setColorFilter(Color.parseColor("#9CA3AF"));
-                        boostLabel.setTextColor(Color.parseColor("#E5E7EB"));
                     }
                 });
 
@@ -729,13 +714,6 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
                 if (playtimeTimerRunnable != null) {
                     playtimeTimerRunnable.run();
                 }
-                if (finalAudioGainContent != null) {
-                    root.post(() -> finalAudioGainContent.requestFocus());
-                } else if (!leftViews.isEmpty()) {
-                    root.post(() -> leftViews.get(0).requestFocus());
-                } else if (!rightViews.isEmpty()) {
-                    root.post(() -> rightViews.get(0).requestFocus());
-                }
             });
             dialog.setOnKeyListener((d, keyCode, event) -> {
                 if (event.getAction() != KeyEvent.ACTION_DOWN) {
@@ -746,6 +724,24 @@ public class NativeInputDialogModule extends ReactContextBaseJavaModule {
                 boolean isAudioGainFocused = (finalAudioGainContent != null && cur == finalAudioGainContent);
                 int leftIdx = leftViews.indexOf(cur);
                 int rightIdx = rightViews.indexOf(cur);
+                boolean hasNavigableFocus = isAudioGainFocused || leftIdx >= 0 || rightIdx >= 0;
+
+                if (!hasNavigableFocus
+                        && (keyCode == KeyEvent.KEYCODE_DPAD_UP
+                        || keyCode == KeyEvent.KEYCODE_DPAD_DOWN
+                        || keyCode == KeyEvent.KEYCODE_DPAD_LEFT
+                        || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                    View initialFocus = finalAudioGainContent;
+                    if (initialFocus == null && !leftViews.isEmpty()) {
+                        initialFocus = leftViews.get(0);
+                    } else if (initialFocus == null && !rightViews.isEmpty()) {
+                        initialFocus = rightViews.get(0);
+                    }
+                    if (initialFocus != null) {
+                        initialFocus.requestFocus();
+                        return true;
+                    }
+                }
 
                 if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                     if (isAudioGainFocused) {

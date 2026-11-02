@@ -61,6 +61,11 @@ export default {
     'Press Nexus': 'Nexus 누르기',
     'Long press Nexus': 'Nexus 길게 누르기',
     Disconnect: '연결 끊기',
+    'Start Recording': '녹화 시작',
+    'Stop Recording': '녹화 중지',
+    'Recording started': '녹화를 시작했습니다',
+    'Recording saved to Movies/XStreaming':
+      '녹화 파일을 Movies/XStreaming에 저장했습니다',
     'Disconnect and power off': '연결 끊고 전원 끄기',
     'Save session & disconnect': '세션 저장 및 연결 끊기',
     NoXGP:
@@ -79,7 +84,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '해상도 설정 (720P/1080P 지원)',
     resolutionTips:
-      '1080P(HQ)는 더 나은 화질을 위해 높은 비트레이트를 지원합니다. 콘솔은 최대 1080P까지만 지원합니다. Microsoft 프로토콜 제한으로 인해 1080P(HQ) 모드의 콘솔 스트리밍 중에는 Microsoft Store를 정상적으로 사용할 수 없습니다. Store를 사용해야 한다면 720P/1080P로 전환하세요.',
+      '\n1. 1080P(HQ)는 더 선명한 화질을 위해 15Mbps 이상의 비트레이트를 지원합니다.\n2. 콘솔 스트리밍은 기본적으로 720P/1080P/1080P(HQ)를 지원합니다. 1440P를 사용하려면 1440P를 지원하는 디스플레이를 연결한 뒤 설정 > 일반 > 디스플레이 출력에서 1440P를 선택하세요.\n3. Microsoft는 현재 xCloud 해상도 정책을 조정하고 있습니다. 일부 게임은 현재 Xbox Game Pass Ultimate 회원도 720P/1440P만 지원합니다.\n4. Microsoft 프로토콜 제한으로 인해 1080P(HQ)/1440P 모드의 콘솔 스트리밍 중에는 Microsoft Store를 정상적으로 사용할 수 없습니다. Store를 사용하려면 720P/1080P로 전환하세요.',
     'Host stream bitrate': '호스트 비트레이트',
     'Cloud stream bitrate': '클라우드 비트레이트',
     'Audio bitrate': '오디오 비트레이트',
@@ -342,7 +347,6 @@ export default {
     Text: '텍스트',
     'Send text': '텍스트 전송',
     Volume: '볼륨',
-    Boost: '오디오 증폭',
     Audio_volume_title: '볼륨 조절',
     Audio_volume_desc: '오디오 증폭 설정',
     Audio_stereo_title: '스테레오 출력',

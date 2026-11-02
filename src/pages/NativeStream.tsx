@@ -3117,7 +3117,6 @@ export function NativeStreamScreenBase({
     const result = await showNativeOptionsDialog(items, {
       showAudioGainControl: connectState === CONNECTED,
       audioGain,
-      audioGainLabel: t('Boost'),
       sessionStartTime: sessionStartTimeRef.current,
       sessionLimitSeconds: sessionLimitSecondsRef.current,
       sessionPlaytimeLabel: t('Session Playtime'),

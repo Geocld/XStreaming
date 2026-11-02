@@ -62,6 +62,11 @@ export default {
     'Press Nexus': 'Nexus drücken',
     'Long press Nexus': 'Nexus lange drücken',
     Disconnect: 'Trennen',
+    'Start Recording': 'Aufnahme starten',
+    'Stop Recording': 'Aufnahme stoppen',
+    'Recording started': 'Aufnahme gestartet',
+    'Recording saved to Movies/XStreaming':
+      'Aufnahme gespeichert unter Movies/XStreaming',
     'Disconnect and power off': 'Trennen und ausschalten',
     'Save session & disconnect': 'Sitzung speichern und trennen',
     NoXGP:
@@ -80,7 +85,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Auflösung festlegen, unterstützt 720P/1080P/1080P(HQ)',
     resolutionTips:
-      '\n1. 1080P(HQ) unterstützt Bitraten ab 15 Mbps für bessere Bildqualität.\n2. Konsolenstreaming unterstützt nur 720P/1080P/1080P(HQ).\n3. 1440P wird nur von einigen xCloud-Spielen unterstützt, nicht beim Konsolenstreaming.\n4. Microsoft passt die xCloud-Auflösungspolitik an. Einige Game-Pass-Ultimate-Spiele unterstützen derzeit nur 720P/1440P.\n5. Aufgrund von Microsoft-Protokollbeschränkungen kann der Microsoft Store im 1080P(HQ)-Modus beim Konsolenstreaming nicht normal verwendet werden. Wechsle zu 720P/1080P, wenn du den Store nutzen möchtest.',
+      '\n1. 1080P(HQ) unterstützt Bitraten von mindestens 15 Mbps und sorgt so für ein schärferes Bild.\n2. Konsolenstreaming unterstützt standardmäßig 720P/1080P/1080P(HQ). Für 1440P muss ein 1440P-fähiges Ausgabegerät angeschlossen und unter Einstellungen > Allgemein > Bildausgabe 1440P ausgewählt werden.\n3. Microsoft passt derzeit die xCloud-Auflösungsrichtlinien an. Einige Spiele unterstützen für Xbox Game Pass Ultimate-Mitglieder derzeit nur 720P/1440P.\n4. Aufgrund von Microsoft-Protokollbeschränkungen kann der Microsoft Store beim Konsolenstreaming in den Modi 1080P(HQ)/1440P nicht normal verwendet werden. Wechsle zu 720P/1080P, wenn du den Store nutzen möchtest.',
     'Host stream bitrate': 'Bitrate für Konsolenstreaming',
     'Cloud stream bitrate': 'Bitrate für Cloud-Gaming',
     'Audio bitrate': 'Audio-Bitrate',
@@ -370,7 +375,6 @@ export default {
     Text: 'Text',
     'Send text': 'Text senden',
     Volume: 'Lautstärke',
-    Boost: 'Verstärkung',
     Audio_volume_title: 'Volume control',
     Audio_volume_desc:
       'If the default maximum volume is not enough, amplify the audio source here. Excessive volume may damage hearing.',

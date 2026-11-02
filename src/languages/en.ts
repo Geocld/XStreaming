@@ -80,6 +80,11 @@ export default {
     'Press Nexus': 'Press Nexus',
     'Long press Nexus': 'Long press Nexus',
     Disconnect: 'Disconnect',
+    'Start Recording': 'Start Recording',
+    'Stop Recording': 'Stop Recording',
+    'Recording started': 'Recording started',
+    'Recording saved to Movies/XStreaming':
+      'Recording saved to Movies/XStreaming',
     'Disconnect and power off': 'Disconnect and power off',
     'Save session & disconnect': 'Save session & disconnect',
     NoXGP:
@@ -98,7 +103,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Set resolution, support 720P/1080P/1080P(HQ)',
     resolutionTips:
-      '\n1. 1080P(HQ) supports bitrates >= 15 Mbps for higher clarity.\n2. Console streaming only supports 720P/1080P/1080P(HQ).\n3. 1440P is only supported by some xCloud games and is not supported for console streaming.\n4. Microsoft is adjusting xCloud resolution policy. Some Xbox Game Pass Ultimate games currently only support 720P/1440P.\n5. Due to Microsoft protocol restrictions, the Microsoft Store cannot be used normally during console streaming in 1080P(HQ) mode. Switch to 720P/1080P if you need to use the Store.',
+      '\n1. 1080P(HQ) supports bitrates of at least 15 Mbps for a sharper image.\n2. Console streaming supports 720P/1080P/1080P(HQ) by default. To use 1440P, connect a 1440P-capable display, then select 1440P under Settings > General > Display Output.\n3. Microsoft is currently adjusting xCloud resolution policies. Some games currently support only 720P/1440P for Xbox Game Pass Ultimate members.\n4. Due to Microsoft protocol restrictions, the Microsoft Store cannot be used normally during console streaming in 1080P(HQ)/1440P mode. Switch to 720P/1080P if you need to use the Store.',
     'Host stream bitrate': 'Host stream bitrate',
     'Cloud stream bitrate': 'Cloud stream bitrate',
     'Audio bitrate': 'Audio bitrate',
@@ -388,7 +393,6 @@ export default {
     Text: 'Text',
     'Send text': 'Send text',
     Volume: 'Volume',
-    Boost: 'Boost',
     Audio_volume_title: 'Volume control',
     Audio_volume_desc:
       'If the default maximum volume is not enough, amplify the audio source here. Excessive volume may damage hearing.',

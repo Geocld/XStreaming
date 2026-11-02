@@ -78,6 +78,11 @@ export default {
     'Press Nexus': '按下西瓜键',
     'Long press Nexus': '长按西瓜键',
     Disconnect: '断开连接',
+    'Start Recording': '开始录制',
+    'Stop Recording': '停止录制',
+    'Recording started': '已开始录制',
+    'Recording saved to Movies/XStreaming':
+      '录制文件已保存至 Movies/XStreaming',
     'Disconnect and power off': '断开连接并关机',
     'Save session & disconnect': '保存会话并断开',
     NoXGP:
@@ -96,11 +101,10 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       '设置串流分辨率，支持720P/1080P/1080P(HQ)切换',
     resolutionTips: `
-1.1080P(HQ)支持码率>=15Mbps 高码率运行，清晰度度更高
-2.主机串流只支持720P/1080P/1080P(HQ)
-3. 1440P只支持xCloud部分游戏，主机串流不支持
-4. xCloud目前微软调整分辨率策略，部分游戏Xbox Game Pass Ultimate级别会员目前只支持720P/1440P分辨率
-5. 因为微软的协议限制，1080P(HQ)模式下主机串流无法正常使用微软商店，如需使用商店，请切换到720P/1080P`,
+1. 1080P(HQ)支持码率>=15Mbps 高码率运行，清晰度度更高
+2. 主机串流默认支持720P/1080P/1080P(HQ)，如需支持1440P，需要在连接支持1440P的输出设备后，在设置-通用-显示输出选项中选择1440P
+3. xCloud目前微软调整分辨率策略，部分游戏Xbox Game Pass Ultimate级别会员目前只支持720P/1440P分辨率
+4. 因为微软的协议限制，1080P(HQ)/1440P模式下主机串流无法正常使用微软商店，如需使用商店，请切换到720P/1080P`,
     'Host stream bitrate': '主机串流码率',
     'Cloud stream bitrate': '云游戏码率',
     'Audio bitrate': '声音',
@@ -374,7 +378,6 @@ export default {
     Text: '文字',
     'Send text': '发送文字',
     Volume: '音量',
-    Boost: '增益',
     Audio_volume_title: '音量控制',
     Audio_volume_desc:
       '如果默认音量最大值达不到预期，可以在此处选择放大音源(注意过大的音量会影响听力！)',

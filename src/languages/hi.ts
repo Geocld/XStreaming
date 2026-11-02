@@ -63,6 +63,11 @@ export default {
     'Press Nexus': 'Nexus दबाएं',
     'Long press Nexus': 'Nexus को देर तक दबाएं',
     Disconnect: 'डिस्कनेक्ट करें',
+    'Start Recording': 'रिकॉर्डिंग शुरू करें',
+    'Stop Recording': 'रिकॉर्डिंग रोकें',
+    'Recording started': 'रिकॉर्डिंग शुरू हुई',
+    'Recording saved to Movies/XStreaming':
+      'रिकॉर्डिंग Movies/XStreaming में सहेजी गई',
     'Disconnect and power off': 'डिस्कनेक्ट और पावर ऑफ',
     'Save session & disconnect': 'सत्र सहेजें और डिस्कनेक्ट करें',
     NoXGP:
@@ -81,7 +86,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'रिज़ॉल्यूशन सेट करें (720P/1080P समर्थित)',
     resolutionTips:
-      '1080P(HQ) के लिए अच्छी इंटरनेट गति की आवश्यकता होती है। कंसोल केवल 1080P तक का समर्थन करता है। Microsoft प्रोटोकॉल प्रतिबंधों के कारण, 1080P(HQ) मोड में कंसोल स्ट्रीमिंग के दौरान Microsoft Store सामान्य रूप से उपयोग नहीं किया जा सकता। यदि आपको Store का उपयोग करना है, तो 720P/1080P पर स्विच करें।',
+      '\n1. बेहतर स्पष्टता के लिए 1080P(HQ) कम से कम 15 Mbps बिटरेट का समर्थन करता है।\n2. कंसोल स्ट्रीमिंग डिफ़ॉल्ट रूप से 720P/1080P/1080P(HQ) का समर्थन करती है। 1440P के लिए, 1440P-सक्षम डिस्प्ले कनेक्ट करें और सेटिंग्स > सामान्य > डिस्प्ले आउटपुट में 1440P चुनें।\n3. Microsoft वर्तमान में xCloud रिज़ॉल्यूशन नीति में बदलाव कर रहा है। कुछ गेम Xbox Game Pass Ultimate सदस्यों के लिए फिलहाल केवल 720P/1440P का समर्थन करते हैं।\n4. Microsoft प्रोटोकॉल प्रतिबंधों के कारण, 1080P(HQ)/1440P मोड में कंसोल स्ट्रीमिंग के दौरान Microsoft Store सामान्य रूप से उपयोग नहीं किया जा सकता। Store का उपयोग करने के लिए 720P/1080P पर स्विच करें।',
     'Host stream bitrate': 'होस्ट बिटरेट',
     'Cloud stream bitrate': 'क्लाउड बिटरेट',
     'Audio bitrate': 'ऑडियो बिटरेट',
@@ -353,7 +358,6 @@ export default {
     Text: 'टेक्स्ट',
     'Send text': 'टेक्स्ट भेजें',
     Volume: 'वॉल्यूम',
-    Boost: 'ऑडियो बूस्ट',
     Audio_volume_title: 'वॉल्यूम नियंत्रण',
     Audio_volume_desc: 'आवाज़ को तेज़ करें।',
     Audio_stereo_title: 'स्टीरियो आउटपुट',

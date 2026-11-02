@@ -64,6 +64,11 @@ export default {
     'Press Nexus': 'Pressionar Nexus',
     'Long press Nexus': 'Manter Nexus pressionado',
     Disconnect: 'Desconectar',
+    'Start Recording': 'Iniciar gravação',
+    'Stop Recording': 'Parar gravação',
+    'Recording started': 'Gravação iniciada',
+    'Recording saved to Movies/XStreaming':
+      'Gravação salva em Movies/XStreaming',
     'Disconnect and power off': 'Desconectar e desligar',
     'Save session & disconnect': 'Salvar sessão e desconectar',
     NoXGP:
@@ -82,7 +87,7 @@ export default {
     'Set resolution, support 720P/1080P/1080P(HQ)':
       'Definir resolução. Compatível com 720p/1080p/1080p (HQ)',
     resolutionTips:
-      '\n1. 1080p (HQ) oferece maior nitidez, mas requer uma conexão de pelo menos 15 Mbps.\n2. O streaming do console suporta apenas 720p/1080p/1080p (HQ).\n3. 1440p é compatível apenas com alguns jogos do xCloud, não com o streaming do console.\n4. A Microsoft está ajustando a resolução do xCloud. Alguns jogos do Game Pass Ultimate suportam apenas 720p/1440p.\n5. Devido a restrições de protocolo da Microsoft, a Microsoft Store não pode ser usada normalmente durante o streaming do console no modo 1080p (HQ). Se precisar usar a loja, mude para 720p/1080p.',
+      '\n1. 1080p (HQ) suporta taxas de bits de pelo menos 15 Mbps para uma imagem mais nítida.\n2. O streaming do console oferece suporte a 720p/1080p/1080p (HQ) por padrão. Para usar 1440p, conecte uma tela compatível com 1440p e selecione 1440p em Configurações > Geral > Saída de vídeo.\n3. A Microsoft está ajustando atualmente as políticas de resolução do xCloud. Alguns jogos oferecem suporte apenas a 720p/1440p para membros do Xbox Game Pass Ultimate.\n4. Devido a restrições do protocolo da Microsoft, a Microsoft Store não pode ser usada normalmente durante o streaming do console nos modos 1080p (HQ)/1440p. Mude para 720p/1080p se precisar usar a loja.',
     'Host stream bitrate': 'Qualidade do streaming do console',
     'Cloud stream bitrate': 'Qualidade dos jogos na nuvem',
     'Audio bitrate': 'Qualidade do áudio',
@@ -380,7 +385,6 @@ export default {
     Text: 'Texto',
     'Send text': 'Enviar texto',
     Volume: 'Volume',
-    Boost: 'Reforço',
     Audio_volume_title: 'Controle de volume',
     Audio_volume_desc:
       'Se o volume máximo padrão não for suficiente, aumente o volume do áudio aqui. Um volume excessivo pode prejudicar a audição.',
