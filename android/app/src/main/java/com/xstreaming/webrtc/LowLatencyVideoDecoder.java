@@ -233,9 +233,6 @@ class LowLatencyVideoDecoder implements VideoDecoder {
         if (isQualcommDecoder(normalizedCodecName)) {
             putInt(format, "vendor.qti-ext-dec-picture-order.enable", 1);
             putInt(format, "vendor.qti-ext-dec-low-latency.enable", 1);
-            putInt(format, "vendor.qti-ext-output-sw-fence-enable.value", 1);
-            putInt(format, "vendor.qti-ext-output-fence.enable", 1);
-            putInt(format, "vendor.qti-ext-output-fence.fence_type", 1);
             putInt(format, "vendor.rtc-ext-dec-low-latency.enable", 1);
         }
 
