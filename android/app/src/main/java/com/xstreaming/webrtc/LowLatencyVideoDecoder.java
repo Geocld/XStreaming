@@ -239,13 +239,78 @@ class LowLatencyVideoDecoder implements VideoDecoder {
         if (isHiSiliconDecoder(normalizedCodecName)) {
             putInt(format, "vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req", 1);
             putInt(format, "vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1);
+            putInt(format, "vendor.hisi-ext-dec-low-latency.enable", 1);
+            putInt(format, "vendor.hisi-ext-dec-output-order.enable", 1);
+            putInt(format, "vendor.hisi-ext-dec-realtime.enable", 1);
+        }
+
+        if (isMediaTekDecoder(normalizedCodecName)) {
+            applyMediaTekLowLatencyFormat(format);
+        }
+
+        if (isExynosDecoder(normalizedCodecName)) {
+            putInt(format, "vendor.rtc-ext-dec-low-latency.enable", 1);
+            putInt(format, "vendor.sec.dec.low-latency.enable", 1);
+            putInt(format, "vendor.sec.dec.realtime.enable", 1);
+            putInt(format, "vendor.sec.dec.output-order.enable", 1);
+        }
+
+        if (isAmlogicDecoder(normalizedCodecName)) {
+            putInt(format, "vendor.amlogic.lowlatency.mode", 1);
+            putInt(format, "vendor.amlogic.tunnel.mode", 0);
+            putInt(format, "vendor.amlogic.frame-skip.enable", 0);
+        }
+
+        if (isTegraDecoder(normalizedCodecName)) {
+            putInt(format, "vendor.nvidia.low-latency.enable", 1);
+            putInt(format, "vendor.nvidia.realtime.enable", 1);
+            putInt(format, "vendor.nvidia.game-streaming.enable", 1);
         }
 
         Log.i(TAG, "Applied low latency decoder format for codec=" + codecName);
     }
 
+    private static void applyMediaTekLowLatencyFormat(MediaFormat format) {
+        putInt(format, "vendor.mtk.vdec.cpu.boost.mode", 1);
+        putInt(format, "vendor.mtk.vdec.cpu.boost.mode.value", 2);
+        putInt(format, "vendor.mtk.ext.dolby.vision.cpu-boost", 1);
+        putInt(format, "vendor.mtk.vdec.dvfs.mode", 1);
+        putInt(format, "vendor.mtk.vdec.dvfs.level", 1);
+        putInt(format, "vendor.mtk.vdec.bq.guard.interval.time.value", 2);
+        putInt(format, "vendor.mtk.vdec.buffer.fetch.timeout.ms.value", 2);
+        putInt(format, "vendor.mtk.vdec.vsync.adjust.enable", 0);
+        putInt(format, "vendor.mtk.vdec.buffer.fetch.timeout.ms", 4);
+        putInt(format, "vendor.mtk.vdec.bq.guard.interval.time", 4);
+        putInt(format, "vendor.mtk.vdec.input.max.queue.depth", 3);
+        putInt(format, "vendor.mtk.vdec.output.max.queue.depth", 3);
+        putInt(format, "vendor.mtk.vdec.low-latency.mode", 1);
+        putInt(format, "vendor.mtk.vdec.ultra-low-latency", 0);
+        putInt(format, "vendor.mtk.vdec.disable-idle", 1);
+        putInt(format, "vendor.mtk.vdec.preload.frame.count", 1);
+        putInt(format, "vendor.mtk.vdec.realtime.priority", 1);
+        putInt(format, "vendor.mtk.vdec.no-reorder", 1);
+        putInt(format, "vendor.mtk.vdec.decode-immediately", 1);
+        putInt(format, "vendor.mtk.vdec.force-max-freq", 1);
+    }
+
     private static boolean isQualcommDecoder(String codecName) {
         return codecName.contains("qcom") || codecName.contains("qti");
+    }
+
+    private static boolean isMediaTekDecoder(String codecName) {
+        return codecName.startsWith("omx.mtk") || codecName.startsWith("c2.mtk");
+    }
+
+    private static boolean isExynosDecoder(String codecName) {
+        return codecName.startsWith("omx.exynos") || codecName.startsWith("c2.exynos");
+    }
+
+    private static boolean isAmlogicDecoder(String codecName) {
+        return codecName.startsWith("omx.amlogic") || codecName.startsWith("c2.amlogic");
+    }
+
+    private static boolean isTegraDecoder(String codecName) {
+        return codecName.startsWith("omx.nvidia") || codecName.startsWith("c2.nvidia");
     }
 
     private static boolean isHiSiliconDecoder(String codecName) {
