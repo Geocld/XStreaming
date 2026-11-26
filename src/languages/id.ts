@@ -593,6 +593,7 @@ export default {
     'Select Cloud Server': 'Pilih Server Cloud',
     'Cloud Server': 'Server Cloud',
     Favorites: 'Favorit',
+    'Play with touch': 'Mainkan dengan sentuhan',
     'Play with Game Pass': 'Mainkan dengan Game Pass',
     'Stream for free with ads': 'Streaming gratis dengan iklan',
     'Start cloud game with ads': 'Mulai cloud game dengan iklan',

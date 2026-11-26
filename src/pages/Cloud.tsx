@@ -55,6 +55,7 @@ import {
   isGamePassSubscriptionTitle,
   isUbisoftTitle,
   isFreeWithAdsTitle,
+  isNativeTouchTitle,
   fetchSiglTitles,
   getRegionDisplayInfo,
   detectAccountTier,
@@ -409,6 +410,7 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
       opts.push({key: 'free_ads', label: t('Stream for free with ads')});
     }
     opts.push(
+      {key: 'touch', label: t('Play with touch')},
       {key: 'play_gamepass', label: t('Play with Game Pass')},
       {key: 'new', label: t('Recently Added')},
     );
@@ -424,6 +426,7 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
   }, [t, showFreeWithAds, hideUbisoft]);
 
   const [modalFocusedIndex, setModalFocusedIndex] = React.useState<number>(0);
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   React.useEffect(() => {
     if (visible) {
@@ -431,6 +434,14 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
       setModalFocusedIndex(idx >= 0 ? idx : 0);
     }
   }, [visible, filterCategory, filterOptions]);
+
+  React.useEffect(() => {
+    if (!visible) return;
+    scrollViewRef.current?.scrollTo({
+      y: Math.max(0, modalFocusedIndex * 46 - 46),
+      animated: true,
+    });
+  }, [visible, modalFocusedIndex]);
 
   useGamepadNavigation({
     enabled: visible,
@@ -478,42 +489,49 @@ const FilterOptionModal: React.FC<FilterOptionModalProps> = ({
             )}
           />
           <Card.Content>
-            {filterOptions.map((opt, idx) => {
-              const isFocused = isGamepadActive && modalFocusedIndex === idx;
-              return (
-                <Pressable
-                  key={opt.key}
-                  focusable={true}
-                  onPress={() => onSelectFilter(opt.key)}
-                  style={({pressed, focused}: any) => [
-                    styles.modalOption,
-                    filterCategory === opt.key && [
-                      styles.modalOptionActive,
-                      {backgroundColor: primary + '1A'},
-                    ],
-                    (isFocused || focused) && [
-                      styles.modalOptionFocused,
-                      {borderColor: isLight ? primary : '#FFFFFF'},
-                    ],
-                    pressed && styles.modalOptionPressed,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.modalOptionText,
-                      isLight && styles.modalOptionTextLight,
-                      filterCategory === opt.key && {
-                        color: primary,
-                        fontWeight: '700',
-                      },
+            <ScrollView
+              ref={scrollViewRef}
+              style={{maxHeight: winH * (isLandscape ? 0.62 : 0.55)}}
+              contentContainerStyle={styles.filterModalScrollContent}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}>
+              {filterOptions.map((opt, idx) => {
+                const isFocused = isGamepadActive && modalFocusedIndex === idx;
+                return (
+                  <Pressable
+                    key={opt.key}
+                    focusable={true}
+                    onPress={() => onSelectFilter(opt.key)}
+                    style={({pressed, focused}: any) => [
+                      styles.modalOption,
+                      filterCategory === opt.key && [
+                        styles.modalOptionActive,
+                        {backgroundColor: primary + '1A'},
+                      ],
+                      (isFocused || focused) && [
+                        styles.modalOptionFocused,
+                        {borderColor: isLight ? primary : '#FFFFFF'},
+                      ],
+                      pressed && styles.modalOptionPressed,
                     ]}>
-                    {opt.label}
-                  </Text>
-                  {filterCategory === opt.key && (
-                    <Icon source="check" size={18} color={primary} />
-                  )}
-                </Pressable>
-              );
-            })}
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        isLight && styles.modalOptionTextLight,
+                        filterCategory === opt.key && {
+                          color: primary,
+                          fontWeight: '700',
+                        },
+                      ]}>
+                      {opt.label}
+                    </Text>
+                    {filterCategory === opt.key && (
+                      <Icon source="check" size={18} color={primary} />
+                    )}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
           </Card.Content>
         </Card>
       </Modal>
@@ -1035,6 +1053,7 @@ function CloudScreen({navigation, route}: any) {
     | 'all'
     | 'favorites'
     | 'free_ads'
+    | 'touch'
     | 'play_gamepass'
     | 'new'
     | 'ubisoft'
@@ -1345,6 +1364,11 @@ function CloudScreen({navigation, route}: any) {
         .some((id: string) => favoriteIds.has(String(id).toUpperCase())),
     );
   }, [starTitles, titles]);
+
+  const touchTitles = React.useMemo(
+    () => titles.filter(isNativeTouchTitle),
+    [titles],
+  );
 
   // Fetch user profile from WebApi
   const fetchUserProfile = async (token: any) => {
@@ -1738,6 +1762,8 @@ function CloudScreen({navigation, route}: any) {
       list = recentTitles;
     } else if (filterCategory === 'new') {
       list = newTitles;
+    } else if (filterCategory === 'touch') {
+      list = touchTitles;
     } else if (filterCategory === 'play_gamepass') {
       list = playWithGamePassTitles;
     } else if (filterCategory === 'ubisoft') {
@@ -1777,6 +1803,7 @@ function CloudScreen({navigation, route}: any) {
     playWithGamePassTitles,
     ubisoftTitles,
     streamYourOwnTitles,
+    touchTitles,
     filterCategory,
     keyword,
     sortBy,
@@ -2869,6 +2896,8 @@ function CloudScreen({navigation, route}: any) {
         return t('Stream for free with ads');
       case 'new':
         return t('Recently Added');
+      case 'touch':
+        return t('Play with touch');
       case 'play_gamepass':
         return t('Play with Game Pass');
       case 'ubisoft':
@@ -4413,6 +4442,9 @@ const styles = StyleSheet.create({
   modalScrollContent: {
     paddingHorizontal: 12,
     paddingBottom: 16,
+  },
+  filterModalScrollContent: {
+    paddingBottom: 4,
   },
   regionModalOption: {
     flexDirection: 'row',

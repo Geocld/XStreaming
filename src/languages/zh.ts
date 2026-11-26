@@ -558,6 +558,7 @@ export default {
     'Select Cloud Server': '选择云游戏服务器',
     'Cloud Server': '云游戏服务器',
     Favorites: '收藏',
+    'Play with touch': '原生触控',
     'Play with Game Pass': '畅玩 Game Pass',
     'Stream for free with ads': '观看广告免费畅玩',
     'Get game': '获取游戏',

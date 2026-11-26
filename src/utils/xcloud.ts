@@ -164,6 +164,25 @@ export const isGamePassSubscriptionTitle = (item: any): boolean => {
   return true;
 };
 
+export const isNativeTouchTitle = (item: any): boolean => {
+  if (!item) {
+    return false;
+  }
+  const details = item.details || {};
+  const inputTypes = details.supportedInputTypes || item.supportedInputTypes;
+  if (!Array.isArray(inputTypes)) {
+    return false;
+  }
+  return inputTypes.some((type: any) => {
+    const name =
+      typeof type === 'string' ? type : type?.name || type?.Name || '';
+    const normalized = String(name)
+      .replace(/[\s_-]/g, '')
+      .toLowerCase();
+    return normalized === 'nativetouch';
+  });
+};
+
 // Validator for authentic Ubisoft+ Classic titles
 export const isUbisoftTitle = (item: any): boolean => {
   if (!item) {

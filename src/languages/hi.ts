@@ -500,6 +500,7 @@ export default {
       'मैक्रो स्विच सेटिंग्स में है।',
     'Enable macro button and edit its action sequence in one place.':
       'एक ही जगह से मैक्रो सेट करें।',
+    'Play with touch': 'टच से खेलें',
     'Play with Game Pass': 'Game Pass के साथ खेलें',
     'Stream for free with ads': 'विज्ञापनों के साथ मुफ्त में स्ट्रीम करें',
     'Get game': 'गेम प्राप्त करें',
