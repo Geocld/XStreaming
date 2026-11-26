@@ -485,6 +485,7 @@ export default {
       '設定で有効化可能',
     'Enable macro button and edit its action sequence in one place.':
       'マクロ設定',
+    'Play with touch': 'タッチでプレイ',
     'Play with Game Pass': 'Game Pass でプレイ',
     'Stream for free with ads': '広告付きで無料ストリーミング',
     'Get game': 'ゲームを入手',

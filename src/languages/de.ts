@@ -533,6 +533,7 @@ export default {
       'Der Makroschalter befindet sich unter Einstellungen -> Virtuelle Makrotaste. Diese Seite bearbeitet nur die Aktionsfolge.',
     'Enable macro button and edit its action sequence in one place.':
       'Makrotaste aktivieren und Aktionsfolge an einem Ort bearbeiten.',
+    'Play with touch': 'Mit Touch spielen',
     'Play with Game Pass': 'Mit Game Pass spielen',
     'Stream for free with ads': 'Kostenlos mit Werbung streamen',
     'Get game': 'Spiel holen',

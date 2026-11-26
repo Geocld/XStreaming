@@ -587,6 +587,7 @@ export default {
     'Select Cloud Server': 'Select Cloud Server',
     'Cloud Server': 'Cloud Server',
     Favorites: 'Favorites',
+    'Play with touch': 'Play with touch',
     'Play with Game Pass': 'Play with Game Pass',
     'Stream for free with ads': 'Stream for free with ads',
     'Get game': 'Get game',

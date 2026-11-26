@@ -481,6 +481,7 @@ export default {
       '설정에서 매크로 활성화 가능',
     'Enable macro button and edit its action sequence in one place.':
       '매크로 설정 및 편집',
+    'Play with touch': '터치로 플레이',
     'Play with Game Pass': 'Game Pass로 플레이',
     'Stream for free with ads': '광고 시청 후 무료 스트리밍',
     'Get game': '게임 받기',

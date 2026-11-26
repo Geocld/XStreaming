@@ -442,6 +442,7 @@ export default {
     'Configure one continuous macro chain. Steps execute from top to bottom when pressing macro button.': 'Configura una cadena continua.',
     'Macro switch is in Settings -> Virtual macro button. This page only edits the action sequence.': 'El interruptor está en Ajustes.',
     'Enable macro button and edit its action sequence in one place.': 'Configura y edita macros.',
+    'Play with touch': 'Juega con la pantalla táctil',
     'Play with Game Pass': 'Juega con Game Pass',
     'Stream for free with ads': 'Transmite gratis con anuncios',
     'Get game': 'Obtener juego',

@@ -507,6 +507,7 @@ export default {
     'Enable macro button and edit its action sequence in one place.':
       '在同一頁面中啟用巨集按鍵並編輯動作序列。',
     'Find games': '搜尋遊戲',
+    'Play with touch': '原生觸控',
     'Play with Game Pass': '暢玩 Game Pass',
     'Stream for free with ads': '觀看廣告免費暢玩',
     'Get game': '獲取遊戲',

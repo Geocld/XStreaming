@@ -550,6 +550,7 @@ export default {
       'O botão para ativar a macro está em Configurações -> Botão macro virtual. Esta página serve apenas para editar a sequência de ações.',
     'Enable macro button and edit its action sequence in one place.':
       'Ative o botão macro e edite sua sequência de ações em um único lugar.',
+    'Play with touch': 'Jogar com toque',
     'Play with Game Pass': 'Jogar com Game Pass',
     'Stream for free with ads': 'Transmitir grátis com anúncios',
     'Get game': 'Obter jogo',
