@@ -2,13 +2,13 @@ export default {
   translation: {
     Consoles: 'Consoles',
     Xcloud: 'xCloud',
-    Host: 'Console',
+    Host: 'Console anfitrião',
     Settings: 'Configurações',
     Login: 'Entrar',
     AuthLogin: 'Entrar com código de autorização',
     About: 'Sobre',
     Profile: 'Perfil',
-    Feedback: 'Comunidade e suporte',
+    Feedback: 'Comentários e sugestões',
     Version: 'Versão',
     Close: 'Fechar',
     More: 'Mais',
@@ -18,7 +18,7 @@ export default {
     'Fetching user info...': 'Obtendo informações da conta...',
     'Fetching consoles...': 'Procurando consoles...',
     'Login successful, refreshing login credentials...':
-      'Login realizado com sucesso. Atualizando o acesso...',
+      'Login realizado com sucesso. Atualizando as credenciais...',
     'Checking login status...': 'Verificando o acesso...',
     'Using saved login credentials...': 'Usando as credenciais de login salvas...',
     'Getting device authorization...': 'Obtendo a autorização do dispositivo...',
@@ -29,7 +29,7 @@ export default {
     'Refreshing Xbox authorization...': 'Atualizando a autorização do Xbox...',
     'Refreshing login credentials...': 'Atualizando as credenciais de login...',
     'Getting streaming credentials...': 'Obtendo as credenciais de streaming...',
-    'Getting web credentials...': 'Obtendo as credenciais da web...',
+    'Getting web credentials...': 'Obtendo as credenciais de acesso à web...',
     'Getting authorization code...': 'Obtendo o código de autorização...',
     'Waiting for authorization...': 'Aguardando a autorização...',
     MsalAuthTip:
@@ -55,10 +55,10 @@ export default {
     'Loading...': 'Carregando...',
     'Start stream': 'Iniciar streaming',
     'Power on and start stream': 'Ligar e iniciar streaming',
-    'Start game': 'Iniciar jogo na nuvem',
+    'Start game': 'Iniciar jogo',
     'Local connect': 'Conexão local',
     'Remote connect': 'Conexão remota',
-    'Search game': 'Buscar jogos',
+    'Search game': 'Buscar jogo',
     'Toggle Performance': 'Mostrar/ocultar informações de desempenho',
     'Toggle Virtual Gamepad': 'Mostrar/ocultar controle virtual',
     'Press Nexus': 'Pressionar Nexus',
@@ -76,7 +76,7 @@ export default {
     Recently: 'Jogados recentemente',
     Newest: 'Adicionados recentemente',
     Stars: 'Favoritos',
-    Own: 'Próprios',
+    Own: 'Meus jogos',
     All: 'Todos',
     Search: 'Buscar',
     Unlocked: 'Desbloqueado',
@@ -88,34 +88,34 @@ export default {
       'Definir resolução. Compatível com 720p/1080p/1080p (HQ)',
     resolutionTips:
       '\n1. 1080p (HQ) suporta taxas de bits de pelo menos 15 Mbps para uma imagem mais nítida.\n2. O streaming do console oferece suporte a 720p/1080p/1080p (HQ) por padrão. Para usar 1440p, conecte uma tela compatível com 1440p e selecione 1440p em Configurações > Geral > Saída de vídeo.\n3. A Microsoft está ajustando atualmente as políticas de resolução do xCloud. Alguns jogos oferecem suporte apenas a 720p/1440p para membros do Xbox Game Pass Ultimate.\n4. Devido a restrições do protocolo da Microsoft, a Microsoft Store não pode ser usada normalmente durante o streaming do console nos modos 1080p (HQ)/1440p. Mude para 720p/1080p se precisar usar a loja.',
-    'Host stream bitrate': 'Qualidade do streaming do console',
-    'Cloud stream bitrate': 'Qualidade dos jogos na nuvem',
-    'Audio bitrate': 'Qualidade do áudio',
+    'Host stream bitrate': 'Taxa de bits do streaming do console',
+    'Cloud stream bitrate': 'Taxa de bits do streaming na nuvem',
+    'Audio bitrate': 'Taxa de bits do áudio',
     'Set the streaming audio bitrate':
-      'Definir a qualidade do áudio',
+      'Definir a taxa de bits do áudio',
     'Set the host streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
-      'Definir a qualidade do streaming do console (Observação: uma qualidade maior nem sempre é melhor. O valor final será ajustado automaticamente de acordo com a conexão.)',
+      'Definir a taxa de bits do streaming do console (Observação: uma taxa de bits maior nem sempre é melhor. O valor final será definido durante a negociação do streaming.)',
     'Set the cloud streaming bitrate (Note: Higher bitrate is not always better; the final bitrate will be determined by streaming negotiation)':
-      'Definir a qualidade do streaming na nuvem (Observação: uma qualidade maior nem sempre é melhor. O valor final será ajustado automaticamente de acordo com a conexão.)',
-    Codec: 'Formato de compressão do vídeo',
+      'Definir a taxa de bits do streaming na nuvem (Observação: uma taxa de bits maior nem sempre é melhor. O valor final será definido durante a negociação do streaming.)',
+    Codec: 'Codec de vídeo',
     'If your device supports newer codecs, it can reduce the video bandwidth requirements':
-      'Formatos de vídeo mais modernos podem reduzir o uso da internet e melhorar a transmissão.',
+      'Se o dispositivo for compatível com codecs mais recentes, eles poderão reduzir a largura de banda necessária para o vídeo.',
     Vibration: 'Vibração',
     'Video stream format': 'Formato do vídeo',
     'Select video stream format, if you want video fullscreen, please select Stretch or Zoom':
       'Selecione como o vídeo será exibido. Para preencher a tela, escolha Esticar ou Zoom. Se sua tela não tiver proporção 16:9, a imagem poderá ficar distorcida ou cortada.',
     'In Native mode, only scaling can be set for the rendering engine.':
-      'No modo de renderização nativo, apenas o tamanho da imagem pode ser ajustado.',
-    'Aspect ratio': 'Manter proporção (16:9)',
+      'No modo Native, só é possível ajustar a escala da imagem no mecanismo de renderização.',
+    'Aspect ratio': 'Proporção da imagem',
     'Native: Use native gamepad kernal to vibrate':
-      'Nativo: usa o sistema do Android para controlar a vibração do controle.',
+      'Nativo: usa o mecanismo nativo de controle para gerar a vibração.',
     "Device: Use Phone/Pad's vibrate":
-      'Dispositivo: usa a vibração do celular ou tablet. Use o redirecionamento de vibração para fazer o controle vibrar.',
+      'Dispositivo: usa o motor de vibração do celular ou tablet.',
     'Webview: Use Chromium kernal to vibrate':
-      'WebView: usa o sistema do Chromium para controlar a vibração.',
+      'WebView: usa o mecanismo do Chromium para gerar a vibração.',
     Stretch: 'Esticar',
     Zoom: 'Zoom',
-    'Gamepad kernal': 'Sistema de controle',
+    'Gamepad kernal': 'Mecanismo do controle',
     'If your controller supports vibration, you can set whether it vibrates during the game':
       'Se o controle for compatível com vibração, você poderá escolher se ele vibrará durante o jogo.',
     'Vibration mode': 'Modo de vibração',
@@ -126,7 +126,7 @@ export default {
       'Ajustar a intensidade da vibração do controle',
     'Joystick dead zone': 'Zona morta do analógico',
     'Config joystick dead zone':
-      'Se o controle apresentar drift, aumente a zona morta do analógico para reduzir o problema.',
+      'Ajuste a zona morta do analógico. Se o analógico apresentar movimento involuntário (drift), aumente esse valor.',
     'Joystick edge compensation': 'Compensação do limite do analógico',
     "If your joystick's maximum value doesn't reach the expected level, you can set maximum value compensation":
       'Se o analógico não atingir seu movimento máximo, configure esta opção para compensar a diferença.',
@@ -134,11 +134,11 @@ export default {
     'Changing the region allows you to use XGPU services without a proxy':
       'Alterar a região permite usar os serviços XGPU sem precisar de um proxy.',
     'The signaling server is a server for stream negotiation. If the host cannot connect, please try modifying this option':
-      'Este servidor ajuda a estabelecer a conexão do streaming. Se o console ou o jogo na nuvem não conseguir se conectar, tente selecionar outro servidor.',
+      'O servidor de sinalização é usado para negociar a conexão do streaming. Se o console anfitrião não conseguir se conectar, tente alterar esta opção.',
     'Prioritize using IPv6 connection': 'Priorizar conexão IPv6',
     'Preferred language of game': 'Idioma preferido do jogo',
     'Set language of cloud game': 'Definir idioma do jogo na nuvem',
-    'Key mapping': 'Mapeamento de botões',
+    'Key mapping': 'Mapeamento de teclas e botões',
     'Mapping key of gamepad': 'Mapear botões do controle',
     'Currently no network connection, please connect and try again':
       'Não há conexão com a internet no momento. Conecte-se e tente novamente.',
@@ -151,17 +151,17 @@ export default {
     PoweredOffSentText: 'Comando para desligar enviado',
     Theme: 'Tema',
     'Set the app theme to take effect on the next launch':
-      'Alternar tema do app',
+      'Definir o tema do aplicativo (a alteração será aplicada na próxima inicialização)',
     'Theme primary color': 'Cor principal do tema',
     'Choose app primary color, takes effect on next launch':
-      'Personalizar a cor do tema do app',
+      'Escolher a cor principal do aplicativo (a alteração será aplicada na próxima inicialização)',
     'Choose from preset palette for best readability':
       'Escolha uma cor da paleta para obter melhor legibilidade.',
     'Signal server': 'Servidor de conexão',
     'Virtual gamepad': 'Controle virtual',
     'Always display the virtual gamepad': 'Sempre mostrar o controle virtual',
     'Select gamepad kernal, you can not use virtual gamepad in Web kernal':
-      'Escolha o sistema usado para controlar o controle. O controle virtual não funciona no modo Web.',
+      'Selecione o mecanismo do controle. O controle virtual não pode ser usado com o mecanismo Web.',
     'Config opacity of virtual gamepad':
       'Configurar a transparência do controle virtual',
     'Display settings': 'Configurações de imagem',
@@ -170,12 +170,12 @@ export default {
     'Display settings is not working in native render engine.':
       'As configurações de imagem não funcionam no modo de renderização nativo.',
     'Override native Xbox gamepad support':
-      'Substituir o suporte padrão do controle Xbox',
+      'Substituir o suporte nativo a controles Xbox',
     bind_usb_device_description:
       'Forçar o XStreaming a assumir o controle dos controles Xbox/DualSense compatíveis conectados por USB.',
     bind_usb_device_tips:
       'Esta configuração funciona apenas com controles conectados por cabo (OTG) compatíveis com XInput ou DualSense.',
-    'Power on when streaming': 'Ligar ao iniciar o streaming',
+    'Power on when streaming': 'Ligar o console ao iniciar o streaming',
     power_on_description:
       'Escolha se deseja ligar o console quando o streaming começar. Por padrão, o console pode iniciar o streaming enquanto estiver em suspensão. Ativar esta opção pode também ligar a tela conectada ao console.',
     'Low Latency Mode': 'Modo de baixa latência',
@@ -194,16 +194,16 @@ export default {
     'Name can not be empty': 'O nome não pode estar vazio',
     'Show performance': 'Mostrar desempenho',
     'Always display the performance panel':
-      'Sempre mostrar o painel de desempenho',
-    'Performance show style': 'Estilo das informações de desempenho',
+      'Sempre exibir o painel de desempenho',
+    'Performance show style': 'Orientação do painel de desempenho',
     'Setting performance show style':
-      'Escolher como as informações de desempenho serão exibidas (horizontal/vertical)',
+      'Definir a orientação do painel de desempenho (horizontal ou vertical)',
     Performance_opacity_title: 'Opacidade do painel de desempenho',
     Performance_opacity_desc: 'Ajustar a opacidade do painel de desempenho',
     'It has been detected that you are using the wired connection mode with the Overwrite Android driver. If the USB connection is disconnected during the game, please exit the game and reconnect the controller; otherwise, the controller buttons will become unresponsive':
       'Foi detectado que você está usando um controle conectado por cabo com o driver Android substituído. Se o USB for desconectado durante o jogo, saia do jogo e reconecte o controle. Caso contrário, os botões poderão parar de responder.',
     'If you are using an Xbox One/S/X controller and encounter unresponsive buttons when entering the game, please press the home button on the controller first':
-      'Se você estiver usando um controle Xbox One/S/X e os botões não responderem ao entrar no jogo, pressione primeiro o botão Home do controle.',
+      'Se estiver usando um controle Xbox One/S/X e os botões não responderem ao entrar no jogo, pressione primeiro o botão Xbox (Home) do controle.',
     'After replacing the Android controller driver, controller button mapping is temporarily not supported':
       'Após substituir o sistema de controle do Android, o mapeamento dos botões ficará temporariamente indisponível.',
     'Short Trigger': 'Gatilho curto',
@@ -211,7 +211,7 @@ export default {
       'Ative se quiser que o gatilho funcione como um botão de acionamento rápido ou se estiver usando um controle com gatilhos não lineares, como o Switch/NS Pro.',
     'Auto Sprint': 'Corrida automática',
     AutoSprintDesc:
-      'Pressiona L3 automaticamente enquanto o analógico esquerdo estiver em movimento e solta quando ele voltar ao centro.',
+      'Pressiona L3 automaticamente enquanto o analógico esquerdo estiver inclinado e solta o botão quando o analógico retornar ao centro.',
     noAllow:
       'Você não tem permissão para iniciar jogos na nuvem. Verifique se o acesso expirou e faça login novamente. Para jogos na nuvem, certifique-se de possuir o XGPU. Para jogos fora do XGPU, certifique-se de possuir o jogo.',
     homeNoAllow:
@@ -247,7 +247,7 @@ export default {
     Friends: 'Amigos',
     Achivements: 'Conquistas',
     Auto: 'Automático',
-    bitrate: 'Qualidade da transmissão',
+    bitrate: 'Taxa de bits da transmissão',
     Language: 'Idioma',
     Display: 'Tela',
     Gamepad: 'Controle',
@@ -347,13 +347,13 @@ export default {
       'Este é um jogo que você possui, não um jogo da biblioteca XGPU. Para jogá-lo, certifique-se de que você comprou o jogo.',
     compatibleWarn:
       'Este jogo apresenta problemas de compatibilidade com apps de streaming de terceiros. Recomenda-se jogar por meio dos canais oficiais.',
-    'Picture in picture': 'Picture-in-picture',
+    'Picture in picture': 'Janela flutuante (PiP)',
     PictureInPictureDesc:
-      'Ao ativar esta opção, colocar o streaming em segundo plano abrirá o modo picture-in-picture do Android, mantendo o vídeo visível.',
+      'Ao ativar esta opção, ao colocar o streaming em segundo plano, o Android abrirá uma janela flutuante (PiP), mantendo o vídeo visível.',
     'Native portrait mode': 'Modo retrato nativo',
     NativePortraitModeDesc:
       'Ao ativar esta opção, o streaming será exibido no modo retrato, com o vídeo na parte superior e os botões virtuais abaixo.',
-    'Ultra low latency decoding': 'Reduzir atraso do vídeo',
+    'Ultra low latency decoding': 'Decodificação de latência ultrabaixa',
     UltraLowLatencyDecoderDesc:
       'Ativa uma forma de processamento que reduz o atraso entre o envio e a exibição da imagem. Esse recurso não funciona em todos os dispositivos Android. Desative-o se aparecer uma tela preta ou ocorrerem outros problemas.',
     'Exit stream?': 'Sair do streaming?',
@@ -413,9 +413,9 @@ export default {
     'Configuring ICE, waiting for response...':
       'Estabelecendo conexão. Aguardando resposta...',
     'Streaming is closed':
-      'O streaming foi encerrado pelo console',
+      'O streaming foi encerrado',
     'NAT failed':
-      'Não foi possível estabelecer a conexão remota. Verifique sua conexão com a internet e as configurações do roteador. Se o problema continuar, tente usar o app oficial do Xbox.',
+      'Falha na conexão NAT. Não foi possível estabelecer a conexão remota. Verifique sua conexão com a internet e as configurações do roteador. Se o problema persistir, tente usar o aplicativo oficial do Xbox.',
     'Reconnected failed':
       'A rede mudou e não foi possível reconectar. Conecte-se novamente e tente outra vez.',
     Nano: 'Nano (experimental)',
@@ -426,7 +426,7 @@ export default {
       '\nNative: usa o sistema nativo do Android para reproduzir o vídeo. Geralmente oferece menor consumo de recursos e melhor compatibilidade (recomendado).\n\nNano: usa um sistema próprio e mais simples para reproduzir o vídeo. Pode ser útil se você tiver problemas com o modo Native.\n\nWebView: usa o sistema WebView do Android para reproduzir o vídeo e requer WebView 91 ou posterior.\n\nCada opção funciona melhor em diferentes dispositivos. Escolha a que apresentar melhor desempenho no seu aparelho.',
     'Open Microphone': 'Abrir microfone',
     'Close Microphone': 'Fechar microfone',
-    'Device testing': 'Teste do dispositivo',
+    'Device testing': 'Diagnóstico do dispositivo',
     'Testing current device and controller':
       'Testar o dispositivo e o controle atuais',
     Rumble1s: 'Vibrar por 1 segundo',
@@ -450,25 +450,25 @@ export default {
     Details: 'Detalhes',
     'Clear Cache': 'Limpar cache',
     'Clear XStreaming Cache Data(Keep login data)':
-      'Limpar dados do XStreaming (manter dados de login)',
+      'Limpar o cache do XStreaming (manter os dados de login)',
     History: 'Histórico',
     HistoryTitle: 'Histórico de atualizações',
     HistoryDesc: 'Ver o histórico de atualizações do XStreaming',
     Server: 'Servidor',
-    'TURN server': 'Servidor intermediário',
-    'Custom TURN server': 'Servidor intermediário personalizado',
+    'TURN server': 'Servidor TURN',
+    'Custom TURN server': 'Servidor TURN personalizado',
     UrlIncorrect: 'O endereço do servidor está incorreto',
     Username: 'Usuário',
     Password: 'Senha',
     'Save server': 'Salvar servidor',
-    inner_server_title: 'Servidor intermediário integrado',
+    inner_server_title: 'Servidor TURN integrado',
     inner_server_desc:
       'Usa um servidor integrado ao XStreaming para ajudar a estabelecer a conexão quando uma conexão direta não é possível. A estabilidade não é garantida e o recurso vem desativado por padrão. Ative se necessário.',
     'Auto toggle hold buttons': 'Manter botões automaticamente',
     'Select what buttons become toggle holdable':
       'Escolha quais botões poderão ser mantidos pressionados automaticamente',
     HoldButtonsSettingsDesc:
-      'Este recurso mantém um botão pressionado automaticamente depois que você o segura, até que você toque nele novamente. É útil em situações que exigem manter um botão pressionado, como acelerar em jogos de corrida ou atirar continuamente em jogos de tiro.',
+      'Esse recurso mantém um botão pressionado após você ativá-lo, até que toque nele novamente. É útil em situações que exigem manter um botão pressionado, como acelerar em jogos de corrida ou disparar continuamente em jogos de tiro.',
     'Hold Buttons': 'Manter botões pressionados',
     FSR_desc:
       'Ative o FSR (FidelityFX Super Resolution) para melhorar a nitidez da imagem sem aumentar o uso da internet. Isso aumenta o uso do processador e da placa gráfica e pode causar aquecimento em alguns dispositivos. Use com cuidado.',
@@ -491,10 +491,10 @@ export default {
     useMsalLoginDesc:
       'Força o login usando um código de autorização. Tente ativar esta opção se o login ou os jogos na nuvem não funcionarem corretamente.',
     Completed: 'Concluído',
-    coop_title: 'Co-op local (experimental)',
+    coop_title: 'Cooperativo local (experimental)',
     coop_desc:
       'Ativa o modo local para dois jogadores. Certifique-se de que nenhum controle esteja conectado ao console e que dois controles estejam conectados localmente. Nem todos os jogos são compatíveis.',
-    CoopTips: 'Modo co-op ativado',
+    CoopTips: 'Modo cooperativo ativado',
     Microphone_title: 'Ativar microfone (experimental)',
     Microphone_desc:
       'O menu rápido permite ligar e desligar o microfone.',
@@ -509,7 +509,7 @@ export default {
     'Enable macro button and edit its action sequence':
       'Ativar o botão macro e editar sua sequência de ações',
     'Configure one macro button with separate short/long press action chains for accessibility play styles.':
-      'Configure um botão macro com ações diferentes para toque curto e longo, facilitando estilos de jogo mais acessíveis.',
+      'Configure um botão macro com sequências de ações distintas para pressionamento curto e longo, permitindo estilos de jogo mais acessíveis.',
     'Macro button': 'Botão macro',
     'Enable or disable': 'Ativar ou desativar',
     'Long press threshold': 'Tempo necessário para toque longo',
@@ -527,11 +527,11 @@ export default {
     'Add action': 'Adicionar ação',
     Button: 'Botão',
     Buttons: 'Grupo de botões',
-    'Hold duration': 'Tempo mantendo pressionado',
-    'Wait after action': 'Tempo de espera após a ação',
+    'Hold duration': 'Duração do pressionamento',
+    'Wait after action': 'Aguardar após a ação',
     'Loop macro': 'Repetir macro',
     'Press macro once to loop, press again to stop':
-      'Pressione o macro uma vez para iniciar a repetição e novamente para parar.',
+      'Pressione o botão macro uma vez para iniciar a repetição e novamente para interrompê-la.',
     'Loop interval': 'Intervalo entre repetições',
     'Action type': 'Tipo de ação',
     'Button macro': 'Macro de botões',
@@ -550,22 +550,22 @@ export default {
       'O botão para ativar a macro está em Configurações -> Botão macro virtual. Esta página serve apenas para editar a sequência de ações.',
     'Enable macro button and edit its action sequence in one place.':
       'Ative o botão macro e edite sua sequência de ações em um único lugar.',
-    'Play with Game Pass': 'Jogar com Game Pass',
-    'Stream for free with ads': 'Transmitir grátis com anúncios',
+    'Play with Game Pass': 'Jogar com o Game Pass',
+    'Stream for free with ads': 'Jogar por streaming grátis com anúncios',
     'Get game': 'Obter jogo',
     PurchaseNoticeTitle: 'Informações de compra',
     PurchaseNoticeDesc:
       'Para continuar comprando o jogo, abra a página da Xbox pelo celular ou PC',
     'Load more': 'Carregar mais',
     available: 'disponível',
-    'Game available': 'Jogos disponíveis',
+    'Game available': 'Jogo disponível',
     StreamForFreeWithAdsDesc:
-      'Por tempo limitado, jogue títulos selecionados gratuitamente pelo cloud gaming. Termos e limites de sessão se aplicam.',
+      'Por tempo limitado, jogue gratuitamente títulos selecionados por streaming na nuvem. Aplicam-se termos e limites de duração das sessões.',
     'Preview features': 'Recursos de prévia (Xbox Insider)',
     'Preview features description':
-      'Ative recursos de teste do Xbox Insider, como streaming em nuvem gratuito com anúncios',
-    'Estimated wait: ~{{min}} min': 'Espera estimada: ~{{min}} min',
-    'Estimated wait: < 1 min': 'Espera estimada: < 1 min',
+      'Ative recursos em fase de teste do Xbox Insider, como o streaming gratuito de jogos na nuvem com anúncios.',
+    'Estimated wait: ~{{min}} min': 'Tempo de espera estimado: cerca de {{min}} min',
+    'Estimated wait: < 1 min': 'Tempo de espera estimado: menos de 1 min',
     'No queue': 'Sem fila',
   },
 };
